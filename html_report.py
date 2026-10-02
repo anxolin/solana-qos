@@ -12,6 +12,25 @@ SOLSCAN = "https://solscan.io/account/"
 
 # Cause groups -> status token. Executed is good, the incident is critical,
 # other creation failures are serious, the rest is neutral.
+# Ladybug: red shell split down the middle, dark head and spots. 16px, theme tokens.
+LADYBUG = (
+    '<svg class="bug" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">'
+    '<circle cx="8" cy="3.6" r="2.4" class="bug-dark"/>'
+    '<ellipse cx="8" cy="9.4" rx="5.6" ry="5.4" class="bug-shell"/>'
+    '<line x1="8" y1="4.4" x2="8" y2="14.8" class="bug-line"/>'
+    '<circle cx="5.4" cy="8" r="1.1" class="bug-dark"/><circle cx="10.6" cy="8" r="1.1" class="bug-dark"/>'
+    '<circle cx="5.8" cy="11.6" r="0.9" class="bug-dark"/><circle cx="10.2" cy="11.6" r="0.9" class="bug-dark"/>'
+    "</svg>"
+)
+
+
+def order_cell(uid: str, note: str = "") -> str:
+    """Shortened order UID (full UID on hover) plus a ladybug link to the debug tool."""
+    return (f'<span class="order"><span class="mono" title="{uid}">{uid[:10]}…{uid[-4:]}</span>'
+            f'<a class="debug-link" href="{DEBUG}{uid}" target="_blank" rel="noopener" '
+            f'aria-label="Open order {uid[:10]} in the debug tool" title="Open in the debug tool">{LADYBUG}</a>{note}</span>')
+
+
 NEUTRAL = {"Expired without a fill", "Cancelled", "Still open"}
 
 
@@ -133,6 +152,12 @@ a:focus-visible, button:focus-visible, summary:focus-visible { outline: 2px soli
 details { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 12px 16px; }
 details > summary { cursor: pointer; font-weight: 600; }
 details[open] > summary { margin-bottom: 10px; }
+.order { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.debug-link { display: inline-flex; padding: 2px; border-radius: 4px; line-height: 0; }
+.debug-link:hover { background: var(--line); }
+.bug-shell { fill: var(--critical); }
+.bug-dark { fill: var(--ink); }
+.bug-line { stroke: var(--ink); stroke-width: 1; }
 #tip { position: fixed; pointer-events: none; z-index: 10; background: var(--ink); color: var(--bg);
   font-size: 12px; line-height: 1.4; padding: 6px 9px; border-radius: 5px; max-width: 260px; white-space: pre-line; }
 footer { color: var(--muted); font-size: 13px; display: grid; gap: 6px; }
@@ -386,8 +411,7 @@ def rate_limit_section(rl: dict, meta: dict, uids: set[str]) -> list[str]:
                        for k, v in rl["periods"].items()], {1, 2, 3}), "</div>"]
     out += ['<div class="panel"><h3>Orders using the most quote attempts</h3>',
             table(["Order", "Attempts", "Rate limited", "Solved"],
-                  [[f'<a class="mono" href="{DEBUG}{q["uid"]}">{q["uid"][:10]}…</a>'
-                    + ("" if q["in_report"] else ' <span class="meta">older order</span>'),
+                  [[order_cell(q["uid"], "" if q["in_report"] else ' <span class="meta">older order</span>'),
                     q["attempts"], q["rate_limited"], q["solved"]] for q in rl["top"]], {1, 2, 3}),
             '<p class="meta">“Older order” means it was created before this session, so it isn\'t in the order counts.</p></div>',
             "</div></section>"]
@@ -545,7 +569,7 @@ def render(*, session, meta, orders, by_solver, drivers, autopilot, sol, compari
 
     # Failed orders with cause filter
     h += ["<section><h2>Orders not executed</h2>",
-          f'<p><span id="failed-count">{len(failed)}</span> orders. Filter by cause; each order links to the debug tool.</p>',
+          f'<p><span id="failed-count">{len(failed)}</span> orders. Filter by cause; the ladybug opens the order in the debug tool.</p>',
           '<div class="chips" id="cause-filter" role="group" aria-label="Filter by cause">',
           f'<button type="button" id="cause-all" data-cause="*" aria-pressed="true">All <b>{len(failed)}</b></button>']
     for i, (k, v) in enumerate(fail_causes.most_common()):
@@ -555,7 +579,7 @@ def render(*, session, meta, orders, by_solver, drivers, autopilot, sol, compari
     h.append('<div class="panel" id="failed">' + table(
         ["Created (UTC)", "Pair", "Kind", "Cause", "Order"],
         [[o["creationDate"][11:19], escape(o["pair"]), o["kind"], escape(o["cause"]),
-          f'<a class="mono" href="{DEBUG}{o["uid"]}">{o["uid"][:10]}…</a>'] for o in failed],
+          order_cell(o["uid"])] for o in failed],
         attrs=[f'data-cause="{escape(o["cause"])}"' for o in failed]) + "</div></section>")
 
     h += ["<footer><span>Sources: barn autopilot and driver logs (VictoriaLogs), the barn Solana orderbook API, "

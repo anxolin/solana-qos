@@ -401,7 +401,7 @@ def cmd_report(a):
                          [[k, v["attempts"], v["rate_limited"], pct(v["rate_limited"], v["attempts"])] for k, v in rl["periods"].items()]), ""]
         md += ["Orders using the most Jupiter quote attempts:", ""]
         md += [table(["Order", "In this report", "Attempts", "Rate limited", "Solved"],
-                     [[f"`{q['uid'][:10]}`", "yes" if q["in_report"] else "no (older order)", q["attempts"], q["rate_limited"], q["solved"]]
+                     [[f"`{q['uid'][:10]}…` [🐞]({DEBUG}{q['uid']})", "yes" if q["in_report"] else "no (older order)", q["attempts"], q["rate_limited"], q["solved"]]
                       for q in rl["top"]]), ""]
 
     md += ["## Solvers", "", "### Settled orders (on-chain fee payer of the settlement tx)", ""]
@@ -481,7 +481,7 @@ def cmd_report(a):
         md += ["## Orders not executed", ""]
         md += [table(["Created (UTC)", "Pair", "Kind", "Cause", "Order"], [
             [o["creationDate"][11:19], o["pair"], o["kind"], o["cause"],
-             f"[{o['uid'][:10]}]({DEBUG}{o['uid']})"] for o in failed]), ""]
+             f"`{o['uid'][:10]}…` [🐞]({DEBUG}{o['uid']})"] for o in failed]), ""]
 
     out = session / "report.md"
     out.write_text("\n".join(md))
