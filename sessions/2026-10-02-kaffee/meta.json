@@ -1,0 +1,39 @@
+{
+ "start": "2026-10-02T12:00:00Z",
+ "end": "2026-10-02T14:30:00Z",
+ "fetched_at": "2026-10-02T14:33:02+00:00",
+ "title": "Kaffeekränzchen, 2 Oct 2026",
+ "incidents": [
+  {
+   "start": "2026-10-02T13:10:37Z",
+   "end": "2026-10-02T13:25:26Z",
+   "label": "Funder out of SOL",
+   "account": "6vFq2dRADQkpDAJK64Vm4JpEBygByRpjicwf4US9f9QW"
+  }
+ ],
+ "name": "Kaffeekränzchen QoS Report",
+ "changes": [
+  {
+   "at": "2026-10-02T13:47:16Z",
+   "label": "Jupiter solver bids in every auction",
+   "detail": "Before, the jupiter-solve driver sat out 4 of every 5 auctions (stride 5), so an order with no other bidder often waited past its creation blockhash. Backend changed the config; the new driver pod started at 13:47:16 UTC and never sat out an auction.",
+   "baseline_from": "2026-10-02T13:25:26Z",
+   "baseline_note": "Baseline starts after the funder top-up, so the outage doesn't distort it.",
+   "logs": {
+    "before": {
+     "jupiter-solve wins": 77,
+     "jupiter-solve settlements landed": 36,
+     "jupiter-solve rejected before submission": 31,
+     "Winners skipped, creation blockhash expired": 11
+    },
+    "after": {
+     "jupiter-solve wins": 65,
+     "jupiter-solve settlements landed": 52,
+     "jupiter-solve rejected before submission": 9,
+     "Winners skipped, creation blockhash expired": 1
+    }
+   },
+   "short": "Jupiter bids every auction"
+  }
+ ]
+}

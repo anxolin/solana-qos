@@ -1,0 +1,186 @@
+{
+ "_source": "container solana-jupiter-staging-solve; _msg in (solved, swap does not satisfy order, no solution for swap, quote failed[rate limited]) per 5m",
+ "bucket_min": 5,
+ "rows": [
+  {
+   "t": "2026-10-02T12:00:00Z",
+   "solved": 18,
+   "no_match": 20,
+   "rate_limited": 0
+  },
+  {
+   "t": "2026-10-02T12:05:00Z",
+   "solved": 3,
+   "no_match": 41,
+   "rate_limited": 16
+  },
+  {
+   "t": "2026-10-02T12:10:00Z",
+   "solved": 10,
+   "no_match": 34,
+   "rate_limited": 15
+  },
+  {
+   "t": "2026-10-02T12:15:00Z",
+   "solved": 12,
+   "no_match": 25,
+   "rate_limited": 2
+  },
+  {
+   "t": "2026-10-02T12:20:00Z",
+   "solved": 11,
+   "no_match": 22,
+   "rate_limited": 0
+  },
+  {
+   "t": "2026-10-02T12:25:00Z",
+   "solved": 12,
+   "no_match": 22,
+   "rate_limited": 0
+  },
+  {
+   "t": "2026-10-02T12:30:00Z",
+   "solved": 9,
+   "no_match": 22,
+   "rate_limited": 0
+  },
+  {
+   "t": "2026-10-02T12:35:00Z",
+   "solved": 11,
+   "no_match": 22,
+   "rate_limited": 0
+  },
+  {
+   "t": "2026-10-02T12:40:00Z",
+   "solved": 11,
+   "no_match": 22,
+   "rate_limited": 0
+  },
+  {
+   "t": "2026-10-02T12:45:00Z",
+   "solved": 10,
+   "no_match": 22,
+   "rate_limited": 0
+  },
+  {
+   "t": "2026-10-02T12:50:00Z",
+   "solved": 11,
+   "no_match": 24,
+   "rate_limited": 0
+  },
+  {
+   "t": "2026-10-02T12:55:00Z",
+   "solved": 8,
+   "no_match": 22,
+   "rate_limited": 0
+  },
+  {
+   "t": "2026-10-02T13:00:00Z",
+   "solved": 10,
+   "no_match": 20,
+   "rate_limited": 0
+  },
+  {
+   "t": "2026-10-02T13:05:00Z",
+   "solved": 13,
+   "no_match": 17,
+   "rate_limited": 3
+  },
+  {
+   "t": "2026-10-02T13:10:00Z",
+   "solved": 17,
+   "no_match": 22,
+   "rate_limited": 6
+  },
+  {
+   "t": "2026-10-02T13:15:00Z",
+   "solved": 18,
+   "no_match": 19,
+   "rate_limited": 3
+  },
+  {
+   "t": "2026-10-02T13:20:00Z",
+   "solved": 14,
+   "no_match": 22,
+   "rate_limited": 0
+  },
+  {
+   "t": "2026-10-02T13:25:00Z",
+   "solved": 19,
+   "no_match": 19,
+   "rate_limited": 5
+  },
+  {
+   "t": "2026-10-02T13:30:00Z",
+   "solved": 22,
+   "no_match": 22,
+   "rate_limited": 15
+  },
+  {
+   "t": "2026-10-02T13:35:00Z",
+   "solved": 21,
+   "no_match": 18,
+   "rate_limited": 9
+  },
+  {
+   "t": "2026-10-02T13:40:00Z",
+   "solved": 17,
+   "no_match": 27,
+   "rate_limited": 19
+  },
+  {
+   "t": "2026-10-02T13:45:00Z",
+   "solved": 15,
+   "no_match": 108,
+   "rate_limited": 62
+  },
+  {
+   "t": "2026-10-02T13:50:00Z",
+   "solved": 27,
+   "no_match": 181,
+   "rate_limited": 128
+  },
+  {
+   "t": "2026-10-02T13:55:00Z",
+   "solved": 23,
+   "no_match": 185,
+   "rate_limited": 104
+  },
+  {
+   "t": "2026-10-02T14:00:00Z",
+   "solved": 3,
+   "no_match": 214,
+   "rate_limited": 70
+  },
+  {
+   "t": "2026-10-02T14:05:00Z",
+   "solved": 0,
+   "no_match": 216,
+   "rate_limited": 54
+  },
+  {
+   "t": "2026-10-02T14:10:00Z",
+   "solved": 0,
+   "no_match": 220,
+   "rate_limited": 55
+  },
+  {
+   "t": "2026-10-02T14:15:00Z",
+   "solved": 0,
+   "no_match": 216,
+   "rate_limited": 54
+  },
+  {
+   "t": "2026-10-02T14:20:00Z",
+   "solved": 0,
+   "no_match": 220,
+   "rate_limited": 55
+  },
+  {
+   "t": "2026-10-02T14:25:00Z",
+   "solved": 0,
+   "no_match": 216,
+   "rate_limited": 54
+  }
+ ]
+}

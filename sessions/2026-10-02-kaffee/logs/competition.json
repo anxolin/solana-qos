@@ -1,0 +1,36 @@
+{
+  "_source": "VictoriaLogs (barn), container solana-autopilot-staging, 2026-10-02T12:00:00Z to 2026-10-02T14:30:00Z. See queries/logs.md.",
+  "drivers": {
+    "jupiter-solve": {
+      "solver": "5wNaPpozMcU19UY87NXU1Lfkzbfr9dQQW9SPh8AHLAgn",
+      "proposed": 346, "wins": 337, "submitted": 91, "observed_on_chain": 92,
+      "rejected_before_submission": {"SimulationFailed": 211, "FailedToCreate": 15},
+      "settlement_failed": {"FailedToSubmit": 4, "DeadlineExceeded": 1},
+      "settlement_missed_deadline": 5,
+      "solve_failed": {"SolverFailed": 2, "other": 1},
+      "solve_missed_deadline": 1
+    },
+    "rosato": {
+      "solver": "G6Zn8k6jFHrfZDB6GU1cVrBM8jM7avD6kdmc6bmS5797",
+      "proposed": 59, "wins": 52, "submitted": 8, "observed_on_chain": 8,
+      "rejected_before_submission": {"SimulationFailed": 43},
+      "solve_failed": {"SolverFailed": 51, "other": 2},
+      "solve_missed_deadline": 268
+    },
+    "fractal": {
+      "solver": "rM1mFonSoy4daW2CrwRGfBUdEs71QGA6ZwFGxNPGXBS",
+      "proposed": 53, "wins": 39, "submitted": 30, "observed_on_chain": 30,
+      "rejected_before_submission": {"SimulationFailed": 5},
+      "solve_failed": {"other": 7}
+    },
+    "zurui":    {"proposed": 0, "solve_failed": {"SolverFailed": 1497, "other": 2}},
+    "horadrim": {"proposed": 0, "solve_failed": {"SolverFailed": 1497, "other": 1}, "solve_missed_deadline": 1},
+    "grafiks":  {"proposed": 0, "solve_failed": {"SolverFailed": 279, "other": 1}, "solve_missed_deadline": 1},
+    "helixbox": {"proposed": 0, "solve_failed": {"other": 2}}
+  },
+  "autopilot": {
+    "winner_skipped_creation_blockhash_expired": 20,
+    "sponsored_creation_expired_orders": 20,
+    "filtered": {"in_flight": 361, "unreceivable_buy_token_account": 47}
+  }
+}
