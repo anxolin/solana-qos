@@ -8,5 +8,7 @@
   "traders": 2,
   "rows": 6,
   "solFundingPerTrader": 0.05
- }
+ },
+ "end": "2026-10-02T21:07:39.128Z",
+ "fetched_at": "2026-10-02T21:11:42+00:00"
 }

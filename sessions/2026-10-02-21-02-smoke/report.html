@@ -1,0 +1,221 @@
+<title>2026-10-02-21-02-smoke trade session</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+Condensed:wght@600&family=IBM+Plex+Sans:wght@400;600&display=swap">
+<style>
+/* Layout: one reading column (max 1080px), summary first, detail tables last. */
+:root {
+  --bg: #f7f8fa; --surface: #ffffff; --ink: #14161c; --ink-2: #4a4f5c; --muted: #7d8290;
+  --line: #e2e5eb; --axis: #c4c8d1; --accent: #4a3aa7; --band: rgba(208, 59, 59, 0.08);
+  --good: #0a8f0a; --critical: #d03b3b; --serious: #e0703f; --neutral: #a7abb5; --series: #2a78d6;
+  --font-ui: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --font-head: "IBM Plex Sans Condensed", "IBM Plex Sans", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #101217; --surface: #181b22; --ink: #f2f3f6; --ink-2: #c0c4ce; --muted: #8b909c;
+  --line: #2a2e38; --axis: #3a3f4b; --accent: #9085e9; --band: rgba(230, 103, 103, 0.12);
+  --good: #0ca30c; --critical: #e66767; --serious: #ec835a; --neutral: #6b7080; --series: #3987e5;
+  color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #101217; --surface: #181b22; --ink: #f2f3f6; --ink-2: #c0c4ce; --muted: #8b909c;
+  --line: #2a2e38; --axis: #3a3f4b; --accent: #9085e9; --band: rgba(230, 103, 103, 0.12);
+  --good: #0ca30c; --critical: #e66767; --serious: #ec835a; --neutral: #6b7080; --series: #3987e5;
+  color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font: 15px/1.55 var(--font-ui); }
+.wrap { max-width: 1080px; margin: 0 auto; padding-inline: 20px; padding-block: 40px 64px;
+  display: grid; gap: 40px; }
+header { display: grid; gap: 6px; }
+.eyebrow { font: 600 12px/1 var(--font-ui); letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+h1 { font: 600 34px/1.15 var(--font-head); margin: 0; text-wrap: balance; }
+h2 { font: 600 21px/1.25 var(--font-head); margin: 0; text-wrap: balance; }
+h3 { font: 600 15px/1.3 var(--font-ui); margin: 0; }
+p { margin: 0; max-width: 68ch; color: var(--ink-2); }
+.meta { color: var(--muted); font-size: 13px; }
+section { display: grid; gap: 14px; min-width: 0; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
+.tile { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px;
+  display: grid; gap: 4px; align-content: start; }
+.tile .k { font-size: 12px; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+.tile .v { font: 600 30px/1.1 var(--font-head); }
+.tile .s { font-size: 13px; color: var(--ink-2); }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 18px;
+  display: grid; gap: 14px; min-width: 0; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 13px; color: var(--ink-2); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.sw { width: 10px; height: 10px; border-radius: 2px; display: inline-block; flex: none; }
+.t-good { background: var(--good); fill: var(--good); }
+.t-critical { background: var(--critical); fill: var(--critical); }
+.t-serious { background: var(--serious); fill: var(--serious); }
+.t-muted { background: var(--neutral); fill: var(--neutral); }
+.t-series { background: var(--series); fill: var(--series); }
+.stack { display: flex; gap: 2px; height: 28px; border-radius: 4px; overflow: hidden; }
+.stack div { min-width: 2px; }
+svg text { fill: var(--muted); font: 11px var(--font-ui); font-variant-numeric: tabular-nums; }
+svg .grid { stroke: var(--line); stroke-width: 1; }
+svg .base { stroke: var(--axis); stroke-width: 1; }
+svg .band { fill: var(--band); }
+svg .band-edge { stroke: var(--critical); stroke-width: 1; stroke-dasharray: 3 3; }
+svg .band-label { fill: var(--critical); font-weight: 600; }
+svg .change { stroke: var(--accent); stroke-width: 2; }
+svg .change-label { fill: var(--accent); font-weight: 600; }
+.callout.change-box { border-left-color: var(--accent); }
+.callout.change-box .badge { color: var(--accent); }
+.deltas { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.delta { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px; display: grid; gap: 4px; }
+.delta .k { font-size: 12px; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+.delta .v { font: 600 26px/1.15 var(--font-head); display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.delta .v .from { color: var(--muted); font-weight: 400; font-size: 20px; }
+.delta .s { font-size: 13px; color: var(--ink-2); }
+.better { color: var(--good); font-weight: 600; }
+.worse { color: var(--critical); font-weight: 600; }
+.pair { display: grid; gap: 6px; }
+.pair .hbar { grid-template-columns: 70px 1fr auto; }
+svg [data-tip]:hover, .stack [data-tip]:hover { opacity: .8; }
+.callout { border: 1px solid var(--line); border-left: 3px solid var(--critical); border-radius: 6px;
+  background: var(--surface); padding: 14px 16px; display: grid; gap: 6px; }
+.callout .badge { font: 600 12px/1 var(--font-ui); letter-spacing: .06em; text-transform: uppercase; color: var(--critical); }
+.two { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
+.scroll { overflow-x: auto; min-width: 0; }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
+td.n, th.n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+code, .mono { font: 13px var(--font-data); }
+a { color: var(--accent); text-underline-offset: 2px; }
+a:focus-visible, button:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px; }
+.hbar { display: grid; grid-template-columns: minmax(90px, 160px) 1fr auto; gap: 10px; align-items: center; font-size: 14px; }
+.hbar .track { height: 14px; background: var(--line); border-radius: 0 4px 4px 0; overflow: hidden; }
+.hbar .fill { height: 100%; border-radius: 0 4px 4px 0; }
+.hbar .num { font-variant-numeric: tabular-nums; color: var(--ink-2); min-width: 7ch; text-align: right; }
+.bars { display: grid; gap: 8px; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chips button { font: 13px var(--font-ui); color: var(--ink-2); background: var(--surface);
+  border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px; }
+.chips button[aria-pressed="true"] { color: var(--ink); border-color: var(--ink-2); font-weight: 600; }
+details { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 12px 16px; }
+details > summary { cursor: pointer; font-weight: 600; }
+details[open] > summary { margin-bottom: 10px; }
+.order { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.debug-link { display: inline-flex; padding: 2px; border-radius: 4px; line-height: 0; }
+.debug-link:hover { background: var(--line); }
+.bug-shell { fill: var(--critical); }
+.bug-dark { fill: var(--ink); }
+.bug-line { stroke: var(--ink); stroke-width: 1; }
+.filter-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-2); }
+.filter-row input { font: 13px var(--font-data); color: var(--ink); background: var(--surface);
+  border: 1px solid var(--line); border-radius: 6px; padding: 6px 9px; width: 46ch; max-width: 100%; }
+.filter-row input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.filter-row .clear { font: 13px var(--font-ui); color: var(--ink-2); background: var(--surface);
+  border: 1px solid var(--line); border-radius: 6px; padding: 5px 10px; cursor: pointer; }
+.owner-pick { font: 13px var(--font-data); color: var(--accent); background: none; border: 0; padding: 0;
+  cursor: pointer; text-decoration: underline dotted; text-underline-offset: 3px; }
+#tip { position: fixed; pointer-events: none; z-index: 10; background: var(--ink); color: var(--bg);
+  font-size: 12px; line-height: 1.4; padding: 6px 9px; border-radius: 5px; max-width: 260px; white-space: pre-line; }
+footer { color: var(--muted); font-size: 13px; display: grid; gap: 6px; }
+@media (max-width: 520px) { h1 { font-size: 27px; } .tile .v { font-size: 26px; } .hbar { grid-template-columns: 90px 1fr auto; } }
+@media (prefers-reduced-motion: no-preference) { .fill, .stack div { transition: opacity .15s; } }
+</style>
+<div id="tip" hidden></div>
+<div class="wrap">
+<header><span class="eyebrow">CoW Protocol · Solana · barn</span>
+<h1>2026-10-02-21-02-smoke: order quality of service</h1>
+<span class="meta">Orders created 2026-10-02 21:02:54.664 → 21:07:39.128 UTC · data fetched 2026-10-02 21:11 UTC</span></header>
+<section aria-label="Summary"><div class="tiles">
+<div class="tile"><span class="k">Orders placed</span><span class="v">11</span><span class="s">by 2 traders</span></div>
+<div class="tile"><span class="k">Executed</span><span class="v">10</span><span class="s">90.9% fill rate</span></div>
+<div class="tile"><span class="k">Never created on-chain</span><span class="v">0</span><span class="s">0.0% of orders, all sponsored</span></div>
+<div class="tile"><span class="k">Time to execution</span><span class="v">18s</span><span class="s">median · p90 35s</span></div>
+</div></section>
+<section><h2>Where every order ended up</h2><div class="panel">
+<div class="stack" role="img" aria-label="Executed: 10, Expired without a fill: 1">
+<div class="t-good" style="flex:10" data-tip="Executed
+10 orders · 90.9%"></div>
+<div class="t-muted" style="flex:1" data-tip="Expired without a fill
+1 orders · 9.1%"></div>
+</div><div class="legend">
+<span><i class="sw t-good"></i>Executed <b>10</b></span>
+<span><i class="sw t-muted"></i>Expired without a fill <b>1</b></span>
+</div></div></section>
+<section><h2>Orders over the session</h2>
+<p>Orders placed per 5 minutes, split by whether they executed. Hover a bar for counts.</p>
+<div class="panel"><div class="legend"><span><i class="sw t-good"></i>Executed</span><span><i class="sw t-serious"></i>Not executed</span></div><div class="scroll"><svg viewBox="0 0 760 276" width="100%" role="img" aria-labelledby="tl-title"><title id="tl-title">Orders placed per 5 minutes, executed vs not executed</title><line class="base" x1="34" x2="750" y1="248.0" y2="248.0"/><text x="28" y="252.0" text-anchor="end">0</text><line class="grid" x1="34" x2="750" y1="196.5" y2="196.5"/><text x="28" y="200.5" text-anchor="end">2</text><line class="grid" x1="34" x2="750" y1="145.0" y2="145.0"/><text x="28" y="149.0" text-anchor="end">4</text><line class="grid" x1="34" x2="750" y1="93.5" y2="93.5"/><text x="28" y="97.5" text-anchor="end">6</text><line class="grid" x1="34" x2="750" y1="42.0" y2="42.0"/><text x="28" y="46.0" text-anchor="end">8</text><path class="t-good" d="M35.0,248.0 V148.0 Q35.0,145.0 38.0,145.0 H388.0 Q391.0,145.0 391.0,148.0 V248.0 Z" data-tip="21:00–21:05 UTC
+4 executed, 0 not executed"/><text x="213.0" y="268" text-anchor="middle">21:00</text><path class="t-good" d="M393.0,248.0 V93.5 Q393.0,93.5 393.0,93.5 H749.0 Q749.0,93.5 749.0,93.5 V248.0 Z" data-tip="21:05–21:10 UTC
+6 executed, 1 not executed"/><path class="t-serious" d="M393.0,91.5 V70.8 Q393.0,67.8 396.0,67.8 H746.0 Q749.0,67.8 749.0,70.8 V91.5 Z" data-tip="21:05–21:10 UTC
+6 executed, 1 not executed"/></svg></div></div></section>
+<section><h2>Why orders didn't execute</h2>
+<p>1 orders didn't execute. Causes come from the driver and autopilot logs.</p>
+<div class="panel">
+<div class="bars">
+<div class="hbar" style="grid-template-columns:minmax(0,1.4fr) 2fr auto" data-tip="Expired without a fill: 1 orders"><span>Expired without a fill</span><div class="track"><div class="fill t-muted" style="width:100.0%"></div></div><span class="num">1</span></div>
+</div></div></section>
+<section><h2>Solvers</h2>
+<p>Settled orders are credited to the fee payer of the settlement transaction on-chain.</p>
+<div class="two"><div class="panel"><h3>Orders settled</h3>
+<div class="bars"><div class="hbar" data-tip="jupiter-solve: 6
+6 txs"><span>jupiter-solve</span><div class="track"><div class="fill t-series" style="width:100.0%"></div></div><span class="num">6 · 60.0%</span></div><div class="hbar" data-tip="fractal: 2
+2 txs"><span>fractal</span><div class="track"><div class="fill t-series" style="width:33.3%"></div></div><span class="num">2 · 20.0%</span></div><div class="hbar" data-tip="rosato: 2
+2 txs"><span>rosato</span><div class="track"><div class="fill t-series" style="width:33.3%"></div></div><span class="num">2 · 20.0%</span></div></div>
+</div><div class="panel"><h3>Settlement detail</h3>
+<div class="scroll"><table><thead><tr><th class="">Solver</th><th class="n">Orders</th><th class="n">Median CU</th><th class="n">Median time</th></tr></thead><tbody><tr ><td class="">jupiter-solve</td><td class="n">6</td><td class="n">142,782</td><td class="n">22s</td></tr><tr ><td class="">fractal</td><td class="n">2</td><td class="n">50,361</td><td class="n">12s</td></tr><tr ><td class="">rosato</td><td class="n">2</td><td class="n">171,554</td><td class="n">5s</td></tr></tbody></table></div>
+</div></div>
+</section>
+<section><h2>Breakdowns</h2>
+<div class="two"><div class="panel"><h3>By order kind</h3>
+<div class="scroll"><table><thead><tr><th class="">Kind</th><th class="n">Placed</th><th class="n">Executed</th><th class="n">Fill rate</th></tr></thead><tbody><tr ><td class="">sell</td><td class="n">7</td><td class="n">6</td><td class="n">85.7%</td></tr><tr ><td class="">buy</td><td class="n">4</td><td class="n">4</td><td class="n">100.0%</td></tr></tbody></table></div>
+</div><div class="panel"><h3>Top token pairs</h3>
+<div class="scroll"><table><thead><tr><th class="">Pair</th><th class="n">Placed</th><th class="n">Executed</th><th class="n">Fill rate</th></tr></thead><tbody><tr ><td class="">JUP → SOL (native)</td><td class="n">3</td><td class="n">3</td><td class="n">100.0%</td></tr><tr ><td class="">USDC → SOL (native)</td><td class="n">2</td><td class="n">1</td><td class="n">50.0%</td></tr><tr ><td class="">wSOL → USDC</td><td class="n">2</td><td class="n">2</td><td class="n">100.0%</td></tr><tr ><td class="">JUP → wSOL</td><td class="n">1</td><td class="n">1</td><td class="n">100.0%</td></tr><tr ><td class="">USDC → JUP</td><td class="n">1</td><td class="n">1</td><td class="n">100.0%</td></tr><tr ><td class="">USDC → USDT</td><td class="n">1</td><td class="n">1</td><td class="n">100.0%</td></tr><tr ><td class="">wSOL → JUP</td><td class="n">1</td><td class="n">1</td><td class="n">100.0%</td></tr></tbody></table></div>
+</div></div>
+<details><summary>All 7 token pairs</summary>
+<div class="scroll"><table><thead><tr><th class="">Pair</th><th class="n">Placed</th><th class="n">Executed</th><th class="n">Fill rate</th></tr></thead><tbody><tr ><td class="">JUP → SOL (native)</td><td class="n">3</td><td class="n">3</td><td class="n">100.0%</td></tr><tr ><td class="">USDC → SOL (native)</td><td class="n">2</td><td class="n">1</td><td class="n">50.0%</td></tr><tr ><td class="">wSOL → USDC</td><td class="n">2</td><td class="n">2</td><td class="n">100.0%</td></tr><tr ><td class="">JUP → wSOL</td><td class="n">1</td><td class="n">1</td><td class="n">100.0%</td></tr><tr ><td class="">USDC → JUP</td><td class="n">1</td><td class="n">1</td><td class="n">100.0%</td></tr><tr ><td class="">USDC → USDT</td><td class="n">1</td><td class="n">1</td><td class="n">100.0%</td></tr><tr ><td class="">wSOL → JUP</td><td class="n">1</td><td class="n">1</td><td class="n">100.0%</td></tr></tbody></table></div>
+</details>
+<details><summary>All 2 traders</summary>
+<div class="scroll"><table><thead><tr><th class="">Owner</th><th class="n">Placed</th><th class="n">Executed</th><th class="n">Fill rate</th></tr></thead><tbody><tr ><td class=""><a class="mono" href="https://solscan.io/account/BQAD73uj3XftKnCB5ZB7P67b7AvEdfLefYbLiipch5oC">BQAD73…pch5oC</a></td><td class="n">6</td><td class="n">5</td><td class="n">83.3%</td></tr><tr ><td class=""><a class="mono" href="https://solscan.io/account/4p3tgZxpw2gKnJnVwQ4Ah3av47HywcXfFaXTFGNU2aTT">4p3tgZ…NU2aTT</a></td><td class="n">5</td><td class="n">5</td><td class="n">100.0%</td></tr></tbody></table></div>
+</details></section>
+<section><h2>Orders not executed</h2>
+<p><span id="failed-count">1</span> orders shown. Filter by cause or trader, or click a trader in the table; the ladybug opens the order in the debug tool.</p>
+<div class="chips" id="cause-filter" role="group" aria-label="Filter by cause">
+<button type="button" id="cause-all" data-cause="*" aria-pressed="true">All <b>1</b></button>
+<button type="button" id="cause-0" data-cause="Expired without a fill" aria-pressed="false"><i class="sw t-muted"></i>Expired without a fill <b>1</b></button>
+</div>
+<div class="filter-row"><label for="owner-filter">Trader</label><input id="owner-filter" type="search" list="owner-list" autocomplete="off" spellcheck="false" placeholder="Type any part of an address"><datalist id="owner-list"><option value="BQAD73uj3XftKnCB5ZB7P67b7AvEdfLefYbLiipch5oC">1 not executed</option></datalist><button type="button" id="owner-clear" class="clear">Clear</button></div>
+<div class="panel" id="failed"><div class="scroll"><table><thead><tr><th class="">Created (UTC)</th><th class="">Pair</th><th class="">Kind</th><th class="">Cause</th><th class="">Trader</th><th class="">Order</th></tr></thead><tbody><tr data-cause="Expired without a fill" data-owner="BQAD73uj3XftKnCB5ZB7P67b7AvEdfLefYbLiipch5oC"><td class="">21:06:52</td><td class="">USDC → SOL (native)</td><td class="">sell</td><td class="">Expired without a fill</td><td class=""><button type="button" class="owner-pick mono" data-owner="BQAD73uj3XftKnCB5ZB7P67b7AvEdfLefYbLiipch5oC" title="Show only BQAD73uj3XftKnCB5ZB7P67b7AvEdfLefYbLiipch5oC">BQAD73…h5oC</button></td><td class=""><span class="order"><span class="mono" title="0x5d3aec2d7813f2496fe973f2c12abc2371094e1fcbafe5a64d43362e99def183">0x5d3aec2d…f183</span><a class="debug-link" href="https://debug.barn.cow.fi/order/0x5d3aec2d7813f2496fe973f2c12abc2371094e1fcbafe5a64d43362e99def183" target="_blank" rel="noopener" aria-label="Open order 0x5d3aec2d in the debug tool" title="Open in the debug tool"><svg class="bug" viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><circle cx="8" cy="3.6" r="2.4" class="bug-dark"/><ellipse cx="8" cy="9.4" rx="5.6" ry="5.4" class="bug-shell"/><line x1="8" y1="4.4" x2="8" y2="14.8" class="bug-line"/><circle cx="5.4" cy="8" r="1.1" class="bug-dark"/><circle cx="10.6" cy="8" r="1.1" class="bug-dark"/><circle cx="5.8" cy="11.6" r="0.9" class="bug-dark"/><circle cx="10.2" cy="11.6" r="0.9" class="bug-dark"/></svg></a></span></td></tr></tbody></table></div></div></section>
+<footer><span>Sources: barn autopilot and driver logs (VictoriaLogs), the barn Solana orderbook API, and Solana RPC for settlement transactions.</span>
+<span>Generated by <code>solana-qos</code>: <code>./qos.py report --session 2026-10-02-21-02-smoke</code></span></footer>
+</div>
+<script>
+const tip = document.getElementById('tip');
+document.addEventListener('pointermove', e => {
+  const t = e.target.closest('[data-tip]');
+  if (!t) { tip.hidden = true; return; }
+  tip.textContent = t.dataset.tip; tip.hidden = false;
+  const x = Math.min(e.clientX + 14, window.innerWidth - tip.offsetWidth - 8);
+  tip.style.left = x + 'px'; tip.style.top = (e.clientY + 16) + 'px';
+});
+document.addEventListener('pointerleave', () => { tip.hidden = true; });
+const chips = document.querySelectorAll('#cause-filter button');
+const ownerSel = document.getElementById('owner-filter');
+const rows = document.querySelectorAll('#failed tbody tr');
+const count = document.getElementById('failed-count');
+let cause = '*';
+function applyFilters() {
+  const owner = ownerSel.value.trim().toLowerCase();
+  let n = 0;
+  rows.forEach(r => {
+    const show = (cause === '*' || r.dataset.cause === cause) && (!owner || r.dataset.owner.toLowerCase().includes(owner));
+    r.hidden = !show; n += show;
+  });
+  count.textContent = n;
+}
+chips.forEach(b => b.addEventListener('click', () => {
+  chips.forEach(c => c.setAttribute('aria-pressed', c === b ? 'true' : 'false'));
+  cause = b.dataset.cause; applyFilters();
+}));
+ownerSel.addEventListener('input', applyFilters);
+document.getElementById('owner-clear').addEventListener('click', () => { ownerSel.value = ''; applyFilters(); ownerSel.focus(); });
+document.querySelectorAll('#failed .owner-pick').forEach(b => b.addEventListener('click', () => {
+  ownerSel.value = b.dataset.owner; applyFilters();
+  ownerSel.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+}));
+</script>
