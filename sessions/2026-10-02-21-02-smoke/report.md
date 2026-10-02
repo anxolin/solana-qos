@@ -40,15 +40,6 @@ From order creation (API) to the settlement's block time (RPC).
 |---|---|---|---|
 | 18s | 24s | 35s | 35s |
 
-## Jupiter rate limiting
-
-0 of 19 Jupiter quote attempts (0.0%) were rejected with `rate limited`. 0 orders never executed: Jupiter's quotes for them were rate limited, it never found a solution, and no other solver bid.
-
-Orders using the most Jupiter quote attempts:
-
-| Order | In this report | Attempts | Rate limited | Solved |
-|---|---|---|---|---|
-
 ## Solvers
 
 ### Settled orders (on-chain fee payer of the settlement tx)

@@ -452,6 +452,8 @@ def cmd_report(a):
         md += [table(["Metric", f"Before ({b0:%H:%M}–{b1:%H:%M})", f"After ({a0:%H:%M}–{a1:%H:%M})"], rows), ""]
 
     rl = rate_limit_summary(session, orders, quotes, meta)
+    if rl and not rl["rate_limited"]:
+        rl = None  # nothing was rate limited: no section, no warning
     if rl:
         md += ["## Jupiter rate limiting", "",
                f"{rl['rate_limited']} of {rl['attempts']} Jupiter quote attempts ({pct(rl['rate_limited'], rl['attempts'])}) "
