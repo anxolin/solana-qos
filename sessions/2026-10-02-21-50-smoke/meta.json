@@ -1,0 +1,15 @@
+{
+ "name": "2026-10-02-21-50-smoke trade session",
+ "title": "2026-10-02-21-50-smoke",
+ "start": "2026-10-02T21:50:48.955Z",
+ "env": "staging",
+ "sim": {
+  "scenario": "/Users/anxo/Bunker/code/cow/solana-qos/scenarios/smoke.csv",
+  "traders": 2,
+  "rows": 6,
+  "solFundingPerTrader": 0.05
+ },
+ "trading_end": "2026-10-02T21:53:04.338Z",
+ "end": "2026-10-02T21:59:28.377Z",
+ "fetched_at": "2026-10-02T21:59:05+00:00"
+}

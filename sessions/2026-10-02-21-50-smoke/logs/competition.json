@@ -1,0 +1,66 @@
+{
+ "_source": "VictoriaLogs via Grafana, container solana-autopilot-staging",
+ "drivers": {
+  "fractal": {
+   "wins": 2,
+   "solver": "rM1mFonSoy4daW2CrwRGfBUdEs71QGA6ZwFGxNPGXBS",
+   "proposed": 17,
+   "observed_on_chain": 2,
+   "submitted": 2
+  },
+  "jupiter-solve": {
+   "submitted": 7,
+   "observed_on_chain": 7,
+   "solver": "5wNaPpozMcU19UY87NXU1Lfkzbfr9dQQW9SPh8AHLAgn",
+   "wins": 7,
+   "proposed": 8
+  },
+  "rosato": {
+   "submitted": 2,
+   "proposed": 31,
+   "observed_on_chain": 2,
+   "solver": "G6Zn8k6jFHrfZDB6GU1cVrBM8jM7avD6kdmc6bmS5797",
+   "solve_missed_deadline": 1,
+   "settlement_missed_deadline": 1,
+   "wins": 4,
+   "settlement_failed": {
+    "FailedToSubmit": 1
+   },
+   "rejected_before_submission": {
+    "SimulationFailed": 1
+   }
+  },
+  "paradox": {
+   "wins": 19,
+   "solver": "5sPVf9pJg9ZHHspRh6UCQPJc3KaSUWANuZX91uhkwrm7",
+   "proposed": 35,
+   "rejected_before_submission": {
+    "SimulationFailed": 19
+   }
+  },
+  "zurui": {
+   "solve_failed": {
+    "SolverFailed": 97
+   }
+  },
+  "horadrim": {
+   "solve_failed": {
+    "SolverFailed": 97
+   }
+  },
+  "grafiks": {
+   "solve_failed": {
+    "SolverFailed": 4
+   }
+  }
+ },
+ "autopilot": {
+  "winner_skipped_creation_blockhash_expired": 0,
+  "sponsored_creation_expired_orders": 0,
+  "filtered": {
+   "unfunded_sell_token_account": 97,
+   "unpayable_native_buy": 52,
+   "in_flight": 19
+  }
+ }
+}

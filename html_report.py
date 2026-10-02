@@ -442,21 +442,24 @@ def rate_limit_section(rl: dict, meta: dict, uids: set[str]) -> list[str]:
     return out
 
 
-def scenario_section(journal: dict) -> list[str]:
+def scenario_section(journal: dict, orders: list[dict], cleanup: list[dict]) -> list[str]:
     rows = journal["rows"]
     done = sum(r["status"] == "filled" for r in rows)
+    main = sum(o.get("step") == "main" for o in orders)
     pill = {"filled": "t-good", "failed": "t-critical", "running": "t-muted"}
     return ["<section><h2>Scenario</h2>",
             f"<p>{done} of {len(rows)} scenario rows completed, with {journal['retries']} retries and "
-            f"{journal['place_errors']} placement errors. Each row may place an acquiring order before its main order.</p>",
-            '<div class="panel">' + table(["Row", "Trader", "Trade", "Result", "Orders", "Reason"], [
-                [r["row"], f"t{r['trader']}", escape(r["trade"]),
+            f"{journal['place_errors']} placement errors. {len(orders)} scenario orders: {main} main and {len(orders) - main} "
+            f"acquiring the sell token first.{f' Cleanup placed {len(cleanup)} more (next section).' if cleanup else ''}</p>",
+            '<div class="panel">' + table(["Started (UTC)", "Row", "Trader", "Trade", "Result", "Took", "Orders", "Reason"], [
+                [r["started"][11:19], r["row"], f"t{r['trader']}", escape(r["trade"]),
                  f'<span class="order"><i class="sw {pill.get(r["status"], "t-muted")}"></i>{escape(r["status"])}</span>',
-                 r["orders"], escape(r["reason"])] for r in rows], {0, 4}) + "</div></section>"]
+                 f"{r['seconds']:.0f}s" if r.get("seconds") is not None else "", r["orders"], escape(r["reason"])]
+                for r in rows], {1, 5, 6}) + "</div></section>"]
 
 
 def render(*, session, meta, orders, by_solver, drivers, autopilot, sol, comparisons=(), rate_limits=None,
-           journal=None, logs_note=None) -> str:
+           journal=None, logs_note=None, cleanup_orders=()) -> str:
     incidents = meta.get("incidents", [])
     inc_labels = {i["label"] for i in incidents}
     n = len(orders)
@@ -493,7 +496,15 @@ def render(*, session, meta, orders, by_solver, drivers, autopilot, sol, compari
         for k, v, s in tiles] + ["</div></section>"]
 
     if journal and journal["rows"]:
-        h += scenario_section(journal)
+        h += scenario_section(journal, orders, list(cleanup_orders))
+    if cleanup_orders:
+        h += ["<section><h2>Cleanup</h2>",
+              f"<p>{len(cleanup_orders)} orders sold the traders' leftover tokens back to SOL. They're tooling, not scenario "
+              "traffic, so they're left out of every other section.</p>",
+              '<div class="panel">' + table(["Created (UTC)", "Trader", "Pair", "Result", "Order"], [
+                  [o["creationDate"][11:19], f"t{o['sim_trader']}" if o.get("sim_trader") else "", escape(o["pair"]),
+                   f'<span class="order"><i class="sw t-{tone(o["cause"], inc_labels)}"></i>{escape(o["cause"])}</span>',
+                   order_cell(o["uid"])] for o in cleanup_orders]) + "</div></section>"]
 
     # Outcome stack, ordered good -> critical -> serious -> neutral.
     order_rank = {"good": 0, "critical": 1, "serious": 2, "muted": 3}

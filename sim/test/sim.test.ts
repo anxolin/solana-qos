@@ -75,6 +75,12 @@ describe('generator', () => {
     expect(mulberry32(1)()).toBe(mulberry32(1)())
   })
 
+  it('keeps the budget at higher intensity and produces more trades', () => {
+    const hot = generate({ ...opts, intensity: 3, minGap: 20 })
+    for (const p of hot) expect(p.spendSol).toBeLessThanOrEqual(opts.solPerTrader - TRADER_RESERVE_SOL + 1e-9)
+    expect(hot.flatMap((p) => p.rows).length).toBeGreaterThan(generate(opts).flatMap((p) => p.rows).length)
+  })
+
   it('keeps every trader within budget', () => {
     for (const p of generate(opts)) expect(p.spendSol).toBeLessThanOrEqual(opts.solPerTrader - TRADER_RESERVE_SOL + 1e-9)
   })

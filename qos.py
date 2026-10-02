@@ -147,16 +147,22 @@ def cmd_fetch(a):
 
     with ThreadPoolExecutor(8) as pool:
         found = [o for o in pool.map(lambda u: http_json(f"{API}/v1/orders/{u}"), seeds) if o]
-        seeded = [o for o in found if start <= ts(o["creationDate"]) < end]
-        owners = sorted({o["owner"] for o in seeded})
-        print(f"seeds: {len(seeds)}, {len(found)} found, {len(seeded)} created in window, owners: {len(owners)}")
-
-        orders = {o["uid"]: o for o in seeded}
-        for batch in pool.map(lambda w: owner_orders(w, start), owners):
-            for o in batch:
-                if ts(o["creationDate"]) < end:
-                    orders.setdefault(o["uid"], o)
-        print(f"orders in window: {len(orders)} ({len(orders) - len(seeded)} not in the logs)")
+        if meta.get("sim"):
+            # A simulated session is exactly what sim/ placed (cleanup included), whatever the time window.
+            seeded = found
+            owners = sorted({o["owner"] for o in seeded})
+            orders = {o["uid"]: o for o in seeded}
+            print(f"seeds: {len(seeds)}, {len(found)} found (simulated session: no window filter), owners: {len(owners)}")
+        else:
+            seeded = [o for o in found if start <= ts(o["creationDate"]) < end]
+            owners = sorted({o["owner"] for o in seeded})
+            print(f"seeds: {len(seeds)}, {len(found)} found, {len(seeded)} created in window, owners: {len(owners)}")
+            orders = {o["uid"]: o for o in seeded}
+            for batch in pool.map(lambda w: owner_orders(w, start), owners):
+                for o in batch:
+                    if ts(o["creationDate"]) < end:
+                        orders.setdefault(o["uid"], o)
+            print(f"orders in window: {len(orders)} ({len(orders) - len(seeded)} not in the logs)")
 
         trades = defaultdict(list)
         for batch in pool.map(owner_trades, owners):
@@ -346,17 +352,19 @@ def read_journal(session: Path) -> dict | None:
         e = json.loads(line)
         ev, row = e.get("event"), e.get("row")
         if ev == "placed":
-            orders[e["uid"]] = {"step": e.get("step"), "row": row, "attempt": e.get("attempt", 0),
+            orders[e["uid"]] = {"step": e.get("step"), "row": row, "trader": e.get("trader"), "attempt": e.get("attempt", 0),
                                 "forced_self": bool(e.get("forcedSelf"))}
         elif ev == "place_error":
             place_errors += 1
         elif ev == "retry":
             retries += 1
         elif ev == "row_start":
-            rows[row] = {"row": row, "trader": e.get("trader"), "trade": f"{e.get('type')} {e.get('amount')} {e.get('token')} "
+            rows[row] = {"row": row, "started": e.get("ts", ""), "seconds": None, "trader": e.get("trader"), "trade": f"{e.get('type')} {e.get('amount')} {e.get('token')} "
                          f"{'→' if e.get('type') == 'sell' else '←'} {e.get('other')}", "status": "running", "reason": "", "orders": 0}
         elif ev in ("row_done", "row_failed") and row in rows:
             rows[row]["status"] = "filled" if ev == "row_done" else "failed"
+            if rows[row]["started"] and e.get("ts"):
+                rows[row]["seconds"] = (ts(e["ts"]) - ts(rows[row]["started"])).total_seconds()
             rows[row]["reason"] = e.get("reason", "")
     for info in orders.values():
         if info["row"] in rows:
@@ -391,11 +399,16 @@ def cmd_report(a):
         o["outcome"] = outcome(o, creation_expired)
         o["cause"] = cause(o, failures, incidents, quotes)
         info = (journal or {}).get("orders", {}).get(o["uid"], {})
-        o["step"], o["row"] = info.get("step", ""), info.get("row", "")
+        o["step"], o["row"], o["sim_trader"] = info.get("step", ""), info.get("row", ""), info.get("trader")
         o["pair"] = f"{tok(o['sellToken'])} → {tok(o['buyToken'])}"
         times = [t["tx"].get("block_time") for t in o["trades"] if t["tx"].get("block_time")]
         o["latency"] = min(times) - ts(o["creationDate"]).timestamp() if times else None
         o["solver"] = next((t["tx"]["fee_payer"] for t in o["trades"] if t["tx"].get("fee_payer")), None)
+
+    # Cleanup orders are tooling, not scenario traffic: listed in their own section, kept out of the stats.
+    cleanup_orders = [o for o in orders if o["step"] == "cleanup"]
+    all_orders = orders
+    orders = [o for o in orders if o["step"] != "cleanup"]
 
     n = len(orders)
     executed = [o for o in orders if o["outcome"] == "executed"]
@@ -423,8 +436,17 @@ def cmd_report(a):
         md += ["## Scenario", "",
                f"{done} of {len(rows_)} scenario rows completed. {journal['retries']} retries, "
                f"{journal['place_errors']} placement errors (from `sim/journal.jsonl`).", ""]
-        md += [table(["Row", "Trader", "Trade", "Result", "Orders", "Reason"],
-                     [[r["row"], r["trader"], r["trade"], r["status"], r["orders"], r["reason"]] for r in rows_]), ""]
+        md += [table(["Started (UTC)", "Row", "Trader", "Trade", "Result", "Took", "Orders", "Reason"],
+                     [[r["started"][11:19], r["row"], r["trader"], r["trade"], r["status"],
+                       f"{r['seconds']:.0f}s" if r["seconds"] is not None else "", r["orders"], r["reason"]] for r in rows_]), ""]
+        main = sum(o["step"] == "main" for o in orders)
+        md += [f"Scenario orders: {len(orders)} ({main} main, {len(orders) - main} acquire). "
+               f"Cleanup placed {len(cleanup_orders)} more, listed below and left out of the stats.", ""]
+    if cleanup_orders:
+        md += ["## Cleanup", ""]
+        md += [table(["Created (UTC)", "Trader", "Pair", "Result", "Order"], [
+            [o["creationDate"][11:19], o["sim_trader"] or "", o["pair"], o["cause"],
+             f"`{o['uid'][:10]}…` [🐞]({DEBUG}{o['uid']})"] for o in cleanup_orders]), ""]
 
     md += ["## Order outcomes", ""]
     md += [table(["Outcome", "Orders", "Share"],
@@ -558,7 +580,7 @@ def cmd_report(a):
         w.writerow(["created_utc", "uid", "owner", "sell_token", "buy_token", "sell_symbol", "buy_symbol",
                     "kind", "sell_amount", "buy_amount", "executed_sell", "executed_buy", "api_status",
                     "cause", "solver", "seconds_to_execution", "tx_signature", "sim_row", "sim_step"])
-        for o in orders:
+        for o in all_orders:
             w.writerow([o["creationDate"], o["uid"], o["owner"], o["sellToken"], o["buyToken"],
                         tok(o["sellToken"]), tok(o["buyToken"]), o["kind"], o["sellAmount"], o["buyAmount"],
                         o["executedSellAmount"], o["executedBuyAmount"], o["status"], o["cause"],
@@ -576,7 +598,7 @@ def cmd_report(a):
     out.write_text(html_report.render(
         session=a.session, meta=meta, orders=orders, by_solver=by_solver,
         drivers=drivers, autopilot=comp.get("autopilot", {}), sol=sol, comparisons=comparisons, rate_limits=rl,
-        journal=journal, logs_note=None if logs_available else LOGS_MISSING,
+        journal=journal, logs_note=None if logs_available else LOGS_MISSING, cleanup_orders=cleanup_orders,
     ))
     print(f"wrote {out}")
 

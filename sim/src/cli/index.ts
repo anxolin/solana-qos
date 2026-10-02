@@ -45,15 +45,23 @@ async function confirm(question: string, yes: boolean) {
   }
 }
 
-/** Rough wall-clock estimate in minutes: a trader's rows run back to back, then cleanup runs 5 traders at a time. */
+/** Funding that covers the biggest planned spend plus the fee/rent reserve, with a 25% margin, rounded up to 0.01 SOL. */
+export function recommendFunding(maxSpendSol: number): number {
+  return Math.ceil((maxSpendSol + TRADER_RESERVE_SOL) * 1.25 * 100) / 100
+}
+
+/** Traders cleaned up at once; the shared RPC and orderbook limiters keep this safe. */
+const CLEANUP_PARALLEL = 25
+
+/** Rough wall-clock estimate in minutes: a trader's rows run back to back, then cleanup runs in parallel batches. */
 function estimateDuration(rows: TradeRow[], traders: number) {
   const ORDER_S = 30 // measured: orders fill in ~6-47s, ~25s on average
   const ROW_S = ORDER_S * 1.3 // some rows also acquire their sell token first
-  const CLEANUP_PER_TRADER_S = 60
+  const CLEANUP_BATCH_S = 90 // a batch of traders sells leftovers in parallel
   const busyUntil = new Map<number, number>()
   for (const r of rows) busyUntil.set(r.trader, Math.max(r.time, busyUntil.get(r.trader) ?? 0) + ROW_S)
   const trading = Math.max(...busyUntil.values())
-  const total = 30 + trading + Math.ceil(traders / 5) * CLEANUP_PER_TRADER_S
+  const total = 30 + trading + Math.ceil(traders / CLEANUP_PARALLEL) * CLEANUP_BATCH_S
   const min = (sec: number) => Math.max(1, Math.round(sec / 60))
   return { total: min(total), trading: min(trading) }
 }
@@ -132,6 +140,13 @@ async function dryRun(ctx: FlowContext, w: ReturnType<typeof wallets>, rows: Tra
     const s = lamportsToSol(l)
     console.log(`  ${c.blue(`trader ${String(t).padStart(2)}`)}  ${s > budget ? c.red(`${s.toFixed(4)} SOL  over budget (${budget.toFixed(3)} after reserve)`) : `${s.toFixed(4)} SOL`}`)
   }
+  const maxSpend = Math.max(0, ...[...spend.values()].map((l) => lamportsToSol(l)))
+  const perTrader = recommendFunding(maxSpend)
+  const traders = new Set(rows.map((r) => r.trader)).size
+  console.log(`\n${c.bold('Recommended funding')}`)
+  console.log(`  ${c.dim('Per trader')}  ${c.green(`${perTrader} SOL`)} ${c.dim(`(max spend ${maxSpend.toFixed(4)} + ${TRADER_RESERVE_SOL} reserve, +25% margin)`)}`)
+  console.log(`  ${c.dim('Total     ')}  ${c.bold(`${(perTrader * traders).toFixed(2)} SOL`)} ${c.dim(`for ${traders} traders; most of it comes back at cleanup`)}`)
+  console.log(`  ${c.dim('Run with  ')}  --sol-funding-per-trader ${perTrader}`)
   if (problems.length) console.log(`\n${ui.error(`${problems.length} rows can't be quoted:`)}\n  ${problems.map((p) => c.red(p)).join('\n  ')}`)
   else console.log(`\n${ui.ok('Every row quotes.')}`)
 }
@@ -247,7 +262,7 @@ program
       }),
     )
     watching = false
-    session.writeMeta({ end: new Date(Date.now() + 60_000).toISOString() })
+    session.writeMeta({ trading_end: new Date().toISOString(), end: new Date(Date.now() + 60_000).toISOString() })
 
     const filled = results.filter((r) => r.status === 'filled').length
     console.log(`\n${(filled === results.length ? c.green : c.yellow)(c.bold(`${filled}/${results.length} rows filled`))}, ${results.reduce((s, r) => s + r.orders, 0)} orders placed.`)
@@ -255,7 +270,9 @@ program
 
     if (opts.cleanup) {
       log(c.bold('🧹 Cleaning up'))
-      await pool(traders, 5, (n) => cleanupTrader(ctx, w, n, opts.env))
+      await pool(traders, CLEANUP_PARALLEL, (n) => cleanupTrader(ctx, w, n, opts.env))
+      // The session window covers cleanup too, so log queries see its orders.
+      session.writeMeta({ end: new Date(Date.now() + 30_000).toISOString() })
     }
     if (opts.report) {
       for (const cmd of [...(logsConfigured(opts.env) ? ['logs'] : []), 'fetch', 'report']) spawnSync('python3', [resolve(QOS_ROOT, 'qos.py'), cmd, '--session', session.name], { stdio: 'inherit' })
@@ -281,7 +298,7 @@ program
     console.log(`${c.bold(active.length)} of ${traders.length} traders hold SOL or token accounts.`)
     if (!active.length) return
     await confirm(`Clean up traders ${active.join(', ')}?`, opts.yes)
-    const res = await pool(active, 5, (n) => cleanupTrader(ctx, w, n, opts.env))
+    const res = await pool(active, CLEANUP_PARALLEL, (n) => cleanupTrader(ctx, w, n, opts.env))
     const swept = res.reduce((s, r) => s + r.swept, 0n)
     console.log(`\n${ui.ok(`Swept ${fmtSol(swept)} to the funder.`)}`)
     const left = res.filter((r) => r.leftover.length)
@@ -299,6 +316,7 @@ program
   .option('--seed <n>', 'random seed (same seed, same file)', (v) => parseInt(v, 10), Date.now() % 1_000_000)
   .addOption(new Option('--mix <mix>', 'persona mix').choices(Object.keys(MIXES)).default('mixed'))
   .option('--self-ratio <r>', 'share of rows placed self-paid', parseFloat, 0)
+  .option('--intensity <x>', 'trade x times more often, with x times smaller trades', parseFloat, 1)
   .option('--min-gap <s>', "minimum seconds between one trader's flows (0 = back to back)", (v) => parseInt(v, 10), MIN_GAP_S)
   .option('--universe <file>', 'token universe JSON')
   .action(async (opts) => {
@@ -316,13 +334,14 @@ program
       universe,
       priceSol,
       minGap: opts.minGap,
+      intensity: opts.intensity,
     })
     const rows = plans.flatMap((p) => p.rows).sort((a, b) => a.time - b.time || a.trader - b.trader)
     writeScenario(
       opts.out,
       rows,
       `generate-trade-session --traders ${opts.traders} --duration ${opts.duration} --sol-amount-per-trader ${opts.solAmountPerTrader} ` +
-        `--seed ${opts.seed} --mix ${opts.mix} --self-ratio ${opts.selfRatio}\nSOL price $${solUsd.toFixed(2)} at ${new Date().toISOString()}`,
+        `--seed ${opts.seed} --mix ${opts.mix} --self-ratio ${opts.selfRatio} --intensity ${opts.intensity} --min-gap ${opts.minGap}\nSOL price $${solUsd.toFixed(2)} at ${new Date().toISOString()}`,
     )
     console.log(`${ui.ok(`Wrote ${rows.length} rows`)} for ${plans.length} traders to ${c.cyan(opts.out)} ${c.dim(`(seed ${opts.seed})`)}`)
     const byPersona = new Map<string, number>()
@@ -330,6 +349,9 @@ program
     console.log(`Personas: ${[...byPersona].map(([k, v]) => `${k} ${v}`).join(', ')}`)
     const maxSpend = Math.max(...plans.map((p) => p.spendSol))
     console.log(`Planned SOL spend per trader: max ${maxSpend.toFixed(4)} of ${(opts.solAmountPerTrader - TRADER_RESERVE_SOL).toFixed(4)} available (reserve ${TRADER_RESERVE_SOL}).`)
+    const rec = recommendFunding(maxSpend)
+    console.log(`Recommended funding: ${c.green(`--sol-funding-per-trader ${rec}`)} (${(rec * plans.length).toFixed(2)} SOL total). ` +
+      c.dim('Run --dry-run for a figure from live quotes.'))
   })
 
 program

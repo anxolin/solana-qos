@@ -34,6 +34,8 @@ export interface GenerateOptions {
   priceSol: Record<string, number>
   /** Minimum seconds between one trader's flows (default MIN_GAP_S). */
   minGap?: number
+  /** Multiplies how often each persona trades; trade sizes shrink by the same factor so the budget still holds. */
+  intensity?: number
 }
 
 /** Deterministic PRNG so a seed always produces the same file. */
@@ -78,6 +80,7 @@ export function generate(o: GenerateOptions): TraderPlan[] {
   const tradables = of('stable', 'major', 'lst', 'meme')
   const durationS = o.durationMin * 60
   const minGap = o.minGap ?? MIN_GAP_S
+  const intensity = o.intensity ?? 1
 
   return Array.from({ length: o.traders }, (_, i): TraderPlan => {
     const trader = i + 1
@@ -87,7 +90,7 @@ export function generate(o: GenerateOptions): TraderPlan[] {
     const rows: Omit<TradeRow, 'row'>[] = []
     let spent = 0
 
-    const n = Math.max(1, Math.round(ACTIVITY[who] * (o.durationMin / 10) * range(0.6, 1.4)))
+    const n = Math.max(1, Math.round(ACTIVITY[who] * intensity * (o.durationMin / 10) * range(0.6, 1.4)))
     const meanGap = durationS / n
     let t = Math.round(range(0, Math.min(60, durationS * 0.2)))
 
@@ -113,7 +116,9 @@ export function generate(o: GenerateOptions): TraderPlan[] {
 
     for (let k = 0; k < n && t <= durationS; k++) {
       const m = mode()
-      const budgetSlice = (a: number, b: number) => Math.min(spendable, (o.solPerTrader - TRADER_RESERVE_SOL) * range(a, b))
+      // Shrink with intensity, but never below the smallest trade worth placing (raise it while the budget allows).
+      const budgetSlice = (a: number, b: number) =>
+        Math.min(spendable, Math.max(MIN_TRADE_SOL * 1.2, ((o.solPerTrader - TRADER_RESERVE_SOL) * range(a, b)) / Math.max(1, intensity)))
       let row: Omit<TradeRow, 'row'> | null = null
 
       const sellHeldTo = (from: UniverseToken[], to: () => string) => {
