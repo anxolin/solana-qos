@@ -17,9 +17,18 @@ export class Rpc {
   private readonly limiter: RateLimiter
   private readonly decimals = new Map<string, number>()
 
-  constructor(url: string, rps = 20) {
-    this.connection = new Connection(url, 'confirmed')
+  /** Heavy calls (token account scans) get their own, slower lane: RPCs rate-limit them per method. */
+  private readonly heavy: RateLimiter
+
+  constructor(url: string, rps = 10) {
+    // web3.js's own 429 retry is noisy and short; ours backs off longer and quietly.
+    this.connection = new Connection(url, { commitment: 'confirmed', disableRetryOnRateLimit: true })
     this.limiter = new RateLimiter(rps)
+    this.heavy = new RateLimiter(Math.max(1, Math.floor(rps / 4)))
+  }
+
+  private callHeavy<T>(fn: (c: Connection) => Promise<T>): Promise<T> {
+    return retry(() => this.heavy.run(() => this.limiter.run(() => fn(this.connection))))
   }
 
   call<T>(fn: (c: Connection) => Promise<T>): Promise<T> {
@@ -54,7 +63,7 @@ export class Rpc {
 
   /** Every classic SPL token account the owner holds: mint, address, raw amount. */
   async tokenAccounts(owner: PublicKey) {
-    const res = await this.call((c) => c.getParsedTokenAccountsByOwner(owner, { programId: TOKEN_PROGRAM_ID }))
+    const res = await this.callHeavy((c) => c.getParsedTokenAccountsByOwner(owner, { programId: TOKEN_PROGRAM_ID }))
     return res.value.map((a) => ({
       address: a.pubkey,
       mint: new PublicKey(a.account.data.parsed.info.mint),

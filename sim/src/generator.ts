@@ -9,6 +9,8 @@ export const MIXES: Record<string, Partial<Record<Persona, number>>> = {
   stables: { swapper: 1 },
   memes: { degen: 0.8, buyer: 0.2 },
   rotation: { rotator: 0.7, buyer: 0.3 },
+  /** For the long-tail universe: memecoin buys and sells plus token → token rotations between them. */
+  longtail: { degen: 0.5, rotator: 0.3, buyer: 0.2 },
 }
 
 /** Trades per trader per 10 minutes, before jitter. */
@@ -161,8 +163,8 @@ export function generate(o: GenerateOptions): TraderPlan[] {
         if (ht.length && rng() < 0.6) {
           row = sellHeldTo(ht, () => pick(tradables.filter((x) => !ht.includes(x)).concat(stables)).symbol)
         } else {
-          // Buy a major paying USDC: the runner acquires the USDC first, which costs SOL.
-          const x = pick(majors)
+          // Buy paying USDC (the runner acquires the USDC first, which costs SOL). The long-tail mix buys memes too.
+          const x = pick(o.mix === 'longtail' ? majors.concat(memes) : majors)
           const v = budgetSlice(0.08, 0.2)
           const units = roundAmount(v / o.priceSol[x.symbol])
           const usdcHeld = holdings.get('USDC') ?? 0

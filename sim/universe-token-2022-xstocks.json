@@ -1,0 +1,79 @@
+{
+ "_doc": "xStocks (Backed) RWA tokens: Token-2022 with transferHook, pausable, permanentDelegate, defaultAccountState extensions. Not tradable yet: barn quotes return UnsupportedToken (transfer hook), and sim/ only handles classic SPL. Kept for when Token-2022 support lands; orders must be self-paid (the sponsored template only creates classic accounts).",
+ "tokens": [
+  {
+   "symbol": "SOL",
+   "mint": "11111111111111111111111111111111",
+   "decimals": 9,
+   "tier": "native"
+  },
+  {
+   "symbol": "USDC",
+   "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+   "decimals": 6,
+   "tier": "stable"
+  },
+  {
+   "symbol": "USDT",
+   "mint": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+   "decimals": 6,
+   "tier": "stable"
+  },
+  {
+   "symbol": "NVDAx",
+   "mint": "Xsc9qvGR1efVDFGLrVsmkzv3qi45LTBjeUKSPmx9qEh",
+   "decimals": 8,
+   "tier": "major",
+   "program": "token-2022"
+  },
+  {
+   "symbol": "SPYx",
+   "mint": "XsoCS1TfEyfFhfvj8EtZ528L3CaKBDBRqRapnBbDF2W",
+   "decimals": 8,
+   "tier": "major",
+   "program": "token-2022"
+  },
+  {
+   "symbol": "SPCXx",
+   "mint": "Xs3oZwbHvqis4NYcf4YKWmEia2eC84wSiVrcYcTqpH8",
+   "decimals": 8,
+   "tier": "major",
+   "program": "token-2022"
+  },
+  {
+   "symbol": "CRCLx",
+   "mint": "XsueG8BtpquVJX9LVLLEGuViXUungE6WmK5YZ3p3bd1",
+   "decimals": 8,
+   "tier": "major",
+   "program": "token-2022"
+  },
+  {
+   "symbol": "MSFTx",
+   "mint": "XspzcW1PRtgf6Wj92HCiZdjzKCyFekVD8P5Ueh3dRMX",
+   "decimals": 8,
+   "tier": "major",
+   "program": "token-2022"
+  },
+  {
+   "symbol": "TSLAx",
+   "mint": "XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB",
+   "decimals": 8,
+   "tier": "major",
+   "program": "token-2022"
+  },
+  {
+   "symbol": "GLDx",
+   "mint": "Xsv9hRk1z5ystj9MhnA7Lq4vjSsLwzL2nxrwmwtD3re",
+   "decimals": 8,
+   "tier": "major",
+   "program": "token-2022"
+  },
+  {
+   "symbol": "MSTRx",
+   "mint": "XsP7xzNPvEHS1m6qfanPUGjNmdnmsLKEoNAnHjdxxyZ",
+   "decimals": 8,
+   "tier": "major",
+   "program": "token-2022"
+  }
+ ]
+}

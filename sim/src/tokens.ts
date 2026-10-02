@@ -23,6 +23,7 @@ export interface Token {
 }
 
 export function loadUniverse(path = resolve(SIM_ROOT, 'universe.json')): UniverseToken[] {
+  if (!path.includes('/')) path = resolve(SIM_ROOT, path) // bare names resolve inside sim/
   return JSON.parse(readFileSync(path, 'utf8')).tokens
 }
 
@@ -35,7 +36,13 @@ function symbolIndex(): Map<string, string> {
   } catch {
     /* tokens.json is optional */
   }
-  for (const t of loadUniverse()) idx.set(t.symbol.toLowerCase(), t.mint)
+  for (const file of ['universe.json', 'universe-longtail.json', 'universe-token-2022-xstocks.json']) {
+    try {
+      for (const t of loadUniverse(resolve(SIM_ROOT, file))) idx.set(t.symbol.toLowerCase(), t.mint)
+    } catch {
+      /* optional universe */
+    }
+  }
   idx.set('sol', NATIVE_SOL.toBase58())
   idx.set('wsol', WSOL_MINT.toBase58())
   return idx

@@ -50,14 +50,33 @@ export function recommendFunding(maxSpendSol: number): number {
   return Math.ceil((maxSpendSol + TRADER_RESERVE_SOL) * 1.25 * 100) / 100
 }
 
-/** Traders cleaned up at once; the shared RPC and orderbook limiters keep this safe. */
-const CLEANUP_PARALLEL = 25
+/** Traders cleaned up at once. More than this bursts the RPC's per-method rate limits. */
+const CLEANUP_PARALLEL = 5
+
+/** Clean up every trader; one trader failing (e.g. RPC rate limits) never stops the others. */
+async function cleanupAll(ctx: FlowContext, w: ReturnType<typeof wallets>, traders: number[], env: CowEnv) {
+  const failed: number[] = []
+  const results = await pool(traders, CLEANUP_PARALLEL, async (n) => {
+    try {
+      return await cleanupTrader(ctx, w, n, env)
+    } catch (e) {
+      failed.push(n)
+      log(`  ${c.blue(`t${n}`)} ${c.blue('cleanup')}: ${ui.error((e as Error).message.slice(0, 160))}`)
+      ctx.session.log({ trader: n, step: 'cleanup', event: 'cleanup_failed', error: (e as Error).message })
+      return null
+    }
+  })
+  if (failed.length) {
+    console.log(ui.warn(`Cleanup didn't finish for ${failed.length} traders. Re-run: pnpm sim cleanup-trade-session --traders ${failed.sort((a, b) => a - b).join(',')}`))
+  }
+  return results.filter((r): r is NonNullable<typeof r> => r !== null)
+}
 
 /** Rough wall-clock estimate in minutes: a trader's rows run back to back, then cleanup runs in parallel batches. */
 function estimateDuration(rows: TradeRow[], traders: number) {
   const ORDER_S = 30 // measured: orders fill in ~6-47s, ~25s on average
   const ROW_S = ORDER_S * 1.3 // some rows also acquire their sell token first
-  const CLEANUP_BATCH_S = 90 // a batch of traders sells leftovers in parallel
+  const CLEANUP_BATCH_S = 60 // a batch of traders sells leftovers in parallel
   const busyUntil = new Map<number, number>()
   for (const r of rows) busyUntil.set(r.trader, Math.max(r.time, busyUntil.get(r.trader) ?? 0) + ROW_S)
   const trading = Math.max(...busyUntil.values())
@@ -270,7 +289,7 @@ program
 
     if (opts.cleanup) {
       log(c.bold('🧹 Cleaning up'))
-      await pool(traders, CLEANUP_PARALLEL, (n) => cleanupTrader(ctx, w, n, opts.env))
+      await cleanupAll(ctx, w, traders, opts.env)
       // The session window covers cleanup too, so log queries see its orders.
       session.writeMeta({ end: new Date(Date.now() + 30_000).toISOString() })
     }
@@ -298,7 +317,7 @@ program
     console.log(`${c.bold(active.length)} of ${traders.length} traders hold SOL or token accounts.`)
     if (!active.length) return
     await confirm(`Clean up traders ${active.join(', ')}?`, opts.yes)
-    const res = await pool(active, CLEANUP_PARALLEL, (n) => cleanupTrader(ctx, w, n, opts.env))
+    const res = await cleanupAll(ctx, w, active, opts.env)
     const swept = res.reduce((s, r) => s + r.swept, 0n)
     console.log(`\n${ui.ok(`Swept ${fmtSol(swept)} to the funder.`)}`)
     const left = res.filter((r) => r.leftover.length)

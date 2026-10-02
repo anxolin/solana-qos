@@ -19,15 +19,23 @@ export class RateLimiter {
 
 export const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms))
 
-/** Retry `fn` on throw with exponential backoff; rethrows the last error. */
+const isRateLimit = (e: unknown) => /\b429\b|too many requests/i.test(String((e as Error)?.message ?? e))
+
+/**
+ * Retry `fn` on throw with exponential backoff plus jitter; rethrows the last error. Rate-limit errors (429)
+ * get more attempts and longer waits (up to ~30s), since the server is asking us to slow down.
+ */
 export async function retry<T>(fn: () => Promise<T>, attempts = 4, baseMs = 500): Promise<T> {
   let last: unknown
-  for (let i = 0; i < attempts; i++) {
+  for (let i = 0; ; i++) {
     try {
       return await fn()
     } catch (e) {
       last = e
-      if (i < attempts - 1) await sleep(baseMs * 2 ** i)
+      const limited = isRateLimit(e)
+      if (i >= (limited ? 8 : attempts) - 1) break
+      const wait = Math.min(30_000, (limited ? 1000 : baseMs) * 2 ** i)
+      await sleep(wait / 2 + Math.random() * wait)
     }
   }
   throw last

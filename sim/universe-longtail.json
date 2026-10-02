@@ -1,0 +1,287 @@
+{
+ "_doc": "Long-tail universe: every classic-SPL token traded in the 2 Oct 2026 Kaffeekr\u00e4nzchen that Jupiter prices (Token-2022 and unpriced mints dropped), plus SOL/USDC/USDT. Use with --universe universe-longtail.json --mix longtail.",
+ "tokens": [
+  {
+   "symbol": "SOL",
+   "mint": "11111111111111111111111111111111",
+   "decimals": 9,
+   "tier": "native"
+  },
+  {
+   "symbol": "USDC",
+   "mint": "EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v",
+   "decimals": 6,
+   "tier": "stable"
+  },
+  {
+   "symbol": "USDT",
+   "mint": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+   "decimals": 6,
+   "tier": "stable"
+  },
+  {
+   "symbol": "BILLY",
+   "mint": "3B5wuUrMEi5yATD7on46hKfej3pfmd7t1RKgrsN3pump",
+   "decimals": 6,
+   "tier": "meme"
+  },
+  {
+   "symbol": "EPIK",
+   "mint": "3BgwJ8b7b9hHX4sgfZ2KJhv9496CoVfsMK2YePevsBRw",
+   "decimals": 6,
+   "tier": "meme"
+  },
+  {
+   "symbol": "WBTC",
+   "mint": "3NZ9JMVBmGAqocybic2c7LQCJScmgsAZ6vQqTDzcqmJh",
+   "decimals": 8,
+   "tier": "major"
+  },
+  {
+   "symbol": "BIRDDOG",
+   "mint": "3XTp12PmKMHxB6YkejaGPUjMGBLKRGgzHWgJuVTsBCoP",
+   "decimals": 9,
+   "tier": "meme"
+  },
+  {
+   "symbol": "NoHat",
+   "mint": "5BKTP1cWao5dhr8tkKcfPW9mWkKtuheMEAU6nih2jSX",
+   "decimals": 6,
+   "tier": "meme"
+  },
+  {
+   "symbol": "GIGA",
+   "mint": "63LfDmNb3MQ8mw9MtZ2To9bEA2M71kZUUGq5tiJxcqj9",
+   "decimals": 5,
+   "tier": "meme"
+  },
+  {
+   "symbol": "MELON",
+   "mint": "7DGJnYfJrYiP5CKBx6wpbu8F5Ya1swdFoesuCrAKCzZc",
+   "decimals": 6,
+   "tier": "meme"
+  },
+  {
+   "symbol": "ETH",
+   "mint": "7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs",
+   "decimals": 8,
+   "tier": "major"
+  },
+  {
+   "symbol": "UNI",
+   "mint": "8FU95xFJhUUkyyCLU13HSzDLs7oC4QZdXQHL6SCeab36",
+   "decimals": 8,
+   "tier": "major"
+  },
+  {
+   "symbol": "SPOODY",
+   "mint": "8Nd3TZJfxt9yYKiPiPmYp6S5DhLftG3bwSqdW3KJwArb",
+   "decimals": 6,
+   "tier": "meme"
+  },
+  {
+   "symbol": "GOME",
+   "mint": "8ULCkCTUa3XXrNXaDVzPcja2tdJtRdxRr8T4eZjVKqk",
+   "decimals": 6,
+   "tier": "meme"
+  },
+  {
+   "symbol": "$GARY",
+   "mint": "8c71AvjQeKKeWRe8jtTGG1bJ2WiYXQdbjqFbUfhHgSVk",
+   "decimals": 9,
+   "tier": "meme"
+  },
+  {
+   "symbol": "GME",
+   "mint": "8wXtPeU6557ETkp9WHFY1n1EcU6NxDvbAggHGsMYiHsB",
+   "decimals": 9,
+   "tier": "meme"
+  },
+  {
+   "symbol": "ANUS",
+   "mint": "9hjZ8UTNrNWt3YUTHVpvzdQjNbp64NbKSDsbLqKR6BZc",
+   "decimals": 9,
+   "tier": "meme"
+  },
+  {
+   "symbol": "duk",
+   "mint": "A2khRbhRJNrAEHj95htivC4cR4VbJwfssDH5FPPbP4m9",
+   "decimals": 6,
+   "tier": "meme"
+  },
+  {
+   "symbol": "ATLAS",
+   "mint": "ATLASXmbPQxBUYbxPsV97usA3fPQYEqzQBUHgiFCUsXx",
+   "decimals": 8,
+   "tier": "major"
+  },
+  {
+   "symbol": "SOLAMA",
+   "mint": "AVLhahDcDQ4m4vHM4ug63oh7xc8Jtk49Dm5hoe9Sazqr",
+   "decimals": 6,
+   "tier": "meme"
+  },
+  {
+   "symbol": "Cheese",
+   "mint": "AbrMJWfDVRZ2EWCQ1xSCpoVeVgZNpq1U2AoYG98oRXfn",
+   "decimals": 6,
+   "tier": "meme"
+  },
+  {
+   "symbol": "$BEER",
+   "mint": "AujTJJ7aMS8LDo3bFzoyXDwT3jBALUbu4VZhzZdTZLmG",
+   "decimals": 6,
+   "tier": "meme"
+  },
+  {
+   "symbol": "COST",
+   "mint": "Av6qVigkb7USQyPXJkUvAEm4f599WTRvd75PUWBA9eNm",
+   "decimals": 9,
+   "tier": "meme"
+  },
+  {
+   "symbol": "Pepe",
+   "mint": "B5WTLaRwaUQpKk7ir1wniNB6m5o8GgMrimhKMYan2R6B",
+   "decimals": 6,
+   "tier": "meme"
+  },
+  {
+   "symbol": "arab",
+   "mint": "BFpchrNVhyTRzMNAg9QkiZfRN2vqRBwcYoTX8qgkbDvm",
+   "decimals": 9,
+   "tier": "meme"
+  },
+  {
+   "symbol": "HAWK",
+   "mint": "BKipkearSqAUdNKa1WDstvcMjoPsSKBuNyvKDQDDu9WE",
+   "decimals": 6,
+   "tier": "meme"
+  },
+  {
+   "symbol": "$PELF",
+   "mint": "BgJW7U1u2RY5XJk9uYb5AqFRzjMtqE7pw3kaf9iw9Ntz",
+   "decimals": 6,
+   "tier": "meme"
+  },
+  {
+   "symbol": "$BOZO",
+   "mint": "BoZoQQRAmYkr5iJhqo7DChAs7DPDwEZ5cv1vkYC9yzJG",
+   "decimals": 5,
+   "tier": "meme"
+  },
+  {
+   "symbol": "BAKED",
+   "mint": "CQbXk942c6GPcRwtZ2WMFP5JcQ9NqbXtb8jUewBi7GoT",
+   "decimals": 6,
+   "tier": "meme"
+  },
+  {
+   "symbol": "xBTC",
+   "mint": "CtzPWv73Sn1dMGVU3ZtLv9yWSyUAanBni19YWDaznnkn",
+   "decimals": 8,
+   "tier": "major"
+  },
+  {
+   "symbol": "COK",
+   "mint": "Dnb9dLSXxAarXVexehzeH8W8nFmLMNJSuGoaddZSwtog",
+   "decimals": 6,
+   "tier": "meme"
+  },
+  {
+   "symbol": "aura",
+   "mint": "DtR4D9FtVoTX2569gaL837ZgrB6wNjj6tkmnX9Rdk9B2",
+   "decimals": 6,
+   "tier": "meme"
+  },
+  {
+   "symbol": "BAT",
+   "mint": "EPeUFDgHRxs9xxEPVaL6kfGQvCon7jmAWKVUHuux1Tpz",
+   "decimals": 8,
+   "tier": "major"
+  },
+  {
+   "symbol": "INBRED",
+   "mint": "EjzzyCSiLqjFDprpZj8e1zjXmcTG5HPGFRSEoWcJWHh9",
+   "decimals": 9,
+   "tier": "meme"
+  },
+  {
+   "symbol": "tremp",
+   "mint": "FU1q8vJpZNUrmqsciSjp8bAKKidGsLmouB8CBdf8TKQv",
+   "decimals": 9,
+   "tier": "meme"
+  },
+  {
+   "symbol": "MELANIA",
+   "mint": "FUAfBo2jgks6gB4Z4LfZkqSZgzNucisEHqnNebaRxM1P",
+   "decimals": 6,
+   "tier": "meme"
+  },
+  {
+   "symbol": "$TOAD",
+   "mint": "FViMp5phQH2bX81S7Yyn1yXjj3BRddFBNcMCbTH8FCze",
+   "decimals": 4,
+   "tier": "meme"
+  },
+  {
+   "symbol": "$WOLF",
+   "mint": "Faf89929Ni9fbg4gmVZTca7eW6NFg877Jqn6MizT3Gvw",
+   "decimals": 8,
+   "tier": "meme"
+  },
+  {
+   "symbol": "PURPE",
+   "mint": "HBoNJ5v8g71s2boRivrHnfSB5MVPLDHHyVjruPfhGkvL",
+   "decimals": 1,
+   "tier": "meme"
+  },
+  {
+   "symbol": "UPDOG",
+   "mint": "HJ39rRZ6ys22KdB3USxDgNsL7RKiQmsC3yL8AS3Suuku",
+   "decimals": 9,
+   "tier": "meme"
+  },
+  {
+   "symbol": "PYTH",
+   "mint": "HZ1JovNiVvGrGNiiYvEozEVgZ58xaU3RKwX8eACQBCt3",
+   "decimals": 6,
+   "tier": "major"
+  },
+  {
+   "symbol": "EURC",
+   "mint": "HzwqbKZw8HxMN6bF2yFZNrht3c2iXXzpKcFu7uBEDKtr",
+   "decimals": 6,
+   "tier": "stable"
+  },
+  {
+   "symbol": "SPX",
+   "mint": "J3NKxxXZcnNiMjKw9hYb2K4LUxgwB6t1FtPtQVsv3KFr",
+   "decimals": 8,
+   "tier": "meme"
+  },
+  {
+   "symbol": "KMNO",
+   "mint": "KMNo3nJsBXfcpJTVhZcXLW7RmTwTt4GVFE7suUBo9sS",
+   "decimals": 6,
+   "tier": "major"
+  },
+  {
+   "symbol": "$daumen",
+   "mint": "T1oYbAejEESrZLtSAjumAXhzFqZGNxQ4kVN9vPUoxMv",
+   "decimals": 9,
+   "tier": "meme"
+  },
+  {
+   "symbol": "JupSOL",
+   "mint": "jupSoLaHXQiZZTSfEWMTRRgpnyFm8f6sZdosWBjx93v",
+   "decimals": 9,
+   "tier": "lst"
+  },
+  {
+   "symbol": "BOME",
+   "mint": "ukHH6c7mMyiWCf1b9pnWe25TSpkDDt3H5pQZgZ74J82",
+   "decimals": 6,
+   "tier": "meme"
+  }
+ ]
+}

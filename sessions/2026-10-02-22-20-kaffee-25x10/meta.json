@@ -1,0 +1,14 @@
+{
+ "name": "2026-10-02-22-20-kaffee-25x10 trade session",
+ "title": "2026-10-02-22-20-kaffee-25x10",
+ "start": "2026-10-02T22:21:10.783Z",
+ "env": "staging",
+ "sim": {
+  "scenario": "/Users/anxo/Bunker/code/cow/solana-qos/scenarios/kaffee-25x10.csv",
+  "traders": 25,
+  "rows": 66,
+  "solFundingPerTrader": 0.1
+ },
+ "trading_end": "2026-10-02T22:31:20.628Z",
+ "end": "2026-10-02T22:32:20.628Z"
+}

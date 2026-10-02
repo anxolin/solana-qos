@@ -1,0 +1,16 @@
+# NOT RUNNABLE YET. xStocks are Token-2022 mints with a transfer hook: barn rejects them at quote time
+# (UnsupportedToken: Token-2022 transfer hook extension), and sim/ only trades classic SPL tokens.
+# Kept for when Token-2022 support lands. Every row is self-paid: the sponsored template only creates classic accounts.
+# generate-trade-session --traders 4 --duration 10 --sol-amount-per-trader 0.1 --seed 1 --mix rotation --self-ratio 1 --intensity 1 --min-gap 75
+# SOL price $118.36 at 2026-10-02T22:42:46.656Z
+trader,time,type,amount,token,other_token,mode,note
+2,9,buy,0.00515,NVDAx,USDC,self,rotator
+4,16,buy,0.00338,MSFTx,USDC,self,rotator
+1,32,buy,0.00673,MSTRx,USDC,self,rotator
+3,39,buy,0.00257,GLDx,USDC,self,rotator
+4,91,buy,0.0135,CRCLx,USDC,self,rotator
+3,294,buy,0.00643,MSTRx,USDC,self,rotator
+2,300,sell,0.00364,NVDAx,TSLAx,self,rotator
+1,317,sell,0.00485,MSTRx,CRCLx,self,rotator
+4,317,buy,0.00486,TSLAx,USDC,self,rotator
+3,577,sell,0.00159,GLDx,USDT,self,rotator

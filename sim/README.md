@@ -176,6 +176,19 @@ The URLs come from `../environments.json` for the `--env` in use: `debug.barn.co
   - start times are random but fixed by `--seed`
   - every flow starts within `--duration`; the run itself lasts longer because of setup and cleanup
 
+## Scenarios
+
+| File | What it tests |
+|---|---|
+| `scenarios/smoke.csv` | Every path once, 2 traders, ~3 min. Run it first |
+| `scenarios/kaffee-25x10.csv` | 25 traders over 10 min, liquid tokens, ~8 orders per minute |
+| `scenarios/stress-25x6.csv` | 25 traders over ~7 min, liquid tokens, ~20 orders per minute (`--intensity 4 --min-gap 20`) |
+| `scenarios/token-2022-xStocks-4x10.csv` | **Not runnable yet.** xStocks RWA tokens (`universe-token-2022-xstocks.json`), all self-paid. Barn rejects them today (`UnsupportedToken`: Token-2022 transfer hook) and `sim/` only trades classic SPL |
+| `scenarios/longtail-25x6.csv` | The Kaffeekränzchen's long-tail tokens (`universe-longtail.json`, `--mix longtail`): token coverage, buffers, routes |
+
+A failure on liquid tokens points at the stack (funding, rate limits, creation window). A failure that only shows up in the long-tail run
+points at token coverage. Keep them separate when comparing runs.
+
 ## Tests
 
 `pnpm test` checks:
