@@ -239,7 +239,7 @@ program
       return
     }
     await confirm(`Fund ${fmtSol(total)} and play ${rows.length} trades on ${opts.env}?`, opts.yes)
-    await fund(rpc, w, plan, log)
+    await fund(rpc, w, plan, log, ctx.link.tx)
     session.log({ step: 'setup', event: 'funded', total: total.toString(), traders })
 
     const start = Date.now() + 5000

@@ -48,7 +48,7 @@ export async function fundingPlan(rpc: Rpc, w: Wallets, traders: number[], targe
 }
 
 /** Send the top-ups from the funder, batching up to 15 transfers per transaction. */
-export async function fund(rpc: Rpc, w: Wallets, plan: FundingLine[], log: (m: string) => void) {
+export async function fund(rpc: Rpc, w: Wallets, plan: FundingLine[], log: (m: string) => void, txLink: (sig: string) => string) {
   const todo = plan.filter((l) => l.topUp > 0n)
   for (let i = 0; i < todo.length; i += 15) {
     const batch = todo.slice(i, i + 15)
@@ -56,7 +56,7 @@ export async function fund(rpc: Rpc, w: Wallets, plan: FundingLine[], log: (m: s
       SystemProgram.transfer({ fromPubkey: w.funder.publicKey, toPubkey: l.address, lamports: l.topUp }),
     )
     const sig = await rpc.sendAndConfirm(ixs, [w.funder])
-    log(`${c.green('✓ funded')} traders ${batch.map((l) => c.blue(`t${l.trader}`)).join(', ')} ${c.dim(`(${sig.slice(0, 12)}…)`)}`)
+    log(`${c.green('✓ funded')} traders ${batch.map((l) => c.blue(`t${l.trader}`)).join(', ')}\n      ${c.dim('tx')} ${c.dim(txLink(sig))}`)
   }
 }
 
