@@ -76,7 +76,7 @@ pnpm sim new-wallet
 | `--max-total-sol` | 3 | Refuses to fund more than this in total |
 | `--session` | `<date>-<scenario>` | Folder under `../sessions/` |
 | `--max-retries` | 1 | Re-quote and retry an order that expires (new uid each time) |
-| `--order-validity` | 300 | Order lifetime in seconds |
+| `--order-validity` | 120 | Seconds an order has left when placed (the orderbook's minimum is 120). The quote asks for 10s more to cover placement time |
 | `--slippage-bps` | quoted | Override the signed slippage |
 | `--dry-run` | | Quote only |
 | `--no-cleanup` | | Leave tokens and SOL in the trader wallets |
@@ -123,6 +123,18 @@ Sponsored orders follow the orderbook's template:
 The backend's funder is the fee payer. Native SOL buys are sponsored when the deployment supports them
 (services#4990). Otherwise they fall back to self-paid, and the journal records `forcedSelf`.
 
+### App data
+
+Every order carries `appData` `0x3c74bf5b542341051f22f7a76d928086964a346f3fb5dc08eaf1e8348cbfbad2`, the keccak256 of
+this pre-image, defined in `src/appData.ts`:
+
+```json
+{"appCode":"solana-qos","metadata":{"hooks":{"version":"0.2.0"}},"version":"1.15.0"}
+```
+
+That makes simulated orders easy to tell apart from real users in the orderbook, logs and analytics. If you
+change the string, the hash changes: keep it byte-for-byte, and update the test that pins it.
+
 ## Cleanup
 
 For each trader:
@@ -132,6 +144,17 @@ For each trader:
 4. Sweep all SOL to the funder.
 
 It's safe to re-run. Tokens with no route are reported and left behind.
+
+## Links while it runs
+
+Each placed order prints its debug-tool link, and self-paid orders also print their Solscan transaction:
+
+```
+20:41:07 #1 t1 main: sell 0.0100 SOL → 1.17 USDC [sponsored] 0x8f2c41d0
+      🐞 https://debug.barn.cow.fi/order/0x8f2c41d0…
+```
+
+The URLs come from `../environments.json` for the `--env` in use: `debug.barn.cow.fi` on staging, `debug.cow.fi` on prod.
 
 ## Output
 

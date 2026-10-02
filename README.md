@@ -12,6 +12,12 @@ report reads. See [`sim/README.md`](sim/README.md). Scenarios you can replay are
 - `smoke.csv`: every path once, 2 traders
 - `kaffee-25x10.csv`: 25 traders over 10 minutes, seed 1
 
+## Environments
+
+`environments.json` lists the orderbook API, debug tool, Solscan and log container names for `staging` (barn)
+and `prod`. `sim/` and `qos.py` both read it. A session's `meta.json` records which environment it ran on (`env`,
+default `staging`), so the report's API calls and 🐞 debug links always match it.
+
 ## Data sources
 
 | What | Where |

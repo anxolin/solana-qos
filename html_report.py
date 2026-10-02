@@ -9,6 +9,7 @@ from html import escape
 
 DEBUG = "https://debug.barn.cow.fi/order/"
 SOLSCAN = "https://solscan.io/account/"
+ENV_LABEL = "barn"  # set by qos.py from the session's environment
 
 # Cause groups -> status token. Executed is good, the incident is critical,
 # other creation failures are serious, the rest is neutral.
@@ -459,7 +460,7 @@ def render(*, session, meta, orders, by_solver, drivers, autopilot, sol, compari
          '&family=IBM+Plex+Sans+Condensed:wght@600&family=IBM+Plex+Sans:wght@400;600&display=swap">',
          f"<style>{CSS}</style>", '<div id="tip" hidden></div>', '<div class="wrap">']
 
-    h += ['<header><span class="eyebrow">CoW Protocol · Solana · barn</span>',
+    h += [f'<header><span class="eyebrow">CoW Protocol · Solana · {escape(ENV_LABEL)}</span>',
           f"<h1>{escape(title)}: order quality of service</h1>",
           f'<span class="meta">Orders created {escape(meta["start"].replace("T", " ").rstrip("Z"))} → '
           f'{escape(meta["end"][11:].rstrip("Z"))} UTC · data fetched {escape(meta.get("fetched_at", "?")[:16].replace("T", " "))} UTC</span>'

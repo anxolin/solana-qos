@@ -4,6 +4,7 @@ import { parseScenario } from '../src/scenario.js'
 import { fromRaw, loadUniverse, toRaw } from '../src/tokens.js'
 import { generate, MIN_GAP_S, mulberry32, roundAmount } from '../src/generator.js'
 import { TRADER_RESERVE_SOL } from '../src/config.js'
+import { APP_DATA_DOC, APP_DATA_HEX } from '../src/appData.js'
 
 const TEST_MNEMONIC = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about'
 
@@ -100,5 +101,12 @@ describe('generator', () => {
         got.add(r.type === 'sell' ? r.otherToken : r.token)
       }
     }
+  })
+})
+
+describe('app data', () => {
+  it('hashes the solana-qos pre-image to the registered appData', () => {
+    expect(APP_DATA_DOC).toBe('{"appCode":"solana-qos","metadata":{"hooks":{"version":"0.2.0"}},"version":"1.15.0"}')
+    expect(APP_DATA_HEX).toBe('0x3c74bf5b542341051f22f7a76d928086964a346f3fb5dc08eaf1e8348cbfbad2')
   })
 })

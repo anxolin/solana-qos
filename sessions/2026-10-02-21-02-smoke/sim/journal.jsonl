@@ -1,0 +1,4 @@
+{"ts":"2026-10-02T21:02:49.664Z","step":"setup","event":"funded","total":"100000000","traders":[1,2]}
+{"ts":"2026-10-02T21:02:54.841Z","row":1,"trader":1,"step":"main","event":"row_start","type":"sell","amount":0.01,"token":"SOL","other":"USDC"}
+{"ts":"2026-10-02T21:02:56.189Z","row":1,"trader":1,"step":"main","event":"placed","attempt":0,"uid":"0xafdebad20a2291b27af1ce2d135f4b1e63a2cd7fe6961859458910104e14d647","mode":"sponsored","forcedSelf":false,"kind":"sell","sell":"SOL","buy":"USDC","sellAmount":"10000000","buyAmount":"1172815","validTo":1790975105}
+{"ts":"2026-10-02T21:02:59.725Z","row":2,"trader":2,"step":"main","event":"row_start","type":"buy","amount":2,"token":"JUP","other":"SOL"}

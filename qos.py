@@ -27,9 +27,19 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
-API = os.environ.get("COW_API", "https://barn.api.cow.fi/solana/api")
+ENVIRONMENTS = json.loads((ROOT / "environments.json").read_text())
+API = os.environ.get("COW_API", ENVIRONMENTS["staging"]["api"])
 RPC = os.environ.get("SOLANA_RPC", "https://api.mainnet-beta.solana.com")
-DEBUG = "https://debug.barn.cow.fi/order/"
+DEBUG = ENVIRONMENTS["staging"]["debug"] + "/order/"
+
+
+def use_environment(meta: dict) -> dict:
+    """Point API and DEBUG at the session's environment (meta.json `env`, default staging)."""
+    global API, DEBUG
+    env = ENVIRONMENTS[meta.get("env", "staging")]
+    API = os.environ.get("COW_API", env["api"])
+    DEBUG = env["debug"] + "/order/"
+    return env
 SOLSCAN = "https://solscan.io/tx/"
 
 
@@ -129,6 +139,7 @@ def tx_info(sig: str) -> dict:
 def cmd_fetch(a):
     session = ROOT / "sessions" / a.session
     meta = json.loads((session / "meta.json").read_text())
+    use_environment(meta)
     start, end = ts(meta["start"]), ts(meta["end"])
     seeds = lines(session / "logs" / "seed_orders.txt")
     if not seeds:
@@ -327,6 +338,7 @@ def fmt_metric(name: str, v) -> str:
 def cmd_report(a):
     session = ROOT / "sessions" / a.session
     meta = json.loads((session / "meta.json").read_text())
+    env = use_environment(meta)
     orders = json.loads((session / "orders.json").read_text())
     comp_path = session / "logs" / "competition.json"
     comp = json.loads(comp_path.read_text()) if comp_path.exists() else {}
@@ -353,7 +365,7 @@ def cmd_report(a):
     owners = Counter(o["owner"] for o in orders)
 
     md = [f"# Solana QoS report: {a.session}", ""]
-    md += [f"Barn, orders created between `{meta['start']}` and `{meta['end']}`. "
+    md += [f"{env['label'].capitalize()}, orders created between `{meta['start']}` and `{meta['end']}`. "
            f"Data fetched {meta.get('fetched_at', '?')}.", ""]
 
     md += ["## Summary", ""]
@@ -507,6 +519,9 @@ def cmd_report(a):
     import html_report
 
     out = session / "report.html"
+    html_report.DEBUG = DEBUG
+    html_report.SOLSCAN = env["solscan"] + "/account/"
+    html_report.ENV_LABEL = env["label"]
     out.write_text(html_report.render(
         session=a.session, meta=meta, orders=orders, by_solver=by_solver,
         drivers=drivers, autopilot=comp.get("autopilot", {}), sol=sol, comparisons=comparisons, rate_limits=rl,

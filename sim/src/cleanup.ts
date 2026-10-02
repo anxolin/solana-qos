@@ -6,6 +6,7 @@ import { placeAndWait, type FlowContext } from './flow.js'
 import { NATIVE_SOL, WSOL_MINT } from './rpc.js'
 import { fmtSol, sweepToFunder, type Wallets } from './wallets.js'
 import { fromRaw, type Token } from './tokens.js'
+import { c } from './ui.js'
 
 /** `ReclaimOrder` (discriminator 5): closes a finished order PDA, rent goes to its `created_by`. */
 function reclaimIx(programId: PublicKey, orderPda: PublicKey, createdBy: PublicKey) {
@@ -103,8 +104,8 @@ export async function cleanupTrader(ctx: FlowContext, w: Wallets, n: number, env
     swept: result.swept.toString(),
   })
   ctx.log(
-    `  t${n} cleanup: sold ${result.sold.length}, left ${result.leftover.length}, closed ${result.closedAccounts} accounts, ` +
-      `reclaimed ${result.reclaimed} orders, swept ${fmtSol(result.swept)}`,
+    `  ${c.blue(`t${n}`)} ${c.blue('cleanup')}: sold ${c.green(result.sold.length)}, left ${result.leftover.length ? c.yellow(result.leftover.length) : 0}, ` +
+      `closed ${result.closedAccounts} accounts, reclaimed ${result.reclaimed} orders, swept ${c.bold(fmtSol(result.swept))}`,
   )
   return result
 }

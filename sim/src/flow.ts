@@ -6,8 +6,12 @@ import type { Rpc } from './rpc.js'
 import type { Mode, TradeRow } from './scenario.js'
 import type { Session, Step } from './session.js'
 import { resolveToken, splMint, toRaw, fromRaw, type Token } from './tokens.js'
+import * as ui from './ui.js'
+import { c, stepLabel, tag } from './ui.js'
 
 export interface FlowContext {
+  /** Debug-tool and Solscan links for the session's environment. */
+  link: { order: (uid: string) => string; tx: (sig: string) => string }
   rpc: Rpc
   orders: Orders
   session: Session
@@ -42,7 +46,7 @@ export async function placeAndWait(
     } catch (e) {
       const error = (e as Error).message
       ctx.session.log({ ...meta, event: 'place_error', attempt, mode: p.mode, error })
-      ctx.log(`  #${meta.row ?? '-'} t${meta.trader} ${meta.step}: place failed (${error})`)
+      ctx.log(`  ${tag(meta.row, meta.trader)} ${stepLabel(meta.step)}: ${ui.error(`place failed: ${error}`)}`)
       if (attempt < ctx.maxRetries) {
         await sleep(5000)
         continue
@@ -66,9 +70,11 @@ export async function placeAndWait(
       signature: last.signature,
     })
     ctx.log(
-      `  #${meta.row ?? '-'} t${meta.trader} ${meta.step}: ${p.kind} ${fmt(last.sellAmount, p.sell)} → ${fmt(last.buyAmount, p.buy)} ` +
-        `[${last.mode}] ${last.uid.slice(0, 10)}`,
+      `  ${tag(meta.row, meta.trader)} ${stepLabel(meta.step)}: ${ui.kind(p.kind)} ${c.bold(fmt(last.sellAmount, p.sell))} → ` +
+        `${c.bold(fmt(last.buyAmount, p.buy))} ${c.dim('[')}${ui.mode(last.mode)}${last.forcedSelf ? c.yellow(' (fallback)') : ''}${c.dim(']')} ` +
+        c.dim(last.uid.slice(0, 10)),
     )
+    ctx.log(`      ${c.dim('🐞')} ${c.cyan(ctx.link.order(last.uid))}${last.signature ? `  ${c.dim('tx')} ${c.dim(ctx.link.tx(last.signature))}` : ''}`)
     const { status, order } = await ctx.orders.waitFinal(last)
     ctx.session.log({
       ...meta,
@@ -80,7 +86,7 @@ export async function placeAndWait(
       executedSellAmount: order?.executedSellAmount,
       executedBuyAmount: order?.executedBuyAmount,
     })
-    ctx.log(`  #${meta.row ?? '-'} t${meta.trader} ${meta.step}: ${status} after ${((Date.now() - last.placedAt) / 1000).toFixed(0)}s`)
+    ctx.log(`  ${tag(meta.row, meta.trader)} ${stepLabel(meta.step)}: ${ui.status(status)} ${c.dim(`after ${((Date.now() - last.placedAt) / 1000).toFixed(0)}s`)}`)
     if (status === 'fulfilled') return { status, attempts, last }
     if (attempt < ctx.maxRetries) ctx.session.log({ ...meta, event: 'retry', attempt: attempt + 1, previous: last.uid })
     else return { status, attempts, last }
@@ -122,7 +128,7 @@ export async function runRow(ctx: FlowContext, owner: Keypair, row: TradeRow): P
   if (sell.isSol) {
     const lamports = await ctx.rpc.lamports(owner.publicKey)
     if (lamports < need + solToLamports(TRADER_RESERVE_SOL / 2)) {
-      ctx.log(`  #${row.row} t${row.trader}: low SOL (${fmt(lamports, sell)} for ${fmt(need, sell)}), trying anyway`)
+      ctx.log(`  ${tag(row.row, row.trader)}: ${ui.warn(`low SOL (${fmt(lamports, sell)} for ${fmt(need, sell)}), trying anyway`)}`)
     }
   } else {
     const balance = await ctx.rpc.tokenBalance(owner.publicKey, splMint(sell))

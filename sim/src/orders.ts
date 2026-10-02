@@ -6,7 +6,14 @@ import {
 } from '@solana/spl-token'
 import { OrderKind } from '@cowprotocol/sdk-order-book'
 import type { CowEnv } from '@cowprotocol/sdk-config'
-import { SolanaTradingSdk, type SolanaQuoteAndPost } from '@cowprotocol/sdk-trading-solana'
+import {
+  encodeOrderIntent,
+  findOrderPda,
+  hashOrderIntent,
+  SolanaTradingSdk,
+  type SolanaQuoteAndPost,
+} from '@cowprotocol/sdk-trading-solana'
+import { APP_DATA } from './appData.js'
 import { RateLimiter, sleep } from './limiter.js'
 import { WSOL_MINT, type Rpc } from './rpc.js'
 import { splMint, type Token } from './tokens.js'
@@ -79,10 +86,16 @@ class AllowanceLedger {
   }
 }
 
+/**
+ * Seconds added to the requested validity at quote time. `validTo` is fixed when quoting, and building,
+ * signing and posting take a few seconds; the orderbook rejects an order with under 120s left.
+ */
+export const PLACEMENT_MARGIN_S = 10
+
 export interface OrdersOptions {
   env: CowEnv
   apiBase: string
-  /** Order lifetime in seconds (min 120 per the orderbook). */
+  /** Seconds the order must still have when it's placed (orderbook minimum 120). */
   validFor: number
   slippageBps?: number
   apiRps?: number
@@ -103,8 +116,9 @@ export class Orders {
     this.api = new RateLimiter(opts.apiRps ?? 8)
   }
 
-  quote(p: Omit<PlaceParams, 'mode'>): Promise<SolanaQuoteAndPost> {
-    return this.sdk.getQuote({
+  /** Quote, then stamp our app data on the intent and re-derive the uid and order PDA from it. */
+  async quote(p: Omit<PlaceParams, 'mode'>): Promise<SolanaQuoteAndPost> {
+    const q = await this.sdk.getQuote({
       ownerAddress: p.owner.publicKey,
       sellTokenAddress: p.sell.mint,
       sellTokenDecimals: p.sell.decimals,
@@ -112,9 +126,16 @@ export class Orders {
       buyTokenDecimals: p.buy.decimals,
       amount: p.amount,
       kind: p.kind === 'sell' ? OrderKind.SELL : OrderKind.BUY,
-      validForSeconds: this.opts.validFor,
+      validForSeconds: this.opts.validFor + PLACEMENT_MARGIN_S,
       ...(this.opts.slippageBps !== undefined ? { slippageBps: this.opts.slippageBps } : {}),
     })
+    // buildOrder() reuses solanaQuote's uid/PDA when given no overrides, so they must match the new intent.
+    const sq = q.solanaQuote
+    sq.intent = { ...sq.intent, appData: APP_DATA }
+    sq.intentBytes = encodeOrderIntent(sq.intent)
+    sq.uid = await hashOrderIntent(sq.intentBytes)
+    ;[sq.orderPda] = findOrderPda(sq.programId, sq.uid, this.opts.env)
+    return q
   }
 
   /**

@@ -1,0 +1,17 @@
+{
+  "_doc": "Per-environment endpoints, shared by sim/ (TypeScript) and qos.py. A session's meta.json records which one it used under `env`.",
+  "staging": {
+    "label": "barn",
+    "api": "https://barn.api.cow.fi/solana/api",
+    "debug": "https://debug.barn.cow.fi",
+    "solscan": "https://solscan.io",
+    "logs": { "autopilot": "solana-autopilot-staging", "driver": "solana-driver-staging", "api": "solana-api-staging", "jupiter": "solana-jupiter-staging-solve" }
+  },
+  "prod": {
+    "label": "prod",
+    "api": "https://api.cow.fi/solana/api",
+    "debug": "https://debug.cow.fi",
+    "solscan": "https://solscan.io",
+    "logs": null
+  }
+}

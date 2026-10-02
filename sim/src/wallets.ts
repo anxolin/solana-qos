@@ -3,6 +3,7 @@ import { derivePath } from 'ed25519-hd-key'
 import { Keypair, PublicKey, SystemProgram } from '@solana/web3.js'
 import type { Rpc } from './rpc.js'
 import { lamportsToSol, TX_FEE_LAMPORTS } from './config.js'
+import { c } from './ui.js'
 
 /** Phantom/Solflare/solana-keygen compatible path. Index 0 is the funder, index n is trader n. */
 export const derivationPath = (index: number) => `m/44'/501'/${index}'/0'`
@@ -55,7 +56,7 @@ export async function fund(rpc: Rpc, w: Wallets, plan: FundingLine[], log: (m: s
       SystemProgram.transfer({ fromPubkey: w.funder.publicKey, toPubkey: l.address, lamports: l.topUp }),
     )
     const sig = await rpc.sendAndConfirm(ixs, [w.funder])
-    log(`funded traders ${batch.map((l) => l.trader).join(', ')} (${sig.slice(0, 12)}…)`)
+    log(`${c.green('✓ funded')} traders ${batch.map((l) => c.blue(`t${l.trader}`)).join(', ')} ${c.dim(`(${sig.slice(0, 12)}…)`)}`)
   }
 }
 
