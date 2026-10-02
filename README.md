@@ -5,6 +5,13 @@ Quality-of-service report for CoW Protocol Solana test sessions on barn. It cove
 - why the rest didn't execute
 - which solvers won and landed settlements
 
+## Scripted sessions (`sim/`)
+
+`sim/` plays a CSV of trades with wallets derived from one mnemonic, then writes a session folder that this
+report reads. See [`sim/README.md`](sim/README.md). Scenarios you can replay are in `scenarios/`:
+- `smoke.csv`: every path once, 2 traders
+- `kaffee-25x10.csv`: 25 traders over 10 minutes, seed 1
+
 ## Data sources
 
 | What | Where |

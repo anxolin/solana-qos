@@ -1,8 +1,0 @@
-created_utc                  uid                                                                 sell_symbol  buy_symbol  kind  api_status  cause                                            solver         seconds_to_execution
-2026-10-02T13:10:23.184071Z  0x936ef04481774765785d86e426fe20cefb9ed57e2b5ff00b6b83e06e1c457fe2  wSOL         PYTH        sell  expired     Funder out of SOL
-2026-10-02T13:26:52.186618Z  0x1e6b635ec81dda02e031e84cf630409bb71e52aa46d805815f7083d16ff1fba5  wSOL         PYTH        sell  expired     No settlement before creation blockhash expired
-2026-10-02T13:31:37.863890Z  0x0be9017ebebf9e3ae9b77365fcf88d75bec392ac95dc3900c4c881913d77c97d  wSOL         USDC        sell  fulfilled   Executed                                         rosato         11
-2026-10-02T13:33:00.219545Z  0x89b242960995185795d04637c027dfb288bff2c189fad5171e6e3900856a773c  USDC         $WIF        sell  fulfilled   Executed                                         jupiter-solve  34
-2026-10-02T13:34:26.642237Z  0xfdf687513faacfe6c6f800831b72b6ca4ced3dbe877850c4edd12a057b059cfc  $WIF         PYTH        sell  fulfilled   Executed                                         jupiter-solve  31
-2026-10-02T13:40:23.959245Z  0x914bb66798ae4e7c6e216f0e0321bdea1c6f99d7fbd2b5983c2fe615ba96e347  PYTH         EURC        sell  expired     No settlement before creation blockhash expired
-2026-10-02T14:02:02.887138Z  0xd1203e844a19ac0413a6b7a83136ca181c44bcedc26f9c26fda29b518ee1cdcd  PYTH         EURC        sell  expired     No settlement before creation blockhash expired
