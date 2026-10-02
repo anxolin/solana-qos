@@ -335,6 +335,40 @@ def fmt_metric(name: str, v) -> str:
     return str(v)
 
 
+def read_journal(session: Path) -> dict | None:
+    """sim/journal.jsonl from sim/: which row and step placed each order, and how each row ended."""
+    path = session / "sim" / "journal.jsonl"
+    if not path.exists():
+        return None
+    orders, rows = {}, {}
+    place_errors = retries = 0
+    for line in path.read_text().splitlines():
+        e = json.loads(line)
+        ev, row = e.get("event"), e.get("row")
+        if ev == "placed":
+            orders[e["uid"]] = {"step": e.get("step"), "row": row, "attempt": e.get("attempt", 0),
+                                "forced_self": bool(e.get("forcedSelf"))}
+        elif ev == "place_error":
+            place_errors += 1
+        elif ev == "retry":
+            retries += 1
+        elif ev == "row_start":
+            rows[row] = {"row": row, "trader": e.get("trader"), "trade": f"{e.get('type')} {e.get('amount')} {e.get('token')} "
+                         f"{'→' if e.get('type') == 'sell' else '←'} {e.get('other')}", "status": "running", "reason": "", "orders": 0}
+        elif ev in ("row_done", "row_failed") and row in rows:
+            rows[row]["status"] = "filled" if ev == "row_done" else "failed"
+            rows[row]["reason"] = e.get("reason", "")
+    for info in orders.values():
+        if info["row"] in rows:
+            rows[info["row"]]["orders"] += 1
+    return {"orders": orders, "rows": [rows[k] for k in sorted(rows)], "place_errors": place_errors, "retries": retries}
+
+
+LOGS_MISSING = ("Log data wasn't fetched for this session, so failure causes are generic and the competition and "
+                "rate-limit sections are missing. Set GRAFANA_URL, GRAFANA_API_TOKEN and GRAFANA_DATASOURCE_UID "
+                "(or create solana-qos/.env.<env>) and run ./qos.py logs.")
+
+
 def cmd_report(a):
     session = ROOT / "sessions" / a.session
     meta = json.loads((session / "meta.json").read_text())
@@ -346,6 +380,8 @@ def cmd_report(a):
     failures = settle_failures(session)
     incidents = meta.get("incidents", [])
     quotes = solver_quotes(session)
+    journal = read_journal(session)
+    logs_available = comp_path.exists()
     tokens, names = load_map("tokens.json"), load_map("solvers.json")
     tok = lambda m: tokens.get(m, short(m))  # noqa: E731
     sol = lambda s: names.get(s, short(s))  # noqa: E731
@@ -354,6 +390,8 @@ def cmd_report(a):
     for o in orders:
         o["outcome"] = outcome(o, creation_expired)
         o["cause"] = cause(o, failures, incidents, quotes)
+        info = (journal or {}).get("orders", {}).get(o["uid"], {})
+        o["step"], o["row"] = info.get("step", ""), info.get("row", "")
         o["pair"] = f"{tok(o['sellToken'])} → {tok(o['buyToken'])}"
         times = [t["tx"].get("block_time") for t in o["trades"] if t["tx"].get("block_time")]
         o["latency"] = min(times) - ts(o["creationDate"]).timestamp() if times else None
@@ -368,6 +406,8 @@ def cmd_report(a):
     md += [f"{env['label'].capitalize()}, orders created between `{meta['start']}` and `{meta['end']}`. "
            f"Data fetched {meta.get('fetched_at', '?')}.", ""]
 
+    if not logs_available:
+        md += [f"> ⚠ {LOGS_MISSING}", ""]
     md += ["## Summary", ""]
     md += [table(["Metric", "Value"], [
         ["Orders placed", n],
@@ -376,6 +416,15 @@ def cmd_report(a):
         ["Traders", len(owners)],
         ["Settlement txs", len({t['txSignature'] for o in executed for t in o['trades']})],
     ]), ""]
+
+    if journal and journal["rows"]:
+        rows_ = journal["rows"]
+        done = sum(r["status"] == "filled" for r in rows_)
+        md += ["## Scenario", "",
+               f"{done} of {len(rows_)} scenario rows completed. {journal['retries']} retries, "
+               f"{journal['place_errors']} placement errors (from `sim/journal.jsonl`).", ""]
+        md += [table(["Row", "Trader", "Trade", "Result", "Orders", "Reason"],
+                     [[r["row"], r["trader"], r["trade"], r["status"], r["orders"], r["reason"]] for r in rows_]), ""]
 
     md += ["## Order outcomes", ""]
     md += [table(["Outcome", "Orders", "Share"],
@@ -506,14 +555,14 @@ def cmd_report(a):
         w = csv.writer(fh)
         w.writerow(["created_utc", "uid", "owner", "sell_token", "buy_token", "sell_symbol", "buy_symbol",
                     "kind", "sell_amount", "buy_amount", "executed_sell", "executed_buy", "api_status",
-                    "cause", "solver", "seconds_to_execution", "tx_signature"])
+                    "cause", "solver", "seconds_to_execution", "tx_signature", "sim_row", "sim_step"])
         for o in orders:
             w.writerow([o["creationDate"], o["uid"], o["owner"], o["sellToken"], o["buyToken"],
                         tok(o["sellToken"]), tok(o["buyToken"]), o["kind"], o["sellAmount"], o["buyAmount"],
                         o["executedSellAmount"], o["executedBuyAmount"], o["status"], o["cause"],
                         sol(o["solver"]) if o["solver"] else "",
                         f"{o['latency']:.0f}" if o["latency"] is not None else "",
-                        o["trades"][0]["txSignature"] if o["trades"] else ""])
+                        o["trades"][0]["txSignature"] if o["trades"] else "", o["row"], o["step"]])
     print(f"wrote {out}")
 
     import html_report
@@ -525,17 +574,40 @@ def cmd_report(a):
     out.write_text(html_report.render(
         session=a.session, meta=meta, orders=orders, by_solver=by_solver,
         drivers=drivers, autopilot=comp.get("autopilot", {}), sol=sol, comparisons=comparisons, rate_limits=rl,
+        journal=journal, logs_note=None if logs_available else LOGS_MISSING,
     ))
     print(f"wrote {out}")
+
+
+def cmd_logs(a):
+    import logs as logsmod
+
+    session = ROOT / "sessions" / a.session
+    meta = json.loads((session / "meta.json").read_text())
+    env_name = meta.get("env", "staging")
+    env = use_environment(meta)
+    creds = logsmod.load_credentials(env_name)
+    if not creds:
+        print(f"VictoriaLogs credentials not set ({', '.join(logsmod.CRED_KEYS)}, or solana-qos/.env.{env_name}); "
+              "skipping. The report will have no competition, failure causes or rate-limit sections.")
+        return
+    res = logsmod.fetch_logs(session, meta, env, creds)
+    for k, v in res["summary"].items():
+        print(f"  {k}: {v}")
+    inc = res["incident"]
+    if inc and not any(i.get("label") == inc["label"] for i in meta.get("incidents", [])):
+        meta.setdefault("incidents", []).append(inc)
+        (session / "meta.json").write_text(json.dumps(meta, indent=1, ensure_ascii=False))
+        print(f"  added incident to meta.json: {inc['label']} {inc['start']} → {inc['end']}")
 
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
-    for name in ("fetch", "report"):
+    for name in ("logs", "fetch", "report"):
         sub.add_parser(name).add_argument("--session", required=True)
     a = ap.parse_args()
-    {"fetch": cmd_fetch, "report": cmd_report}[a.cmd](a)
+    {"logs": cmd_logs, "fetch": cmd_fetch, "report": cmd_report}[a.cmd](a)
 
 
 if __name__ == "__main__":

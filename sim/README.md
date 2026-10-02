@@ -80,7 +80,7 @@ pnpm sim new-wallet
 | `--slippage-bps` | quoted | Override the signed slippage |
 | `--dry-run` | | Quote only |
 | `--no-cleanup` | | Leave tokens and SOL in the trader wallets |
-| `--report` | | Run `qos.py fetch` and `report` afterwards |
+| `--report` | | Run `qos.py logs` (when VictoriaLogs credentials are set), `fetch` and `report` afterwards |
 | `--env` | staging | `prod` must be passed explicitly |
 | `-y` | | Skip the confirmation prompt |
 
@@ -172,7 +172,7 @@ The URLs come from `../environments.json` for the `--env` in use: `debug.barn.co
   reserve for fees and rent.
 - **Holdings:** later rows sell what earlier rows bought.
 - **Timing:**
-  - flows for one trader are at least 75s apart
+  - flows for one trader are at least 75s apart (`--min-gap`; `--min-gap 0` packs them back to back, since the runner already waits for each flow to finish)
   - start times are random but fixed by `--seed`
   - every flow starts within `--duration`; the run itself lasts longer because of setup and cleanup
 

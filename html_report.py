@@ -442,7 +442,21 @@ def rate_limit_section(rl: dict, meta: dict, uids: set[str]) -> list[str]:
     return out
 
 
-def render(*, session, meta, orders, by_solver, drivers, autopilot, sol, comparisons=(), rate_limits=None) -> str:
+def scenario_section(journal: dict) -> list[str]:
+    rows = journal["rows"]
+    done = sum(r["status"] == "filled" for r in rows)
+    pill = {"filled": "t-good", "failed": "t-critical", "running": "t-muted"}
+    return ["<section><h2>Scenario</h2>",
+            f"<p>{done} of {len(rows)} scenario rows completed, with {journal['retries']} retries and "
+            f"{journal['place_errors']} placement errors. Each row may place an acquiring order before its main order.</p>",
+            '<div class="panel">' + table(["Row", "Trader", "Trade", "Result", "Orders", "Reason"], [
+                [r["row"], f"t{r['trader']}", escape(r["trade"]),
+                 f'<span class="order"><i class="sw {pill.get(r["status"], "t-muted")}"></i>{escape(r["status"])}</span>',
+                 r["orders"], escape(r["reason"])] for r in rows], {0, 4}) + "</div></section>"]
+
+
+def render(*, session, meta, orders, by_solver, drivers, autopilot, sol, comparisons=(), rate_limits=None,
+           journal=None, logs_note=None) -> str:
     incidents = meta.get("incidents", [])
     inc_labels = {i["label"] for i in incidents}
     n = len(orders)
@@ -466,6 +480,9 @@ def render(*, session, meta, orders, by_solver, drivers, autopilot, sol, compari
           f'{escape(meta["end"][11:].rstrip("Z"))} UTC · data fetched {escape(meta.get("fetched_at", "?")[:16].replace("T", " "))} UTC</span>'
           "</header>"]
 
+    if logs_note:
+        h.append(f'<div class="callout"><span class="badge">Basic report</span><p>{escape(logs_note)}</p></div>')
+
     tiles = [("Orders placed", str(n), f"by {len({o['owner'] for o in orders})} traders"),
              ("Executed", str(len(executed)), f"{pct(len(executed), n)} fill rate"),
              ("Never created on-chain", str(len(never)), f"{pct(len(never), n)} of orders, all sponsored"),
@@ -474,6 +491,9 @@ def render(*, session, meta, orders, by_solver, drivers, autopilot, sol, compari
     h += ['<section aria-label="Summary"><div class="tiles">'] + [
         f'<div class="tile"><span class="k">{k}</span><span class="v">{v}</span><span class="s">{s}</span></div>'
         for k, v, s in tiles] + ["</div></section>"]
+
+    if journal and journal["rows"]:
+        h += scenario_section(journal)
 
     # Outcome stack, ordered good -> critical -> serious -> neutral.
     order_rank = {"good": 0, "critical": 1, "serious": 2, "muted": 3}

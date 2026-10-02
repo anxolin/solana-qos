@@ -28,6 +28,27 @@ export function endpoints(cowEnv: CowEnv): Endpoints {
   return { ...e, api: process.env.COW_SOLANA_API?.trim() || e.api }
 }
 
+const LOG_KEYS = ['GRAFANA_URL', 'GRAFANA_API_TOKEN', 'GRAFANA_DATASOURCE_UID'] as const
+
+/**
+ * Whether qos.py can read VictoriaLogs (through Grafana) for this environment: the three GRAFANA_* variables,
+ * exported or in solana-qos/.env.<env>. Without them the session report is basic.
+ */
+export function logsConfigured(cowEnv: CowEnv): boolean {
+  const found = new Set(LOG_KEYS.filter((k) => process.env[k]?.trim()))
+  try {
+    for (const line of readFileSync(resolve(QOS_ROOT, `.env.${cowEnv}`), 'utf8').split('\n')) {
+      const [k, v] = line.split('=', 2)
+      if ((LOG_KEYS as readonly string[]).includes(k?.trim()) && v?.trim()) found.add(k.trim() as (typeof LOG_KEYS)[number])
+    }
+  } catch {
+    /* no env file */
+  }
+  return found.size === LOG_KEYS.length
+}
+
+export const LOG_ENV_HINT = `${LOG_KEYS.join(', ')} (or solana-qos/.env.<env>)`
+
 /** Links for what the tool prints, in the session's environment. */
 export const links = (e: Endpoints) => ({
   order: (uid: string) => `${e.debug}/order/${uid}`,

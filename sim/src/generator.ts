@@ -14,7 +14,7 @@ export const MIXES: Record<string, Partial<Record<Persona, number>>> = {
 /** Trades per trader per 10 minutes, before jitter. */
 const ACTIVITY: Record<Persona, number> = { swapper: 3, degen: 4, rotator: 4, buyer: 3 }
 
-/** Seconds a trader waits between flows: room for an acquire + main order to settle. */
+/** Default seconds between a trader's flows. The runner already waits for the previous flow, so this only paces. */
 export const MIN_GAP_S = 75
 /** Smallest trade the generator emits, in SOL value. */
 const MIN_TRADE_SOL = 0.003
@@ -32,6 +32,8 @@ export interface GenerateOptions {
   universe: UniverseToken[]
   /** Price of each token in SOL, by symbol. */
   priceSol: Record<string, number>
+  /** Minimum seconds between one trader's flows (default MIN_GAP_S). */
+  minGap?: number
 }
 
 /** Deterministic PRNG so a seed always produces the same file. */
@@ -75,6 +77,7 @@ export function generate(o: GenerateOptions): TraderPlan[] {
   const majors = of('major', 'lst')
   const tradables = of('stable', 'major', 'lst', 'meme')
   const durationS = o.durationMin * 60
+  const minGap = o.minGap ?? MIN_GAP_S
 
   return Array.from({ length: o.traders }, (_, i): TraderPlan => {
     const trader = i + 1
@@ -185,8 +188,8 @@ export function generate(o: GenerateOptions): TraderPlan[] {
         }
       }
       if (row) rows.push(row)
-      // Exponential inter-arrival, never closer than MIN_GAP_S so flows for one trader don't overlap.
-      t += Math.max(MIN_GAP_S, Math.round(-Math.log(1 - rng()) * meanGap))
+      // Exponential inter-arrival, never closer than minGap.
+      t += Math.max(minGap, Math.round(-Math.log(1 - rng()) * meanGap))
     }
     return { trader, persona: who, spendSol: spent, rows }
   })

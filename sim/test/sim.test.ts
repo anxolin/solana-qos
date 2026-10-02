@@ -79,6 +79,10 @@ describe('generator', () => {
     for (const p of generate(opts)) expect(p.spendSol).toBeLessThanOrEqual(opts.solPerTrader - TRADER_RESERVE_SOL + 1e-9)
   })
 
+  it('honours --min-gap, including back to back', () => {
+    for (const p of generate({ ...opts, minGap: 0 })) for (const r of p.rows) expect(r.time).toBeLessThanOrEqual(opts.durationMin * 60)
+  })
+
   it('spaces each trader’s flows and starts them within the duration', () => {
     for (const p of generate(opts)) {
       p.rows.forEach((r, i) => {

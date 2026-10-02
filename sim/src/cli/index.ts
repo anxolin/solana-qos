@@ -4,7 +4,7 @@ import { spawnSync } from 'node:child_process'
 import { createInterface } from 'node:readline/promises'
 import { Command, Option } from 'commander'
 import type { CowEnv } from '@cowprotocol/sdk-config'
-import { links, loadEnv, lamportsToSol, QOS_ROOT, SIM_ROOT, solToLamports, TRADER_RESERVE_SOL } from '../config.js'
+import { LOG_ENV_HINT, links, loadEnv, logsConfigured, lamportsToSol, QOS_ROOT, SIM_ROOT, solToLamports, TRADER_RESERVE_SOL } from '../config.js'
 import { Rpc } from '../rpc.js'
 import { fmtSol, fund, fundingPlan, wallets } from '../wallets.js'
 import { Orders } from '../orders.js'
@@ -13,7 +13,7 @@ import { readScenario, tradersIn, writeScenario, type TradeRow } from '../scenar
 import { runRow, type FlowContext, type RowResult } from '../flow.js'
 import { cleanupTrader } from '../cleanup.js'
 import { loadUniverse, resolveToken, splMint, toRaw, fromRaw, usdPrices } from '../tokens.js'
-import { generate, MIXES } from '../generator.js'
+import { generate, MIN_GAP_S, MIXES } from '../generator.js'
 import { sleep } from '../limiter.js'
 import * as ui from '../ui.js'
 import { c, tag } from '../ui.js'
@@ -47,7 +47,8 @@ async function confirm(question: string, yes: boolean) {
 
 /** Rough wall-clock estimate in minutes: a trader's rows run back to back, then cleanup runs 5 traders at a time. */
 function estimateDuration(rows: TradeRow[], traders: number) {
-  const ROW_S = 60 // acquire + main order, typical fill times
+  const ORDER_S = 30 // measured: orders fill in ~6-47s, ~25s on average
+  const ROW_S = ORDER_S * 1.3 // some rows also acquire their sell token first
   const CLEANUP_PER_TRADER_S = 60
   const busyUntil = new Map<number, number>()
   for (const r of rows) busyUntil.set(r.trader, Math.max(r.time, busyUntil.get(r.trader) ?? 0) + ROW_S)
@@ -167,6 +168,7 @@ program
     const total = plan.reduce((s, l) => s + l.topUp, 0n)
     const funderBalance = await rpc.lamports(w.funder.publicKey)
     const est = estimateDuration(rows, traders.length)
+    const hasLogs = logsConfigured(opts.env)
     const onOff = (b: boolean) => (b ? c.green('on') : c.dim('off'))
     printSettings(opts.dryRun ? 'Trade session (dry run)' : 'Trade session', [
       ['Scenario', c.cyan(scenarioPath)],
@@ -184,6 +186,12 @@ program
       ['Order validity', `${opts.orderValidity}s`],
       ['Cleanup', onOff(opts.cleanup)],
       ['Report', onOff(Boolean(opts.report))],
+      [
+        'Logs',
+        hasLogs
+          ? c.green('VictoriaLogs via Grafana (full report)')
+          : ui.warn(`not configured, the report will be basic. Set ${LOG_ENV_HINT}`),
+      ],
     ])
     const issues = [
       ...(total > solToLamports(opts.maxTotalSol) ? [`Funding ${fmtSol(total)} is over --max-total-sol ${opts.maxTotalSol}`] : []),
@@ -250,7 +258,7 @@ program
       await pool(traders, 5, (n) => cleanupTrader(ctx, w, n, opts.env))
     }
     if (opts.report) {
-      for (const cmd of ['fetch', 'report']) spawnSync('python3', [resolve(QOS_ROOT, 'qos.py'), cmd, '--session', session.name], { stdio: 'inherit' })
+      for (const cmd of [...(logsConfigured(opts.env) ? ['logs'] : []), 'fetch', 'report']) spawnSync('python3', [resolve(QOS_ROOT, 'qos.py'), cmd, '--session', session.name], { stdio: 'inherit' })
     }
     log(`${ui.ok('Done.')} Session: ${c.cyan(session.dir)}`)
     await Promise.race([watch, sleep(0)])
@@ -291,6 +299,7 @@ program
   .option('--seed <n>', 'random seed (same seed, same file)', (v) => parseInt(v, 10), Date.now() % 1_000_000)
   .addOption(new Option('--mix <mix>', 'persona mix').choices(Object.keys(MIXES)).default('mixed'))
   .option('--self-ratio <r>', 'share of rows placed self-paid', parseFloat, 0)
+  .option('--min-gap <s>', "minimum seconds between one trader's flows (0 = back to back)", (v) => parseInt(v, 10), MIN_GAP_S)
   .option('--universe <file>', 'token universe JSON')
   .action(async (opts) => {
     const universe = loadUniverse(opts.universe)
@@ -306,6 +315,7 @@ program
       selfRatio: opts.selfRatio,
       universe,
       priceSol,
+      minGap: opts.minGap,
     })
     const rows = plans.flatMap((p) => p.rows).sort((a, b) => a.time - b.time || a.trader - b.trader)
     writeScenario(

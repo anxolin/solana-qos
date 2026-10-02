@@ -31,6 +31,19 @@ The barn Solana database isn't exposed through the CoW-Barn MCP yet. The SQL in
 `queries/db/` targets the `solana.*` schema for when it is, but it hasn't been run
 against the real DB.
 
+## VictoriaLogs (optional, for the full report)
+
+`./qos.py logs --session <name>` runs the queries in `queries/logs.md` against barn's VictoriaLogs through Grafana. It
+writes every `logs/` input, including competition, failure causes and Jupiter rate limits, and adds a "Funder out of
+SOL" incident to `meta.json` when the driver logs show one.
+
+It needs `GRAFANA_URL`, `GRAFANA_API_TOKEN` and `GRAFANA_DATASOURCE_UID`, either exported or in `solana-qos/.env.<env>`
+(e.g. `.env.staging`, git-ignored; the same values debug-tools uses). Without them the step is skipped. The report is
+then basic: no competition or rate-limit sections and generic failure causes. It says so at the top.
+
+For sessions played by `sim/`, the report also reads `sim/journal.jsonl`. It adds a Scenario section with each row's
+result, retries and placement errors, plus `sim_row`/`sim_step` columns in `orders.csv`.
+
 ## Running a session
 
 ```sh
