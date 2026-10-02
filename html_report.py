@@ -158,6 +158,14 @@ details[open] > summary { margin-bottom: 10px; }
 .bug-shell { fill: var(--critical); }
 .bug-dark { fill: var(--ink); }
 .bug-line { stroke: var(--ink); stroke-width: 1; }
+.filter-row { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-2); }
+.filter-row input { font: 13px var(--font-data); color: var(--ink); background: var(--surface);
+  border: 1px solid var(--line); border-radius: 6px; padding: 6px 9px; width: 46ch; max-width: 100%; }
+.filter-row input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.filter-row .clear { font: 13px var(--font-ui); color: var(--ink-2); background: var(--surface);
+  border: 1px solid var(--line); border-radius: 6px; padding: 5px 10px; cursor: pointer; }
+.owner-pick { font: 13px var(--font-data); color: var(--accent); background: none; border: 0; padding: 0;
+  cursor: pointer; text-decoration: underline dotted; text-underline-offset: 3px; }
 #tip { position: fixed; pointer-events: none; z-index: 10; background: var(--ink); color: var(--bg);
   font-size: 12px; line-height: 1.4; padding: 6px 9px; border-radius: 5px; max-width: 260px; white-space: pre-line; }
 footer { color: var(--muted); font-size: 13px; display: grid; gap: 6px; }
@@ -176,13 +184,28 @@ document.addEventListener('pointermove', e => {
 });
 document.addEventListener('pointerleave', () => { tip.hidden = true; });
 const chips = document.querySelectorAll('#cause-filter button');
+const ownerSel = document.getElementById('owner-filter');
 const rows = document.querySelectorAll('#failed tbody tr');
 const count = document.getElementById('failed-count');
+let cause = '*';
+function applyFilters() {
+  const owner = ownerSel.value.trim().toLowerCase();
+  let n = 0;
+  rows.forEach(r => {
+    const show = (cause === '*' || r.dataset.cause === cause) && (!owner || r.dataset.owner.toLowerCase().includes(owner));
+    r.hidden = !show; n += show;
+  });
+  count.textContent = n;
+}
 chips.forEach(b => b.addEventListener('click', () => {
   chips.forEach(c => c.setAttribute('aria-pressed', c === b ? 'true' : 'false'));
-  let n = 0;
-  rows.forEach(r => { const show = b.dataset.cause === '*' || r.dataset.cause === b.dataset.cause; r.hidden = !show; n += show; });
-  count.textContent = n;
+  cause = b.dataset.cause; applyFilters();
+}));
+ownerSel.addEventListener('input', applyFilters);
+document.getElementById('owner-clear').addEventListener('click', () => { ownerSel.value = ''; applyFilters(); ownerSel.focus(); });
+document.querySelectorAll('#failed .owner-pick').forEach(b => b.addEventListener('click', () => {
+  ownerSel.value = b.dataset.owner; applyFilters();
+  ownerSel.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
 }));
 """
 
@@ -569,18 +592,28 @@ def render(*, session, meta, orders, by_solver, drivers, autopilot, sol, compari
 
     # Failed orders with cause filter
     h += ["<section><h2>Orders not executed</h2>",
-          f'<p><span id="failed-count">{len(failed)}</span> orders. Filter by cause; the ladybug opens the order in the debug tool.</p>',
+          f'<p><span id="failed-count">{len(failed)}</span> orders shown. Filter by cause or trader, or click a trader in the table; '
+          "the ladybug opens the order in the debug tool.</p>",
           '<div class="chips" id="cause-filter" role="group" aria-label="Filter by cause">',
           f'<button type="button" id="cause-all" data-cause="*" aria-pressed="true">All <b>{len(failed)}</b></button>']
     for i, (k, v) in enumerate(fail_causes.most_common()):
         h.append(f'<button type="button" id="cause-{i}" data-cause="{escape(k)}" aria-pressed="false">'
                  f'<i class="sw t-{tone(k, inc_labels)}"></i>{escape(k)} <b>{v}</b></button>')
     h.append("</div>")
+    owner_counts = Counter(o["owner"] for o in failed)
+    h.append('<div class="filter-row"><label for="owner-filter">Trader</label>'
+             '<input id="owner-filter" type="search" list="owner-list" autocomplete="off" spellcheck="false" '
+             'placeholder="Type any part of an address">'
+             '<datalist id="owner-list">'
+             + "".join(f'<option value="{w}">{c} not executed</option>' for w, c in owner_counts.most_common())
+             + '</datalist><button type="button" id="owner-clear" class="clear">Clear</button></div>')
     h.append('<div class="panel" id="failed">' + table(
-        ["Created (UTC)", "Pair", "Kind", "Cause", "Order"],
+        ["Created (UTC)", "Pair", "Kind", "Cause", "Trader", "Order"],
         [[o["creationDate"][11:19], escape(o["pair"]), o["kind"], escape(o["cause"]),
+          f'<button type="button" class="owner-pick mono" data-owner="{o["owner"]}" title="Show only {o["owner"]}">'
+          f'{o["owner"][:6]}…{o["owner"][-4:]}</button>',
           order_cell(o["uid"])] for o in failed],
-        attrs=[f'data-cause="{escape(o["cause"])}"' for o in failed]) + "</div></section>")
+        attrs=[f'data-cause="{escape(o["cause"])}" data-owner="{o["owner"]}"' for o in failed]) + "</div></section>")
 
     h += ["<footer><span>Sources: barn autopilot and driver logs (VictoriaLogs), the barn Solana orderbook API, "
           "and Solana RPC for settlement transactions.</span>",
