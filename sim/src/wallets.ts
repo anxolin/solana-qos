@@ -60,17 +60,17 @@ export async function fund(rpc: Rpc, w: Wallets, plan: FundingLine[], log: (m: s
   }
 }
 
-/** Send everything but the fee back to the funder. Returns the lamports moved. */
-export async function sweepToFunder(rpc: Rpc, w: Wallets, n: number): Promise<bigint> {
+/** Send everything but the fee back to the funder. Returns the lamports moved and the transaction. */
+export async function sweepToFunder(rpc: Rpc, w: Wallets, n: number): Promise<{ amount: bigint; signature?: string }> {
   const kp = w.trader(n)
   const balance = await rpc.lamports(kp.publicKey)
   const amount = balance - TX_FEE_LAMPORTS
-  if (amount <= 0n) return 0n
-  await rpc.sendAndConfirm(
+  if (amount <= 0n) return { amount: 0n }
+  const signature = await rpc.sendAndConfirm(
     [SystemProgram.transfer({ fromPubkey: kp.publicKey, toPubkey: w.funder.publicKey, lamports: amount })],
     [kp],
   )
-  return amount
+  return { amount, signature }
 }
 
 export const fmtSol = (l: bigint) => `${lamportsToSol(l).toFixed(4)} SOL`
