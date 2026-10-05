@@ -20,7 +20,7 @@ import { WSOL_MINT, type Rpc } from './rpc.js'
 import { splMint, type Token } from './tokens.js'
 import type { Mode } from './scenario.js'
 
-/** `timeout`: not filled within the fill timeout, then cancelled on-chain so it can't fill later. */
+/** `timeout`: not filled within the fill timeout; the script stopped waiting (and cancelled it, if asked to). */
 export type FinalStatus = 'fulfilled' | 'expired' | 'cancelled' | 'timeout'
 
 export interface PlaceParams {
@@ -102,8 +102,10 @@ export interface OrdersOptions {
   apiBase: string
   /** Seconds the order must still have when it's placed (orderbook minimum 120). */
   validFor: number
-  /** Seconds to wait for a fill before cancelling on-chain (the order itself must live >= 120s). */
+  /** Seconds to wait for a fill before giving up on the order (it keeps living until its own expiry, >= 120s). */
   fillTimeout?: number
+  /** Cancel on-chain when giving up, so a late fill can't happen. Off by default: the order just expires. */
+  cancelOnTimeout?: boolean
   slippageBps?: number
   /** Our own orderbook calls (posting, polling) per second. */
   apiRps?: number
@@ -255,8 +257,8 @@ export class Orders {
   }
 
   /**
-   * Poll until the order is final. After the fill timeout (or its validity), cancel it on-chain so it can't fill
-   * later, then report `timeout` (or the fill, if it settled in the meantime).
+   * Poll until the order is final, or give up after the fill timeout (`timeout`). The order is left to expire on its
+   * own unless `cancelOnTimeout` is set, which cancels it on-chain first (reporting the fill if it settled meanwhile).
    */
   async waitFinal(placed: Placed, pollMs = 3000): Promise<{ status: FinalStatus; order: OrderDto | null; cancelTx?: string }> {
     const validUntil = placed.validTo * 1000 + 30_000
@@ -269,7 +271,7 @@ export class Orders {
         if (final(order)) return { status: order!.status as FinalStatus, order }
         await sleep(pollMs)
       }
-      if (Date.now() >= validUntil) return { status: 'timeout', order }
+      if (Date.now() >= validUntil || !this.opts.cancelOnTimeout) return { status: 'timeout', order }
       const cancelTx = await this.cancel(placed).catch(() => undefined)
       await sleep(5000)
       order = await this.getOrder(placed.uid).catch(() => order)

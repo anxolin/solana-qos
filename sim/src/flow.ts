@@ -89,7 +89,11 @@ export async function placeAndWait(
     })
     ctx.log(
       `  ${tag(meta.row, meta.trader)} ${stepLabel(meta.step)}: ${ui.status(status)} ${c.dim(`after ${((Date.now() - last.placedAt) / 1000).toFixed(0)}s`)}` +
-        (cancelTx ? `${status === 'timeout' ? ', cancelled' : ''}\n      ${c.dim('cancel tx')} ${c.dim(ctx.link.tx(cancelTx))}` : ''),
+        (cancelTx
+          ? `${status === 'timeout' ? ', cancelled' : ''}\n      ${c.dim('cancel tx')} ${c.dim(ctx.link.tx(cancelTx))}`
+          : status === 'timeout'
+            ? c.dim(', moving on (the order expires on its own)')
+            : ''),
     )
     if (status === 'fulfilled') return { status, attempts, last }
     if (attempt < ctx.maxRetries) ctx.session.log({ ...meta, event: 'retry', attempt: attempt + 1, previous: last.uid })

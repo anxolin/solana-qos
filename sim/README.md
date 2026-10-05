@@ -75,9 +75,10 @@ pnpm sim new-wallet
 | `--sol-funding-per-trader` | 0.1 | Each trader is topped up to this; traders already at it are skipped |
 | `--max-total-sol` | 3 | Refuses to fund more than this in total |
 | `--session` | `<date>-<scenario>` | Folder under `../sessions/` |
-| `--max-retries` | 1 | Re-quote and retry an order that expires (new uid each time) |
+| `--max-retries` | 0 | Re-quote and retry an order that expires or times out (new uid each time). 0 = move on |
 | `--order-validity` | 120 | Seconds an order has left when placed (the orderbook's minimum is 120). The quote asks for 10s more to cover placement time |
-| `--fill-timeout` | 60 | Seconds to wait for a fill. After that the order is cancelled on-chain (so it can't fill later) and retried |
+| `--fill-timeout` | 60 | Seconds to wait for a fill. After that the script moves on and the order expires on its own (≥ 120s: the orderbook minimum), so it can still fill late |
+| `--cancel-on-timeout` | off | Cancel the order on-chain when giving up, so it can't fill late |
 | `--slippage-bps` | quoted | Override the signed slippage |
 | `--dry-run` | | Quote only |
 | `--no-cleanup` | | Leave tokens and SOL in the trader wallets |
@@ -112,7 +113,7 @@ Lines starting with `#` are comments.
 1. **Acquire:** if the trader doesn't hold enough of the sell token, place a BUY of the missing amount, paid with SOL, and
    wait for it to fill. Buy rows acquire the quoted maximum sell amount plus 3%. Skipped when selling SOL.
 2. **Main order:** placed as soon as the acquisition fills, then polled until fulfilled, expired or timed out.
-   Expired orders are re-quoted and retried up to `--max-retries` times.
+   After `--fill-timeout` (60s) without a fill, the script moves on. By default it doesn't retry.
 
 Rows for the same trader run in order, and a row waits for the trader's previous one. Different traders run in parallel.
 

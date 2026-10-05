@@ -348,9 +348,12 @@ def read_journal(session: Path) -> dict | None:
         return None
     orders, rows = {}, {}
     place_errors = retries = 0
+    timeouts: set[str] = set()  # orders sim cancelled after its fill timeout
     for line in path.read_text().splitlines():
         e = json.loads(line)
         ev, row = e.get("event"), e.get("row")
+        if ev == "final" and e.get("cancelTx") and e.get("status") == "timeout":
+            timeouts.add(e.get("uid"))
         if ev == "placed":
             orders[e["uid"]] = {"step": e.get("step"), "row": row, "trader": e.get("trader"), "attempt": e.get("attempt", 0),
                                 "forced_self": bool(e.get("forcedSelf"))}
@@ -369,7 +372,8 @@ def read_journal(session: Path) -> dict | None:
     for info in orders.values():
         if info["row"] in rows:
             rows[info["row"]]["orders"] += 1
-    return {"orders": orders, "rows": [rows[k] for k in sorted(rows)], "place_errors": place_errors, "retries": retries}
+    return {"orders": orders, "rows": [rows[k] for k in sorted(rows)], "place_errors": place_errors, "retries": retries,
+            "timeouts": timeouts}
 
 
 LOGS_MISSING = ("Log data wasn't fetched for this session, so failure causes are generic and the competition and "
@@ -400,6 +404,8 @@ def cmd_report(a):
         o["cause"] = cause(o, failures, incidents, quotes)
         info = (journal or {}).get("orders", {}).get(o["uid"], {})
         o["step"], o["row"], o["sim_trader"] = info.get("step", ""), info.get("row", ""), info.get("trader")
+        if o["uid"] in (journal or {}).get("timeouts", set()) and o["outcome"] != "executed":
+            o["cause"] = "Not filled within fill timeout (cancelled by sim)"
         o["pair"] = f"{tok(o['sellToken'])} → {tok(o['buyToken'])}"
         times = [t["tx"].get("block_time") for t in o["trades"] if t["tx"].get("block_time")]
         o["latency"] = min(times) - ts(o["creationDate"]).timestamp() if times else None

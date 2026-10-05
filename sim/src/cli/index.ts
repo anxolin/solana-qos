@@ -125,7 +125,10 @@ interface RateOpts {
   rpcRps?: number
 }
 
-function context(opts: { env: CowEnv; maxRetries?: number; orderValidity?: number; fillTimeout?: number; slippageBps?: number } & RateOpts, session: Session) {
+function context(
+  opts: { env: CowEnv; maxRetries?: number; orderValidity?: number; fillTimeout?: number; cancelOnTimeout?: boolean; slippageBps?: number } & RateOpts,
+  session: Session,
+) {
   const env = loadEnv({ cowEnv: opts.env })
   const rpc = new Rpc(env.rpcUrl, opts.rpcRps ?? 10)
   const orders = new Orders(rpc, {
@@ -133,11 +136,12 @@ function context(opts: { env: CowEnv; maxRetries?: number; orderValidity?: numbe
     apiBase: env.apiBase,
     validFor: opts.orderValidity ?? 120,
     fillTimeout: opts.fillTimeout ?? 60,
+    cancelOnTimeout: Boolean(opts.cancelOnTimeout),
     slippageBps: opts.slippageBps,
     quoteRps: opts.quoteRps,
     apiRps: opts.apiRps,
   })
-  const ctx: FlowContext = { link: links(env.urls), rpc, orders, session, maxRetries: opts.maxRetries ?? 1, acquireBufferBps: 300, log }
+  const ctx: FlowContext = { link: links(env.urls), rpc, orders, session, maxRetries: opts.maxRetries ?? 0, acquireBufferBps: 300, log }
   return { env, rpc, orders, ctx, w: wallets(env.mnemonic) }
 }
 
@@ -198,13 +202,14 @@ program
   .option('--session <name>', 'session folder name under solana-qos/sessions')
   .option('--sol-funding-per-trader <sol>', 'SOL each trader is topped up to', parseFloat, 0.1)
   .option('--max-total-sol <sol>', 'refuse to fund more than this in total', parseFloat, 3)
-  .option('--max-retries <n>', 're-quote and retry an order that expires', (v) => parseInt(v, 10), 1)
+  .option('--max-retries <n>', 're-quote and retry an order that expires or times out (0 = move on)', (v) => parseInt(v, 10), 0)
   .option('--order-validity <s>', 'seconds an order has left when placed (orderbook minimum 120)', (v) => {
     const n = parseInt(v, 10)
     if (!(n >= 120)) throw new Error('--order-validity must be at least 120 seconds (the orderbook rejects shorter orders)')
     return n
   }, 120)
-  .option('--fill-timeout <s>', 'seconds to wait for a fill before cancelling on-chain and retrying', (v) => parseInt(v, 10), 60)
+  .option('--fill-timeout <s>', 'seconds to wait for a fill before giving up on the order (it then expires on its own)', (v) => parseInt(v, 10), 60)
+  .option('--cancel-on-timeout', 'cancel the order on-chain when giving up, so it cannot fill late')
   .option('--slippage-bps <bps>', 'override the quoted slippage', (v) => parseInt(v, 10))
   .option('--quote-rps <n>', 'quotes per second (raise for stress tests)', parseFloat, 5)
   .option('--api-rps <n>', 'other orderbook calls per second: posting, polling', parseFloat, 8)
@@ -241,7 +246,8 @@ program
       ['Top-ups', `${c.bold(fmtSol(total))} ${c.dim(`to ${plan.filter((l) => l.topUp > 0n).length} of ${traders.length} traders`)}`],
       ['Max total', `${opts.maxTotalSol} SOL`],
       ['Retries', String(opts.maxRetries)],
-      ['Order validity', `${opts.orderValidity}s ${c.dim(`(cancelled on-chain if not filled after ${opts.fillTimeout}s)`)}`],
+      ['Order validity', `${opts.orderValidity}s, the orderbook minimum`],
+      ['Fill timeout', `${opts.fillTimeout}s, then ${opts.cancelOnTimeout ? 'cancel on-chain and move on' : 'move on and let the order expire'}`],
       ['Client limits', `${opts.quoteRps} quotes/s, ${opts.apiRps} API calls/s, ${opts.rpcRps} RPC calls/s`],
       ['Cleanup', onOff(opts.cleanup)],
       ['Report', onOff(Boolean(opts.report))],

@@ -32,7 +32,7 @@ def order_cell(uid: str, note: str = "") -> str:
             f'aria-label="Open order {uid[:10]} in the debug tool" title="Open in the debug tool">{LADYBUG}</a>{note}</span>')
 
 
-NEUTRAL = {"Expired without a fill", "Cancelled", "Still open"}
+NEUTRAL = {"Expired without a fill", "Cancelled", "Still open", "Not filled within fill timeout (cancelled by sim)"}
 
 
 def ts(v: str) -> datetime:
