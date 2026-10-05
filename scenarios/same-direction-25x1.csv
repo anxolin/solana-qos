@@ -1,0 +1,29 @@
+# 25 traders buy the same market in the same direction at the same moment: 10 JUP each, paying SOL (~0.027 SOL).
+# Solvers can batch them into one settlement against the same AMM; there is no counterparty (no CoW).
+# Fund with --sol-funding-per-trader 0.06.
+trader,time,type,amount,token,other_token,mode,note
+1,0,buy,10,JUP,SOL,sponsored,same market same direction
+2,0,buy,10,JUP,SOL,sponsored,same market same direction
+3,0,buy,10,JUP,SOL,sponsored,same market same direction
+4,0,buy,10,JUP,SOL,sponsored,same market same direction
+5,0,buy,10,JUP,SOL,sponsored,same market same direction
+6,0,buy,10,JUP,SOL,sponsored,same market same direction
+7,0,buy,10,JUP,SOL,sponsored,same market same direction
+8,0,buy,10,JUP,SOL,sponsored,same market same direction
+9,0,buy,10,JUP,SOL,sponsored,same market same direction
+10,0,buy,10,JUP,SOL,sponsored,same market same direction
+11,0,buy,10,JUP,SOL,sponsored,same market same direction
+12,0,buy,10,JUP,SOL,sponsored,same market same direction
+13,0,buy,10,JUP,SOL,sponsored,same market same direction
+14,0,buy,10,JUP,SOL,sponsored,same market same direction
+15,0,buy,10,JUP,SOL,sponsored,same market same direction
+16,0,buy,10,JUP,SOL,sponsored,same market same direction
+17,0,buy,10,JUP,SOL,sponsored,same market same direction
+18,0,buy,10,JUP,SOL,sponsored,same market same direction
+19,0,buy,10,JUP,SOL,sponsored,same market same direction
+20,0,buy,10,JUP,SOL,sponsored,same market same direction
+21,0,buy,10,JUP,SOL,sponsored,same market same direction
+22,0,buy,10,JUP,SOL,sponsored,same market same direction
+23,0,buy,10,JUP,SOL,sponsored,same market same direction
+24,0,buy,10,JUP,SOL,sponsored,same market same direction
+25,0,buy,10,JUP,SOL,sponsored,same market same direction

@@ -1,0 +1,6 @@
+# Token-2022 smoke test. Token-2022 to Token-2022: SOL to USDu, then USDu to CATE (both sides Token-2022).
+# Sell orders only (no exact-out route for Token-2022 today): sell 0.02 SOL for the token, then sell ~60% back.
+# Fund with --sol-funding-per-trader 0.05. Sized on 5 Oct 2026 (SOL ≈ $118.6).
+trader,time,type,amount,token,other_token,mode,note
+1,0,sell,0.02,SOL,USDu,sponsored,Token-2022 to Token-2022 setup
+1,1,sell,1.43,USDu,CATE,sponsored,Token-2022 to Token-2022: USDu to CATE

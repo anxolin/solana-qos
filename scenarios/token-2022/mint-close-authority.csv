@@ -1,0 +1,8 @@
+# Token-2022 smoke test. Mint close authority: sUSD.infra, ZARP.
+# Sell orders only (no exact-out route for Token-2022 today): sell 0.02 SOL for the token, then sell ~60% back.
+# Fund with --sol-funding-per-trader 0.05. Sized on 5 Oct 2026 (SOL ≈ $118.6).
+trader,time,type,amount,token,other_token,mode,note
+1,0,sell,0.02,SOL,sUSD.infra,sponsored,mint close authority: SOL to token
+1,1,sell,1.43,sUSD.infra,SOL,sponsored,mint close authority: token to SOL
+2,0,sell,0.02,SOL,ZARP,sponsored,mint close authority: SOL to token
+2,1,sell,23.9,ZARP,SOL,sponsored,mint close authority: token to SOL
