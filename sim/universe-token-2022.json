@@ -1,0 +1,93 @@
+{
+ "_doc": "Token-2022 mints for the smoke test, one or more per extension the backend accepts (crates/solana-token: rejects transfer fee config even at 0 bps, transfer hook, pausable, non-transferable, frozen-by-default). Picked from Jupiter's Token-2022 list on 5 Oct 2026 by liquidity and checked to quote on barn. PYUSD and USDG are negative checks. Barn only quotes SELL orders for Token-2022 today; BUY (exact-out) returns NoLiquidity.",
+ "tokens": [
+  {
+   "symbol": "CATE",
+   "mint": "Ai66LHZG9MCzg1WKdawwqduVAXpNDUuV8M3uyq5ppump",
+   "decimals": 6,
+   "tier": "major",
+   "program": "token-2022",
+   "extensions": "metadata only"
+  },
+  {
+   "symbol": "USDu",
+   "mint": "9ckR7pPPvyPadACDTzLwK2ZAEeUJ3qGSnzPs8bVaHrSy",
+   "decimals": 6,
+   "tier": "major",
+   "program": "token-2022",
+   "extensions": "metadata only"
+  },
+  {
+   "symbol": "ANSEM",
+   "mint": "9cRCn9rGT8V2imeM2BaKs13yhMEais3ruM3rPvTGpump",
+   "decimals": 6,
+   "tier": "major",
+   "program": "token-2022",
+   "extensions": "metadata only"
+  },
+  {
+   "symbol": "jlUSDG",
+   "mint": "9fvHrYNw1A8Evpcj7X2yy4k4fT7nNHcA9L6UsamNHAif",
+   "decimals": 6,
+   "tier": "major",
+   "program": "token-2022",
+   "extensions": "metadata only"
+  },
+  {
+   "symbol": "sUSD.infra",
+   "mint": "GvEMgNT6GKiYTvg7TskDio6RKzQdCuhwmH55tVCLaJTe",
+   "decimals": 6,
+   "tier": "major",
+   "program": "token-2022",
+   "extensions": "mint close authority"
+  },
+  {
+   "symbol": "ZARP",
+   "mint": "dngKhBQM3BGvsDHKhrLnjvRKfY5Q7gEnYGToj9Lk8rk",
+   "decimals": 6,
+   "tier": "major",
+   "program": "token-2022",
+   "extensions": "mint close authority"
+  },
+  {
+   "symbol": "SILV",
+   "mint": "SiLVFMgD3eD2rgK628NbTBq9MnuJF5FW2CRaVyTB35L",
+   "decimals": 6,
+   "tier": "major",
+   "program": "token-2022",
+   "extensions": "permanent delegate"
+  },
+  {
+   "symbol": "sUSDu",
+   "mint": "9iq5Q33RSiz1WcupHAQKbHBZkpn92UxBG2HfPWAZhMCa",
+   "decimals": 6,
+   "tier": "major",
+   "program": "token-2022",
+   "extensions": "permanent delegate"
+  },
+  {
+   "symbol": "USDM1",
+   "mint": "BNgsQdjfWmjoy3cw8T3VXWswHfgCzEMyQzUno8gmzmRC",
+   "decimals": 9,
+   "tier": "major",
+   "program": "token-2022",
+   "extensions": "interest-bearing"
+  },
+  {
+   "symbol": "PYUSD",
+   "mint": "2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo",
+   "decimals": 6,
+   "tier": "major",
+   "program": "token-2022",
+   "extensions": "REJECTED: transfer fee config (0 bps) + transfer hook"
+  },
+  {
+   "symbol": "USDG",
+   "mint": "2u1tszSeqZ3qBWF3uNGPFc8TzMk2tdiwknnRMWGWjGWH",
+   "decimals": 6,
+   "tier": "major",
+   "program": "token-2022",
+   "extensions": "REJECTED: transfer fee config (0 bps) + transfer hook"
+  }
+ ]
+}
