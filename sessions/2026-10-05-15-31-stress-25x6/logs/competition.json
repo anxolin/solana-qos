@@ -1,0 +1,93 @@
+{
+ "_source": "VictoriaLogs via Grafana, container solana-autopilot-staging",
+ "drivers": {
+  "jupiter-solve": {
+   "submitted": 141,
+   "observed_on_chain": 141,
+   "solver": "5wNaPpozMcU19UY87NXU1Lfkzbfr9dQQW9SPh8AHLAgn",
+   "wins": 157,
+   "proposed": 301,
+   "settlement_missed_deadline": 1,
+   "rejected_before_submission": {
+    "SimulationFailed": 13,
+    "FailedToCreate": 1
+   },
+   "solve_failed": {
+    "other": 3
+   },
+   "settlement_failed": {
+    "FailedToSubmit": 1
+   }
+  },
+  "grafiks": {
+   "observed_on_chain": 80,
+   "solver": "8E74TqmnwJ7nRBd2GJbhpFbiMDAeWb5p8krVpwkQ2mpx",
+   "proposed": 334,
+   "solve_missed_deadline": 1,
+   "wins": 113,
+   "submitted": 80,
+   "settlement_missed_deadline": 7,
+   "settlement_failed": {
+    "DeadlineExceeded": 1,
+    "FailedToSubmit": 6
+   },
+   "solve_failed": {
+    "other": 2,
+    "SolverFailed": 1
+   },
+   "rejected_before_submission": {
+    "SimulationFailed": 26
+   }
+  },
+  "rosato": {
+   "submitted": 5,
+   "proposed": 121,
+   "observed_on_chain": 5,
+   "solver": "G6Zn8k6jFHrfZDB6GU1cVrBM8jM7avD6kdmc6bmS5797",
+   "solve_missed_deadline": 16,
+   "wins": 5,
+   "solve_failed": {
+    "other": 2,
+    "SolverFailed": 8
+   }
+  },
+  "fractal": {
+   "proposed": 3,
+   "solve_failed": {
+    "other": 137
+   }
+  },
+  "helixbox": {
+   "proposed": 74,
+   "observed_on_chain": 1,
+   "solver": "6P1c2UZS2PWQbPoMEwCzqJ9eYtreVeboxniCfwLTbsGJ",
+   "wins": 1,
+   "submitted": 1,
+   "solve_failed": {
+    "other": 3
+   }
+  },
+  "zurui": {
+   "solve_missed_deadline": 1,
+   "solve_failed": {
+    "other": 2,
+    "SolverFailed": 143
+   }
+  },
+  "horadrim": {
+   "solve_failed": {
+    "other": 3,
+    "SolverFailed": 143
+   }
+  }
+ },
+ "autopilot": {
+  "winner_skipped_creation_blockhash_expired": 1,
+  "sponsored_creation_expired_orders": 8,
+  "filtered": {
+   "unfunded_sell_token_account": 402,
+   "unpayable_native_buy": 316,
+   "in_flight": 118
+  }
+ }
+}

@@ -1,0 +1,15 @@
+{
+ "name": "2026-10-02-23-29-stress-25x6 trade session",
+ "title": "2026-10-02-23-29-stress-25x6",
+ "start": "2026-10-02T23:29:45.471Z",
+ "env": "staging",
+ "sim": {
+  "scenario": "/Users/anxo/Bunker/code/cow/solana-qos/scenarios/stress-25x6.csv",
+  "traders": 25,
+  "rows": 141,
+  "solFundingPerTrader": 0.1
+ },
+ "trading_end": "2026-10-02T23:41:29.738Z",
+ "end": "2026-10-03T00:12:21.326Z",
+ "fetched_at": "2026-10-03T00:17:00+00:00"
+}
