@@ -77,9 +77,11 @@ pnpm sim new-wallet
 | `--session` | `<date>-<scenario>` | Folder under `../sessions/` |
 | `--max-retries` | 1 | Re-quote and retry an order that expires (new uid each time) |
 | `--order-validity` | 120 | Seconds an order has left when placed (the orderbook's minimum is 120). The quote asks for 10s more to cover placement time |
+| `--fill-timeout` | 60 | Seconds to wait for a fill. After that the order is cancelled on-chain (so it can't fill later) and retried |
 | `--slippage-bps` | quoted | Override the signed slippage |
 | `--dry-run` | | Quote only |
 | `--no-cleanup` | | Leave tokens and SOL in the trader wallets |
+| `--quote-rps` / `--api-rps` / `--rpc-rps` | 5 / 8 / 10 | Client-side limits for quotes, other orderbook calls and Solana RPC. Raise them for stress tests; cleanup runs `rpc-rps / 2` traders at once (min 5) |
 | `--report` | | Run `qos.py logs` (when VictoriaLogs credentials are set), `fetch` and `report` afterwards |
 | `--env` | staging | `prod` must be passed explicitly |
 | `-y` | | Skip the confirmation prompt |
@@ -135,6 +137,14 @@ this pre-image, defined in `src/appData.ts`:
 That makes simulated orders easy to tell apart from real users in the orderbook, logs and analytics. If you
 change the string, the hash changes: keep it byte-for-byte, and update the test that pins it.
 
+### Token-2022
+
+The simulator reads each mint's token program (classic SPL or Token-2022) and uses it for quotes, token accounts,
+approvals and cleanup. What the backend accepts is decided in `services/crates/solana-token`. It rejects mints with a
+transfer fee config (even at 0 bps), a transfer hook, pausable, non-transferable, or frozen-by-default accounts, and
+accepts the rest: metadata, mint close authority, permanent delegate, interest-bearing, and so on.
+`universe-token-2022.json` lists the tokens used for each extension.
+
 ## Cleanup
 
 For each trader:
@@ -183,7 +193,10 @@ The URLs come from `../environments.json` for the `--env` in use: `debug.barn.co
 | `scenarios/smoke.csv` | Every path once, 2 traders, ~3 min. Run it first |
 | `scenarios/kaffee-25x10.csv` | 25 traders over 10 min, liquid tokens, ~8 orders per minute |
 | `scenarios/stress-25x6.csv` | 25 traders over ~7 min, liquid tokens, ~20 orders per minute (`--intensity 4 --min-gap 20`) |
-| `scenarios/token-2022-xStocks-4x10.csv` | **Not runnable yet.** xStocks RWA tokens (`universe-token-2022-xstocks.json`), all self-paid. Barn rejects them today (`UnsupportedToken`: Token-2022 transfer hook) and `sim/` only trades classic SPL |
+| `scenarios/stress-50x2.csv` | **Heavy burst.** 50 traders, 139 rows starting within 2 min (~3 min of trading), all sponsored, ~15× the Kaffeekränzchen rate. Run with raised client limits: `--quote-rps 20 --api-rps 20 --rpc-rps 30` (if your RPC plan allows) |
+| `scenarios/cow-simple.csv` | Coincidence of wants. Setup at t=0, then at t=150 four pairs placed in the same second: perfect SOL/USDC (sell 0.02 SOL vs buy 0.02 SOL), imperfect SOL/USDC (0.03 SOL vs 1.2 USDC), perfect USDC/USDT (3 vs 3), imperfect USDC/USDT (3 vs 1), plus a control with no counterparty. 9 traders, fund 0.07 |
+| `scenarios/same-direction-25x1.csv` | 25 traders buy 10 JUP with SOL at the same moment: same market, same direction, no counterparty. Fund 0.06 |
+| `scenarios/token-2022/` | Token-2022 smoke tests, one file per extension. Sell orders only (no exact-out route for Token-2022 on barn today). Fund with 0.05 per trader:<br>• `metadata-only.csv`: CATE, USDu, ANSEM (self-paid), jlUSDG<br>• `mint-close-authority.csv`: sUSD.infra, ZARP<br>• `permanent-delegate.csv`: SILV, sUSDu<br>• `interest-bearing.csv`: USDM1<br>• `token-2022-to-token-2022.csv`: USDu → CATE<br>• `probe-buy-exact-out.csv`: a BUY, expected `NoLiquidity` today<br>• `rejected-transfer-fee.csv`: PYUSD, USDG, expected `UnsupportedToken`<br>• `all.csv`: all of the above in one run (13 traders)<br>• `xstocks-4x10.csv`: **not runnable yet**, xStocks are rejected (transfer hook) |
 | `scenarios/longtail-25x6.csv` | The Kaffeekränzchen's long-tail tokens (`universe-longtail.json`, `--mix longtail`): token coverage, buffers, routes |
 
 A failure on liquid tokens points at the stack (funding, rate limits, creation window). A failure that only shows up in the long-tail run

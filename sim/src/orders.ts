@@ -4,21 +4,23 @@ import {
   createSyncNativeInstruction,
   getAssociatedTokenAddressSync,
 } from '@solana/spl-token'
-import { OrderKind } from '@cowprotocol/sdk-order-book'
-import type { CowEnv } from '@cowprotocol/sdk-config'
+import { OrderBookApi, OrderKind } from '@cowprotocol/sdk-order-book'
+import { SupportedChainId, type CowEnv } from '@cowprotocol/sdk-config'
 import {
   encodeOrderIntent,
   findOrderPda,
   hashOrderIntent,
   SolanaTradingSdk,
   type SolanaQuoteAndPost,
+  type SolanaOrderIntent,
 } from '@cowprotocol/sdk-trading-solana'
 import { APP_DATA } from './appData.js'
-import { RateLimiter, sleep } from './limiter.js'
+import { RateLimiter, retry, sleep } from './limiter.js'
 import { WSOL_MINT, type Rpc } from './rpc.js'
 import { splMint, type Token } from './tokens.js'
 import type { Mode } from './scenario.js'
 
+/** `timeout`: not filled within the fill timeout, then cancelled on-chain so it can't fill later. */
 export type FinalStatus = 'fulfilled' | 'expired' | 'cancelled' | 'timeout'
 
 export interface PlaceParams {
@@ -43,6 +45,9 @@ export interface Placed {
   funder?: string
   signature?: string
   placedAt: number
+  /** Kept to cancel the order after the fill timeout. */
+  owner: Keypair
+  intent: SolanaOrderIntent
 }
 
 export interface OrderDto {
@@ -97,8 +102,13 @@ export interface OrdersOptions {
   apiBase: string
   /** Seconds the order must still have when it's placed (orderbook minimum 120). */
   validFor: number
+  /** Seconds to wait for a fill before cancelling on-chain (the order itself must live >= 120s). */
+  fillTimeout?: number
   slippageBps?: number
+  /** Our own orderbook calls (posting, polling) per second. */
   apiRps?: number
+  /** Quotes per second through the SDK's client (its default is 5). */
+  quoteRps?: number
 }
 
 export class Orders {
@@ -112,7 +122,12 @@ export class Orders {
     private readonly rpc: Rpc,
     private readonly opts: OrdersOptions,
   ) {
-    this.sdk = new SolanaTradingSdk({ env: opts.env })
+    const orderBookApi = new OrderBookApi({
+      chainId: SupportedChainId.SOLANA,
+      env: opts.env,
+      limiterOpts: { tokensPerInterval: opts.quoteRps ?? 5, interval: 'second' },
+    })
+    this.sdk = new SolanaTradingSdk({ env: opts.env, orderBookApi })
     this.api = new RateLimiter(opts.apiRps ?? 8)
   }
 
@@ -126,6 +141,8 @@ export class Orders {
       buyTokenDecimals: p.buy.decimals,
       amount: p.amount,
       kind: p.kind === 'sell' ? OrderKind.SELL : OrderKind.BUY,
+      sellTokenProgramId: p.sell.programId,
+      buyTokenProgramId: p.buy.programId,
       validForSeconds: this.opts.validFor + PLACEMENT_MARGIN_S,
       ...(this.opts.slippageBps !== undefined ? { slippageBps: this.opts.slippageBps } : {}),
     })
@@ -177,11 +194,20 @@ export class Orders {
       )
     }
     const allowance = this.ledger.reserved(owner, sellMint) + intent.sellAmount
-    ixs.push(this.sdk.approveCowProtocol({ ownerAddress: owner, sellTokenAddress: sellMint, approveAmount: allowance }))
+    ixs.push(
+      this.sdk.approveCowProtocol({
+        ownerAddress: owner,
+        sellTokenAddress: sellMint,
+        approveAmount: allowance,
+        sellTokenProgramId: p.sell.programId,
+      }),
+    )
     if (!p.buy.isNative) {
       // Mandatory in the sponsored template even if the account exists, hence idempotent.
       const payer = mode === 'sponsored' ? funder! : owner
-      ixs.push(createAssociatedTokenAccountIdempotentInstruction(payer, intent.buyTokenAccount, owner, intent.buyMint))
+      ixs.push(
+        createAssociatedTokenAccountIdempotentInstruction(payer, intent.buyTokenAccount, owner, intent.buyMint, p.buy.programId),
+      )
     }
     ixs.push(order.instruction)
 
@@ -208,12 +234,14 @@ export class Orders {
       funder: funder?.toBase58(),
       signature,
       placedAt: Date.now(),
+      owner: p.owner,
+      intent,
     }
   }
 
   async getOrder(uid: string): Promise<OrderDto | null> {
     await this.api.take()
-    const res = await fetch(`${this.opts.apiBase}/v1/orders/${uid}`)
+    const res = await retry(() => fetch(`${this.opts.apiBase}/v1/orders/${uid}`))
     if (res.status === 404) return null
     if (!res.ok) throw new Error(`GET order ${uid}: ${res.status}`)
     return (await res.json()) as OrderDto
@@ -221,26 +249,49 @@ export class Orders {
 
   async ownerOrders(owner: PublicKey): Promise<OrderDto[]> {
     await this.api.take()
-    const res = await fetch(`${this.opts.apiBase}/v1/account/${owner.toBase58()}/orders?limit=1000`)
+    const res = await retry(() => fetch(`${this.opts.apiBase}/v1/account/${owner.toBase58()}/orders?limit=1000`))
     if (!res.ok) throw new Error(`GET account orders: ${res.status}`)
     return (await res.json()) as OrderDto[]
   }
 
-  /** Poll until the order is final, or until `validTo` + 30s passes. */
-  async waitFinal(placed: Placed, pollMs = 3000): Promise<{ status: FinalStatus; order: OrderDto | null }> {
-    const deadline = placed.validTo * 1000 + 30_000
+  /**
+   * Poll until the order is final. After the fill timeout (or its validity), cancel it on-chain so it can't fill
+   * later, then report `timeout` (or the fill, if it settled in the meantime).
+   */
+  async waitFinal(placed: Placed, pollMs = 3000): Promise<{ status: FinalStatus; order: OrderDto | null; cancelTx?: string }> {
+    const validUntil = placed.validTo * 1000 + 30_000
+    const giveUpAt = Math.min(validUntil, placed.placedAt + (this.opts.fillTimeout ?? 60) * 1000)
     let order: OrderDto | null = null
+    const final = (o: OrderDto | null) => o && ['fulfilled', 'expired', 'cancelled'].includes(o.status)
     try {
-      while (Date.now() < deadline) {
+      while (Date.now() < giveUpAt) {
         order = await this.getOrder(placed.uid).catch(() => order)
-        if (order && ['fulfilled', 'expired', 'cancelled'].includes(order.status)) {
-          return { status: order.status as FinalStatus, order }
-        }
+        if (final(order)) return { status: order!.status as FinalStatus, order }
         await sleep(pollMs)
       }
-      return { status: 'timeout', order }
+      if (Date.now() >= validUntil) return { status: 'timeout', order }
+      const cancelTx = await this.cancel(placed).catch(() => undefined)
+      await sleep(5000)
+      order = await this.getOrder(placed.uid).catch(() => order)
+      if (order?.status === 'fulfilled') return { status: 'fulfilled', order, cancelTx }
+      return { status: 'timeout', order, cancelTx }
     } finally {
       this.ledger.release(placed.uid)
     }
+  }
+
+  /**
+   * Cancel on-chain, signed and paid by the owner. An order already on chain just gets its flag set; a sponsored
+   * order still waiting for its creation is created already cancelled (the owner pays rent; cleanup reclaims it).
+   */
+  async cancel(placed: Placed): Promise<string> {
+    const pda = new PublicKey(placed.orderPda)
+    const exists = await this.rpc.call((c) => c.getAccountInfo(pda))
+    const ix = this.sdk.cancelOrder({
+      ownerAddress: placed.owner.publicKey,
+      orderPda: pda,
+      ...(exists ? {} : { intent: placed.intent, createdByAddress: placed.owner.publicKey }),
+    })
+    return this.rpc.sendAndConfirm([ix], [placed.owner])
   }
 }

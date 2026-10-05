@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { PublicKey } from '@solana/web3.js'
+import { TOKEN_PROGRAM_ID } from '@solana/spl-token'
 import { QOS_ROOT, SIM_ROOT } from './config.js'
 import { NATIVE_SOL, WSOL_MINT, type Rpc } from './rpc.js'
 
@@ -20,6 +21,8 @@ export interface Token {
   /** Native SOL (sold as wSOL, bought as lamports) or wSOL itself. */
   isSol: boolean
   isNative: boolean
+  /** Classic SPL Token or Token-2022: token accounts, approvals and quotes use it. */
+  programId: PublicKey
 }
 
 export function loadUniverse(path = resolve(SIM_ROOT, 'universe.json')): UniverseToken[] {
@@ -36,7 +39,7 @@ function symbolIndex(): Map<string, string> {
   } catch {
     /* tokens.json is optional */
   }
-  for (const file of ['universe.json', 'universe-longtail.json', 'universe-token-2022-xstocks.json']) {
+  for (const file of ['universe.json', 'universe-longtail.json', 'universe-token-2022-xstocks.json', 'universe-token-2022.json']) {
     try {
       for (const t of loadUniverse(resolve(SIM_ROOT, file))) idx.set(t.symbol.toLowerCase(), t.mint)
     } catch {
@@ -69,8 +72,8 @@ export async function resolveToken(rpc: Rpc, symbolOrAddress: string): Promise<T
   const mint = resolveMint(symbolOrAddress)
   const isNative = mint.equals(NATIVE_SOL)
   const isSol = isNative || mint.equals(WSOL_MINT)
-  const decimals = isNative ? 9 : await rpc.mintDecimals(mint)
-  return { symbol: symbols.get(mint.toBase58()) ?? symbolOrAddress, mint, decimals, isSol, isNative }
+  const { decimals, programId } = isNative ? { decimals: 9, programId: TOKEN_PROGRAM_ID } : await rpc.mintInfo(mint)
+  return { symbol: symbols.get(mint.toBase58()) ?? symbolOrAddress, mint, decimals, isSol, isNative, programId }
 }
 
 /** The SPL mint an order sells or quotes: native SOL becomes wSOL. */

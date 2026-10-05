@@ -120,3 +120,24 @@ describe('app data', () => {
     expect(APP_DATA_HEX).toBe('0x3c74bf5b542341051f22f7a76d928086964a346f3fb5dc08eaf1e8348cbfbad2')
   })
 })
+
+describe('retry', () => {
+  it('waits out dropped connections and shows their cause', async () => {
+    const { retry, errorDetail } = await import('../src/limiter.js')
+    const netErr = Object.assign(new TypeError('fetch failed'), { cause: { code: 'ECONNRESET' } })
+    expect(errorDetail(netErr)).toBe('fetch failed (ECONNRESET)')
+    let calls = 0
+    const ok = await retry(async () => {
+      if (++calls < 3) throw netErr
+      return 'done'
+    }, 4, 1)
+    expect([ok, calls]).toEqual(['done', 3])
+  }, 30_000)
+
+  it('gives up quickly on errors that are not rate limits or network failures', async () => {
+    const { retry } = await import('../src/limiter.js')
+    let calls = 0
+    await expect(retry(async () => { calls++; throw new Error('Bad Request') }, 2, 1)).rejects.toThrow('Bad Request')
+    expect(calls).toBe(2)
+  })
+})

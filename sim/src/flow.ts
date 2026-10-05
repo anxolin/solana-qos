@@ -1,6 +1,6 @@
 import type { Keypair } from '@solana/web3.js'
 import { solToLamports, TRADER_RESERVE_SOL } from './config.js'
-import { sleep } from './limiter.js'
+import { errorDetail, sleep } from './limiter.js'
 import type { Orders, PlaceParams, FinalStatus, Placed } from './orders.js'
 import type { Rpc } from './rpc.js'
 import type { Mode, TradeRow } from './scenario.js'
@@ -44,7 +44,7 @@ export async function placeAndWait(
     try {
       last = await ctx.orders.place(p)
     } catch (e) {
-      const error = (e as Error).message
+      const error = errorDetail(e)
       ctx.session.log({ ...meta, event: 'place_error', attempt, mode: p.mode, error })
       ctx.log(`  ${tag(meta.row, meta.trader)} ${stepLabel(meta.step)}: ${ui.error(`place failed: ${error}`)}`)
       if (attempt < ctx.maxRetries) {
@@ -75,7 +75,7 @@ export async function placeAndWait(
         c.dim(last.uid.slice(0, 10)),
     )
     ctx.log(`      ${c.dim('🐞')} ${c.cyan(ctx.link.order(last.uid))}${last.signature ? `  ${c.dim('tx')} ${c.dim(ctx.link.tx(last.signature))}` : ''}`)
-    const { status, order } = await ctx.orders.waitFinal(last)
+    const { status, order, cancelTx } = await ctx.orders.waitFinal(last)
     ctx.session.log({
       ...meta,
       event: 'final',
@@ -85,8 +85,12 @@ export async function placeAndWait(
       seconds: (Date.now() - last.placedAt) / 1000,
       executedSellAmount: order?.executedSellAmount,
       executedBuyAmount: order?.executedBuyAmount,
+      cancelTx,
     })
-    ctx.log(`  ${tag(meta.row, meta.trader)} ${stepLabel(meta.step)}: ${ui.status(status)} ${c.dim(`after ${((Date.now() - last.placedAt) / 1000).toFixed(0)}s`)}`)
+    ctx.log(
+      `  ${tag(meta.row, meta.trader)} ${stepLabel(meta.step)}: ${ui.status(status)} ${c.dim(`after ${((Date.now() - last.placedAt) / 1000).toFixed(0)}s`)}` +
+        (cancelTx ? `${status === 'timeout' ? ', cancelled' : ''}\n      ${c.dim('cancel tx')} ${c.dim(ctx.link.tx(cancelTx))}` : ''),
+    )
     if (status === 'fulfilled') return { status, attempts, last }
     if (attempt < ctx.maxRetries) ctx.session.log({ ...meta, event: 'retry', attempt: attempt + 1, previous: last.uid })
     else return { status, attempts, last }
@@ -131,7 +135,7 @@ export async function runRow(ctx: FlowContext, owner: Keypair, row: TradeRow): P
       ctx.log(`  ${tag(row.row, row.trader)}: ${ui.warn(`low SOL (${fmt(lamports, sell)} for ${fmt(need, sell)}), trying anyway`)}`)
     }
   } else {
-    const balance = await ctx.rpc.tokenBalance(owner.publicKey, splMint(sell))
+    const balance = await ctx.rpc.tokenBalance(owner.publicKey, splMint(sell), sell.programId)
     const available = balance - ctx.orders.ledger.reserved(owner.publicKey, splMint(sell))
     const short = need - (available > 0n ? available : 0n)
     if (short > 0n) {

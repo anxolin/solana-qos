@@ -14,7 +14,7 @@ import { runRow, type FlowContext, type RowResult } from '../flow.js'
 import { cleanupTrader } from '../cleanup.js'
 import { loadUniverse, resolveToken, splMint, toRaw, fromRaw, usdPrices } from '../tokens.js'
 import { generate, MIN_GAP_S, MIXES } from '../generator.js'
-import { sleep } from '../limiter.js'
+import { errorDetail, sleep } from '../limiter.js'
 import * as ui from '../ui.js'
 import { c, tag } from '../ui.js'
 
@@ -50,37 +50,48 @@ export function recommendFunding(maxSpendSol: number): number {
   return Math.ceil((maxSpendSol + TRADER_RESERVE_SOL) * 1.25 * 100) / 100
 }
 
-/** Traders cleaned up at once. More than this bursts the RPC's per-method rate limits. */
-const CLEANUP_PARALLEL = 5
+/** Traders cleaned up at once: one per 2 RPC calls/s (at least 5), so cleanup scales with the RPC plan. */
+const cleanupParallel = (rpcRps = 10) => Math.max(5, Math.floor(rpcRps / 2))
 
-/** Clean up every trader; one trader failing (e.g. RPC rate limits) never stops the others. */
-async function cleanupAll(ctx: FlowContext, w: ReturnType<typeof wallets>, traders: number[], env: CowEnv) {
-  const failed: number[] = []
-  const results = await pool(traders, CLEANUP_PARALLEL, async (n) => {
-    try {
-      return await cleanupTrader(ctx, w, n, env)
-    } catch (e) {
-      failed.push(n)
-      log(`  ${c.blue(`t${n}`)} ${c.blue('cleanup')}: ${ui.error((e as Error).message.slice(0, 160))}`)
-      ctx.session.log({ trader: n, step: 'cleanup', event: 'cleanup_failed', error: (e as Error).message })
-      return null
+/**
+ * Clean up every trader; one trader failing (RPC rate limits, dropped connections) never stops the others. Traders
+ * that fail get one more pass after a pause, since cleanup is safe to repeat.
+ */
+async function cleanupAll(ctx: FlowContext, w: ReturnType<typeof wallets>, traders: number[], env: CowEnv, rpcRps?: number) {
+  const done = new Map<number, Awaited<ReturnType<typeof cleanupTrader>>>()
+  let todo = traders
+  for (let pass = 1; pass <= 2 && todo.length; pass++) {
+    if (pass > 1) {
+      log(ui.warn(`Cleanup didn't finish for ${todo.length} traders, retrying in 20s: ${todo.map((n) => `t${n}`).join(', ')}`))
+      await sleep(20_000)
     }
-  })
-  if (failed.length) {
-    console.log(ui.warn(`Cleanup didn't finish for ${failed.length} traders. Re-run: pnpm sim cleanup-trade-session --traders ${failed.sort((a, b) => a - b).join(',')}`))
+    const failed: number[] = []
+    await pool(todo, cleanupParallel(rpcRps), async (n) => {
+      try {
+        done.set(n, await cleanupTrader(ctx, w, n, env))
+      } catch (e) {
+        failed.push(n)
+        log(`  ${c.blue(`t${n}`)} ${c.blue('cleanup')}: ${ui.error(errorDetail(e).slice(0, 200))}`)
+        ctx.session.log({ trader: n, step: 'cleanup', event: 'cleanup_failed', pass, error: errorDetail(e) })
+      }
+    })
+    todo = failed.sort((a, b) => a - b)
   }
-  return results.filter((r): r is NonNullable<typeof r> => r !== null)
+  if (todo.length) {
+    console.log(ui.warn(`Cleanup still unfinished for ${todo.length} traders. Re-run: pnpm sim cleanup-trade-session --traders ${todo.join(',')}`))
+  }
+  return [...done.values()]
 }
 
 /** Rough wall-clock estimate in minutes: a trader's rows run back to back, then cleanup runs in parallel batches. */
-function estimateDuration(rows: TradeRow[], traders: number) {
+function estimateDuration(rows: TradeRow[], traders: number, rpcRps?: number) {
   const ORDER_S = 30 // measured: orders fill in ~6-47s, ~25s on average
   const ROW_S = ORDER_S * 1.3 // some rows also acquire their sell token first
   const CLEANUP_BATCH_S = 60 // a batch of traders sells leftovers in parallel
   const busyUntil = new Map<number, number>()
   for (const r of rows) busyUntil.set(r.trader, Math.max(r.time, busyUntil.get(r.trader) ?? 0) + ROW_S)
   const trading = Math.max(...busyUntil.values())
-  const total = 30 + trading + Math.ceil(traders / CLEANUP_PARALLEL) * CLEANUP_BATCH_S
+  const total = 30 + trading + Math.ceil(traders / cleanupParallel(rpcRps)) * CLEANUP_BATCH_S
   const min = (sec: number) => Math.max(1, Math.round(sec / 60))
   return { total: min(total), trading: min(trading) }
 }
@@ -108,14 +119,23 @@ async function pool<T, R>(items: T[], n: number, fn: (x: T) => Promise<R>): Prom
   return out
 }
 
-function context(opts: { env: CowEnv; maxRetries?: number; orderValidity?: number; slippageBps?: number }, session: Session) {
+interface RateOpts {
+  quoteRps?: number
+  apiRps?: number
+  rpcRps?: number
+}
+
+function context(opts: { env: CowEnv; maxRetries?: number; orderValidity?: number; fillTimeout?: number; slippageBps?: number } & RateOpts, session: Session) {
   const env = loadEnv({ cowEnv: opts.env })
-  const rpc = new Rpc(env.rpcUrl)
+  const rpc = new Rpc(env.rpcUrl, opts.rpcRps ?? 10)
   const orders = new Orders(rpc, {
     env: opts.env,
     apiBase: env.apiBase,
     validFor: opts.orderValidity ?? 120,
+    fillTimeout: opts.fillTimeout ?? 60,
     slippageBps: opts.slippageBps,
+    quoteRps: opts.quoteRps,
+    apiRps: opts.apiRps,
   })
   const ctx: FlowContext = { link: links(env.urls), rpc, orders, session, maxRetries: opts.maxRetries ?? 1, acquireBufferBps: 300, log }
   return { env, rpc, orders, ctx, w: wallets(env.mnemonic) }
@@ -184,7 +204,11 @@ program
     if (!(n >= 120)) throw new Error('--order-validity must be at least 120 seconds (the orderbook rejects shorter orders)')
     return n
   }, 120)
+  .option('--fill-timeout <s>', 'seconds to wait for a fill before cancelling on-chain and retrying', (v) => parseInt(v, 10), 60)
   .option('--slippage-bps <bps>', 'override the quoted slippage', (v) => parseInt(v, 10))
+  .option('--quote-rps <n>', 'quotes per second (raise for stress tests)', parseFloat, 5)
+  .option('--api-rps <n>', 'other orderbook calls per second: posting, polling', parseFloat, 8)
+  .option('--rpc-rps <n>', 'Solana RPC calls per second (your RPC plan is the limit)', parseFloat, 10)
   .option('--dry-run', 'quote every row and print the funding plan, without trading')
   .option('--no-cleanup', 'leave tokens and SOL in the trader wallets')
   .option('--report', 'run qos.py fetch + report on the session afterwards')
@@ -201,7 +225,7 @@ program
     const plan = await fundingPlan(rpc, w, traders, target)
     const total = plan.reduce((s, l) => s + l.topUp, 0n)
     const funderBalance = await rpc.lamports(w.funder.publicKey)
-    const est = estimateDuration(rows, traders.length)
+    const est = estimateDuration(rows, traders.length, opts.rpcRps)
     const hasLogs = logsConfigured(opts.env)
     const onOff = (b: boolean) => (b ? c.green('on') : c.dim('off'))
     printSettings(opts.dryRun ? 'Trade session (dry run)' : 'Trade session', [
@@ -217,7 +241,8 @@ program
       ['Top-ups', `${c.bold(fmtSol(total))} ${c.dim(`to ${plan.filter((l) => l.topUp > 0n).length} of ${traders.length} traders`)}`],
       ['Max total', `${opts.maxTotalSol} SOL`],
       ['Retries', String(opts.maxRetries)],
-      ['Order validity', `${opts.orderValidity}s`],
+      ['Order validity', `${opts.orderValidity}s ${c.dim(`(cancelled on-chain if not filled after ${opts.fillTimeout}s)`)}`],
+      ['Client limits', `${opts.quoteRps} quotes/s, ${opts.apiRps} API calls/s, ${opts.rpcRps} RPC calls/s`],
       ['Cleanup', onOff(opts.cleanup)],
       ['Report', onOff(Boolean(opts.report))],
       [
@@ -289,7 +314,7 @@ program
 
     if (opts.cleanup) {
       log(c.bold('🧹 Cleaning up'))
-      await cleanupAll(ctx, w, traders, opts.env)
+      await cleanupAll(ctx, w, traders, opts.env, opts.rpcRps)
       // The session window covers cleanup too, so log queries see its orders.
       session.writeMeta({ end: new Date(Date.now() + 30_000).toISOString() })
     }
@@ -306,6 +331,9 @@ program
   .description('Sell every token back to SOL, close accounts, reclaim order rent and sweep SOL to the funder')
   .option('--traders <spec>', 'e.g. 1-25 or 1,3,7', '1-25')
   .option('--session <name>', 'session folder to journal into', 'cleanup')
+  .option('--quote-rps <n>', 'quotes per second (raise for stress tests)', parseFloat, 5)
+  .option('--api-rps <n>', 'other orderbook calls per second: posting, polling', parseFloat, 8)
+  .option('--rpc-rps <n>', 'Solana RPC calls per second (your RPC plan is the limit)', parseFloat, 10)
   .option('-y, --yes', 'skip the confirmation prompt')
   .addOption(envOption)
   .action(async (opts) => {
@@ -317,7 +345,7 @@ program
     console.log(`${c.bold(active.length)} of ${traders.length} traders hold SOL or token accounts.`)
     if (!active.length) return
     await confirm(`Clean up traders ${active.join(', ')}?`, opts.yes)
-    const res = await cleanupAll(ctx, w, active, opts.env)
+    const res = await cleanupAll(ctx, w, active, opts.env, opts.rpcRps)
     const swept = res.reduce((s, r) => s + r.swept, 0n)
     console.log(`\n${ui.ok(`Swept ${fmtSol(swept)} to the funder.`)}`)
     const left = res.filter((r) => r.leftover.length)
@@ -404,6 +432,6 @@ program
   })
 
 program.parseAsync().catch((e) => {
-  console.error(ui.error(`Error: ${(e as Error).message}`))
+  console.error(ui.error(`Error: ${errorDetail(e)}`))
   process.exit(1)
 })

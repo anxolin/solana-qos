@@ -1,5 +1,5 @@
 import { PublicKey, TransactionInstruction, type Keypair } from '@solana/web3.js'
-import { createCloseAccountInstruction } from '@solana/spl-token'
+import { createCloseAccountInstruction, TOKEN_PROGRAM_ID } from '@solana/spl-token'
 import { getSolanaSettlementProgramId } from '@cowprotocol/sdk-trading-solana'
 import type { CowEnv } from '@cowprotocol/sdk-config'
 import { placeAndWait, type FlowContext } from './flow.js'
@@ -82,11 +82,18 @@ export async function cleanupTrader(ctx: FlowContext, w: Wallets, n: number, env
   const kp = w.trader(n)
   const owner = kp.publicKey
   const result: CleanupResult = { trader: n, sold: [], leftover: [], closedAccounts: 0, reclaimed: 0, swept: 0n }
-  const sol: Token = { symbol: 'SOL', mint: NATIVE_SOL, decimals: 9, isSol: true, isNative: true }
+  const sol: Token = { symbol: 'SOL', mint: NATIVE_SOL, decimals: 9, isSol: true, isNative: true, programId: TOKEN_PROGRAM_ID }
 
   for (const acct of await ctx.rpc.tokenAccounts(owner)) {
     if (acct.amount === 0n || acct.mint.equals(WSOL_MINT)) continue
-    const token: Token = { symbol: acct.mint.toBase58().slice(0, 6), mint: acct.mint, decimals: acct.decimals, isSol: false, isNative: false }
+    const token: Token = {
+      symbol: acct.mint.toBase58().slice(0, 6),
+      mint: acct.mint,
+      decimals: acct.decimals,
+      isSol: false,
+      isNative: false,
+      programId: acct.programId,
+    }
     const label = `${fromRaw(acct.amount, acct.decimals)} ${token.symbol}…`
     const res = await placeAndWait(
       ctx,
@@ -100,7 +107,7 @@ export async function cleanupTrader(ctx: FlowContext, w: Wallets, n: number, env
   const closes: Item[] = (await ctx.rpc.tokenAccounts(owner))
     .filter((a) => a.mint.equals(WSOL_MINT) || a.amount === 0n)
     .map((a) => ({
-      ix: createCloseAccountInstruction(a.address, owner, owner),
+      ix: createCloseAccountInstruction(a.address, owner, owner, [], a.programId),
       meta: { account: a.address.toBase58(), mint: a.mint.toBase58() },
       label: a.mint.equals(WSOL_MINT) ? 'wSOL' : a.mint.toBase58().slice(0, 6),
     }))

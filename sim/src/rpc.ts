@@ -5,7 +5,7 @@ import {
   type Keypair,
   type TransactionInstruction,
 } from '@solana/web3.js'
-import { getAssociatedTokenAddressSync, TOKEN_PROGRAM_ID } from '@solana/spl-token'
+import { getAssociatedTokenAddressSync, TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token'
 import { RateLimiter, retry, sleep } from './limiter.js'
 
 export const WSOL_MINT = new PublicKey('So11111111111111111111111111111111111111112')
@@ -15,7 +15,7 @@ export const NATIVE_SOL = new PublicKey('11111111111111111111111111111111')
 export class Rpc {
   readonly connection: Connection
   private readonly limiter: RateLimiter
-  private readonly decimals = new Map<string, number>()
+  private readonly mints = new Map<string, { decimals: number; programId: PublicKey }>()
 
   /** Heavy calls (token account scans) get their own, slower lane: RPCs rate-limit them per method. */
   private readonly heavy: RateLimiter
@@ -40,36 +40,49 @@ export class Rpc {
   }
 
   /** Raw balance of `owner`'s associated token account for `mint`; 0 when it doesn't exist. */
-  async tokenBalance(owner: PublicKey, mint: PublicKey): Promise<bigint> {
-    const ata = getAssociatedTokenAddressSync(mint, owner, false)
+  async tokenBalance(owner: PublicKey, mint: PublicKey, programId: PublicKey = TOKEN_PROGRAM_ID): Promise<bigint> {
+    const ata = getAssociatedTokenAddressSync(mint, owner, false, programId)
     const info = await this.call((c) => c.getTokenAccountBalance(ata).catch(() => null))
     return info ? BigInt(info.value.amount) : 0n
   }
 
-  async mintDecimals(mint: PublicKey): Promise<number> {
+  /** Decimals and token program (classic SPL or Token-2022) of a mint. */
+  async mintInfo(mint: PublicKey): Promise<{ decimals: number; programId: PublicKey }> {
     const key = mint.toBase58()
-    const cached = this.decimals.get(key)
-    if (cached !== undefined) return cached
+    const cached = this.mints.get(key)
+    if (cached) return cached
     const info = await this.call((c) => c.getParsedAccountInfo(mint))
     const data = info.value?.data
     if (!data || !('parsed' in data)) throw new Error(`${key} is not a token mint`)
-    if (!info.value!.owner.equals(TOKEN_PROGRAM_ID)) {
-      throw new Error(`${key} is not a classic SPL token (sponsored orders only support the classic program)`)
+    const programId = info.value!.owner
+    if (!programId.equals(TOKEN_PROGRAM_ID) && !programId.equals(TOKEN_2022_PROGRAM_ID)) {
+      throw new Error(`${key} is not owned by the SPL Token or Token-2022 program`)
     }
-    const d = data.parsed.info.decimals as number
-    this.decimals.set(key, d)
-    return d
+    const out = { decimals: data.parsed.info.decimals as number, programId }
+    this.mints.set(key, out)
+    return out
   }
 
-  /** Every classic SPL token account the owner holds: mint, address, raw amount. */
+  async mintDecimals(mint: PublicKey): Promise<number> {
+    return (await this.mintInfo(mint)).decimals
+  }
+
+
+  /** Every token account the owner holds, under both token programs: mint, address, raw amount, program. */
   async tokenAccounts(owner: PublicKey) {
-    const res = await this.callHeavy((c) => c.getParsedTokenAccountsByOwner(owner, { programId: TOKEN_PROGRAM_ID }))
-    return res.value.map((a) => ({
+    const lists = await Promise.all(
+      [TOKEN_PROGRAM_ID, TOKEN_2022_PROGRAM_ID].map(async (programId) => ({
+        programId,
+        res: await this.callHeavy((c) => c.getParsedTokenAccountsByOwner(owner, { programId })),
+      })),
+    )
+    return lists.flatMap(({ programId, res }) => res.value.map((a) => ({
+      programId,
       address: a.pubkey,
       mint: new PublicKey(a.account.data.parsed.info.mint),
       amount: BigInt(a.account.data.parsed.info.tokenAmount.amount),
       decimals: a.account.data.parsed.info.tokenAmount.decimals as number,
-    }))
+    })))
   }
 
   /**
