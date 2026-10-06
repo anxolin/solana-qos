@@ -19,6 +19,8 @@ export interface Endpoints {
   debug: string
   solscan: string
   logs: Record<string, string> | null
+  /** Overrides the SDK's settlement program id when barn runs a newer deployment than the SDK knows. */
+  settlementProgram?: string
 }
 
 export function endpoints(cowEnv: CowEnv): Endpoints {

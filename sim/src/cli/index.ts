@@ -139,6 +139,7 @@ function context(
     cancelOnTimeout: Boolean(opts.cancelOnTimeout),
     slippageBps: opts.slippageBps,
     quoteRps: opts.quoteRps,
+    settlementProgram: env.urls.settlementProgram,
     apiRps: opts.apiRps,
   })
   const ctx: FlowContext = { link: links(env.urls), rpc, orders, session, maxRetries: opts.maxRetries ?? 0, acquireBufferBps: 300, log }
@@ -240,6 +241,7 @@ program
       ['Environment', `${opts.env === 'prod' ? c.red('prod') : c.green(opts.env)} ${c.dim(`(${env.urls.label})`)}`],
       ['Orderbook', c.dim(env.urls.api)],
       ['Debug tool', c.dim(env.urls.debug)],
+      ['Settlement', `${orders.programId.toBase58()}${env.urls.settlementProgram ? c.yellow(' (override from environments.json)') : ''}`],
       ['Session', opts.dryRun ? c.dim('none (dry run)') : c.cyan(session.name)],
       ['Funder', `${w.funder.publicKey.toBase58()}  ${c.green(fmtSol(funderBalance))}`],
       ['Per trader', `${opts.solFundingPerTrader} SOL`],

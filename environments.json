@@ -1,11 +1,18 @@
 {
-  "_doc": "Per-environment endpoints, shared by sim/ (TypeScript) and qos.py. A session's meta.json records which one it used under `env`.",
+  "_doc": "Per-environment endpoints, shared by sim/ (TypeScript) and qos.py. A session's meta.json records which one it used under `env`. Optional `settlementProgram` overrides the SDK's settlement program id (same `settlement v0.4` PDA seeds).",
   "staging": {
     "label": "barn",
     "api": "https://barn.api.cow.fi/solana/api",
     "debug": "https://debug.barn.cow.fi",
     "solscan": "https://solscan.io",
-    "logs": { "autopilot": "solana-autopilot-staging", "driver": "solana-driver-staging", "api": "solana-api-staging", "jupiter": "solana-jupiter-staging-solve" }
+    "logs": {
+      "autopilot": "solana-autopilot-staging",
+      "driver": "solana-driver-staging",
+      "api": "solana-api-staging",
+      "jupiter": "solana-jupiter-staging-solve"
+    },
+    "settlementProgram": "EzHqcdJssenE2R8xogJ8wpL66PRQet9M6ubpsX4QxpPb",
+    "_settlementProgramNote": "Kaze's 0.4.1-alpha deploy (#solana, 6 Oct 2026), which barn uses. The published SDK (0.13.0) still targets C7PXyLpLQBh3Ce7e9DNj3rDVUvwqa5orDwQG5hs1rfNi; sim overrides it with this. Remove once the SDK catches up."
   },
   "prod": {
     "label": "prod",

@@ -1,5 +1,6 @@
 import { Keypair, PublicKey, SystemProgram, Transaction, type TransactionInstruction } from '@solana/web3.js'
 import {
+  createApproveInstruction,
   createAssociatedTokenAccountIdempotentInstruction,
   createSyncNativeInstruction,
   getAssociatedTokenAddressSync,
@@ -7,7 +8,10 @@ import {
 import { OrderBookApi, OrderKind } from '@cowprotocol/sdk-order-book'
 import { SupportedChainId, type CowEnv } from '@cowprotocol/sdk-config'
 import {
+  buildCancelOrderInstruction,
   encodeOrderIntent,
+  findSettlementStatePda,
+  getSolanaSettlementProgramId,
   findOrderPda,
   hashOrderIntent,
   SolanaTradingSdk,
@@ -107,6 +111,8 @@ export interface OrdersOptions {
   /** Cancel on-chain when giving up, so a late fill can't happen. Off by default: the order just expires. */
   cancelOnTimeout?: boolean
   slippageBps?: number
+  /** Settlement program to target instead of the SDK's built-in id (same PDA seeds). */
+  settlementProgram?: string
   /** Our own orderbook calls (posting, polling) per second. */
   apiRps?: number
   /** Quotes per second through the SDK's client (its default is 5). */
@@ -119,6 +125,9 @@ export class Orders {
   private readonly api: RateLimiter
   /** Backend's sponsoring funder, learnt from the first quote. */
   sponsorFunder?: PublicKey
+  /** The settlement program orders are created on, and its state PDA (the SPL delegate approvals must name). */
+  readonly programId: PublicKey
+  readonly delegate: PublicKey
 
   constructor(
     private readonly rpc: Rpc,
@@ -130,6 +139,8 @@ export class Orders {
       limiterOpts: { tokensPerInterval: opts.quoteRps ?? 5, interval: 'second' },
     })
     this.sdk = new SolanaTradingSdk({ env: opts.env, orderBookApi })
+    this.programId = opts.settlementProgram ? new PublicKey(opts.settlementProgram) : getSolanaSettlementProgramId(opts.env)
+    ;[this.delegate] = findSettlementStatePda(this.programId, opts.env)
     this.api = new RateLimiter(opts.apiRps ?? 8)
   }
 
@@ -153,6 +164,8 @@ export class Orders {
     sq.intent = { ...sq.intent, appData: APP_DATA }
     sq.intentBytes = encodeOrderIntent(sq.intent)
     sq.uid = await hashOrderIntent(sq.intentBytes)
+    // The CreateOrder instruction and order PDA follow solanaQuote.programId, so pointing it at our program is enough.
+    sq.programId = this.programId
     ;[sq.orderPda] = findOrderPda(sq.programId, sq.uid, this.opts.env)
     return q
   }
@@ -196,14 +209,8 @@ export class Orders {
       )
     }
     const allowance = this.ledger.reserved(owner, sellMint) + intent.sellAmount
-    ixs.push(
-      this.sdk.approveCowProtocol({
-        ownerAddress: owner,
-        sellTokenAddress: sellMint,
-        approveAmount: allowance,
-        sellTokenProgramId: p.sell.programId,
-      }),
-    )
+    // Built by hand so the delegate is our program's state PDA (the SDK's helper only knows its built-in program).
+    ixs.push(createApproveInstruction(intent.sellTokenAccount, this.delegate, owner, allowance, [], p.sell.programId))
     if (!p.buy.isNative) {
       // Mandatory in the sponsored template even if the account exists, hence idempotent.
       const payer = mode === 'sponsored' ? funder! : owner
@@ -289,10 +296,11 @@ export class Orders {
   async cancel(placed: Placed): Promise<string> {
     const pda = new PublicKey(placed.orderPda)
     const exists = await this.rpc.call((c) => c.getAccountInfo(pda))
-    const ix = this.sdk.cancelOrder({
-      ownerAddress: placed.owner.publicKey,
+    const ix = buildCancelOrderInstruction({
+      programId: this.programId,
+      owner: placed.owner.publicKey,
       orderPda: pda,
-      ...(exists ? {} : { intent: placed.intent, createdByAddress: placed.owner.publicKey }),
+      ...(exists ? {} : { intent: placed.intent, createdBy: placed.owner.publicKey }),
     })
     return this.rpc.sendAndConfirm([ix], [placed.owner])
   }

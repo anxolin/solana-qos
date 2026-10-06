@@ -1,6 +1,5 @@
 import { PublicKey, TransactionInstruction, type Keypair } from '@solana/web3.js'
 import { createCloseAccountInstruction, TOKEN_PROGRAM_ID } from '@solana/spl-token'
-import { getSolanaSettlementProgramId } from '@cowprotocol/sdk-trading-solana'
 import type { CowEnv } from '@cowprotocol/sdk-config'
 import { placeAndWait, type FlowContext } from './flow.js'
 import { NATIVE_SOL, WSOL_MINT } from './rpc.js'
@@ -114,7 +113,7 @@ export async function cleanupTrader(ctx: FlowContext, w: Wallets, n: number, env
   result.closedAccounts = await sendBatches(ctx, closes, kp, 8, n, 'close')
 
   // Reclaim the rent of finished orders that still have a PDA on chain.
-  const programId = getSolanaSettlementProgramId(env)
+  const programId = ctx.orders.programId
   const finished = (await ctx.orders.ownerOrders(owner)).filter((o) => o.status !== 'open')
   const reclaims: Item[] = []
   for (const o of finished) {
