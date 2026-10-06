@@ -50,8 +50,8 @@ export function recommendFunding(maxSpendSol: number): number {
   return Math.ceil((maxSpendSol + TRADER_RESERVE_SOL) * 1.25 * 100) / 100
 }
 
-/** Traders cleaned up at once: one per 2 RPC calls/s (at least 5), so cleanup scales with the RPC plan. */
-const cleanupParallel = (rpcRps = 10) => Math.max(5, Math.floor(rpcRps / 2))
+/** Traders cleaned up at once: one per RPC call/s (at least 10). Cleanup is light on RPC since the batched lookups. */
+const cleanupParallel = (rpcRps = 10) => Math.max(10, Math.floor(rpcRps))
 
 /**
  * Clean up every trader; one trader failing (RPC rate limits, dropped connections) never stops the others. Traders
@@ -87,7 +87,7 @@ async function cleanupAll(ctx: FlowContext, w: ReturnType<typeof wallets>, trade
 function estimateDuration(rows: TradeRow[], traders: number, rpcRps?: number) {
   const ORDER_S = 30 // measured: orders fill in ~6-47s, ~25s on average
   const ROW_S = ORDER_S * 1.3 // some rows also acquire their sell token first
-  const CLEANUP_BATCH_S = 60 // a batch of traders sells leftovers in parallel
+  const CLEANUP_BATCH_S = 45 // a batch of traders sells (in parallel), closes, reclaims and sweeps
   const busyUntil = new Map<number, number>()
   for (const r of rows) busyUntil.set(r.trader, Math.max(r.time, busyUntil.get(r.trader) ?? 0) + ROW_S)
   const trading = Math.max(...busyUntil.values())

@@ -82,6 +82,8 @@ export class Rpc {
       mint: new PublicKey(a.account.data.parsed.info.mint),
       amount: BigInt(a.account.data.parsed.info.tokenAmount.amount),
       decimals: a.account.data.parsed.info.tokenAmount.decimals as number,
+      /** Rent held by the account, returned to the owner when it's closed. */
+      lamports: a.account.lamports,
     })))
   }
 
@@ -95,19 +97,22 @@ export class Rpc {
     tx.sign(...signers)
     const raw = tx.serialize()
     const sig = await this.call((c) => c.sendRawTransaction(raw, { skipPreflight: false, maxRetries: 3 }))
-    for (;;) {
+    // Poll the signature every second; check expiry and resend only every few polls, to spare the RPC budget.
+    for (let i = 1; ; i++) {
       const st = (await this.call((c) => c.getSignatureStatuses([sig]))).value[0]
       if (st?.err) throw new Error(`tx ${sig} failed: ${JSON.stringify(st.err)}`)
       if (st?.confirmationStatus === 'confirmed' || st?.confirmationStatus === 'finalized') return sig
-      const height = await this.call((c) => c.getBlockHeight('confirmed'))
-      if (height > lastValidBlockHeight) {
-        const final = (await this.call((c) => c.getSignatureStatuses([sig], { searchTransactionHistory: true }))).value[0]
-        if (final && !final.err) return sig
-        throw new Error(`tx ${sig} expired before confirming`)
+      if (i % 5 === 0) {
+        const height = await this.call((c) => c.getBlockHeight('confirmed'))
+        if (height > lastValidBlockHeight) {
+          const final = (await this.call((c) => c.getSignatureStatuses([sig], { searchTransactionHistory: true }))).value[0]
+          if (final && !final.err) return sig
+          throw new Error(`tx ${sig} expired before confirming`)
+        }
       }
       // Resend while waiting; harmless if it already landed.
-      await this.call((c) => c.sendRawTransaction(raw, { skipPreflight: true, maxRetries: 0 })).catch(() => {})
-      await sleep(1500)
+      if (i % 3 === 0) await this.call((c) => c.sendRawTransaction(raw, { skipPreflight: true, maxRetries: 0 })).catch(() => {})
+      await sleep(1000)
     }
   }
 }

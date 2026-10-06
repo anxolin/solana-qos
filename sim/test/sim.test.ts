@@ -141,3 +141,13 @@ describe('retry', () => {
     expect(calls).toBe(2)
   })
 })
+
+describe('cleanup dust burning', () => {
+  it('treats only "cannot be sold" answers as burnable, never transient failures', async () => {
+    const { NO_ROUTE } = await import('../src/cleanup.js')
+    for (const sellable of ['NoLiquidity: no route found', 'Not Found', 'UnsupportedToken: Token-2022 transfer hook extension'])
+      expect(NO_ROUTE.test(sellable)).toBe(true)
+    for (const transient of ['429 Too Many Requests', 'fetch failed (ECONNRESET)', 'Bad Request', 'Internal Server Error'])
+      expect(NO_ROUTE.test(transient)).toBe(false)
+  })
+})

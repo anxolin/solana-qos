@@ -148,13 +148,17 @@ accepts the rest: metadata, mint close authority, permanent delegate, interest-b
 
 ## Cleanup
 
-For each trader:
-1. Sell every token to native SOL (self-paid).
-2. Unwrap wSOL and close empty token accounts.
-3. Send `ReclaimOrder` for finished order PDAs (rent goes back to whoever paid it).
-4. Sweep all SOL to the funder.
+For each trader, with up to `max(10, --rpc-rps)` traders at once:
+1. **Sell or burn.** Every token is quoted first. If the sale would return more SOL than closing its account does,
+   it's sold to native SOL (self-paid). All of a trader's tokens are sold at the same time. Dust, or tokens the
+   orderbook says can't be sold (no route, unsupported), are burned so the account can be closed. A quote that fails
+   for another reason (rate limit, network) leaves the tokens untouched and reports them as left behind.
+2. **Close** wSOL (unwraps it) and every empty, sold-out or burned token account. The rent goes back to the trader.
+3. **Reclaim** the rent of finished orders: filled and cancelled ones right away, expired ones once past their
+   validity. Their accounts are looked up in one batched call.
+4. **Sweep** all SOL to the funder.
 
-It's safe to re-run. Tokens with no route are reported and left behind.
+It's safe to re-run. Traders that fail get a second pass after 20s; if that fails too, the command to re-run is printed.
 
 ## Links while it runs
 
