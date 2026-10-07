@@ -357,6 +357,15 @@ export function buildRows(inp: UniverseInputs): UniverseRow[] {
  */
 export const supported = (r: UniverseRow) => (r.barn === 'tradable' || r.barn === 'sell-only') && r.coingecko
 
+/** A relevant token can absorb a test trade and is still traded: thin pools and faded launches rank high on 90-day volume. */
+export const MIN_LIQUIDITY_USD = 50_000
+/** Share of the 90-day volume the last 30 days must carry (a steady token has ~33%). */
+export const MIN_RECENT_SHARE = 0.05
+export const RELEVANCE =
+  'barn quotes it, CoinGecko lists it, liquidity >= $50k, and the last 30 days carry >= 5% of the 90-day volume; ranked by 30-day volume'
+export const relevant = (r: UniverseRow) =>
+  supported(r) && (r.liquidity ?? 0) >= MIN_LIQUIDITY_USD && r.volume30d >= MIN_RECENT_SHARE * r.volume90d
+
 const CSV_COLUMNS: [string, (r: UniverseRow) => string | number | boolean | null][] = [
   ['rank', (r) => r.rank],
   ['mint', (r) => r.mint],
@@ -389,14 +398,46 @@ const csvCell = (v: string | number | boolean | null) => {
   return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
 }
 
+/** Read back a universe.csv written by `toCsv`, to rebuild the token lists without the network. */
+export function fromCsv(text: string): UniverseRow[] {
+  const num = (v: string) => (v === '' ? null : Number(v))
+  const words = (v: string) => (v ? v.split(' ') : [])
+  return (parse(text, { columns: true, skip_empty_lines: true }) as Record<string, string>[]).map((c) => ({
+    rank: Number(c.rank),
+    mint: c.mint,
+    symbol: c.symbol,
+    name: c.name,
+    volume90d: Number(c.volume_90d_usd),
+    share: Number(c.share),
+    cumShare: Number(c.cum_share),
+    volume30d: Number(c.volume_30d_usd),
+    txs90d: Number(c.txs_90d),
+    traders90d: Number(c.traders_90d),
+    jupiter: c.jupiter as UniverseRow['jupiter'],
+    organic: c.organic,
+    organicScore: num(c.organic_score),
+    liquidity: num(c.liquidity_usd),
+    jupVolume24h: num(c.jupiter_volume_24h_usd),
+    coingecko: c.coingecko === 'true',
+    program: c.program as UniverseRow['program'],
+    decimals: num(c.decimals),
+    extensions: words(c.extensions),
+    barn: c.barn as BarnStatus,
+    barnReason: c.barn_reason,
+    lists: words(c.lists),
+    proposed: c.proposed === 'true',
+  }))
+}
+
 export function toCsv(rows: UniverseRow[]): string {
   return [CSV_COLUMNS.map(([h]) => h).join(','), ...rows.map((r) => CSV_COLUMNS.map(([, f]) => csvCell(f(r))).join(','))].join('\n') + '\n'
 }
 
 /** A Uniswap-style token list, the format `generate-token-list-session` and the app read. */
-export function toTokenList(name: string, rows: UniverseRow[]) {
+export function toTokenList(name: string, rows: UniverseRow[], criteria?: string) {
   return {
     name,
+    ...(criteria ? { criteria } : {}),
     timestamp: new Date().toISOString(),
     version: { major: 1, minor: 0, patch: 0 },
     tokens: rows
@@ -422,14 +463,12 @@ export function summarize(rows: UniverseRow[], o: { date: string; source: string
   const out: string[] = []
   out.push(`# Solana token universe (${o.date})`, '')
   out.push(
-    `${tokens.length} tokens with at least $100k of DEX volume in the last 90 days (${o.source}), ${usd(total)} in total ` +
-      `(each swap counted once per token, hops and arbitrage loops excluded; SOL left out of the shares).`,
-    '',
-    `The top ${tokens.filter((r) => r.jupiter !== 'unchecked').length} (by volume, plus the app lists' tokens) were checked on Jupiter, on chain and on barn; ` +
-      'the rest only count towards the volume.',
-    '',
-    '**Supported by CoW** means barn quotes a sell order into it and CoinGecko prices it (the native price orders need to settle). ' +
-      '**Sell-only** tokens have no buy (exact-out) quote; most are Token-2022, where exact-out routes are scarcer.',
+    `- **${tokens.length.toLocaleString('en-US')} tokens** traded at least $100k on Solana DEXs in the last 90 days, ${usd(total)} in total ` +
+      `(source: ${o.source}). Shares below leave SOL out.`,
+    `- **${tokens.filter((r) => r.jupiter !== 'unchecked').length.toLocaleString('en-US')} were checked** on Jupiter, on chain and on barn: ` +
+      'the most traded, plus every token in the app lists. The rest only count towards the volume.',
+    '- **Supported** = barn quotes a sell into the token and CoinGecko prices it (orders need a price to settle).',
+    '- **Sell-only** = no buy quote. Mostly Token-2022 tokens.',
     '',
   )
 

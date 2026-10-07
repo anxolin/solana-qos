@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs'
 import { basename, resolve } from 'node:path'
 import { spawnSync } from 'node:child_process'
 import { createInterface } from 'node:readline/promises'
@@ -15,7 +15,7 @@ import { cleanupTrader } from '../cleanup.js'
 import { loadUniverse, resolveToken, splMint, toRaw, fromRaw, usdPrices } from '../tokens.js'
 import { generate, MIN_GAP_S, MIXES } from '../generator.js'
 import { classify, listRows, loadTokenList } from '../tokenlist.js'
-import { barnQuotes, buildRows, coingeckoMints, DEFAULT_DUNE_QUERY, jupiterTokens, listMembership, loadVolume, mintFacts, summarize, supported, toCsv, toTokenList } from '../universe.js'
+import { barnQuotes, buildRows, coingeckoMints, DEFAULT_DUNE_QUERY, fromCsv, jupiterTokens, listMembership, loadVolume, mintFacts, RELEVANCE, relevant, summarize, supported, toCsv, toTokenList, type UniverseRow } from '../universe.js'
 import { errorDetail, sleep } from '../limiter.js'
 import { creationBudget, ORDER_CREATION_LAMPORTS } from '../budget.js'
 import * as ui from '../ui.js'
@@ -23,6 +23,7 @@ import { c, tag } from '../ui.js'
 
 // Optional sim/.env; exported variables win because loadEnvFile never overwrites them.
 const envFile = resolve(SIM_ROOT, '.env')
+const SHELL_RPC_URL = process.env.RPC_URL
 if (existsSync(envFile)) process.loadEnvFile(envFile)
 
 const log = (m: string) => console.log(`${c.dim(new Date().toISOString().slice(11, 19))} ${m}`)
@@ -299,6 +300,8 @@ program
       ['Duration', `about ${c.bold(`${est.total} min`)} ${c.dim(`(~${est.trading} min trading, plus funding and cleanup)`)}`],
       ['Environment', `${opts.env === 'prod' ? c.red('prod') : c.green(opts.env)} ${c.dim(`(${env.urls.label})`)}`],
       ['Orderbook', c.dim(env.urls.api)],
+      ['RPC', `${rpcHost(env.rpcUrl)} ${c.dim(`(from ${rpcSource()}, ${opts.rpcRps ?? 10} req/s)`)}` +
+        (/api\.mainnet-beta\.solana\.com/.test(env.rpcUrl) ? c.yellow('  public RPC: expect 429s, lower --rpc-rps') : '')],
       ['Debug tool', c.dim(env.urls.debug)],
       ['Settlement', `${orders.programId.toBase58()}${env.urls.settlementProgram ? c.yellow(' (override from environments.json)') : ''}`],
       ['Sponsor', env.urls.sponsor ? `${env.urls.sponsor}${c.yellow(' (from environments.json)')}` : c.dim("the quote's funder")],
@@ -343,6 +346,7 @@ program
 
     const start = Date.now() + 5000
     session.writeMeta({
+      rpc: rpcHost(env.rpcUrl),
       name: `${session.name} trade session`,
       title: session.name,
       start: new Date(start).toISOString(),
@@ -508,7 +512,8 @@ program
     const traders = Math.min(opts.traders, counts.tradable)
     const perTrader = Math.ceil(counts.tradable / Math.max(1, traders))
     const header = (what: string) =>
-      `${list.name} (${opts.list}), classified on ${opts.env} on ${date}.\n${what}\n` +
+      `${list.name} (${opts.list}), classified on ${opts.env} on ${date}.\n` +
+      `${list.criteria ? `Token criteria: ${list.criteria}.\n` : ''}${what}\n` +
       `Regenerate: pnpm sim generate-token-list-session --list ${opts.list} -o ${opts.out}`
     writeScenario(`${opts.out}.csv`, tradable,
       header(`${counts.tradable} tradable tokens (${t22} Token-2022): sell ${opts.solPerToken} SOL into each, then ${opts.sellBack * 100}% of the quote back. ` +
@@ -535,8 +540,16 @@ program
   .option('--check <n>', 'tokens checked on Jupiter, on chain and on barn, by volume (plus every token in the app lists)', (v) => parseInt(v, 10), 2000)
   .option('--sol-per-token <sol>', 'SOL in each sell quote (the buy quote asks for half of what it returns)', parseFloat, 0.005)
   .option('--quote-rps <n>', 'quotes per second', parseFloat, 5)
+  .option('--lists-only', 'only rebuild the token lists from the existing universe.csv in --out (no network)')
   .addOption(envOption)
   .action(async (opts) => {
+    if (opts.listsOnly) {
+      const csv = resolve(opts.out, 'universe.csv')
+      const built = statSync(csv).mtime.toISOString().slice(0, 10)
+      const files = writeTokenLists(opts.out, fromCsv(readFileSync(csv, 'utf8')), opts.top, built)
+      for (const f of files) console.log(c.dim(`  ${f}`))
+      process.exit(0)
+    }
     // Read-only and light on RPC (one call per 100 mints): the public RPC does when RPC_URL isn't set.
     process.env.RPC_URL ||= process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com'
     const env = loadEnv({ needMnemonic: false, cowEnv: opts.env })
@@ -569,13 +582,10 @@ program
       return resolve(opts.out, name)
     }
     const tokens = rows.filter((r) => r.mint !== WSOL_MINT.toBase58() && r.mint !== NATIVE_SOL.toBase58())
-    const top = tokens.filter(supported).slice(0, opts.top)
-    const missing = tokens.filter((r) => supported(r) && !r.lists.length)
     const files = [
       write('universe.csv', toCsv(rows)),
       write('summary.md', summarize(rows, { date, source: opts.volume, listNames: Object.keys(appLists), lists })),
-      write(`tokenlist-top${opts.top}.json`, JSON.stringify(toTokenList(`Top ${opts.top} supported Solana tokens by volume (${date})`, top), null, 2)),
-      write('tokenlist-missing.json', JSON.stringify(toTokenList(`Supported Solana tokens in no app list (${date})`, missing), null, 2)),
+      ...writeTokenLists(opts.out, rows, opts.top, date),
     ]
     const count = (s: string) => tokens.filter((r) => r.barn === s).length
     console.log(
@@ -584,9 +594,40 @@ program
         `${tokens.filter((r) => r.barn === 'tradable' && !r.coingecko).length} without a CoinGecko price`,
     )
     for (const f of files) console.log(c.dim(`  ${f}`))
-    console.log(`\nScenarios: ${c.green(`pnpm sim generate-token-list-session --list ${files[2]} -o ../scenarios/token-lists/top${opts.top}`)}`)
+    console.log(`\nScenarios: ${c.green(`pnpm sim generate-token-list-session --list ${files[2]} -o ../scenarios/token-universe/top${opts.top}`)}`)
     process.exit(0)
   })
+
+/**
+ * The token lists scenarios are built from: relevant tokens only (see `RELEVANCE`), ranked by 30-day volume so "top"
+ * means traded now. Ranking by 90-day volume put tokens that pumped months ago above ones that trade more today.
+ */
+function writeTokenLists(out: string, rows: UniverseRow[], top: number, date: string): string[] {
+  const tokens = rows
+    .filter((r) => r.mint !== WSOL_MINT.toBase58() && r.mint !== NATIVE_SOL.toBase58() && relevant(r))
+    .sort((a, b) => b.volume30d - a.volume30d)
+  const lists: [string, string, UniverseRow[]][] = [
+    [`tokenlist-top${top}.json`, `Top ${top} relevant Solana tokens by 30-day volume (${date})`, tokens.slice(0, top)],
+    ['tokenlist-missing.json', `Relevant Solana tokens in no app list (${date})`, tokens.filter((r) => !r.lists.length)],
+  ]
+  return lists.map(([file, name, picked]) => {
+    writeFileSync(resolve(out, file), JSON.stringify(toTokenList(name, picked, RELEVANCE), null, 2))
+    log(`${name}: ${picked.length} tokens`)
+    return resolve(out, file)
+  })
+}
+
+/** The RPC's host only: the rest of the URL often carries an API key. */
+const rpcHost = (url: string) => {
+  try {
+    return new URL(url).host
+  } catch {
+    return '(unparsable RPC_URL)'
+  }
+}
+
+/** Where RPC_URL came from: a shell export beats sim/.env, which surprises when both are set. */
+const rpcSource = () => (SHELL_RPC_URL ? 'your shell, overriding sim/.env' : existsSync(envFile) ? 'sim/.env' : 'environment')
 
 program
   .command('new-wallet')

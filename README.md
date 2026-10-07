@@ -8,9 +8,14 @@ Quality-of-service report for CoW Protocol Solana test sessions on barn. It cove
 ## Scripted sessions (`sim/`)
 
 `sim/` plays a CSV of trades with wallets derived from one mnemonic, then writes a session folder that this
-report reads. See [`sim/README.md`](sim/README.md). Scenarios you can replay are in `scenarios/`:
-- `smoke.csv`: every path once, 2 traders
-- `kaffee-25x10.csv`: 25 traders over 10 minutes, seed 1
+report reads. See [`sim/README.md`](sim/README.md). Scenarios you can replay are in `scenarios/` (start with
+`smoke.csv`).
+
+## Token universe
+
+`token-universe/` ranks every Solana token by trading volume and checks whether CoW can trade it, to see how well the
+app's token lists cover real demand. Start with [`token-universe/summary.md`](token-universe/summary.md); the
+per-token data is in `universe.csv`. Rebuild it with `pnpm sim build-token-universe` (see the sim README).
 
 ## Environments
 
@@ -52,8 +57,8 @@ mkdir -p sessions/$SESSION/logs
 echo '{"start":"2026-10-02T12:00:00Z","end":"2026-10-02T14:30:00Z"}' > sessions/$SESSION/meta.json
 ```
 
-1. Run the queries in `queries/logs.md` for the window. The easiest way is to ask
-   Claude Code with the CoW-Barn MCP connected. Save the results as:
+1. Run the queries in `queries/logs.md` for the window (`./qos.py logs` does it when the Grafana
+   credentials below are set). Save the results as:
    - `logs/seed_orders.txt`: order UIDs, one per line
    - `logs/creation_expired.txt`: sponsored orders whose creation blockhash expired
    - `logs/competition.json`: per-driver stats

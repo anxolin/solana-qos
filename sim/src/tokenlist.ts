@@ -21,7 +21,7 @@ export type Verdict =
   | { kind: 'missing'; reason: string }
 
 /** A Uniswap-style token list from a URL or a file, keeping Solana tokens only (SOL and wSOL excluded). */
-export async function loadTokenList(source: string): Promise<{ name: string; tokens: ListToken[] }> {
+export async function loadTokenList(source: string): Promise<{ name: string; criteria?: string; tokens: ListToken[] }> {
   const raw = /^https?:\/\//.test(source)
     ? await retry(async () => {
         const res = await fetch(source, { signal: AbortSignal.timeout(60_000) })
@@ -37,7 +37,7 @@ export async function loadTokenList(source: string): Promise<{ name: string; tok
     seen.add(t.address)
     tokens.push({ symbol: t.symbol, mint: t.address, decimals: t.decimals })
   }
-  return { name: raw.name ?? source, tokens }
+  return { name: raw.name ?? source, criteria: raw.criteria, tokens }
 }
 
 /**
