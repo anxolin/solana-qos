@@ -104,6 +104,7 @@ h3 { font: 600 15px/1.3 var(--font-ui); margin: 0; }
 p { margin: 0; max-width: 68ch; color: var(--ink-2); }
 .meta { color: var(--muted); font-size: 13px; }
 section { display: grid; gap: 14px; min-width: 0; }
+.more-btn { background: none; border: 0; padding: 0; margin-left: .35em; font: inherit; color: var(--muted); cursor: pointer; text-decoration: underline dotted; }
 .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
 .tile { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px;
   display: grid; gap: 4px; align-content: start; }
@@ -190,6 +191,10 @@ footer { color: var(--muted); font-size: 13px; display: grid; gap: 6px; }
 """
 
 JS = """
+document.addEventListener('click', e => {  // "+N more" in a list: show the rest in place
+  const b = e.target.closest('.more-btn');
+  if (b) { b.nextElementSibling.hidden = false; b.remove(); }
+});
 const tip = document.getElementById('tip');
 document.addEventListener('pointermove', e => {
   const t = e.target.closest('[data-tip]');
@@ -468,30 +473,48 @@ def market_cell(m: dict) -> str:
     return f'{token_link(*m["sell"])} → {token_link(*m["buy"])}'
 
 
-def counted(items: list[tuple[str, str]]) -> str:
-    """Distinct (key, html) items, most common first, with a ×n suffix when repeated."""
+def counted(items: list[tuple[str, str]], show: int = 0) -> str:
+    """Distinct (key, html) items, most common first, with a ×n suffix when repeated; past `show`, behind a toggle."""
     html = dict(items)
-    return ", ".join(f"{html[k]} ×{n}" if n > 1 else html[k] for k, n in Counter(k for k, _ in items).most_common())
+    parts = [f"{html[k]} ×{n}" if n > 1 else html[k] for k, n in Counter(k for k, _ in items).most_common()]
+    if not show or len(parts) <= show:
+        return ", ".join(parts)
+    return (", ".join(parts[:show]) + f'<button type="button" class="more-btn">+{len(parts) - show} more</button>'
+            + '<span class="more-rest" hidden>, ' + ", ".join(parts[show:]) + "</span>")
+
+
+STEPS = {"setup": "token lookup", "quote": "quote", "acquire": "acquiring the sell token", "main": "main order",
+         "rpc": "an RPC call before placing"}
+
+
+def failed_at(f: dict) -> str:
+    if f.get("after"):
+        return "acquiring the sell token, after an earlier row didn't deliver it"
+    return STEPS.get(f["step"], f["step"])
 
 
 def no_order_section(rows: list[dict]) -> list[str]:
-    """Scenario rows that failed before their order existed: the quote or the orderbook said no."""
-    steps = {"setup": "token lookup", "quote": "quote", "acquire": "acquiring the sell token", "main": "main order"}
+    """Scenario rows that failed before their order existed: the quote, the orderbook or the sim's RPC said no."""
     by_err, by_market = defaultdict(list), defaultdict(list)
     for r in rows:
-        by_err[(r["failure"]["type"], r["failure"]["step"])].append(r)
+        by_err[(r["failure"]["type"], failed_at(r["failure"]), bool(r["failure"].get("after")))].append(r)
         by_market[r["market"]["text"]].append(r)
-    err_rows = [[f'<span class="order"><i class="sw t-critical"></i>{escape(t)}</span>', steps.get(s, s), len(rs),
-                 counted([(r["market"]["text"], market_cell(r["market"])) for r in rs]),
+    # Root causes first, knock-on failures (a row that needed what an earlier failed row would have bought) last.
+    groups = sorted(by_err.items(), key=lambda kv: (kv[0][2], -len(kv[1])))
+    err_rows = [[f'<span class="order"><i class="sw {"t-muted" if knock else "t-critical"}"></i>{escape(t)}</span>',
+                 escape(at), len(rs), counted([(r["market"]["text"], market_cell(r["market"])) for r in rs], show=5),
                  escape(next((r["failure"]["detail"] for r in rs if r["failure"]["detail"]), ""))]
-                for (t, s), rs in sorted(by_err.items(), key=lambda kv: -len(kv[1]))]
+                for (t, at, knock), rs in groups]
     market_rows = [[market_cell(rs[0]["market"]), len(rs),
                     counted([(r["failure"]["type"], escape(r["failure"]["type"])) for r in rs]),
                     ", ".join(str(r["row"]) for r in rs)]
                    for _, rs in sorted(by_market.items(), key=lambda kv: (-len(kv[1]), kv[0]))]
+    knock = sum(bool(r["failure"].get("after")) for r in rows)
+    note = (f" <strong>{knock} of them are knock-on failures</strong>: an earlier row for the same trader never delivered "
+            "the token, so the sim tried to buy it first and that failed too (greyed, listed last)." if knock else "")
     return ['<section id="no-order"><h2>Rows without an order</h2>',
-            f"<p>{len(rows)} scenario rows failed before an order existed: the quote or the orderbook rejected them. "
-            "They're in no order count, fill rate or chart above. Grouped by the backend's error, then by market.</p>",
+            f"<p>{len(rows)} scenario rows failed before an order existed: the quote, the orderbook or the sim's own RPC "
+            f"said no. They're in no order count, fill rate or chart above.{note}</p>",
             '<div class="panel"><h3>By error</h3>' + table(["Error", "Failed at", "Rows", "Markets", "Detail"], err_rows, {2}) + "</div>",
             f'<details><summary>By market ({len(by_market)})</summary>'
             + table(["Market", "Rows", "Errors", "Scenario rows"], market_rows, {1}) + "</details></section>"]
@@ -506,11 +529,11 @@ def scenario_section(journal: dict, orders: list[dict], cleanup: list[dict]) -> 
             f"<p>{done} of {len(rows)} scenario rows completed, with {journal['retries']} retries and "
             f"{journal['place_errors']} placement errors. {len(orders)} scenario orders: {main} main and {len(orders) - main} "
             f"acquiring the sell token first.{f' Cleanup placed {len(cleanup)} more (next section).' if cleanup else ''}</p>",
-            '<div class="panel">' + table(["Started (UTC)", "Row", "Trader", "Trade", "Result", "Took", "Orders", "Reason"], [
+            f'<details><summary>All {len(rows)} scenario rows</summary>' + table(["Started (UTC)", "Row", "Trader", "Trade", "Result", "Took", "Orders", "Reason"], [
                 [r["started"][11:19], r["row"], f"t{r['trader']}", trade_cell(r),
                  f'<span class="order"><i class="sw {pill.get(r["status"], "t-muted")}"></i>{escape(r["status"])}</span>',
                  f"{r['seconds']:.0f}s" if r.get("seconds") is not None else "", r["orders"], escape(r["reason"])]
-                for r in rows], {1, 5, 6}) + "</div></section>"]
+                for r in rows], {1, 5, 6}) + "</details></section>"]
 
 
 def render(*, session, meta, orders, by_solver, drivers, autopilot, sol, comparisons=(), rate_limits=None,
@@ -561,10 +584,10 @@ def render(*, session, meta, orders, by_solver, drivers, autopilot, sol, compari
         h += ["<section><h2>Cleanup</h2>",
               f"<p>{len(cleanup_orders)} orders sold the traders' leftover tokens back to SOL. They're tooling, not scenario "
               "traffic, so they're left out of every other section.</p>",
-              '<div class="panel">' + table(["Created (UTC)", "Trader", "Pair", "Result", "Order"], [
+              f'<details><summary>All {len(cleanup_orders)} cleanup orders</summary>' + table(["Created (UTC)", "Trader", "Pair", "Result", "Order"], [
                   [o["creationDate"][11:19], f"t{o['sim_trader']}" if o.get("sim_trader") else "", pair_cell(o),
                    f'<span class="order"><i class="sw t-{tone(o["cause"], inc_labels)}"></i>{escape(o["cause"])}</span>',
-                   order_cell(o["uid"])] for o in cleanup_orders]) + "</div></section>"]
+                   order_cell(o["uid"])] for o in cleanup_orders]) + "</details></section>"]
 
     # Outcome stack, ordered good -> critical -> serious -> neutral.
     order_rank = {"good": 0, "critical": 1, "serious": 2, "muted": 3}
@@ -692,6 +715,7 @@ def render(*, session, meta, orders, by_solver, drivers, autopilot, sol, compari
     h += ["<section><h2>Orders not executed</h2>",
           f'<p><span id="failed-count">{len(failed)}</span> orders shown. Filter by cause or trader, or click a trader in the table; '
           f"the ladybug opens the order in the debug tool.{no_order_note}</p>",
+          f'<details><summary>All {len(failed)} orders not executed, with filters</summary>',
           '<div class="chips" id="cause-filter" role="group" aria-label="Filter by cause">',
           f'<button type="button" id="cause-all" data-cause="*" aria-pressed="true">All <b>{len(failed)}</b></button>']
     for i, (k, v) in enumerate(fail_causes.most_common()):
@@ -705,13 +729,13 @@ def render(*, session, meta, orders, by_solver, drivers, autopilot, sol, compari
              '<datalist id="owner-list">'
              + "".join(f'<option value="{w}">{c} not executed</option>' for w, c in owner_counts.most_common())
              + '</datalist><button type="button" id="owner-clear" class="clear">Clear</button></div>')
-    h.append('<div class="panel" id="failed">' + table(
+    h.append('<div id="failed">' + table(
         ["Created (UTC)", "Pair", "Kind", "Cause", "Trader", "Order"],
         [[o["creationDate"][11:19], pair_cell(o), o["kind"], escape(o["cause"]),
           f'<button type="button" class="owner-pick mono" data-owner="{o["owner"]}" title="Show only {o["owner"]}">'
           f'{o["owner"][:6]}…{o["owner"][-4:]}</button>',
           order_cell(o["uid"])] for o in failed],
-        attrs=[f'data-cause="{escape(o["cause"])}" data-owner="{o["owner"]}"' for o in failed]) + "</div></section>")
+        attrs=[f'data-cause="{escape(o["cause"])}" data-owner="{o["owner"]}"' for o in failed]) + "</div></details></section>")
 
     h += ["<footer><span>Sources: barn autopilot and driver logs (VictoriaLogs), the barn Solana orderbook API, "
           "and Solana RPC for settlement transactions.</span>",

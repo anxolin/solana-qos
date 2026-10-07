@@ -14,6 +14,7 @@ Inputs in sessions/NAME/ (see queries/logs.md):
 from __future__ import annotations
 
 import argparse
+import csv
 import json
 import os
 import re
@@ -209,6 +210,21 @@ def table(headers: list[str], rows: list[list]) -> str:
     return "\n".join(out + ["| " + " | ".join(str(c) for c in r) + " |" for r in rows])
 
 
+_universe_symbols: dict[str, str] | None = None
+
+
+def universe_symbols() -> dict[str, str]:
+    """Symbols from token-universe/universe.csv: covers the scenario tokens tokens.json hasn't learnt yet."""
+    global _universe_symbols
+    if _universe_symbols is None:
+        path = ROOT / "token-universe" / "universe.csv"
+        _universe_symbols = {}
+        if path.exists():
+            with path.open() as f:
+                _universe_symbols = {r["mint"]: r["symbol"] for r in csv.DictReader(f) if r.get("symbol")}
+    return _universe_symbols
+
+
 def short(addr: str) -> str:
     return f"{addr[:4]}…{addr[-4:]}"
 
@@ -391,7 +407,10 @@ def no_order_failure(r: dict) -> dict | None:
     reason = r.get("reason") or ""
     if r.get("status") != "failed" or ORDER_OUTCOME.match(reason):
         return None
-    step = next((s for s in ("acquire", "main") if reason.startswith(s)), "quote" if reason.startswith("quote failed") else "setup")
+    step = next((s for s in ("acquire", "main") if reason.startswith(s)),
+                "quote" if reason.startswith("quote failed") else "rpc" if reason.startswith("error:") else "setup")
+    if rpc := rpc_failure(reason):
+        return {"step": step, **rpc}
     body = (r.get("error") or {}).get("body")
     if isinstance(body, dict) and body.get("errorType"):
         return {"step": step, "type": body["errorType"], "detail": body.get("description", "")}
@@ -400,6 +419,35 @@ def no_order_failure(r: dict) -> dict | None:
     msg = re.sub(r"^(?:\w+(?: \S+)? error|quote failed): ", "", reason)
     # Journals from before detailed errors only kept the HTTP status text.
     return {"step": step, "type": msg, "detail": "no response body recorded" if msg in ("Bad Request", "Not Found") else ""}
+
+
+BASE58 = re.compile(r"\b[1-9A-HJ-NP-Za-km-z]{32,88}\b")
+
+
+def rpc_failure(reason: str) -> dict | None:
+    """Solana RPC failures, grouped: their messages carry account addresses and request ids that make each one unique."""
+    call = m.group(1) if (m := re.search(r"failed to get ([a-z ]+?)(?: of account| for|:)", reason)) else ""
+    if re.search(r"\b429\b|too many requests|rate limit", reason, re.I):
+        return {"type": "RPC rate limited (429)", "detail": f"sim's RPC refused: get {call}" if call else "sim's RPC refused the call"}
+    if re.search(r"fetch failed|ECONNRESET|ETIMEDOUT|timeout|socket hang up", reason, re.I):
+        return {"type": "RPC unreachable", "detail": f"get {call}" if call else ""}
+    if reason.startswith("error:"):  # anything else the sim didn't expect, minus the unique bits
+        msg = BASE58.sub("…", re.sub(r"\{.*\}", "", reason[len("error: "):])).strip()
+        return {"type": msg[:80], "detail": ""}
+    return None
+
+
+def knock_on(rows: list[dict]) -> None:
+    """Flag acquisitions of a token an earlier row of the same trader was meant to deliver but didn't."""
+    for r in rows:
+        f = r.get("failure")
+        if not f or f["step"] != "acquire":
+            continue
+        need = r["market"]["buy"][1]
+        prev = [p for p in rows if p["trader"] == r["trader"] and p["row"] < r["row"] and p.get("status") != "filled"
+                and (p.get("mints") or [None, None])[1 if p.get("type") == "sell" else 0] == need]
+        if prev:
+            f["after"] = prev[-1]["row"]
 
 
 LOGS_MISSING = ("Log data wasn't fetched for this session, so failure causes are generic and the competition and "
@@ -421,7 +469,7 @@ def cmd_report(a):
     journal = read_journal(session)
     logs_available = comp_path.exists()
     tokens, names = load_map("tokens.json"), load_map("solvers.json")
-    tok = lambda m: tokens.get(m, short(m))  # noqa: E731
+    tok = lambda m: tokens.get(m) or universe_symbols().get(m) or short(m)  # noqa: E731
     sol = lambda s: names.get(s, short(s))  # noqa: E731
 
     orders.sort(key=lambda o: o["creationDate"])
@@ -453,6 +501,7 @@ def cmd_report(a):
             if r["failure"]["step"] == "acquire":
                 sell, buy = ("SOL", by_symbol["SOL"]), sell
             r["market"] = {"sell": sell, "buy": buy, "text": f"{sell[0]} → {buy[0]}"}
+    knock_on((journal or {}).get("rows", []))
 
     # Cleanup orders are tooling, not scenario traffic: listed in their own section, kept out of the stats.
     cleanup_orders = [o for o in orders if o["step"] == "cleanup"]
