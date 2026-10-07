@@ -107,9 +107,10 @@ class AllowanceLedger {
 
 /**
  * Seconds added to the requested validity at quote time. `validTo` is fixed when quoting, and building,
- * signing and posting take a few seconds; the orderbook rejects an order with under 120s left.
+ * signing and posting take a few seconds, over 20s when many traders start at once (rate limits); the orderbook
+ * rejects an order with under 120s left. A post rejected anyway is re-quoted once (see `place`).
  */
-export const PLACEMENT_MARGIN_S = 10
+export const PLACEMENT_MARGIN_S = 30
 
 export interface OrdersOptions {
   env: CowEnv
@@ -196,7 +197,11 @@ export class Orders {
    */
   async place(p: PlaceParams): Promise<Placed> {
     try {
-      return await this.placeAs(p, p.mode, false)
+      return await this.placeAs(p, p.mode, false).catch((e) => {
+        // The quote's validTo ran short before the post landed: a fresh quote resets it.
+        if (/InsufficientValidTo/.test(errorText(e))) return this.placeAs(p, p.mode, false)
+        throw e
+      })
     } catch (e) {
       // Deployments without services#4990 reject sponsored native-SOL buys; the contracts support them.
       if (p.mode === 'sponsored' && p.buy.isNative && /native SOL/i.test(errorText(e))) {

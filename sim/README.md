@@ -76,7 +76,7 @@ pnpm sim new-wallet
 | `--max-total-sol` | 3 | Refuses to fund more than this in total |
 | `--session` | `<date>-<scenario>` | Folder under `../sessions/` |
 | `--max-retries` | 0 | Re-quote and retry an order that expires or times out (new uid each time). 0 = move on |
-| `--order-validity` | 120 | Seconds an order has left when placed (the orderbook's minimum is 120). The quote asks for 10s more to cover placement time |
+| `--order-validity` | 120 | Seconds an order has left when placed (the orderbook's minimum is 120). The quote asks for 30s more to cover placement time, and a post rejected with `InsufficientValidTo` is re-quoted once |
 | `--fill-timeout` | 60 | Seconds to wait for a fill. After that the script moves on and the order expires on its own (≥ 120s: the orderbook minimum), so it can still fill late |
 | `--cancel-on-timeout` | off | Cancel the order on-chain when giving up, so it can't fill late |
 | `--slippage-bps` | quoted | Override the signed slippage |
