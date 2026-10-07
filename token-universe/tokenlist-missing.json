@@ -1,6 +1,6 @@
 {
   "name": "Supported Solana tokens in no app list (2026-10-07)",
-  "timestamp": "2026-10-07T16:39:04.297Z",
+  "timestamp": "2026-10-07T18:23:16.068Z",
   "version": {
     "major": 1,
     "minor": 0,
@@ -2127,6 +2127,20 @@
       "symbol": "Greyson",
       "name": "Pit Bull on One Wheel",
       "decimals": 6
+    },
+    {
+      "chainId": 1000000001,
+      "address": "9oxGicd5KXNcthYM6yD23X9zcznQVnHjrAEN38fFpump",
+      "symbol": "BioLLM",
+      "name": "BioLLM",
+      "decimals": 6
+    },
+    {
+      "chainId": 1000000001,
+      "address": "NX8DuAWprqWAYDvpkkuhKnPfGRXQQhgiw85pCkgvFYk",
+      "symbol": "NX8",
+      "name": "The Future Of Finance Index",
+      "decimals": 9
     },
     {
       "chainId": 1000000001,

@@ -1,0 +1,15 @@
+{
+ "name": "2026-10-07-17-19-unsupported trade session",
+ "title": "2026-10-07-17-19-unsupported",
+ "start": "2026-10-07T17:19:43.276Z",
+ "env": "staging",
+ "sim": {
+  "scenario": "/Users/anxo/Bunker/code/cow/solana-qos/scenarios/unsupported.csv",
+  "traders": 1,
+  "rows": 32,
+  "solFundingPerTrader": 0.05
+ },
+ "trading_end": "2026-10-07T17:27:39.588Z",
+ "end": "2026-10-07T17:28:37.666Z",
+ "fetched_at": "2026-10-07T17:28:13+00:00"
+}

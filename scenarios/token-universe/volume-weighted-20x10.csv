@@ -1,0 +1,127 @@
+# Volume-weighted traffic: 20 traders, 3 round trips each over 10 minutes (seed 1). Each flow draws a token from
+# the 250 most traded CoW-supported tokens weighted by the square root of its 90-day DEX volume: the mix follows real demand
+# (stables and majors come up most) without USDC taking every other flow, as plain volume weighting does (59% of volume). 0.005-0.02 SOL in, 80% back a minute later.
+# 30% of entries into buyable tokens are BUY orders; sell-only tokens are always entered with a sell. ~15% of traders self-paid.
+# Sized from Jupiter prices on 2026-10-07 (SOL ≈ $116.08). Picked from token-universe/universe.csv.
+# Fund with --sol-funding-per-trader 0.1.
+trader,time,type,amount,token,other_token,mode,note
+2,1,sell,0.0084,SOL,JDzPbXboQYWVmdxXS3LbvjM52RtsV1QaSv2AzoCiai2o,sponsored,FO (classic) 0.0% of volume: sell SOL
+9,2,sell,0.0183,SOL,7fDdLy2rmQKsPCkqUXEd1mN7yDfEzArc4VrctWmfkJBK,sponsored,Z500 (classic) 0.0% of volume: sell SOL
+12,6,buy,5.19,EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm,SOL,self,$WIF (classic) 0.1% of volume: buy
+4,10,sell,0.0078,SOL,GY9mZfyPpxXxBXBxS2hB2XjhP3kfUsywTvgveozxpump,sponsored,ELON (token-2022) 0.1% of volume: sell SOL
+6,16,sell,0.0132,SOL,cbbtcf3aa214zXHbiAZQwf4122FBYbraNdFqgw4iMij,sponsored,cbBTC (classic) 2.1% of volume: sell SOL
+2,61,sell,5.44,JDzPbXboQYWVmdxXS3LbvjM52RtsV1QaSv2AzoCiai2o,SOL,sponsored,FO (classic) 0.0% of volume: 80% back
+9,62,sell,46100,7fDdLy2rmQKsPCkqUXEd1mN7yDfEzArc4VrctWmfkJBK,SOL,sponsored,Z500 (classic) 0.0% of volume: 80% back
+1,64,sell,0.0117,SOL,MUxEsUKSMACyw5fZf68wxf5FLnZVhtU9CwH8uNNGay1,sponsored,MU (token-2022) 0.2% of volume: sell SOL
+12,66,sell,4.15,EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm,SOL,self,$WIF (classic) 0.1% of volume: 80% back
+4,70,sell,1820,GY9mZfyPpxXxBXBxS2hB2XjhP3kfUsywTvgveozxpump,SOL,sponsored,ELON (token-2022) 0.1% of volume: 80% back
+6,76,sell,0.0000148,cbbtcf3aa214zXHbiAZQwf4122FBYbraNdFqgw4iMij,SOL,sponsored,cbBTC (classic) 2.1% of volume: 80% back
+8,81,sell,0.0179,SOL,MukLDtJ8Cx9DxLbeyLRSWPSposTMWuwHANbuaudpump,sponsored,OTC (token-2022) 0.1% of volume: sell SOL
+11,85,sell,0.017,SOL,91ryaCo5yGpYZM3bs6GUPs97VWJQj7RozBmqPULgpump,sponsored,TIGRINO (token-2022) 0.0% of volume: sell SOL
+10,95,sell,0.0102,SOL,CWZ6BsdnjkDVTGkmL6bGbJXXig6ceef12KvyGQW14cMt,sponsored,ANTFUN (classic) 0.4% of volume: sell SOL
+19,96,sell,0.0082,SOL,Dz9mQ9NzkBcCsuGPFJ3r1bS4wgqKMHBPiVuniW8Mbonk,sponsored,USELESS (classic) 0.6% of volume: sell SOL
+18,98,buy,1.74,Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB,SOL,sponsored,USDT (classic) 10.9% of volume: buy
+14,100,sell,0.0072,SOL,EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v,self,USDC (classic) 59.1% of volume: sell SOL
+3,103,sell,0.0083,SOL,EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v,sponsored,USDC (classic) 59.1% of volume: sell SOL
+6,116,sell,0.0151,SOL,DKu9kykSfbN5LBfFXtNNDPaX35o4Fv6vJ9FKk7pZpump,sponsored,AVA (classic) 0.0% of volume: sell SOL
+12,119,sell,0.0129,SOL,2u1tszSeqZ3qBWF3uNGPFc8TzMk2tdiwknnRMWGWjGWH,self,USDG (token-2022) 2.5% of volume: sell SOL
+1,124,sell,0.001,MUxEsUKSMACyw5fZf68wxf5FLnZVhtU9CwH8uNNGay1,SOL,sponsored,MU (token-2022) 0.2% of volume: 80% back
+4,139,sell,0.0179,SOL,B4iCqVsAZv9dBiBVv58GJiBxWGmwkwbtPTn4sUQTpump,sponsored,Polycat (token-2022) 0.0% of volume: sell SOL
+8,141,sell,215,MukLDtJ8Cx9DxLbeyLRSWPSposTMWuwHANbuaudpump,SOL,sponsored,OTC (token-2022) 0.1% of volume: 80% back
+11,145,sell,43400,91ryaCo5yGpYZM3bs6GUPs97VWJQj7RozBmqPULgpump,SOL,sponsored,TIGRINO (token-2022) 0.0% of volume: 80% back
+16,147,sell,0.0162,SOL,Xs3eBt7uRfJX8QUs4suhyU8p2M6DoUDrJyWBa8LLZsg,sponsored,AMZNx (token-2022) 0.0% of volume: sell SOL
+13,154,sell,0.0108,SOL,EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v,sponsored,USDC (classic) 59.1% of volume: sell SOL
+10,155,sell,77.9,CWZ6BsdnjkDVTGkmL6bGbJXXig6ceef12KvyGQW14cMt,SOL,sponsored,ANTFUN (classic) 0.4% of volume: 80% back
+19,156,sell,3.71,Dz9mQ9NzkBcCsuGPFJ3r1bS4wgqKMHBPiVuniW8Mbonk,SOL,sponsored,USELESS (classic) 0.6% of volume: 80% back
+18,158,sell,1.39,Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB,SOL,sponsored,USDT (classic) 10.9% of volume: 80% back
+14,160,sell,0.669,EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v,SOL,self,USDC (classic) 59.1% of volume: 80% back
+3,163,sell,0.771,EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v,SOL,sponsored,USDC (classic) 59.1% of volume: 80% back
+11,175,sell,0.0176,SOL,9cRCn9rGT8V2imeM2BaKs13yhMEais3ruM3rPvTGpump,sponsored,ANSEM (token-2022) 0.9% of volume: sell SOL
+6,176,sell,153,DKu9kykSfbN5LBfFXtNNDPaX35o4Fv6vJ9FKk7pZpump,SOL,sponsored,AVA (classic) 0.0% of volume: 80% back
+12,179,sell,1.2,2u1tszSeqZ3qBWF3uNGPFc8TzMk2tdiwknnRMWGWjGWH,SOL,self,USDG (token-2022) 2.5% of volume: 80% back
+19,186,sell,0.0176,SOL,BoTx8y9ynfdxf5ZjWtCoBVkff52qKA82ysaLU8ZM6d8T,sponsored,BOT (token-2022) 0.0% of volume: sell SOL
+3,193,sell,0.0085,SOL,27G8MtK7VtTcCHkpASjSDdkWWYfoqT6ggEuKidVJidD4,sponsored,JLP (classic) 0.2% of volume: sell SOL
+4,199,sell,111000,B4iCqVsAZv9dBiBVv58GJiBxWGmwkwbtPTn4sUQTpump,SOL,sponsored,Polycat (token-2022) 0.0% of volume: 80% back
+5,202,sell,0.0096,SOL,4ko5tSr5o3H4v1sFtjTSd9MPUW7yx5AFCpkNPoL6pump,sponsored,febu (token-2022) 0.0% of volume: sell SOL
+2,207,sell,0.0185,SOL,H7TuvDxEKygh27zGfGcjKG8JGWgrbyKpPtvJEpGosfas,sponsored,CLAUDIA (token-2022) 0.0% of volume: sell SOL
+16,207,sell,0.00582,Xs3eBt7uRfJX8QUs4suhyU8p2M6DoUDrJyWBa8LLZsg,SOL,sponsored,AMZNx (token-2022) 0.0% of volume: 80% back
+18,207,sell,0.0099,SOL,27G8MtK7VtTcCHkpASjSDdkWWYfoqT6ggEuKidVJidD4,sponsored,JLP (classic) 0.2% of volume: sell SOL
+13,214,sell,1,EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v,SOL,sponsored,USDC (classic) 59.1% of volume: 80% back
+20,232,sell,0.0063,SOL,B4ptaVsUe6YbtBwAS38WFeweSrVNfQLCcj9JRrtjU8vn,sponsored,SOLdiers (token-2022) 0.0% of volume: sell SOL
+11,235,sell,12,9cRCn9rGT8V2imeM2BaKs13yhMEais3ruM3rPvTGpump,SOL,sponsored,ANSEM (token-2022) 0.9% of volume: 80% back
+8,241,sell,0.0127,SOL,6GmAFSYs4gk3FDao5FzzySQpPZaWsa4rUJHacpMpUNgx,sponsored,STONK (classic) 1.0% of volume: sell SOL
+10,242,sell,0.0144,SOL,MukLDtJ8Cx9DxLbeyLRSWPSposTMWuwHANbuaudpump,sponsored,OTC (token-2022) 0.1% of volume: sell SOL
+7,244,sell,0.0054,SOL,BPxxfRCXkUVhig4HS1Lh7kZqV6SPJhzfEk4x6fVBjPCy,sponsored,BP (classic) 0.2% of volume: sell SOL
+13,244,sell,0.0066,SOL,pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn,sponsored,PUMP (token-2022) 2.0% of volume: sell SOL
+19,246,sell,0.0562,BoTx8y9ynfdxf5ZjWtCoBVkff52qKA82ysaLU8ZM6d8T,SOL,sponsored,BOT (token-2022) 0.0% of volume: 80% back
+15,247,sell,0.0109,SOL,zj1jpp7QMveWHLs61vL9KMZf254KvW7j4AAmBF8ry2k,sponsored,BULLSHIT (classic) 0.1% of volume: sell SOL
+3,253,sell,0.165,27G8MtK7VtTcCHkpASjSDdkWWYfoqT6ggEuKidVJidD4,SOL,sponsored,JLP (classic) 0.2% of volume: 80% back
+5,262,sell,16300,4ko5tSr5o3H4v1sFtjTSd9MPUW7yx5AFCpkNPoL6pump,SOL,sponsored,febu (token-2022) 0.0% of volume: 80% back
+9,263,sell,0.0128,SOL,7ga6rtE9qSb3wdEiDCpTu2kHqoGVfT52jD8ign1rYTvx,sponsored,xHYPE (classic) 0.0% of volume: sell SOL
+2,267,sell,11500,H7TuvDxEKygh27zGfGcjKG8JGWgrbyKpPtvJEpGosfas,SOL,sponsored,CLAUDIA (token-2022) 0.0% of volume: 80% back
+18,267,sell,0.192,27G8MtK7VtTcCHkpASjSDdkWWYfoqT6ggEuKidVJidD4,SOL,sponsored,JLP (classic) 0.2% of volume: 80% back
+17,273,sell,0.0196,SOL,CrJPSvj625TnPdWS42aG5ybMcHeFvnNqq5AExVespump,sponsored,Momota (token-2022) 0.0% of volume: sell SOL
+11,280,buy,0.0247,BoTx8y9ynfdxf5ZjWtCoBVkff52qKA82ysaLU8ZM6d8T,SOL,sponsored,BOT (token-2022) 0.0% of volume: buy
+14,290,sell,0.0156,SOL,2u1tszSeqZ3qBWF3uNGPFc8TzMk2tdiwknnRMWGWjGWH,self,USDG (token-2022) 2.5% of volume: sell SOL
+20,292,sell,14700,B4ptaVsUe6YbtBwAS38WFeweSrVNfQLCcj9JRrtjU8vn,SOL,sponsored,SOLdiers (token-2022) 0.0% of volume: 80% back
+8,301,sell,6.77,6GmAFSYs4gk3FDao5FzzySQpPZaWsa4rUJHacpMpUNgx,SOL,sponsored,STONK (classic) 1.0% of volume: 80% back
+10,302,sell,173,MukLDtJ8Cx9DxLbeyLRSWPSposTMWuwHANbuaudpump,SOL,sponsored,OTC (token-2022) 0.1% of volume: 80% back
+7,304,sell,0.482,BPxxfRCXkUVhig4HS1Lh7kZqV6SPJhzfEk4x6fVBjPCy,SOL,sponsored,BP (classic) 0.2% of volume: 80% back
+13,304,sell,99.6,pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn,SOL,sponsored,PUMP (token-2022) 2.0% of volume: 80% back
+15,307,sell,1320,zj1jpp7QMveWHLs61vL9KMZf254KvW7j4AAmBF8ry2k,SOL,sponsored,BULLSHIT (classic) 0.1% of volume: 80% back
+9,323,sell,0.532,7ga6rtE9qSb3wdEiDCpTu2kHqoGVfT52jD8ign1rYTvx,SOL,sponsored,xHYPE (classic) 0.0% of volume: 80% back
+18,323,buy,404,HKJHsYJHMVK5VRyHHk5GhvzY9tBAAtPvDkZfDH6RLDTd,SOL,sponsored,READY (classic) 0.0% of volume: buy
+20,329,sell,0.0187,SOL,cbbtcf3aa214zXHbiAZQwf4122FBYbraNdFqgw4iMij,sponsored,cbBTC (classic) 2.1% of volume: sell SOL
+10,332,buy,19.5,HZ1JovNiVvGrGNiiYvEozEVgZ58xaU3RKwX8eACQBCt3,SOL,sponsored,PYTH (classic) 0.1% of volume: buy
+17,333,sell,61600,CrJPSvj625TnPdWS42aG5ybMcHeFvnNqq5AExVespump,SOL,sponsored,Momota (token-2022) 0.0% of volume: 80% back
+7,334,sell,0.0156,SOL,EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v,sponsored,USDC (classic) 59.1% of volume: sell SOL
+11,340,sell,0.0198,BoTx8y9ynfdxf5ZjWtCoBVkff52qKA82ysaLU8ZM6d8T,SOL,sponsored,BOT (token-2022) 0.0% of volume: 80% back
+5,341,sell,0.0182,SOL,FZqdw6oSDCbHtKYxmhnfbi97SnyVy8jaYpdCoMrrjKa2,sponsored,Pistacio (token-2022) 0.1% of volume: sell SOL
+13,341,sell,0.0127,SOL,LFEJTxJ9yi6ojGDFpjbGfABLbH55Fc3oEK8syJJpump,sponsored,DPG (token-2022) 0.0% of volume: sell SOL
+14,350,sell,1.45,2u1tszSeqZ3qBWF3uNGPFc8TzMk2tdiwknnRMWGWjGWH,SOL,self,USDG (token-2022) 2.5% of volume: 80% back
+12,362,sell,0.0091,SOL,cbbtcf3aa214zXHbiAZQwf4122FBYbraNdFqgw4iMij,self,cbBTC (classic) 2.1% of volume: sell SOL
+2,365,sell,0.0054,SOL,EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v,sponsored,USDC (classic) 59.1% of volume: sell SOL
+1,366,sell,0.0168,SOL,SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3,sponsored,SKR (classic) 0.1% of volume: sell SOL
+6,382,sell,0.0116,SOL,XsueG8BtpquVJX9LVLLEGuViXUungE6WmK5YZ3p3bd1,sponsored,CRCLx (token-2022) 0.3% of volume: sell SOL
+15,382,sell,0.0098,SOL,orcaEKTdK7LKz57vaAYr9QeNsVEPfiu6QeMU1kektZE,sponsored,ORCA (classic) 0.1% of volume: sell SOL
+18,383,sell,323,HKJHsYJHMVK5VRyHHk5GhvzY9tBAAtPvDkZfDH6RLDTd,SOL,sponsored,READY (classic) 0.0% of volume: 80% back
+20,389,sell,0.0000209,cbbtcf3aa214zXHbiAZQwf4122FBYbraNdFqgw4iMij,SOL,sponsored,cbBTC (classic) 2.1% of volume: 80% back
+10,392,sell,15.6,HZ1JovNiVvGrGNiiYvEozEVgZ58xaU3RKwX8eACQBCt3,SOL,sponsored,PYTH (classic) 0.1% of volume: 80% back
+14,392,buy,275,C1mBfBoDkwWfd6uTFZp62ARHLjeVp3bDpCDMfMZtPngE,SOL,self,HOOKED (classic) 0.0% of volume: buy
+17,393,sell,0.0126,SOL,Cm6fNnMk7NfzStP9CZpsQA2v3jjzbcYGAxdJySmHpump,sponsored,Buttcoin (token-2022) 0.0% of volume: sell SOL
+7,394,sell,1.45,EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v,SOL,sponsored,USDC (classic) 59.1% of volume: 80% back
+5,401,sell,8270,FZqdw6oSDCbHtKYxmhnfbi97SnyVy8jaYpdCoMrrjKa2,SOL,sponsored,Pistacio (token-2022) 0.1% of volume: 80% back
+13,401,sell,201000,LFEJTxJ9yi6ojGDFpjbGfABLbH55Fc3oEK8syJJpump,SOL,sponsored,DPG (token-2022) 0.0% of volume: 80% back
+4,402,sell,0.01,SOL,Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB,sponsored,USDT (classic) 10.9% of volume: sell SOL
+16,412,sell,0.0088,SOL,XsoCS1TfEyfFhfvj8EtZ528L3CaKBDBRqRapnBbDF2W,sponsored,SPYx (token-2022) 0.3% of volume: sell SOL
+12,422,sell,0.0000102,cbbtcf3aa214zXHbiAZQwf4122FBYbraNdFqgw4iMij,SOL,self,cbBTC (classic) 2.1% of volume: 80% back
+7,424,sell,0.0109,SOL,SNDKbwMUQvZhnLnxLduradgLHG5KrPuKwpnrkkGRhfH,sponsored,SNDK (token-2022) 0.1% of volume: sell SOL
+2,425,sell,0.502,EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v,SOL,sponsored,USDC (classic) 59.1% of volume: 80% back
+1,426,sell,96.6,SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3,SOL,sponsored,SKR (classic) 0.1% of volume: 80% back
+6,442,sell,0.0134,XsueG8BtpquVJX9LVLLEGuViXUungE6WmK5YZ3p3bd1,SOL,sponsored,CRCLx (token-2022) 0.3% of volume: 80% back
+15,442,sell,0.314,orcaEKTdK7LKz57vaAYr9QeNsVEPfiu6QeMU1kektZE,SOL,sponsored,ORCA (classic) 0.1% of volume: 80% back
+5,449,sell,0.0126,SOL,CtzPWv73Sn1dMGVU3ZtLv9yWSyUAanBni19YWDaznnkn,sponsored,xBTC (classic) 0.0% of volume: sell SOL
+3,450,sell,0.0083,SOL,6GmAFSYs4gk3FDao5FzzySQpPZaWsa4rUJHacpMpUNgx,sponsored,STONK (classic) 1.0% of volume: sell SOL
+14,452,sell,220,C1mBfBoDkwWfd6uTFZp62ARHLjeVp3bDpCDMfMZtPngE,SOL,self,HOOKED (classic) 0.0% of volume: 80% back
+17,453,sell,144,Cm6fNnMk7NfzStP9CZpsQA2v3jjzbcYGAxdJySmHpump,SOL,sponsored,Buttcoin (token-2022) 0.0% of volume: 80% back
+1,456,sell,0.0054,SOL,EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v,sponsored,USDC (classic) 59.1% of volume: sell SOL
+9,459,sell,0.0058,SOL,JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN,sponsored,JUP (classic) 0.3% of volume: sell SOL
+4,462,sell,0.929,Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB,SOL,sponsored,USDT (classic) 10.9% of volume: 80% back
+8,471,buy,0.476,orcaEKTdK7LKz57vaAYr9QeNsVEPfiu6QeMU1kektZE,SOL,sponsored,ORCA (classic) 0.1% of volume: buy
+15,472,sell,0.0095,SOL,EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v,sponsored,USDC (classic) 59.1% of volume: sell SOL
+16,472,sell,0.00105,XsoCS1TfEyfFhfvj8EtZ528L3CaKBDBRqRapnBbDF2W,SOL,sponsored,SPYx (token-2022) 0.3% of volume: 80% back
+19,473,sell,0.0182,SOL,USD1ttGY1N17NEEHLmELoaybftRBUSErhqYiQzvEmuB,sponsored,USD1 (classic) 0.5% of volume: sell SOL
+20,473,sell,0.0164,SOL,2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo,sponsored,PYUSD (token-2022) 1.2% of volume: sell SOL
+17,483,sell,0.0102,SOL,XsueG8BtpquVJX9LVLLEGuViXUungE6WmK5YZ3p3bd1,sponsored,CRCLx (token-2022) 0.3% of volume: sell SOL
+7,484,sell,0.000587,SNDKbwMUQvZhnLnxLduradgLHG5KrPuKwpnrkkGRhfH,SOL,sponsored,SNDK (token-2022) 0.1% of volume: 80% back
+16,502,buy,2.11,EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v,SOL,sponsored,USDC (classic) 59.1% of volume: buy
+5,509,sell,0.000014,CtzPWv73Sn1dMGVU3ZtLv9yWSyUAanBni19YWDaznnkn,SOL,sponsored,xBTC (classic) 0.0% of volume: 80% back
+3,510,sell,4.43,6GmAFSYs4gk3FDao5FzzySQpPZaWsa4rUJHacpMpUNgx,SOL,sponsored,STONK (classic) 1.0% of volume: 80% back
+1,516,sell,0.502,EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v,SOL,sponsored,USDC (classic) 59.1% of volume: 80% back
+9,519,sell,1.7,JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN,SOL,sponsored,JUP (classic) 0.3% of volume: 80% back
+8,531,sell,0.381,orcaEKTdK7LKz57vaAYr9QeNsVEPfiu6QeMU1kektZE,SOL,sponsored,ORCA (classic) 0.1% of volume: 80% back
+15,532,sell,0.882,EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v,SOL,sponsored,USDC (classic) 59.1% of volume: 80% back
+19,533,sell,1.69,USD1ttGY1N17NEEHLmELoaybftRBUSErhqYiQzvEmuB,SOL,sponsored,USD1 (classic) 0.5% of volume: 80% back
+20,533,sell,1.52,2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo,SOL,sponsored,PYUSD (token-2022) 1.2% of volume: 80% back
+17,543,sell,0.0118,XsueG8BtpquVJX9LVLLEGuViXUungE6WmK5YZ3p3bd1,SOL,sponsored,CRCLx (token-2022) 0.3% of volume: 80% back
+16,562,sell,1.69,EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v,SOL,sponsored,USDC (classic) 59.1% of volume: 80% back

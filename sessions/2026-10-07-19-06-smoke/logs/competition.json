@@ -1,0 +1,48 @@
+{
+ "_source": "VictoriaLogs via Grafana, container solana-autopilot-staging",
+ "drivers": {
+  "jupiter-solve": {
+   "submitted": 7,
+   "wins": 10,
+   "solver": "Grr6SWYUFi1eCagwEifXVD83rUQ4W5rJWYq1Lj7cx1jS",
+   "observed_on_chain": 7,
+   "proposed": 13,
+   "rejected_before_submission": {
+    "PriorityFeeTooHigh": 3
+   }
+  },
+  "grafiks": {
+   "observed_on_chain": 3,
+   "solver": "AuwLofAZcjCxUeYs1Ca7ea812HjySAv3b1QjvVjcYzVj",
+   "wins": 3,
+   "proposed": 11,
+   "submitted": 3
+  },
+  "paradox": {
+   "proposed": 4
+  },
+  "zurui": {
+   "proposed": 1
+  },
+  "rosato": {
+   "proposed": 9,
+   "solve_failed": {
+    "SolverFailed": 1
+   }
+  },
+  "horadrim": {
+   "solve_failed": {
+    "SolverFailed": 7
+   }
+  }
+ },
+ "autopilot": {
+  "winner_skipped_creation_blockhash_expired": 0,
+  "sponsored_creation_expired_orders": 0,
+  "filtered": {
+   "unfunded_sell_token_account": 17,
+   "unreceivable_buy_token_account": 17,
+   "in_flight": 2
+  }
+ }
+}

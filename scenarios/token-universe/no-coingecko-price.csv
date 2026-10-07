@@ -1,0 +1,17 @@
+# Tokens barn quotes (sell and buy) but CoinGecko doesn't price: the top ones by volume with at least $200k of liquidity.
+# The universe counts them as unsupported on the assumption that orders can't settle without a native price.
+# Each trader sells 0.005 SOL into one token. Watch where it stops: rejected at placement, or placed and never filled (expires).
+# A fill means the native price came from elsewhere and the token is tradable after all; cleanup sells what's left.
+# Sized from Jupiter prices on 2026-10-07 (SOL ≈ $116.08). Picked from token-universe/universe.csv.
+# Fund with --sol-funding-per-trader 0.05.
+trader,time,type,amount,token,other_token,mode,note
+1,0,sell,0.005,SOL,WXMRyRZhsa19ety5erZhHg4N3xj3EVN92u94422teJp,sponsored,XMR (classic) rank 67 liq $843k: no CoinGecko price
+2,0,sell,0.005,SOL,PEPEqnuuCDbBC89p1u9vpnP1KQ2oj1xTcQBsjt9X55m,sponsored,PEPE (classic) rank 87 liq $552k: no CoinGecko price
+3,0,sell,0.005,SOL,CJMihkPYswa3k6az9SUbepjKnkJQ6KWpGG5p9qW9n7NV,sponsored,LIKE (classic) rank 154 liq $3981k: no CoinGecko price
+4,0,sell,0.005,SOL,DvdmEnztCmXwBnAbedD48XVGZJSxq31zNvnyftXdpump,sponsored,pill (token-2022) rank 177 liq $219k: no CoinGecko price
+5,0,sell,0.005,SOL,taoC6xyv2v8tDLcev4uaGUgV4vdQsWJrGft2kcBRrBY,sponsored,TAO (classic) rank 183 liq $421k: no CoinGecko price
+6,0,sell,0.005,SOL,DoGEV7LASBkQbibMc5k5vKnTZoMg423GpJ5QtJEGfm7R,sponsored,DOGE (classic) rank 193 liq $484k: no CoinGecko price
+7,0,sell,0.005,SOL,uniHfuPhEQSrtpzXpJZDCSq53yaejKKpNhFUiKoHKHV,sponsored,UNI (classic) rank 292 liq $233k: no CoinGecko price
+8,0,sell,0.005,SOL,39ahtL8ynzE4amH26J29C93PA5172V3ft9UuUcqQS8fz,sponsored,AUTON (classic) rank 334 liq $428k: no CoinGecko price
+9,0,sell,0.005,SOL,Morpho2VPeTr2E1Jx6monxCzF7mqwUnjz74RdwLXYyP,sponsored,MORPHO (classic) rank 346 liq $328k: no CoinGecko price
+10,0,sell,0.005,SOL,stke7uu3fXHsGqKVVjKnkmj65LRPVrqr4bLG2SJg7rh,sponsored,STKESOL (classic) rank 989 liq $62516k: no CoinGecko price

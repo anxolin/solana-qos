@@ -1,0 +1,23 @@
+# BUY (exact-out) gap on classic SPL majors: the universe check got a sell quote but no buy quote (NoLiquidity) for these,
+# although they are plain SPL mints with millions in liquidity. Token-2022's missing exact-out route doesn't explain it.
+# Trader 1 buys ~0.01 SOL worth of each probe: every row is expected to fail at the quote, so nothing is spent.
+# Traders 2+ buy controls that have a buy route: expected to fill. A probe that fills means barn gained the route.
+# Sized from Jupiter prices on 2026-10-07 (SOL ≈ $116.08). Picked from token-universe/universe.csv.
+# Fund with --sol-funding-per-trader 0.05.
+trader,time,type,amount,token,other_token,mode,note
+1,0,buy,0.000014,cbbtcf3aa214zXHbiAZQwf4122FBYbraNdFqgw4iMij,SOL,sponsored,cbBTC rank 5 liq $27.8M: probe expected NoLiquidity at quote
+1,0,buy,0.0133,98sMhvDwXj1RQi5c5Mndm3vPe9cBqPrbLaufMXFNMh5g,SOL,sponsored,HYPE rank 13 liq $3.4M: probe expected NoLiquidity at quote
+1,0,buy,1.16,JuprjznTrTSp2UFa3ZBUFgwdAmtZCq4MQCwysN55USD,SOL,sponsored,JupUSD rank 16 liq $20.1M: probe expected NoLiquidity at quote
+1,0,buy,5.65,Dz9mQ9NzkBcCsuGPFJ3r1bS4wgqKMHBPiVuniW8Mbonk,SOL,sponsored,USELESS rank 18 liq $3.3M: probe expected NoLiquidity at quote
+1,0,buy,1.16,USD1ttGY1N17NEEHLmELoaybftRBUSErhqYiQzvEmuB,SOL,sponsored,USD1 rank 19 liq $24.0M: probe expected NoLiquidity at quote
+1,0,buy,95.4,CWZ6BsdnjkDVTGkmL6bGbJXXig6ceef12KvyGQW14cMt,SOL,sponsored,ANTFUN rank 20 liq $4.8M: probe expected NoLiquidity at quote
+1,0,buy,137,2zMMhcVQEXDtdE6vsFS7S7D5oUodfJHE8vd1gnBouauv,SOL,sponsored,PENGU rank 31 liq $3.3M: probe expected NoLiquidity at quote
+1,0,buy,7.33,9BB6NFEcjBCtnNLFko2FqVQBq8HHM13kCyYcdQbgpump,SOL,sponsored,Fartcoin rank 32 liq $6.4M: probe expected NoLiquidity at quote
+1,0,buy,4.15,CARDSccUMFKoPRZxt5vt3ksUbxEFEcnZ3H2pd3dKxYjp,SOL,sponsored,CARDS rank 34 liq $3.7M: probe expected NoLiquidity at quote
+1,0,buy,2.99,METvsvVRapdj9cFLzq4Tr43xK4tAjQfwX76z3n6mWQL,SOL,sponsored,MET rank 35 liq $4.3M: probe expected NoLiquidity at quote
+1,0,buy,0.978,AvZZF1YaZDziPY2RCK4oJrRVrbN3mTD9NL24hPeaZeUj,SOL,sponsored,syrupUSDC rank 37 liq $11.2M: probe expected NoLiquidity at quote
+1,0,buy,1.09,3b8X44fLF9ooXaUm3hhSgjpmVs6rZZ3pPoGnGahc3Uu7,SOL,sponsored,PRIME rank 39 liq $7.1M: probe expected NoLiquidity at quote
+2,0,buy,6.67,6GmAFSYs4gk3FDao5FzzySQpPZaWsa4rUJHacpMpUNgx,SOL,sponsored,STONK rank 8: control (buy route exists) expected to fill
+3,0,buy,0.000887,A7bdiYdS5GjqGFtxf17ppRHtDKPkkRqbKtR27dxvQXaS,SOL,sponsored,ZEC rank 9: control (buy route exists) expected to fill
+4,0,buy,0.632,6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN,SOL,sponsored,TRUMP rank 11: control (buy route exists) expected to fill
+5,0,buy,0.000455,7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs,SOL,sponsored,ETH rank 14: control (buy route exists) expected to fill

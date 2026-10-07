@@ -4,24 +4,24 @@
 
 The top 2180 (by volume, plus the app lists' tokens) were checked on Jupiter, on chain and on barn; the rest only count towards the volume.
 
-**Supported by CoW** means barn quotes a sell order into it and CoinGecko prices it (the native price orders need to settle). **Sell-only** tokens have no buy (exact-out) quote: expected for Token-2022, where Jupiter has no exact-out route.
+**Supported by CoW** means barn quotes a sell order into it and CoinGecko prices it (the native price orders need to settle). **Sell-only** tokens have no buy (exact-out) quote; most are Token-2022, where exact-out routes are scarcer.
 
 ## Coverage of the traded volume
 
 | Tokens | Count | 90d volume | Share | Supported by CoW | Share supported |
 |---|---:|---:|---:|---:|---:|
-| In SolanaDefault | 439 | $112.37B | 63.8% | 405 | 63.4% |
+| In SolanaDefault | 439 | $112.37B | 63.8% | 418 | 63.4% |
 | In NearSolana | 10 | $82.65B | 46.9% | 10 | 46.9% |
-| Proposed (Jupiter verified, organic high/medium) | 388 | $114.33B | 64.9% | 330 | 63.4% |
-| Jupiter verified | 579 | $115.89B | 65.8% | 488 | 64.2% |
+| Proposed (Jupiter verified, organic high/medium) | 386 | $114.33B | 64.9% | 335 | 63.4% |
+| Jupiter verified | 579 | $115.89B | 65.8% | 503 | 64.2% |
 | Top 50 by volume | 50 | $108.51B | 61.6% | 46 | 60.5% |
 | Top 100 by volume | 100 | $112.76B | 64.0% | 85 | 62.4% |
 | Top 250 by volume | 250 | $117.45B | 66.7% | 179 | 64.1% |
 | Top 500 by volume | 500 | $120.88B | 68.6% | 298 | 65.1% |
 | Top 1000 by volume | 1000 | $124.78B | 70.8% | 422 | 65.7% |
-| All | 106134 | $176.17B | 100.0% | 710 | 66.1% |
+| All | 106134 | $176.17B | 100.0% | 725 | 66.1% |
 
-## Supported by CoW but in no app list (304, 2.7% of the volume)
+## Supported by CoW but in no app list (306, 2.7% of the volume)
 
 | # | Token | 90d volume | Jupiter | Organic | Program |
 |---:|---|---:|---|---|---|
@@ -131,7 +131,7 @@ The top 2180 (by volume, plus the app lists' tokens) were checked on Jupiter, on
 | 228 | WOW `72yxYmhLgDGwdyi2b9GjDynBB6VuG3kDxNKqDbzXh5bi` | $21.8M | unsupported: Token-2022 transfer fee, no CoinGecko price | – |
 | 229 | CAKE `DAemPFNc3RtibBDKkUA4eL2Ns11q9VRdbpptmqm8DGqN` | $21.7M | no CoinGecko price | – |
 
-## In SolanaDefault but not supported (34)
+## In SolanaDefault but not supported (21)
 
 - ZCAT `HcRLc9VDgjLeK154xDawfb1dmVJ98DoSqcwTHGqiDeJR` ($142.1M): unsupported Token-2022 transfer fee
 - ANTHROPIC `Pren1FvFX6J3E4kXhJuCiAD5aDmGEb7qJRncwA8Lkhw` ($103.0M): unsupported Token-2022 transfer fee
@@ -152,23 +152,10 @@ The top 2180 (by volume, plus the app lists' tokens) were checked on Jupiter, on
 - BOP `527PdUTGwcFxVEMXt8tyRJA1nYbVedgSiSfh4s2LWTWz` ($6.0M): unsupported Token-2022 transfer fee
 - RAYCAT `CFNRDaxFcvRwRSNnA5cHrCCr6AHhk9dNkHWpRUjNupFL` ($4.8M): unsupported Token-2022 transfer fee
 - KALSHI `PreLWGkkeqG1s4HEfFZSy9moCrJ7btsHuUtfcCeoRua` ($1.5M): unsupported Token-2022 transfer fee
-- DELL `DELL2aRKQz7DMq5DrKLtkn47ZCnbxXPZXrSGbkmd13wy` ($1.4M): no-route NoLiquidity
-- ai16z `HeLp6NuQkmYB4pYWo2zYs22mESHXPQYzXbB8n4V98jwC` ($1.3M): no-route NoLiquidity
-- DARK `7KEPApdbBMByrmqihz3bht2uMhFQcatjfSFQCKq66kH3` ($1.2M): no-route NoLiquidity
-- https `7sGdNQSvUGpahh6qyXB3g5gsdK9FAzZM299KyCXspump` ($1.2M): no-route NoLiquidity
 - ANT `7ypCq2CJ4fnbtS3z2B1W1UT2he5E3u7Md6Gy1ri7uGrQ` ($847k): unsupported Token-2022 transfer fee
-- USD.infra `dawn7ZUF7h7anFuEsDdAU1Y3HYwikwqNMAENZsQJdNL` ($830k): no-route NoLiquidity
 - SANTA `EhzVcKKmGjLk6pD5gLT6ZrTg62bMgPgTSCXXmANnSyQA` ($792k): unsupported Token-2022 transfer fee
-- JNJ `JNJg1znKdF712Phe7L7z52AATAvEjEytBdN2w8Lnh1Y` ($294k): no-route NoLiquidity
-- XNET `xNETbUB7cRb3AAu2pNG2pUwQcJ2BHcktfvSB8x1Pq6L` ($191k): no-route NoLiquidity
-- ONO `onoyC1ZjHNtT2tShqvVSg5WEcQDbu5zht6sdU9Nwjrc` ($191k): no-route NoLiquidity
-- SOLCAT `E99fN4tCRb1tQphXK1DU7prXji6hMzxETyPNJro19Fwz` ($168k): no-route NoLiquidity
-- SOLAMA `AVLhahDcDQ4m4vHM4ug63oh7xc8Jtk49Dm5hoe9Sazqr` ($165k): no-route NoLiquidity
-- gil `CyUgNnKPQLqFcheyGV8wmypnJqojA7NzsdJjTS4nUT2j` ($126k): no-route NoLiquidity
-- UPT `UPTx1d24aBWuRgwxVnFmX4gNraj3QGFzL3QqBgxtWQG` ($125k): no-route NoLiquidity
-- WHALES `GTH3wG3NErjwcf7VGCoXEXkgXSHvYhx5gtATeeM5JAS1` ($107k): no-route NoLiquidity
 
-Sell-only in SolanaDefault (no buy orders): 135, 77 of them classic SPL: cbBTC, HYPE, JupUSD, USELESS, USD1, ANTFUN, PENGU, Fartcoin, CARDS, MET, syrupUSDC, EMBER, BP, JLP, ONyc, KMNO, CYBERLEEK, EURC, USX, XST, Cupsey, hyUSD, arc, BULLSHIT, SKR, USDS, TRX, GEOD, ALCH, PEAQ, wXRP, pippin, ALON, HNT, eUSX, PERPSPAD, GO, SANC, CRED, CHILLHOUSE, ARX, WOJAK, LMAO!, RUSH, CODEC, BC, WBTC, BOTIFY, GOAT, AUTO, GOLD, CLAW, VIRTUAL, AAVE, Bert, GP, ENA, APE, DBR, 67, NEON, KLED, hSOL, USDUC, Tokabu, CARS, GODL, GHOST, MM, AVICI, BELIEVE, UMBRA, SPSC, META, ZEX, CROWN, MRC.
+Sell-only in SolanaDefault (no buy orders): 17, 14 of them classic SPL: BOTIFY, AUTO, CARS, GODL, GHOST, MM, AVICI, BELIEVE, UMBRA, SPSC, META, ZEX, CROWN, MRC.
 
 156 of the SolanaDefault tokens had under $100k of volume in 90 days, so they aren't in this universe: candidates to drop.
 
@@ -176,23 +163,23 @@ Sell-only in SolanaDefault (no buy orders): 135, 77 of them classic SPL: cbBTC, 
 
 | Program | Tokens | 90d volume | Share | Supported by CoW | Buy orders too |
 |---|---:|---:|---:|---:|---:|
-| SPL Token (classic) | 933 | $104.47B | 59.3% | 364 | 256 |
-| Token-2022 | 1247 | $25.23B | 14.3% | 346 | 97 |
+| SPL Token (classic) | 933 | $104.47B | 59.3% | 369 | 336 |
+| Token-2022 | 1247 | $25.23B | 14.3% | 356 | 240 |
 
 ### Token-2022 extensions
 
 | Extension | Tokens | 90d volume | Supported by CoW | Examples |
 |---|---:|---:|---:|---|
-| (none besides metadata) | 1083 | $13.16B | 272 | ANSEM, CATE, PAID, Jimothy |
-| transferHook(none) | 87 | $10.60B | 72 | USDG, PUMP, PYUSD, CASH |
-| permanentDelegate(set) | 82 | $8.30B | 68 | USDG, PYUSD, CASH, CRCLx |
-| confidentialTransferMint | 84 | $8.27B | 71 | USDG, PYUSD, CASH, CRCLx |
+| (none besides metadata) | 1083 | $13.16B | 279 | ANSEM, CATE, PAID, Jimothy |
+| transferHook(none) | 87 | $10.60B | 75 | USDG, PUMP, PYUSD, CASH |
+| permanentDelegate(set) | 82 | $8.30B | 70 | USDG, PYUSD, CASH, CRCLx |
+| confidentialTransferMint | 84 | $8.27B | 73 | USDG, PYUSD, CASH, CRCLx |
 | mintCloseAuthority | 6 | $5.09B | 5 | USDG, PYUSD, CASH, PAXG |
 | confidentialTransferFeeConfig | 9 | $4.47B | 2 | USDG, PYUSD, ANTHROPIC, OPENAI |
 | transferFeeConfig(0bps) | 5 | $4.30B | 3 | USDG, PYUSD, tSpaceX, PAXG |
-| defaultAccountState(initialized) | 81 | $4.00B | 69 | CASH, CRCLx, SPYx, SKHY |
-| pausableConfig(running) | 83 | $3.21B | 69 | CRCLx, SPYx, SKHY, NVDAx |
-| scaledUiAmountConfig | 79 | $3.18B | 67 | CRCLx, SPYx, SKHY, NVDAx |
+| defaultAccountState(initialized) | 81 | $4.00B | 71 | CASH, CRCLx, SPYx, SKHY |
+| pausableConfig(running) | 83 | $3.21B | 72 | CRCLx, SPYx, SKHY, NVDAx |
+| scaledUiAmountConfig | 79 | $3.18B | 69 | CRCLx, SPYx, SKHY, NVDAx |
 | transferFeeConfig(300bps) | 45 | $745.4M | 0 | ZCAT, GP, KNOTS, MASK |
 | transferFeeConfig(100bps) | 29 | $713.8M | 0 | SI, ANTHROPIC, OPENAI, ALLINU |
 | transferFeeConfig(20bps) | 2 | $121.0M | 0 | tOpenAI, tKalshi |
