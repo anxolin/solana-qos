@@ -1,0 +1,15 @@
+# Token-2022: Transfer fee config at 0 bps.
+# What it is: A transfer fee is configured but set to 0 bps, so recipients get the full amount. The fee authority can raise it; a new fee takes effect two epochs after it's set.
+# Read more: https://solana.com/docs/tokens/extensions/transfer-fees
+# Barn: Tradable since early Oct 2026 (rejected before). A fee raised later would make the token unsupported.
+# Tokens: 2 of 2 relevant ones (90-day DEX volume >= $1.0M, liquidity >= $50k, CoinGecko-listed, Jupiter price > 0), most traded first.
+# Each trader sells 0.01 SOL into one token, then 60% of it back; 2 tokens barn can also buy get a BUY (exact-out) row. Every 4th trader is self-paid. Cleanup sells the rest.
+# Fund with --sol-funding-per-trader 0.05.
+# Generated 2026-10-07 from token-universe/universe.csv, sized at SOL ≈ $115.97. Regenerate: python3 scenarios/token-2022/generate.py
+trader,time,type,amount,token,other_token,mode,note
+1,0,sell,0.01,SOL,2u1tszSeqZ3qBWF3uNGPFc8TzMk2tdiwknnRMWGWjGWH,sponsored,USDG rank 4 $2.9B/90d: SOL to token [mintCloseAuthority permanentDelegate(set) transferFeeConfig(0bps) confidentialTransferMint confidentialTransferFeeConfig transferHook(none)]
+1,1,sell,0.696,2u1tszSeqZ3qBWF3uNGPFc8TzMk2tdiwknnRMWGWjGWH,SOL,sponsored,USDG rank 4 $2.9B/90d: 60% back to SOL
+1,2,buy,0.464,2u1tszSeqZ3qBWF3uNGPFc8TzMk2tdiwknnRMWGWjGWH,SOL,sponsored,USDG rank 4 $2.9B/90d: BUY (exact-out) paying SOL
+2,0,sell,0.01,SOL,2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo,sponsored,PYUSD rank 7 $1.4B/90d: SOL to token [mintCloseAuthority permanentDelegate(set) transferFeeConfig(0bps) confidentialTransferMint confidentialTransferFeeConfig transferHook(none)]
+2,1,sell,0.696,2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo,SOL,sponsored,PYUSD rank 7 $1.4B/90d: 60% back to SOL
+2,2,buy,0.464,2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo,SOL,sponsored,PYUSD rank 7 $1.4B/90d: BUY (exact-out) paying SOL

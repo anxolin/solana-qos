@@ -1,7 +1,0 @@
-# Token-2022 smoke test. Negative check: PYUSD and USDG, 0-bps transfer fee config + transfer hook.
-# Expected to fail with UnsupportedToken: the backend rejects any transfer fee config, even at 0 bps.
-# Sell orders only (no exact-out route for Token-2022 today): sell 0.02 SOL for the token, then sell ~60% back.
-# Fund with --sol-funding-per-trader 0.05. Sized on 5 Oct 2026 (SOL ≈ $118.6).
-trader,time,type,amount,token,other_token,mode,note
-1,0,sell,0.01,SOL,PYUSD,sponsored,negative: 0-bps transfer fee + hook - expected UnsupportedToken
-2,0,sell,0.01,SOL,USDG,sponsored,negative: 0-bps transfer fee + hook - expected UnsupportedToken

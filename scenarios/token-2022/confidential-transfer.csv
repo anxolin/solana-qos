@@ -1,7 +1,7 @@
-# Token-2022: Permanent delegate.
-# What it is: An authority that can transfer or burn tokens from any account of this mint, forever: issuer clawback for regulated stablecoins and tokenized stocks.
-# Read more: https://solana.com/docs/tokens/extensions/permanent-delegate
-# Barn: Tradable. A risk rather than a blocker (BE-344): the issuer can move tokens out of the settlement buffer.
+# Token-2022: Confidential transfers.
+# What it is: Accounts can opt in to encrypted balances and amounts, proved with zero-knowledge proofs. The public balance and plain transfers keep working, which is all settlement uses.
+# Read more: https://solana.com/docs/tokens/extensions/confidential-transfer
+# Barn: Tradable.
 # Tokens: 20 of 58 relevant ones (90-day DEX volume >= $1.0M, liquidity >= $50k, CoinGecko-listed, Jupiter price > 0), most traded first.
 # Each trader sells 0.01 SOL into one token, then 60% of it back; 20 tokens barn can also buy get a BUY (exact-out) row. Every 4th trader is self-paid. Cleanup sells the rest.
 # Fund with --sol-funding-per-trader 0.05.

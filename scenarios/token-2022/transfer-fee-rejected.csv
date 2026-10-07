@@ -1,0 +1,34 @@
+# Token-2022: Transfer fee above 0 bps (expected rejections).
+# What it is: Each transfer withholds a fee (in bps, up to a cap) in the recipient's account for the issuer to harvest. A settlement transfer would deliver less than the order was signed for.
+# Read more: https://solana.com/docs/tokens/extensions/transfer-fees
+# Barn: Rejected at the quote with UnsupportedToken. Every row is expected to fail, so nothing is spent.
+# Tokens: 25 of 25 relevant ones (90-day DEX volume >= $1.0M, liquidity >= $50k), most traded first.
+# One trader quotes each token in turn. A row that gets past the quote means barn stopped rejecting that fee.
+# Fund with --sol-funding-per-trader 0.03.
+# Generated 2026-10-07 from token-universe/universe.csv, sized at SOL ≈ $115.97. Regenerate: python3 scenarios/token-2022/generate.py
+trader,time,type,amount,token,other_token,mode,note
+1,0,sell,0.005,SOL,DEW9dSN6QpWyNthphCpMmAbZP1Q4cEKR9xQXAri98WDP,sponsored,SI rank 36 $260.1M/90d [transferFeeConfig(100bps)]: expected UnsupportedToken
+1,0,sell,0.005,SOL,HcRLc9VDgjLeK154xDawfb1dmVJ98DoSqcwTHGqiDeJR,sponsored,ZCAT rank 54 $142.1M/90d [transferFeeConfig(300bps)]: expected UnsupportedToken
+1,0,sell,0.005,SOL,Pren1FvFX6J3E4kXhJuCiAD5aDmGEb7qJRncwA8Lkhw,sponsored,ANTHROPIC rank 63 $103.0M/90d [permanentDelegate(set) defaultAccountState(initialized) transferFeeConfig(100bps) confidentialTransferMint confidentialTransferFeeConfig transferHook(none) scaledUiAmountConfig pausableConfig(running)]: expected UnsupportedToken
+1,0,sell,0.005,SOL,HTmQz7My6MehV7bjhJ6jde8nDND1yvsz68d24LP7YgUQ,sponsored,GP rank 66 $92.9M/90d [transferFeeConfig(300bps)]: expected UnsupportedToken
+1,0,sell,0.005,SOL,oPAiAikWTaFj9RYoRFD35ccfwhnMcB3ThgBZRHSkjTZ,sponsored,tOpenAI rank 72 $85.3M/90d [transferFeeConfig(20bps)]: expected UnsupportedToken
+1,0,sell,0.005,SOL,8RVBk8vxLiUHueLUW1f4izFVqN3nWippLhkohKg6EGkS,sponsored,KNOTS rank 82 $72.5M/90d [transferFeeConfig(300bps)]: expected UnsupportedToken
+1,0,sell,0.005,SOL,PreweJYECqtQwBtpxHL171nL2K6umo692gTm7Q3rpgF,sponsored,OPENAI rank 84 $69.6M/90d [permanentDelegate(set) defaultAccountState(initialized) transferFeeConfig(100bps) confidentialTransferMint confidentialTransferFeeConfig transferHook(none) scaledUiAmountConfig pausableConfig(running)]: expected UnsupportedToken
+1,0,sell,0.005,SOL,4MMQY9bwkxxTtsK3W227Q5ABT6yFY8Pmn9Ze7wmAXKY8,sponsored,ALLINU rank 86 $66.9M/90d [transferFeeConfig(100bps)]: expected UnsupportedToken
+1,0,sell,0.005,SOL,TKLSidmLVt3cqGaaodG8tyRzoANfQwoh67AccjmubeZ,sponsored,tKalshi rank 141 $35.6M/90d [transferFeeConfig(20bps)]: expected UnsupportedToken
+1,0,sell,0.005,SOL,HuAXPyDWDaMYFKuwQHpqL1oPnj93zdzWmtvFGzCeCUa7,sponsored,MASK rank 152 $33.0M/90d [transferFeeConfig(300bps)]: expected UnsupportedToken
+1,0,sell,0.005,SOL,AGi2s9zPRPHs3zEDPhPTroumTEXK5ufymYSfEFndCSSW,sponsored,LEVERCAT rank 162 $31.9M/90d [transferFeeConfig(300bps)]: expected UnsupportedToken
+1,0,sell,0.005,SOL,ZesMGYmokFiEuDvNzWeMhB7jxF6eUW8c512vwSKSTNK,sponsored,🎒 rank 179 $29.7M/90d [transferFeeConfig(100bps)]: expected UnsupportedToken
+1,0,sell,0.005,SOL,6UtY9iTZMQQ5QZVrbzFnNaJntV7oySm9k97mvwnuZcxr,sponsored,NEARKAT rank 196 $26.9M/90d [transferFeeConfig(300bps)]: expected UnsupportedToken
+1,0,sell,0.005,SOL,72yxYmhLgDGwdyi2b9GjDynBB6VuG3kDxNKqDbzXh5bi,sponsored,WOW rank 228 $21.8M/90d [transferFeeConfig(300bps)]: expected UnsupportedToken
+1,0,sell,0.005,SOL,8RNUw4N655VSrZKuhGdywhbSMDTrheguFPfxbpE2NZHQ,sponsored,PURR rank 231 $21.6M/90d [transferFeeConfig(300bps)]: expected UnsupportedToken
+1,0,sell,0.005,SOL,HgcxVs6kJhPAaGqnPNGaa7zYgNT49hJrLufiqcNMuYZT,sponsored,FEELSGOOD rank 240 $20.7M/90d [transferFeeConfig(300bps)]: expected UnsupportedToken
+1,0,sell,0.005,SOL,8t5C4AWDg4CroMChxdo7rG2e8nJM31QG2GG7Czx9X7x2,sponsored,SNDK rank 390 $12.6M/90d [transferFeeConfig(300bps)]: expected UnsupportedToken
+1,0,sell,0.005,SOL,PrekqLJvJ3qVdXmBGDiexvwUTF4rLFDa6HWS4HJbw9S,sponsored,NEURALINK rank 646 $8.8M/90d [permanentDelegate(set) defaultAccountState(initialized) transferFeeConfig(100bps) confidentialTransferMint confidentialTransferFeeConfig transferHook(none) scaledUiAmountConfig pausableConfig(running)]: expected UnsupportedToken
+1,0,sell,0.005,SOL,PresTj4Yc2bAR197Er7wz4UUKSfqt6FryBEdAriBoQB,sponsored,ANDURIL rank 653 $8.7M/90d [permanentDelegate(set) defaultAccountState(initialized) transferFeeConfig(100bps) confidentialTransferMint confidentialTransferFeeConfig transferHook(none) scaledUiAmountConfig pausableConfig(running)]: expected UnsupportedToken
+1,0,sell,0.005,SOL,E4Ap4icMLwKot8rkkTbq5JkS5kZxt5XCE3yfxbzYBjHx,sponsored,BTC rank 690 $8.3M/90d [transferFeeConfig(300bps)]: expected UnsupportedToken
+1,0,sell,0.005,SOL,7MCgYMzq3fov6oERdtTMAYbN2U9LZrrSYS1MBhjixZFr,sponsored,POLLY rank 733 $7.9M/90d [transferFeeConfig(300bps)]: expected UnsupportedToken
+1,0,sell,0.005,SOL,Pre8AREmFPtoJFT8mQSXQLh56cwJmM7CFDRuoGBZiUP,sponsored,POLYMARKET rank 924 $6.5M/90d [permanentDelegate(set) defaultAccountState(initialized) transferFeeConfig(100bps) confidentialTransferMint confidentialTransferFeeConfig transferHook(none) scaledUiAmountConfig pausableConfig(running)]: expected UnsupportedToken
+1,0,sell,0.005,SOL,7ioeSgzfSKHMnpgfPpgRFsekMBGiu9oi6t6GeqYtNbbh,sponsored,CURVE rank 993 $6.1M/90d [transferFeeConfig(200bps)]: expected UnsupportedToken
+1,0,sell,0.005,SOL,FjTfaSH861nVcbAxdFAHTvhoSL4kyR6wgTWynuJkapht,sponsored,DIVI rank 1929 $3.9M/90d [transferFeeConfig(300bps)]: expected UnsupportedToken
+1,0,sell,0.005,SOL,PreLWGkkeqG1s4HEfFZSy9moCrJ7btsHuUtfcCeoRua,sponsored,KALSHI rank 8483 $1.5M/90d [permanentDelegate(set) defaultAccountState(initialized) transferFeeConfig(100bps) confidentialTransferMint confidentialTransferFeeConfig transferHook(none) scaledUiAmountConfig pausableConfig(running)]: expected UnsupportedToken
