@@ -130,7 +130,7 @@ export async function runRow(ctx: FlowContext, owner: Keypair, row: TradeRow): P
       const q = await ctx.orders.quote(main)
       need = (q.solanaQuote.intent.sellAmount * BigInt(10_000 + ctx.acquireBufferBps)) / 10_000n
     } catch (e) {
-      return fail(`quote failed: ${(e as Error).message}`)
+      return fail(`quote failed: ${errorDetail(e)}`)
     }
   }
 
