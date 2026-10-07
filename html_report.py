@@ -486,7 +486,12 @@ def render(*, session, meta, orders, by_solver, drivers, autopilot, sol, compari
     if logs_note:
         h.append(f'<div class="callout"><span class="badge">Basic report</span><p>{escape(logs_note)}</p></div>')
 
-    tiles = [("Orders placed", str(n), f"by {len({o['owner'] for o in orders})} traders"),
+    rows_ = (journal or {}).get("rows") or []
+    done = sum(r["status"] == "filled" for r in rows_)
+    # Rows that failed before placing anything aren't orders, so the fill rate alone can read 100% over a broken run.
+    tiles = ([("Scenario rows", f"{done} of {len(rows_)}",
+               f"completed · {journal['place_errors']} placement errors")] if rows_ else []) + [
+             ("Orders placed", str(n), f"by {len({o['owner'] for o in orders})} traders"),
              ("Executed", str(len(executed)), f"{pct(len(executed), n)} fill rate"),
              ("Never created on-chain", str(len(never)), f"{pct(len(never), n)} of orders, all sponsored"),
              ("Time to execution", f"{statistics.median(lat):.0f}s" if lat else "–",
