@@ -1,0 +1,15 @@
+{
+ "name": "2026-10-07-19-55-all trade session",
+ "title": "2026-10-07-19-55-all",
+ "start": "2026-10-07T19:56:14.184Z",
+ "env": "staging",
+ "sim": {
+  "scenario": "/Users/anxo/Bunker/code/cow/solana-qos/scenarios/token-2022/all.csv",
+  "traders": 13,
+  "rows": 25,
+  "solFundingPerTrader": 0.05
+ },
+ "trading_end": "2026-10-07T19:57:03.150Z",
+ "end": "2026-10-07T20:00:49.421Z",
+ "fetched_at": "2026-10-07T20:00:58+00:00"
+}
