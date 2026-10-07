@@ -1,11 +1,11 @@
-import { existsSync } from 'node:fs'
+import { existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs'
 import { basename, resolve } from 'node:path'
 import { spawnSync } from 'node:child_process'
 import { createInterface } from 'node:readline/promises'
 import { Command, Option } from 'commander'
 import type { CowEnv } from '@cowprotocol/sdk-config'
 import { LOG_ENV_HINT, links, loadEnv, logsConfigured, lamportsToSol, QOS_ROOT, SIM_ROOT, solToLamports, TRADER_RESERVE_SOL } from '../config.js'
-import { Rpc } from '../rpc.js'
+import { NATIVE_SOL, Rpc, WSOL_MINT } from '../rpc.js'
 import { fmtSol, fund, fundingPlan, wallets } from '../wallets.js'
 import { Orders } from '../orders.js'
 import { Session } from '../session.js'
@@ -14,6 +14,8 @@ import { runRow, type FlowContext, type RowResult } from '../flow.js'
 import { cleanupTrader } from '../cleanup.js'
 import { loadUniverse, resolveToken, splMint, toRaw, fromRaw, usdPrices } from '../tokens.js'
 import { generate, MIN_GAP_S, MIXES } from '../generator.js'
+import { classify, listRows, loadTokenList } from '../tokenlist.js'
+import { barnQuotes, buildRows, coingeckoMints, DEFAULT_DUNE_QUERY, jupiterTokens, listMembership, loadVolume, mintFacts, summarize, supported, toCsv, toTokenList } from '../universe.js'
 import { errorDetail, sleep } from '../limiter.js'
 import * as ui from '../ui.js'
 import { c, tag } from '../ui.js'
@@ -407,6 +409,119 @@ program
     const rec = recommendFunding(maxSpend)
     console.log(`Recommended funding: ${c.green(`--sol-funding-per-trader ${rec}`)} (${(rec * plans.length).toFixed(2)} SOL total). ` +
       c.dim('Run --dry-run for a figure from live quotes.'))
+  })
+
+program
+  .command('generate-token-list-session')
+  .description('Turn a token list (URL or file) into scenarios: tradable tokens, rejected tokens, tokens with no route')
+  .requiredOption('--list <url|file>', 'e.g. https://files.cow.fi/token-lists/SolanaDefault.json')
+  .requiredOption('-o, --out <prefix>', 'output prefix, e.g. ../scenarios/token-lists/solana-default')
+  .option('--sol-per-token <sol>', 'SOL sold into each token', parseFloat, 0.005)
+  .option('--traders <n>', 'traders sharing the tradable tokens (each runs its tokens back to back)', (v) => parseInt(v, 10), 30)
+  .option('--sell-back <share>', 'share of the quoted amount sold back to SOL', parseFloat, 0.9)
+  .addOption(new Option('--mode <mode>', 'order mode for every row').choices(['sponsored', 'self']).default('sponsored'))
+  .option('--quote-rps <n>', 'quotes per second while classifying', parseFloat, 5)
+  .addOption(envOption)
+  .action(async (opts) => {
+    const env = loadEnv({ needMnemonic: false, cowEnv: opts.env })
+    const rpc = new Rpc(env.rpcUrl)
+    const list = await loadTokenList(opts.list)
+    log(`${c.bold(list.name)}: ${list.tokens.length} Solana tokens (SOL/wSOL excluded). Classifying on ${opts.env}…`)
+    const solIn = BigInt(Math.round(opts.solPerToken * 1e9))
+    const verdicts = await classify(rpc, env.apiBase, list.tokens, solIn, opts.quoteRps, (d, t) => {
+      if (d % 50 === 0 || d === t) log(c.dim(`  quoted ${d}/${t}`))
+    })
+    const { tradable, unsupported, noRoute } = listRows(list.tokens, verdicts, {
+      solPerToken: opts.solPerToken,
+      traders: opts.traders,
+      sellBackShare: opts.sellBack,
+      mode: opts.mode,
+    })
+    const counts = { tradable: tradable.filter((r) => r.token === 'SOL').length, unsupported: unsupported.length, noRoute: noRoute.length }
+    const missing = [...verdicts.values()].filter((v) => v.kind === 'missing').length
+    const t22 = [...verdicts.values()].filter((v) => v.kind === 'tradable' && v.program === 'token-2022').length
+    const date = new Date().toISOString().slice(0, 10)
+    const traders = Math.min(opts.traders, counts.tradable)
+    const perTrader = Math.ceil(counts.tradable / Math.max(1, traders))
+    const header = (what: string) =>
+      `${list.name} (${opts.list}), classified on ${opts.env} on ${date}.\n${what}\n` +
+      `Regenerate: pnpm sim generate-token-list-session --list ${opts.list} -o ${opts.out}`
+    writeScenario(`${opts.out}.csv`, tradable,
+      header(`${counts.tradable} tradable tokens (${t22} Token-2022): sell ${opts.solPerToken} SOL into each, then ${opts.sellBack * 100}% of the quote back. ` +
+        `${traders} traders, ~${perTrader} tokens each, back to back.\nFund with --sol-funding-per-trader ${Math.max(0.05, Math.ceil((opts.solPerToken * 2 + 0.02) * 1.25 * 100) / 100)}.`))
+    // Expected-failure files only when they have rows; drop stale ones from an earlier run.
+    const writeOrDrop = (path: string, rows: Omit<TradeRow, 'row'>[], comment: string) =>
+      rows.length ? writeScenario(path, rows, comment) : rmSync(path, { force: true })
+    writeOrDrop(`${opts.out}-unsupported.csv`, unsupported,
+      header(`${counts.unsupported} tokens the backend rejects (Token-2022 extensions). Every row is expected to fail with UnsupportedToken; one trader, nothing is spent.`))
+    writeOrDrop(`${opts.out}-no-route.csv`, noRoute,
+      header(`${counts.noRoute} tokens with no route when classified. Every row is expected to fail at the quote; one trader. Rerun to see which gained a route.`))
+    console.log(`\n${ui.ok(`${list.name}`)}: ${c.green(counts.tradable)} tradable (${t22} Token-2022), ${c.yellow(counts.unsupported)} unsupported, ` +
+      `${c.yellow(counts.noRoute)} no route${missing ? `, ${missing} missing on chain` : ''}`)
+    console.log(c.dim(`  ${[`${opts.out}.csv`, ...(unsupported.length ? [`${opts.out}-unsupported.csv`] : []), ...(noRoute.length ? [`${opts.out}-no-route.csv`] : [])].join(', ')}`))
+    process.exit(0)
+  })
+
+program
+  .command('build-token-universe')
+  .description('Rank every Solana token by DEX volume and check it against CoW: barn quotes, CoinGecko price, program and extensions, app lists')
+  .option('--volume <source>', 'volume per mint: a CSV export of the Dune query, or dune:<query id> with DUNE_API_KEY', `dune:${DEFAULT_DUNE_QUERY}`)
+  .option('-o, --out <dir>', 'output folder', resolve(QOS_ROOT, 'token-universe'))
+  .option('--top <n>', 'size of the top-N token list written for scenarios', (v) => parseInt(v, 10), 250)
+  .option('--check <n>', 'tokens checked on Jupiter, on chain and on barn, by volume (plus every token in the app lists)', (v) => parseInt(v, 10), 2000)
+  .option('--sol-per-token <sol>', 'SOL in each sell quote (the buy quote asks for half of what it returns)', parseFloat, 0.005)
+  .option('--quote-rps <n>', 'quotes per second', parseFloat, 5)
+  .addOption(envOption)
+  .action(async (opts) => {
+    // Read-only and light on RPC (one call per 100 mints): the public RPC does when RPC_URL isn't set.
+    process.env.RPC_URL ||= process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com'
+    const env = loadEnv({ needMnemonic: false, cowEnv: opts.env })
+    const rpc = new Rpc(env.rpcUrl, 2)
+    const appLists = {
+      SolanaDefault: 'https://files.cow.fi/token-lists/SolanaDefault.json',
+      NearSolana: 'https://files.cow.fi/token-lists/NearSolana.json',
+    }
+    const volume = await loadVolume(opts.volume)
+    const [coingecko, lists] = await Promise.all([coingeckoMints(), listMembership(appLists)])
+    // Tens of thousands of mints have volume: only the top ones and those in the app lists get the slow checks.
+    const ranked = [...volume].sort((a, b) => b.volume90d - a.volume90d).map((v) => v.mint)
+    const mints = [...new Set([...ranked.slice(0, opts.check), ...ranked.filter((m) => lists.has(m))])]
+    log(`${c.bold(volume.length)} mints with volume (${opts.volume}). Checking the top ${opts.check} and the app lists' tokens: ` +
+      `${mints.length} mints on Jupiter and on chain…`)
+    const [jupiter, facts] = await Promise.all([
+      jupiterTokens(mints, (d, t) => d % 500 === 0 && log(c.dim(`  Jupiter ${d}/${t}`))),
+      mintFacts(rpc, mints),
+    ])
+    const toQuote = mints.filter((m) => facts.has(m) && m !== WSOL_MINT.toBase58())
+    log(`Quoting ${toQuote.length} mints on ${opts.env} (sell, then buy), ${opts.quoteRps}/s…`)
+    const quotes = await barnQuotes(env.apiBase, toQuote, BigInt(Math.round(opts.solPerToken * 1e9)), opts.quoteRps, (d, t) => {
+      if (d % 100 === 0 || d === t) log(c.dim(`  quoted ${d}/${t}`))
+    })
+    const rows = buildRows({ volume, jupiter, coingecko, facts, quotes, lists, checked: new Set(mints) })
+    const date = new Date().toISOString().slice(0, 10)
+    mkdirSync(opts.out, { recursive: true })
+    const write = (name: string, body: string) => {
+      writeFileSync(resolve(opts.out, name), body)
+      return resolve(opts.out, name)
+    }
+    const tokens = rows.filter((r) => r.mint !== WSOL_MINT.toBase58() && r.mint !== NATIVE_SOL.toBase58())
+    const top = tokens.filter(supported).slice(0, opts.top)
+    const missing = tokens.filter((r) => supported(r) && !r.lists.length)
+    const files = [
+      write('universe.csv', toCsv(rows)),
+      write('summary.md', summarize(rows, { date, source: opts.volume, listNames: Object.keys(appLists), lists })),
+      write(`tokenlist-top${opts.top}.json`, JSON.stringify(toTokenList(`Top ${opts.top} supported Solana tokens by volume (${date})`, top), null, 2)),
+      write('tokenlist-missing.json', JSON.stringify(toTokenList(`Supported Solana tokens in no app list (${date})`, missing), null, 2)),
+    ]
+    const count = (s: string) => tokens.filter((r) => r.barn === s).length
+    console.log(
+      `\n${ui.ok('Token universe')}: ${tokens.length} tokens, ${c.green(tokens.filter(supported).length)} supported by CoW, ` +
+        `${count('sell-only')} sell-only, ${c.yellow(count('unsupported'))} unsupported, ${c.yellow(count('no-route'))} no route, ` +
+        `${tokens.filter((r) => r.barn === 'tradable' && !r.coingecko).length} without a CoinGecko price`,
+    )
+    for (const f of files) console.log(c.dim(`  ${f}`))
+    console.log(`\nScenarios: ${c.green(`pnpm sim generate-token-list-session --list ${files[2]} -o ../scenarios/token-lists/top${opts.top}`)}`)
+    process.exit(0)
   })
 
 program

@@ -1,0 +1,11 @@
+# Solana Default (https://files.cow.fi/token-lists/SolanaDefault.json), classified on staging on 2026-10-06.
+# 7 tokens the backend rejects (Token-2022 extensions). Every row is expected to fail with UnsupportedToken; one trader, nothing is spent.
+# Regenerate: pnpm sim generate-token-list-session --list https://files.cow.fi/token-lists/SolanaDefault.json -o ../scenarios/token-lists/solana-default
+trader,time,type,amount,token,other_token,mode,note
+1,0,sell,0.005,SOL,7atgF8KQo4wJrD5ATGX7t1V2zVvykPJbFfNeVf1icFv1,sponsored,$CWIF: expected UnsupportedToken (Token-2022 transfer fee)
+1,0,sell,0.005,SOL,8FA3TPf84h9gEZAxDhiLkMN4vvZcdEUZxmGadbo12auh,sponsored,SCALES: expected UnsupportedToken (Token-2022 transfer fee)
+1,0,sell,0.005,SOL,CKfatsPMUf8SkiURsDXs7eK6GWb4Jsd6UDbs7twMCWxo,sponsored,BERN: expected UnsupportedToken (Token-2022 transfer fee)
+1,0,sell,0.005,SOL,FLUXBmPhT3Fd1EDVFdg46YREqHBeNypn1h4EbnTzWERX,sponsored,FLUXB: expected UnsupportedToken (Token-2022 transfer fee)
+1,0,sell,0.005,SOL,J5tzd1ww1V1qrgDUQHVCGqpmpbnEnjzGs9LAqJxwkNde,sponsored,FRN: expected UnsupportedToken (Token-2022 transfer fee)
+1,0,sell,0.005,SOL,stJUPZMmAWA1PNVPXCvqVK6MHABr4yFo5rv2JTethCa,sponsored,stJUP: expected UnsupportedToken (Token-2022 transfer hook program)
+1,0,sell,0.005,SOL,t3DohmswhKk94PPbPYwA6ZKACyY3y5kbcqeQerAJjmV,sponsored,TRD: expected UnsupportedToken (Token-2022 transfer fee)

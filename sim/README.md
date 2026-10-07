@@ -201,11 +201,72 @@ The URLs come from `../environments.json` for the `--env` in use: `debug.barn.co
 | `scenarios/stress-50x2.csv` | **Heavy burst.** 50 traders, 139 rows starting within 2 min (~3 min of trading), all sponsored, ~15× the Kaffeekränzchen rate. Run with raised client limits: `--quote-rps 20 --api-rps 20 --rpc-rps 30` (if your RPC plan allows) |
 | `scenarios/cow-simple.csv` | Coincidence of wants. Setup at t=0, then at t=150 four pairs placed in the same second: perfect SOL/USDC (sell 0.02 SOL vs buy 0.02 SOL), imperfect SOL/USDC (0.03 SOL vs 1.2 USDC), perfect USDC/USDT (3 vs 3), imperfect USDC/USDT (3 vs 1), plus a control with no counterparty. 9 traders, fund 0.07 |
 | `scenarios/same-direction-25x1.csv` | 25 traders buy 10 JUP with SOL at the same moment: same market, same direction, no counterparty. Fund 0.06 |
+| `scenarios/token-lists/solana-default.csv` | The CoW Swap app's default Solana list (`files.cow.fi/token-lists/SolanaDefault.json`): every one of its 432 tradable tokens, 0.005 SOL in and 90% back out, 30 traders (~29 orders each, back to back). Fund 0.05 |
+| `scenarios/token-lists/solana-default-unsupported.csv` | Its 10 tokens the backend rejects (8 Token-2022 transfer fee, 2 transfer hook: PYUSD, USDP, stJUP, …). Expected to fail with `UnsupportedToken`; one trader, spends nothing |
+| `scenarios/token-lists/solana-default-no-route.csv` | Its 19 tokens without a route on 6 Oct (soBTC, UST, LUNA, DJT, …). Expected to fail at the quote; one trader |
+| `scenarios/token-lists/near-solana.csv` (+ `-no-route`) | The app's second Solana list (`NearSolana.json`): 12 tradable, 1 without a route (PUBLIC) |
 | `scenarios/token-2022/` | Token-2022 smoke tests, one file per extension. Sell orders only (no exact-out route for Token-2022 on barn today). Fund with 0.05 per trader:<br>• `metadata-only.csv`: CATE, USDu, ANSEM (self-paid), jlUSDG<br>• `mint-close-authority.csv`: sUSD.infra, ZARP<br>• `permanent-delegate.csv`: SILV, sUSDu<br>• `interest-bearing.csv`: USDM1<br>• `token-2022-to-token-2022.csv`: USDu → CATE<br>• `probe-buy-exact-out.csv`: a BUY, expected `NoLiquidity` today<br>• `rejected-transfer-fee.csv`: PYUSD, USDG, expected `UnsupportedToken`<br>• `all.csv`: all of the above in one run (13 traders)<br>• `xstocks-4x10.csv`: **not runnable yet**, xStocks are rejected (transfer hook) |
 | `scenarios/longtail-25x6.csv` | The Kaffeekränzchen's long-tail tokens (`universe-longtail.json`, `--mix longtail`): token coverage, buffers, routes |
 
 A failure on liquid tokens points at the stack (funding, rate limits, creation window). A failure that only shows up in the long-tail run
 points at token coverage. Keep them separate when comparing runs.
+
+## Token lists
+
+`generate-token-list-session` turns any token list (URL or file) into scenarios, so coverage follows the lists the app
+uses:
+
+```sh
+pnpm sim generate-token-list-session --list https://files.cow.fi/token-lists/SolanaDefault.json -o ../scenarios/token-lists/solana-default
+```
+
+For every Solana token in the list it reads the mint on chain and applies the backend's Token-2022 rules. It then quotes
+`--sol-per-token` SOL into the token on the orderbook, and writes:
+- `<out>.csv`: tradable tokens, buy then sell back, spread over `--traders`
+- `<out>-unsupported.csv`: tokens the backend rejects, expected to fail (only written when there are any)
+- `<out>-no-route.csv`: tokens without a route at generation time, expected to fail (only written when there are any)
+
+Tokens are referenced by address (list symbols aren't unique), with the symbol and token program in the `note` column.
+The CoW Swap app loads `SolanaDefault.json` (Jupiter's verified + strict tokens, built by `cowprotocol/token-lists`
+`src/scripts/solana.ts`) and `NearSolana.json`. Regenerate after those lists change.
+
+## Token universe
+
+`build-token-universe` ranks every Solana token by DEX volume and checks each one against CoW, to see whether the app's
+lists cover what people actually trade:
+
+```sh
+pnpm sim build-token-universe                                  # volume from Dune (needs DUNE_API_KEY or DUNE_KEY in sim/.env)
+pnpm sim build-token-universe --volume ~/Downloads/volume.csv  # or a CSV export of the same query
+```
+
+Volume comes from Dune query [8910905](https://dune.com/queries/8910905): `dex_solana.trades` over 90 days, every mint
+with at least $100k (~106k mints; a full run takes ~22 min and ~340 credits, `days` is a parameter). Each transaction
+counts once per mint by its net flow, so the intermediate hops of aggregator routes and arbitrage loops don't inflate it.
+The top `--check` mints by volume (default 2000) plus every token in the app lists are then checked (the rest only count
+towards the volume totals):
+
+| Column | Source |
+|---|---|
+| `jupiter`, `organic`, `liquidity_usd`, `jupiter_volume_24h_usd` | Jupiter token API (`verified`, `listed` or `unknown`) |
+| `coingecko` | CoinGecko's Solana mints. The backend's native prices come from CoinGecko: orders for tokens without one expire |
+| `program`, `extensions` | the mint on chain: classic SPL or Token-2022, with fee bps, hook program, default state |
+| `barn`, `barn_reason` | live quotes on `--env`: a sell of `--sol-per-token` SOL into the token, then a buy of half of it. `tradable`, `sell-only` (no exact-out route, normal for Token-2022), `unsupported`, `no-route` |
+| `cow_supported` | sell quote works and CoinGecko prices it |
+| `lists` | membership in the app's `SolanaDefault` and `NearSolana` |
+| `proposed` | Jupiter verified with organic score high or medium (the list proposed in #solana) |
+
+Output, in `solana-qos/token-universe/`:
+- `universe.csv`: one row per mint, ranked, with each token's share of the volume and the running total
+- `summary.md`: volume coverage of each list, supported tokens missing from the lists, top tokens CoW can't trade and
+  why, and the SPL / Token-2022 split with every extension weighted by volume
+- `tokenlist-top<N>.json` (`--top`, default 250) and `tokenlist-missing.json`: token lists of supported tokens, for
+  `generate-token-list-session`:
+
+```sh
+pnpm sim generate-token-list-session --list ../token-universe/tokenlist-top250.json -o ../scenarios/token-lists/top250
+pnpm sim generate-token-list-session --list ../token-universe/tokenlist-missing.json -o ../scenarios/token-lists/missing-from-app
+```
 
 ## Tests
 

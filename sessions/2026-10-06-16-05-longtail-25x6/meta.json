@@ -1,0 +1,23 @@
+{
+ "name": "2026-10-06-16-05-longtail-25x6 trade session",
+ "title": "2026-10-06-16-05-longtail-25x6",
+ "start": "2026-10-06T16:05:40.764Z",
+ "env": "staging",
+ "sim": {
+  "scenario": "/Users/anxo/Bunker/code/cow/solana-qos/scenarios/longtail-25x6.csv",
+  "traders": 25,
+  "rows": 124,
+  "solFundingPerTrader": 0.1
+ },
+ "trading_end": "2026-10-06T16:12:24.489Z",
+ "end": "2026-10-06T16:26:49.871Z",
+ "incidents": [
+  {
+   "start": "2026-10-06T16:10:44.696300461Z",
+   "end": "2026-10-06T16:11:44.735192214Z",
+   "label": "Funder out of SOL",
+   "detected": "from driver logs"
+  }
+ ],
+ "fetched_at": "2026-10-06T16:31:24+00:00"
+}

@@ -5,6 +5,7 @@ import { fromRaw, loadUniverse, toRaw } from '../src/tokens.js'
 import { generate, MIN_GAP_S, mulberry32, roundAmount } from '../src/generator.js'
 import { TRADER_RESERVE_SOL } from '../src/config.js'
 import { APP_DATA_DOC, APP_DATA_HEX } from '../src/appData.js'
+import { barnStatus, buildRows, describeExtension, supported } from '../src/universe.js'
 
 const TEST_MNEMONIC = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about'
 
@@ -149,5 +150,58 @@ describe('cleanup dust burning', () => {
       expect(NO_ROUTE.test(sellable)).toBe(true)
     for (const transient of ['429 Too Many Requests', 'fetch failed (ECONNRESET)', 'Bad Request', 'Internal Server Error'])
       expect(NO_ROUTE.test(transient)).toBe(false)
+  })
+})
+
+describe('token list classification', () => {
+  it('applies the backend Token-2022 rules', async () => {
+    const { backendVerdict } = await import('../src/tokenlist.js')
+    expect(backendVerdict([{ extension: 'metadataPointer' }, { extension: 'tokenMetadata' }])).toBeNull()
+    expect(backendVerdict([{ extension: 'permanentDelegate' }, { extension: 'mintCloseAuthority' }])).toBeNull()
+    expect(backendVerdict([{ extension: 'transferFeeConfig' }])).toMatch(/transfer fee/)
+    expect(backendVerdict([{ extension: 'transferHook' }])).toMatch(/transfer hook/)
+    expect(backendVerdict([{ extension: 'pausableConfig' }])).toMatch(/pausable/)
+    expect(backendVerdict([{ extension: 'defaultAccountState', state: { accountState: 'frozen' } }])).toMatch(/frozen/)
+    expect(backendVerdict([{ extension: 'defaultAccountState', state: { accountState: 'initialized' } }])).toBeNull()
+  })
+})
+
+describe('token universe', () => {
+  const mint = (n: number) => `Mint${n}`.padEnd(32, '1')
+  const facts = { program: 'classic' as const, decimals: 6, extensions: [] }
+  const ok = (amount: bigint) => ({ ok: true as const, amount })
+
+  it('describes the extensions that decide support', () => {
+    expect(describeExtension({ extension: 'transferFeeConfig', state: { newerTransferFee: { transferFeeBasisPoints: 300 } } })).toBe('transferFeeConfig(300bps)')
+    expect(describeExtension({ extension: 'transferHook', state: { programId: null } })).toBe('transferHook(none)')
+    expect(describeExtension({ extension: 'defaultAccountState', state: { accountState: 'frozen' } })).toBe('defaultAccountState(frozen)')
+  })
+
+  it('classifies barn answers', () => {
+    expect(barnStatus(mint(1), undefined, undefined).barn).toBe('not-a-mint')
+    expect(barnStatus(mint(1), facts, { sell: { ok: false, error: 'UnsupportedToken', reason: 'transfer fee' } })).toEqual({ barn: 'unsupported', reason: 'transfer fee' })
+    expect(barnStatus(mint(1), facts, { sell: { ok: false, error: 'NoLiquidity' } }).barn).toBe('no-route')
+    expect(barnStatus(mint(1), facts, { sell: ok(10n), buy: { ok: false, error: 'NoLiquidity' } }).barn).toBe('sell-only')
+    expect(barnStatus(mint(1), facts, { sell: ok(10n), buy: ok(5n) }).barn).toBe('tradable')
+  })
+
+  it('ranks by volume with running shares, and needs a CoinGecko price to count as supported', () => {
+    const rows = buildRows({
+      volume: [
+        { mint: mint(1), symbol: 'A', volume90d: 100, volume30d: 30, txs90d: 1, traders90d: 1 },
+        { mint: mint(2), symbol: 'B', volume90d: 300, volume30d: 90, txs90d: 1, traders90d: 1 },
+      ],
+      jupiter: new Map([[mint(2), { id: mint(2), name: 'Bee', symbol: 'B', decimals: 6, isVerified: true, organicScoreLabel: 'medium' }]]),
+      coingecko: new Set([mint(2)]),
+      facts: new Map([[mint(1), facts], [mint(2), facts]]),
+      quotes: new Map([[mint(1), { sell: ok(10n), buy: ok(5n) }], [mint(2), { sell: ok(10n), buy: ok(5n) }]]),
+      lists: new Map([[mint(2), ['SolanaDefault']]]),
+      checked: new Set([mint(1), mint(2)]),
+    })
+    expect(rows.map((r) => [r.symbol, r.rank, r.cumShare])).toEqual([['B', 1, 0.75], ['A', 2, 1]])
+    expect(rows[0]).toMatchObject({ proposed: true, jupiter: 'verified', lists: ['SolanaDefault'] })
+    expect(rows.map(supported)).toEqual([true, false])
+    expect(supported({ ...rows[0], barn: 'sell-only' })).toBe(true)
+    expect(supported({ ...rows[0], barn: 'no-route' })).toBe(false)
   })
 })
