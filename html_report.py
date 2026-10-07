@@ -9,6 +9,21 @@ from html import escape
 
 DEBUG = "https://debug.barn.cow.fi/order/"
 SOLSCAN = "https://solscan.io/account/"
+SOLSCAN_TOKEN = "https://solscan.io/token/"
+
+
+def token_link(label: str | None, mint: str | None) -> str:
+    """A token's symbol linking to its explorer page; plain text when the mint isn't known."""
+    text = escape(str(label or mint or "?"))
+    if not mint:
+        return text
+    # Native SOL's "mint" is the System Program, which has no token page: show wSOL's.
+    page = "So11111111111111111111111111111111111111112" if mint == "11111111111111111111111111111111" else mint
+    return f'<a href="{SOLSCAN_TOKEN}{page}" target="_blank" rel="noopener" title="{mint}">{text}</a>'
+
+
+def pair_cell(o: dict) -> str:
+    return f'{token_link(o["sell_sym"], o["sellToken"])} → {token_link(o["buy_sym"], o["buyToken"])}'
 ENV_LABEL = "barn"  # set by qos.py from the session's environment
 
 # Cause groups -> status token. Executed is good, the incident is critical,
@@ -442,6 +457,13 @@ def rate_limit_section(rl: dict, meta: dict, uids: set[str]) -> list[str]:
     return out
 
 
+def trade_cell(r: dict) -> str:
+    if "mints" not in r:
+        return escape(r["trade"])
+    (a, b), (ma, mb) = r["labels"], r["mints"]
+    return f"{escape(str(r['type']))} {escape(str(r['amount']))} {token_link(a, ma)} {'→' if r['type'] == 'sell' else '←'} {token_link(b, mb)}"
+
+
 def scenario_section(journal: dict, orders: list[dict], cleanup: list[dict]) -> list[str]:
     rows = journal["rows"]
     done = sum(r["status"] == "filled" for r in rows)
@@ -452,7 +474,7 @@ def scenario_section(journal: dict, orders: list[dict], cleanup: list[dict]) -> 
             f"{journal['place_errors']} placement errors. {len(orders)} scenario orders: {main} main and {len(orders) - main} "
             f"acquiring the sell token first.{f' Cleanup placed {len(cleanup)} more (next section).' if cleanup else ''}</p>",
             '<div class="panel">' + table(["Started (UTC)", "Row", "Trader", "Trade", "Result", "Took", "Orders", "Reason"], [
-                [r["started"][11:19], r["row"], f"t{r['trader']}", escape(r["trade"]),
+                [r["started"][11:19], r["row"], f"t{r['trader']}", trade_cell(r),
                  f'<span class="order"><i class="sw {pill.get(r["status"], "t-muted")}"></i>{escape(r["status"])}</span>',
                  f"{r['seconds']:.0f}s" if r.get("seconds") is not None else "", r["orders"], escape(r["reason"])]
                 for r in rows], {1, 5, 6}) + "</div></section>"]
@@ -507,7 +529,7 @@ def render(*, session, meta, orders, by_solver, drivers, autopilot, sol, compari
               f"<p>{len(cleanup_orders)} orders sold the traders' leftover tokens back to SOL. They're tooling, not scenario "
               "traffic, so they're left out of every other section.</p>",
               '<div class="panel">' + table(["Created (UTC)", "Trader", "Pair", "Result", "Order"], [
-                  [o["creationDate"][11:19], f"t{o['sim_trader']}" if o.get("sim_trader") else "", escape(o["pair"]),
+                  [o["creationDate"][11:19], f"t{o['sim_trader']}" if o.get("sim_trader") else "", pair_cell(o),
                    f'<span class="order"><i class="sw t-{tone(o["cause"], inc_labels)}"></i>{escape(o["cause"])}</span>',
                    order_cell(o["uid"])] for o in cleanup_orders]) + "</div></section>"]
 
@@ -543,7 +565,7 @@ def render(*, session, meta, orders, by_solver, drivers, autopilot, sol, compari
               f"{len(hit)} orders failed because of it, and none of the {len(during)} orders placed in the window executed. "
               f"The other {len(never) - len(hit)} never-created orders failed for unrelated reasons.</p>"]
         if acct:
-            h.append(f'<p class="meta">Funder <a class="mono" href="{SOLSCAN}{acct}">{acct}</a></p>')
+            h.append(f'<p class="meta">Funder <a class="mono" href="{SOLSCAN}{acct}" target="_blank" rel="noopener">{acct}</a></p>')
         h.append("</div>")
 
     for change, c in comparisons:
@@ -613,18 +635,19 @@ def render(*, session, meta, orders, by_solver, drivers, autopilot, sol, compari
 
     kinds = group(lambda o: o["kind"])
     pairs = group(lambda o: o["pair"])
+    pair_html = {o["pair"]: pair_cell(o) for o in orders}
     owners = group(lambda o: o["owner"])
     h += ["<section><h2>Breakdowns</h2>", '<div class="two"><div class="panel"><h3>By order kind</h3>',
           table(["Kind", "Placed", "Executed", "Fill rate"], [[k, p, e, pct(e, p)] for k, (p, e) in kinds], {1, 2, 3}),
           '</div><div class="panel"><h3>Top token pairs</h3>',
           table(["Pair", "Placed", "Executed", "Fill rate"],
-                [[escape(k), p, e, pct(e, p)] for k, (p, e) in pairs[:8]], {1, 2, 3}), "</div></div>",
+                [[pair_html[k], p, e, pct(e, p)] for k, (p, e) in pairs[:8]], {1, 2, 3}), "</div></div>",
           f"<details><summary>All {len(pairs)} token pairs</summary>",
-          table(["Pair", "Placed", "Executed", "Fill rate"], [[escape(k), p, e, pct(e, p)] for k, (p, e) in pairs], {1, 2, 3}),
+          table(["Pair", "Placed", "Executed", "Fill rate"], [[pair_html[k], p, e, pct(e, p)] for k, (p, e) in pairs], {1, 2, 3}),
           "</details>",
           f"<details><summary>All {len(owners)} traders</summary>",
           table(["Owner", "Placed", "Executed", "Fill rate"],
-                [[f'<a class="mono" href="{SOLSCAN}{k}">{k[:6]}…{k[-6:]}</a>', p, e, pct(e, p)] for k, (p, e) in owners], {1, 2, 3}),
+                [[f'<a class="mono" href="{SOLSCAN}{k}" target="_blank" rel="noopener">{k[:6]}…{k[-6:]}</a>', p, e, pct(e, p)] for k, (p, e) in owners], {1, 2, 3}),
           "</details></section>"]
 
     # Failed orders with cause filter
@@ -646,7 +669,7 @@ def render(*, session, meta, orders, by_solver, drivers, autopilot, sol, compari
              + '</datalist><button type="button" id="owner-clear" class="clear">Clear</button></div>')
     h.append('<div class="panel" id="failed">' + table(
         ["Created (UTC)", "Pair", "Kind", "Cause", "Trader", "Order"],
-        [[o["creationDate"][11:19], escape(o["pair"]), o["kind"], escape(o["cause"]),
+        [[o["creationDate"][11:19], pair_cell(o), o["kind"], escape(o["cause"]),
           f'<button type="button" class="owner-pick mono" data-owner="{o["owner"]}" title="Show only {o["owner"]}">'
           f'{o["owner"][:6]}…{o["owner"][-4:]}</button>',
           order_cell(o["uid"])] for o in failed],

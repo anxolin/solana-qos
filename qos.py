@@ -363,7 +363,8 @@ def read_journal(session: Path) -> dict | None:
             retries += 1
         elif ev == "row_start":
             rows[row] = {"row": row, "started": e.get("ts", ""), "seconds": None, "trader": e.get("trader"), "trade": f"{e.get('type')} {e.get('amount')} {e.get('token')} "
-                         f"{'→' if e.get('type') == 'sell' else '←'} {e.get('other')}", "status": "running", "reason": "", "orders": 0}
+                         f"{'→' if e.get('type') == 'sell' else '←'} {e.get('other')}", "status": "running", "reason": "", "orders": 0,
+                         "type": e.get("type"), "amount": e.get("amount"), "token": e.get("token"), "other": e.get("other")}
         elif ev in ("row_done", "row_failed") and row in rows:
             rows[row]["status"] = "filled" if ev == "row_done" else "failed"
             if rows[row]["started"] and e.get("ts"):
@@ -407,9 +408,18 @@ def cmd_report(a):
         if o["uid"] in (journal or {}).get("timeouts", set()) and o["outcome"] != "executed":
             o["cause"] = "Not filled within fill timeout (cancelled by sim)"
         o["pair"] = f"{tok(o['sellToken'])} → {tok(o['buyToken'])}"
+        o["sell_sym"], o["buy_sym"] = tok(o["sellToken"]), tok(o["buyToken"])
         times = [t["tx"].get("block_time") for t in o["trades"] if t["tx"].get("block_time")]
         o["latency"] = min(times) - ts(o["creationDate"]).timestamp() if times else None
         o["solver"] = next((t["tx"]["fee_payer"] for t in o["trades"] if t["tx"].get("fee_payer")), None)
+
+    # Scenario rows name tokens by symbol or mint: resolve both to a mint (for explorer links) and a symbol.
+    by_symbol = {s: m for m, s in tokens.items()}
+    by_symbol.setdefault("SOL", "So11111111111111111111111111111111111111112")
+    mint_of = lambda t: by_symbol.get(t) or (t if t and len(t) >= 32 else None)  # noqa: E731
+    for r in (journal or {}).get("rows", []):
+        r["mints"] = [mint_of(r.get("token")), mint_of(r.get("other"))]
+        r["labels"] = [tok(t) if t and t == m else t for t, m in zip((r.get("token"), r.get("other")), r["mints"])]
 
     # Cleanup orders are tooling, not scenario traffic: listed in their own section, kept out of the stats.
     cleanup_orders = [o for o in orders if o["step"] == "cleanup"]
@@ -600,6 +610,7 @@ def cmd_report(a):
     out = session / "report.html"
     html_report.DEBUG = DEBUG
     html_report.SOLSCAN = env["solscan"] + "/account/"
+    html_report.SOLSCAN_TOKEN = env["solscan"] + "/token/"
     html_report.ENV_LABEL = env["label"]
     out.write_text(html_report.render(
         session=a.session, meta=meta, orders=orders, by_solver=by_solver,
