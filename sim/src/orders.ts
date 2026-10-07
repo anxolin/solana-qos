@@ -300,7 +300,7 @@ export class Orders {
    */
   async waitFinal(placed: Placed, pollMs = 3000): Promise<{ status: FinalStatus; order: OrderDto | null; cancelTx?: string }> {
     const validUntil = placed.validTo * 1000 + 30_000
-    const giveUpAt = Math.min(validUntil, placed.placedAt + (this.opts.fillTimeout ?? 60) * 1000)
+    const giveUpAt = Math.min(validUntil, placed.placedAt + (this.opts.fillTimeout ?? 90) * 1000)
     let order: OrderDto | null = null
     const final = (o: OrderDto | null) => o && ['fulfilled', 'expired', 'cancelled'].includes(o.status)
     try {

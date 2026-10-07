@@ -137,7 +137,7 @@ function context(
     env: opts.env,
     apiBase: env.apiBase,
     validFor: opts.orderValidity ?? 120,
-    fillTimeout: opts.fillTimeout ?? 60,
+    fillTimeout: opts.fillTimeout ?? 90,
     cancelOnTimeout: Boolean(opts.cancelOnTimeout),
     slippageBps: opts.slippageBps,
     quoteRps: opts.quoteRps,
@@ -213,7 +213,7 @@ program
     if (!(n >= 120)) throw new Error('--order-validity must be at least 120 seconds (the orderbook rejects shorter orders)')
     return n
   }, 120)
-  .option('--fill-timeout <s>', 'seconds to wait for a fill before giving up on the order (it then expires on its own)', (v) => parseInt(v, 10), 60)
+  .option('--fill-timeout <s>', 'seconds to wait for a fill before giving up on the order (it then expires on its own)', (v) => parseInt(v, 10), 90)
   .option('--cancel-on-timeout', 'cancel the order on-chain when giving up, so it cannot fill late')
   .option('--slippage-bps <bps>', 'override the quoted slippage', (v) => parseInt(v, 10))
   .option('--quote-rps <n>', 'quotes per second (raise for stress tests)', parseFloat, 5)
