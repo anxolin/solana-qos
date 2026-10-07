@@ -2,68 +2,68 @@
 # What it is: Displayed balances are the raw amount times a multiplier the issuer can change, to reflect stock splits and dividends (xStocks). Raw amounts on chain don't change. Watch the amounts: sim sizes rows in UI units from prices, so a multiplier far from 1 skews them (the 60% sell-back leaves room).
 # Read more: https://solana.com/docs/tokens/extensions/scaled-ui-amount
 # Barn: Tradable.
-# Tokens: 20 of 54 relevant ones (90-day DEX volume >= $1.0M, liquidity >= $50k, CoinGecko-listed, Jupiter price > 0), most traded first.
+# Tokens: 20 of 54 relevant ones, by 30-day volume. Relevant: 90-day DEX volume >= $1.0M, last 30 days >= 5% of it (still traded), liquidity >= $50k, CoinGecko-listed, Jupiter price > 0.
 # Each trader sells 0.01 SOL into one token, then 60% of it back; 20 tokens barn can also buy get a BUY (exact-out) row. Every 4th trader is self-paid. Cleanup sells the rest.
 # Fund with --sol-funding-per-trader 0.05.
-# Generated 2026-10-07 from token-universe/universe.csv, sized at SOL ≈ $115.97. Regenerate: python3 scenarios/token-2022/generate.py
+# Generated 2026-10-07 from token-universe/universe.csv, sized at SOL ≈ $115.71. Regenerate: python3 scenarios/token-2022/generate.py
 trader,time,type,amount,token,other_token,mode,note
-1,0,sell,0.01,SOL,XsueG8BtpquVJX9LVLLEGuViXUungE6WmK5YZ3p3bd1,sponsored,CRCLx rank 24 $398.8M/90d: SOL to token [permanentDelegate(set) defaultAccountState(initialized) scaledUiAmountConfig pausableConfig(running) confidentialTransferMint transferHook(none)]
-1,1,sell,0.00861,XsueG8BtpquVJX9LVLLEGuViXUungE6WmK5YZ3p3bd1,SOL,sponsored,CRCLx rank 24 $398.8M/90d: 60% back to SOL
-1,2,buy,0.00574,XsueG8BtpquVJX9LVLLEGuViXUungE6WmK5YZ3p3bd1,SOL,sponsored,CRCLx rank 24 $398.8M/90d: BUY (exact-out) paying SOL
-2,0,sell,0.01,SOL,XsoCS1TfEyfFhfvj8EtZ528L3CaKBDBRqRapnBbDF2W,sponsored,SPYx rank 29 $330.0M/90d: SOL to token [permanentDelegate(set) defaultAccountState(initialized) scaledUiAmountConfig pausableConfig(running) confidentialTransferMint transferHook(none)]
-2,1,sell,0.000896,XsoCS1TfEyfFhfvj8EtZ528L3CaKBDBRqRapnBbDF2W,SOL,sponsored,SPYx rank 29 $330.0M/90d: 60% back to SOL
-2,2,buy,0.000597,XsoCS1TfEyfFhfvj8EtZ528L3CaKBDBRqRapnBbDF2W,SOL,sponsored,SPYx rank 29 $330.0M/90d: BUY (exact-out) paying SOL
-3,0,sell,0.01,SOL,SKHYhSjuRWHgikq8eRKbtBbpABgJSkd7ytQV14i9EQ3,sponsored,SKHY rank 33 $282.2M/90d: SOL to token [permanentDelegate(set) defaultAccountState(initialized) pausableConfig(running) confidentialTransferMint transferHook(none) scaledUiAmountConfig]
-3,1,sell,0.00389,SKHYhSjuRWHgikq8eRKbtBbpABgJSkd7ytQV14i9EQ3,SOL,sponsored,SKHY rank 33 $282.2M/90d: 60% back to SOL
-3,2,buy,0.0026,SKHYhSjuRWHgikq8eRKbtBbpABgJSkd7ytQV14i9EQ3,SOL,sponsored,SKHY rank 33 $282.2M/90d: BUY (exact-out) paying SOL
-4,0,sell,0.01,SOL,Xsc9qvGR1efVDFGLrVsmkzv3qi45LTBjeUKSPmx9qEh,self,NVDAx rank 38 $234.1M/90d: SOL to token [permanentDelegate(set) defaultAccountState(initialized) scaledUiAmountConfig pausableConfig(running) confidentialTransferMint transferHook(none)]
-4,1,sell,0.00293,Xsc9qvGR1efVDFGLrVsmkzv3qi45LTBjeUKSPmx9qEh,SOL,self,NVDAx rank 38 $234.1M/90d: 60% back to SOL
-4,2,buy,0.00196,Xsc9qvGR1efVDFGLrVsmkzv3qi45LTBjeUKSPmx9qEh,SOL,self,NVDAx rank 38 $234.1M/90d: BUY (exact-out) paying SOL
-5,0,sell,0.01,SOL,MUxEsUKSMACyw5fZf68wxf5FLnZVhtU9CwH8uNNGay1,sponsored,MU rank 42 $212.5M/90d: SOL to token [permanentDelegate(set) defaultAccountState(initialized) pausableConfig(running) confidentialTransferMint transferHook(none) scaledUiAmountConfig]
-5,1,sell,0.000641,MUxEsUKSMACyw5fZf68wxf5FLnZVhtU9CwH8uNNGay1,SOL,sponsored,MU rank 42 $212.5M/90d: 60% back to SOL
-5,2,buy,0.000427,MUxEsUKSMACyw5fZf68wxf5FLnZVhtU9CwH8uNNGay1,SOL,sponsored,MU rank 42 $212.5M/90d: BUY (exact-out) paying SOL
-6,0,sell,0.01,SOL,SPCXxcqXj6e5dJDVNovHN8744zkbhM2bYudU45BimGb,sponsored,SPCX rank 45 $194.8M/90d: SOL to token [permanentDelegate(set) defaultAccountState(initialized) pausableConfig(running) confidentialTransferMint transferHook(none) scaledUiAmountConfig]
-6,1,sell,0.00414,SPCXxcqXj6e5dJDVNovHN8744zkbhM2bYudU45BimGb,SOL,sponsored,SPCX rank 45 $194.8M/90d: 60% back to SOL
-6,2,buy,0.00276,SPCXxcqXj6e5dJDVNovHN8744zkbhM2bYudU45BimGb,SOL,sponsored,SPCX rank 45 $194.8M/90d: BUY (exact-out) paying SOL
-7,0,sell,0.01,SOL,Xs3oZwbHvqis4NYcf4YKWmEia2eC84wSiVrcYcTqpH8,sponsored,SPCXx rank 50 $162.8M/90d: SOL to token [permanentDelegate(set) defaultAccountState(initialized) scaledUiAmountConfig pausableConfig(running) confidentialTransferMint transferHook(none)]
-7,1,sell,0.00415,Xs3oZwbHvqis4NYcf4YKWmEia2eC84wSiVrcYcTqpH8,SOL,sponsored,SPCXx rank 50 $162.8M/90d: 60% back to SOL
-7,2,buy,0.00277,Xs3oZwbHvqis4NYcf4YKWmEia2eC84wSiVrcYcTqpH8,SOL,sponsored,SPCXx rank 50 $162.8M/90d: BUY (exact-out) paying SOL
-8,0,sell,0.01,SOL,XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB,self,TSLAx rank 60 $113.4M/90d: SOL to token [permanentDelegate(set) defaultAccountState(initialized) scaledUiAmountConfig pausableConfig(running) confidentialTransferMint transferHook(none)]
-8,1,sell,0.00184,XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB,SOL,self,TSLAx rank 60 $113.4M/90d: 60% back to SOL
-8,2,buy,0.00123,XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB,SOL,self,TSLAx rank 60 $113.4M/90d: BUY (exact-out) paying SOL
-9,0,sell,0.01,SOL,SNDKbwMUQvZhnLnxLduradgLHG5KrPuKwpnrkkGRhfH,sponsored,SNDK rank 69 $88.0M/90d: SOL to token [permanentDelegate(set) defaultAccountState(initialized) pausableConfig(running) confidentialTransferMint transferHook(none) scaledUiAmountConfig]
-9,1,sell,0.000411,SNDKbwMUQvZhnLnxLduradgLHG5KrPuKwpnrkkGRhfH,SOL,sponsored,SNDK rank 69 $88.0M/90d: 60% back to SOL
-9,2,buy,0.000274,SNDKbwMUQvZhnLnxLduradgLHG5KrPuKwpnrkkGRhfH,SOL,sponsored,SNDK rank 69 $88.0M/90d: BUY (exact-out) paying SOL
-10,0,sell,0.01,SOL,XsP7xzNPvEHS1m6qfanPUGjNmdnmsLKEoNAnHjdxxyZ,sponsored,MSTRx rank 74 $82.9M/90d: SOL to token [permanentDelegate(set) defaultAccountState(initialized) scaledUiAmountConfig pausableConfig(running) confidentialTransferMint transferHook(none)]
-10,1,sell,0.00451,XsP7xzNPvEHS1m6qfanPUGjNmdnmsLKEoNAnHjdxxyZ,SOL,sponsored,MSTRx rank 74 $82.9M/90d: 60% back to SOL
-10,2,buy,0.00301,XsP7xzNPvEHS1m6qfanPUGjNmdnmsLKEoNAnHjdxxyZ,SOL,sponsored,MSTRx rank 74 $82.9M/90d: BUY (exact-out) paying SOL
-11,0,sell,0.01,SOL,Xs8S1uUs1zvS2p7iwtsG3b6fkhpvmwz4GYU3gWAmWHZ,sponsored,QQQx rank 85 $69.0M/90d: SOL to token [permanentDelegate(set) defaultAccountState(initialized) scaledUiAmountConfig pausableConfig(running) confidentialTransferMint transferHook(none)]
-11,1,sell,0.000919,Xs8S1uUs1zvS2p7iwtsG3b6fkhpvmwz4GYU3gWAmWHZ,SOL,sponsored,QQQx rank 85 $69.0M/90d: 60% back to SOL
-11,2,buy,0.000612,Xs8S1uUs1zvS2p7iwtsG3b6fkhpvmwz4GYU3gWAmWHZ,SOL,sponsored,QQQx rank 85 $69.0M/90d: BUY (exact-out) paying SOL
-12,0,sell,0.01,SOL,BoTx8y9ynfdxf5ZjWtCoBVkff52qKA82ysaLU8ZM6d8T,self,BOT rank 100 $54.5M/90d: SOL to token [permanentDelegate(set) defaultAccountState(initialized) pausableConfig(running) confidentialTransferMint transferHook(none) scaledUiAmountConfig]
-12,1,sell,0.0237,BoTx8y9ynfdxf5ZjWtCoBVkff52qKA82ysaLU8ZM6d8T,SOL,self,BOT rank 100 $54.5M/90d: 60% back to SOL
-12,2,buy,0.0158,BoTx8y9ynfdxf5ZjWtCoBVkff52qKA82ysaLU8ZM6d8T,SOL,self,BOT rank 100 $54.5M/90d: BUY (exact-out) paying SOL
-13,0,sell,0.01,SOL,Xsa62P5mvPszXL1krVUnU5ar38bBSVcWAB6fmPCo5Zu,sponsored,METAx rank 102 $53.5M/90d: SOL to token [permanentDelegate(set) defaultAccountState(initialized) scaledUiAmountConfig pausableConfig(running) confidentialTransferMint transferHook(none)]
-13,1,sell,0.000966,Xsa62P5mvPszXL1krVUnU5ar38bBSVcWAB6fmPCo5Zu,SOL,sponsored,METAx rank 102 $53.5M/90d: 60% back to SOL
-13,2,buy,0.000644,Xsa62P5mvPszXL1krVUnU5ar38bBSVcWAB6fmPCo5Zu,SOL,sponsored,METAx rank 102 $53.5M/90d: BUY (exact-out) paying SOL
-14,0,sell,0.01,SOL,Xsv9hRk1z5ystj9MhnA7Lq4vjSsLwzL2nxrwmwtD3re,sponsored,GLDx rank 109 $50.4M/90d: SOL to token [permanentDelegate(set) defaultAccountState(initialized) scaledUiAmountConfig pausableConfig(running) confidentialTransferMint transferHook(none)]
-14,1,sell,0.00185,Xsv9hRk1z5ystj9MhnA7Lq4vjSsLwzL2nxrwmwtD3re,SOL,sponsored,GLDx rank 109 $50.4M/90d: 60% back to SOL
-14,2,buy,0.00123,Xsv9hRk1z5ystj9MhnA7Lq4vjSsLwzL2nxrwmwtD3re,SOL,sponsored,GLDx rank 109 $50.4M/90d: BUY (exact-out) paying SOL
-15,0,sell,0.01,SOL,XspzcW1PRtgf6Wj92HCiZdjzKCyFekVD8P5Ueh3dRMX,sponsored,MSFTx rank 111 $49.2M/90d: SOL to token [permanentDelegate(set) defaultAccountState(initialized) scaledUiAmountConfig pausableConfig(running) confidentialTransferMint transferHook(none)]
-15,1,sell,0.00131,XspzcW1PRtgf6Wj92HCiZdjzKCyFekVD8P5Ueh3dRMX,SOL,sponsored,MSFTx rank 111 $49.2M/90d: 60% back to SOL
-15,2,buy,0.000875,XspzcW1PRtgf6Wj92HCiZdjzKCyFekVD8P5Ueh3dRMX,SOL,sponsored,MSFTx rank 111 $49.2M/90d: BUY (exact-out) paying SOL
-16,0,sell,0.01,SOL,DJTu7vi8norVzdVAffgvb39VP7wjKeTsgaMBJrzfxvoF,self,DJT rank 117 $46.3M/90d: SOL to token [permanentDelegate(set) defaultAccountState(initialized) pausableConfig(running) confidentialTransferMint transferHook(none) scaledUiAmountConfig]
-16,1,sell,0.0849,DJTu7vi8norVzdVAffgvb39VP7wjKeTsgaMBJrzfxvoF,SOL,self,DJT rank 117 $46.3M/90d: 60% back to SOL
-16,2,buy,0.0566,DJTu7vi8norVzdVAffgvb39VP7wjKeTsgaMBJrzfxvoF,SOL,self,DJT rank 117 $46.3M/90d: BUY (exact-out) paying SOL
-17,0,sell,0.01,SOL,XsCPL9dNWBMvFtTmwcCA5v3xWPSMEBCszbQdiLLq6aN,sponsored,GOOGLx rank 120 $42.2M/90d: SOL to token [permanentDelegate(set) defaultAccountState(initialized) scaledUiAmountConfig pausableConfig(running) confidentialTransferMint transferHook(none)]
-17,1,sell,0.00198,XsCPL9dNWBMvFtTmwcCA5v3xWPSMEBCszbQdiLLq6aN,SOL,sponsored,GOOGLx rank 120 $42.2M/90d: 60% back to SOL
-17,2,buy,0.00132,XsCPL9dNWBMvFtTmwcCA5v3xWPSMEBCszbQdiLLq6aN,SOL,sponsored,GOOGLx rank 120 $42.2M/90d: BUY (exact-out) paying SOL
-18,0,sell,0.01,SOL,Xs7ZdzSHLU9ftNJsii5fCeJhoRWSC32SQGzGQtePxNu,sponsored,COINx rank 122 $41.9M/90d: SOL to token [permanentDelegate(set) defaultAccountState(initialized) scaledUiAmountConfig pausableConfig(running) confidentialTransferMint transferHook(none)]
-18,1,sell,0.00389,Xs7ZdzSHLU9ftNJsii5fCeJhoRWSC32SQGzGQtePxNu,SOL,sponsored,COINx rank 122 $41.9M/90d: 60% back to SOL
-18,2,buy,0.0026,Xs7ZdzSHLU9ftNJsii5fCeJhoRWSC32SQGzGQtePxNu,SOL,sponsored,COINx rank 122 $41.9M/90d: BUY (exact-out) paying SOL
-19,0,sell,0.01,SOL,Xsf9mBktVB9BSU5kf4nHxPq5hCBJ2j2ui3ecFGxPRGc,sponsored,GMEx rank 151 $33.1M/90d: SOL to token [permanentDelegate(set) defaultAccountState(initialized) scaledUiAmountConfig pausableConfig(running) confidentialTransferMint transferHook(none)]
-19,1,sell,0.0284,Xsf9mBktVB9BSU5kf4nHxPq5hCBJ2j2ui3ecFGxPRGc,SOL,sponsored,GMEx rank 151 $33.1M/90d: 60% back to SOL
-19,2,buy,0.0189,Xsf9mBktVB9BSU5kf4nHxPq5hCBJ2j2ui3ecFGxPRGc,SOL,sponsored,GMEx rank 151 $33.1M/90d: BUY (exact-out) paying SOL
-20,0,sell,0.01,SOL,XsvNBAYkrDRNhA7wPHQfX3ZUXZyZLdnCQDfHZ56bzpg,self,HOODx rank 156 $32.6M/90d: SOL to token [permanentDelegate(set) defaultAccountState(initialized) scaledUiAmountConfig pausableConfig(running) confidentialTransferMint transferHook(none)]
-20,1,sell,0.00636,XsvNBAYkrDRNhA7wPHQfX3ZUXZyZLdnCQDfHZ56bzpg,SOL,self,HOODx rank 156 $32.6M/90d: 60% back to SOL
-20,2,buy,0.00424,XsvNBAYkrDRNhA7wPHQfX3ZUXZyZLdnCQDfHZ56bzpg,SOL,self,HOODx rank 156 $32.6M/90d: BUY (exact-out) paying SOL
+1,0,sell,0.01,SOL,XsoCS1TfEyfFhfvj8EtZ528L3CaKBDBRqRapnBbDF2W,sponsored,SPYx $213.4M/30d: SOL to token [permanentDelegate(set) defaultAccountState(initialized) scaledUiAmountConfig pausableConfig(running) confidentialTransferMint transferHook(none)]
+1,1,sell,0.000894,XsoCS1TfEyfFhfvj8EtZ528L3CaKBDBRqRapnBbDF2W,SOL,sponsored,SPYx $213.4M/30d: 60% back to SOL
+1,2,buy,0.000596,XsoCS1TfEyfFhfvj8EtZ528L3CaKBDBRqRapnBbDF2W,SOL,sponsored,SPYx $213.4M/30d: BUY (exact-out) paying SOL
+2,0,sell,0.01,SOL,XsueG8BtpquVJX9LVLLEGuViXUungE6WmK5YZ3p3bd1,sponsored,CRCLx $161.1M/30d: SOL to token [permanentDelegate(set) defaultAccountState(initialized) scaledUiAmountConfig pausableConfig(running) confidentialTransferMint transferHook(none)]
+2,1,sell,0.00859,XsueG8BtpquVJX9LVLLEGuViXUungE6WmK5YZ3p3bd1,SOL,sponsored,CRCLx $161.1M/30d: 60% back to SOL
+2,2,buy,0.00573,XsueG8BtpquVJX9LVLLEGuViXUungE6WmK5YZ3p3bd1,SOL,sponsored,CRCLx $161.1M/30d: BUY (exact-out) paying SOL
+3,0,sell,0.01,SOL,Xsc9qvGR1efVDFGLrVsmkzv3qi45LTBjeUKSPmx9qEh,sponsored,NVDAx $152.4M/30d: SOL to token [permanentDelegate(set) defaultAccountState(initialized) scaledUiAmountConfig pausableConfig(running) confidentialTransferMint transferHook(none)]
+3,1,sell,0.00292,Xsc9qvGR1efVDFGLrVsmkzv3qi45LTBjeUKSPmx9qEh,SOL,sponsored,NVDAx $152.4M/30d: 60% back to SOL
+3,2,buy,0.00195,Xsc9qvGR1efVDFGLrVsmkzv3qi45LTBjeUKSPmx9qEh,SOL,sponsored,NVDAx $152.4M/30d: BUY (exact-out) paying SOL
+4,0,sell,0.01,SOL,Xs3oZwbHvqis4NYcf4YKWmEia2eC84wSiVrcYcTqpH8,self,SPCXx $123.8M/30d: SOL to token [permanentDelegate(set) defaultAccountState(initialized) scaledUiAmountConfig pausableConfig(running) confidentialTransferMint transferHook(none)]
+4,1,sell,0.00414,Xs3oZwbHvqis4NYcf4YKWmEia2eC84wSiVrcYcTqpH8,SOL,self,SPCXx $123.8M/30d: 60% back to SOL
+4,2,buy,0.00276,Xs3oZwbHvqis4NYcf4YKWmEia2eC84wSiVrcYcTqpH8,SOL,self,SPCXx $123.8M/30d: BUY (exact-out) paying SOL
+5,0,sell,0.01,SOL,SPCXxcqXj6e5dJDVNovHN8744zkbhM2bYudU45BimGb,sponsored,SPCX $86.6M/30d: SOL to token [permanentDelegate(set) defaultAccountState(initialized) pausableConfig(running) confidentialTransferMint transferHook(none) scaledUiAmountConfig]
+5,1,sell,0.00413,SPCXxcqXj6e5dJDVNovHN8744zkbhM2bYudU45BimGb,SOL,sponsored,SPCX $86.6M/30d: 60% back to SOL
+5,2,buy,0.00276,SPCXxcqXj6e5dJDVNovHN8744zkbhM2bYudU45BimGb,SOL,sponsored,SPCX $86.6M/30d: BUY (exact-out) paying SOL
+6,0,sell,0.01,SOL,MUxEsUKSMACyw5fZf68wxf5FLnZVhtU9CwH8uNNGay1,sponsored,MU $58.9M/30d: SOL to token [permanentDelegate(set) defaultAccountState(initialized) pausableConfig(running) confidentialTransferMint transferHook(none) scaledUiAmountConfig]
+6,1,sell,0.000638,MUxEsUKSMACyw5fZf68wxf5FLnZVhtU9CwH8uNNGay1,SOL,sponsored,MU $58.9M/30d: 60% back to SOL
+6,2,buy,0.000425,MUxEsUKSMACyw5fZf68wxf5FLnZVhtU9CwH8uNNGay1,SOL,sponsored,MU $58.9M/30d: BUY (exact-out) paying SOL
+7,0,sell,0.01,SOL,SKHYhSjuRWHgikq8eRKbtBbpABgJSkd7ytQV14i9EQ3,sponsored,SKHY $54.9M/30d: SOL to token [permanentDelegate(set) defaultAccountState(initialized) pausableConfig(running) confidentialTransferMint transferHook(none) scaledUiAmountConfig]
+7,1,sell,0.00388,SKHYhSjuRWHgikq8eRKbtBbpABgJSkd7ytQV14i9EQ3,SOL,sponsored,SKHY $54.9M/30d: 60% back to SOL
+7,2,buy,0.00258,SKHYhSjuRWHgikq8eRKbtBbpABgJSkd7ytQV14i9EQ3,SOL,sponsored,SKHY $54.9M/30d: BUY (exact-out) paying SOL
+8,0,sell,0.01,SOL,Xsa62P5mvPszXL1krVUnU5ar38bBSVcWAB6fmPCo5Zu,self,METAx $47.0M/30d: SOL to token [permanentDelegate(set) defaultAccountState(initialized) scaledUiAmountConfig pausableConfig(running) confidentialTransferMint transferHook(none)]
+8,1,sell,0.000959,Xsa62P5mvPszXL1krVUnU5ar38bBSVcWAB6fmPCo5Zu,SOL,self,METAx $47.0M/30d: 60% back to SOL
+8,2,buy,0.00064,Xsa62P5mvPszXL1krVUnU5ar38bBSVcWAB6fmPCo5Zu,SOL,self,METAx $47.0M/30d: BUY (exact-out) paying SOL
+9,0,sell,0.01,SOL,DJTu7vi8norVzdVAffgvb39VP7wjKeTsgaMBJrzfxvoF,sponsored,DJT $46.3M/30d: SOL to token [permanentDelegate(set) defaultAccountState(initialized) pausableConfig(running) confidentialTransferMint transferHook(none) scaledUiAmountConfig]
+9,1,sell,0.0844,DJTu7vi8norVzdVAffgvb39VP7wjKeTsgaMBJrzfxvoF,SOL,sponsored,DJT $46.3M/30d: 60% back to SOL
+9,2,buy,0.0563,DJTu7vi8norVzdVAffgvb39VP7wjKeTsgaMBJrzfxvoF,SOL,sponsored,DJT $46.3M/30d: BUY (exact-out) paying SOL
+10,0,sell,0.01,SOL,Xsv9hRk1z5ystj9MhnA7Lq4vjSsLwzL2nxrwmwtD3re,sponsored,GLDx $44.5M/30d: SOL to token [permanentDelegate(set) defaultAccountState(initialized) scaledUiAmountConfig pausableConfig(running) confidentialTransferMint transferHook(none)]
+10,1,sell,0.00184,Xsv9hRk1z5ystj9MhnA7Lq4vjSsLwzL2nxrwmwtD3re,SOL,sponsored,GLDx $44.5M/30d: 60% back to SOL
+10,2,buy,0.00123,Xsv9hRk1z5ystj9MhnA7Lq4vjSsLwzL2nxrwmwtD3re,SOL,sponsored,GLDx $44.5M/30d: BUY (exact-out) paying SOL
+11,0,sell,0.01,SOL,XspzcW1PRtgf6Wj92HCiZdjzKCyFekVD8P5Ueh3dRMX,sponsored,MSFTx $43.5M/30d: SOL to token [permanentDelegate(set) defaultAccountState(initialized) scaledUiAmountConfig pausableConfig(running) confidentialTransferMint transferHook(none)]
+11,1,sell,0.00131,XspzcW1PRtgf6Wj92HCiZdjzKCyFekVD8P5Ueh3dRMX,SOL,sponsored,MSFTx $43.5M/30d: 60% back to SOL
+11,2,buy,0.000876,XspzcW1PRtgf6Wj92HCiZdjzKCyFekVD8P5Ueh3dRMX,SOL,sponsored,MSFTx $43.5M/30d: BUY (exact-out) paying SOL
+12,0,sell,0.01,SOL,XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB,self,TSLAx $38.0M/30d: SOL to token [permanentDelegate(set) defaultAccountState(initialized) scaledUiAmountConfig pausableConfig(running) confidentialTransferMint transferHook(none)]
+12,1,sell,0.00184,XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB,SOL,self,TSLAx $38.0M/30d: 60% back to SOL
+12,2,buy,0.00123,XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB,SOL,self,TSLAx $38.0M/30d: BUY (exact-out) paying SOL
+13,0,sell,0.01,SOL,XsP7xzNPvEHS1m6qfanPUGjNmdnmsLKEoNAnHjdxxyZ,sponsored,MSTRx $35.0M/30d: SOL to token [permanentDelegate(set) defaultAccountState(initialized) scaledUiAmountConfig pausableConfig(running) confidentialTransferMint transferHook(none)]
+13,1,sell,0.00449,XsP7xzNPvEHS1m6qfanPUGjNmdnmsLKEoNAnHjdxxyZ,SOL,sponsored,MSTRx $35.0M/30d: 60% back to SOL
+13,2,buy,0.003,XsP7xzNPvEHS1m6qfanPUGjNmdnmsLKEoNAnHjdxxyZ,SOL,sponsored,MSTRx $35.0M/30d: BUY (exact-out) paying SOL
+14,0,sell,0.01,SOL,Xsf9mBktVB9BSU5kf4nHxPq5hCBJ2j2ui3ecFGxPRGc,sponsored,GMEx $30.2M/30d: SOL to token [permanentDelegate(set) defaultAccountState(initialized) scaledUiAmountConfig pausableConfig(running) confidentialTransferMint transferHook(none)]
+14,1,sell,0.028,Xsf9mBktVB9BSU5kf4nHxPq5hCBJ2j2ui3ecFGxPRGc,SOL,sponsored,GMEx $30.2M/30d: 60% back to SOL
+14,2,buy,0.0187,Xsf9mBktVB9BSU5kf4nHxPq5hCBJ2j2ui3ecFGxPRGc,SOL,sponsored,GMEx $30.2M/30d: BUY (exact-out) paying SOL
+15,0,sell,0.01,SOL,Xs8S1uUs1zvS2p7iwtsG3b6fkhpvmwz4GYU3gWAmWHZ,sponsored,QQQx $27.5M/30d: SOL to token [permanentDelegate(set) defaultAccountState(initialized) scaledUiAmountConfig pausableConfig(running) confidentialTransferMint transferHook(none)]
+15,1,sell,0.000915,Xs8S1uUs1zvS2p7iwtsG3b6fkhpvmwz4GYU3gWAmWHZ,SOL,sponsored,QQQx $27.5M/30d: 60% back to SOL
+15,2,buy,0.00061,Xs8S1uUs1zvS2p7iwtsG3b6fkhpvmwz4GYU3gWAmWHZ,SOL,sponsored,QQQx $27.5M/30d: BUY (exact-out) paying SOL
+16,0,sell,0.01,SOL,XsCPL9dNWBMvFtTmwcCA5v3xWPSMEBCszbQdiLLq6aN,self,GOOGLx $26.7M/30d: SOL to token [permanentDelegate(set) defaultAccountState(initialized) scaledUiAmountConfig pausableConfig(running) confidentialTransferMint transferHook(none)]
+16,1,sell,0.00199,XsCPL9dNWBMvFtTmwcCA5v3xWPSMEBCszbQdiLLq6aN,SOL,self,GOOGLx $26.7M/30d: 60% back to SOL
+16,2,buy,0.00133,XsCPL9dNWBMvFtTmwcCA5v3xWPSMEBCszbQdiLLq6aN,SOL,self,GOOGLx $26.7M/30d: BUY (exact-out) paying SOL
+17,0,sell,0.01,SOL,XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp,sponsored,AAPLx $25.3M/30d: SOL to token [permanentDelegate(set) defaultAccountState(initialized) scaledUiAmountConfig pausableConfig(running) confidentialTransferMint transferHook(none)]
+17,1,sell,0.00207,XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp,SOL,sponsored,AAPLx $25.3M/30d: 60% back to SOL
+17,2,buy,0.00138,XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp,SOL,sponsored,AAPLx $25.3M/30d: BUY (exact-out) paying SOL
+18,0,sell,0.01,SOL,XsvNBAYkrDRNhA7wPHQfX3ZUXZyZLdnCQDfHZ56bzpg,sponsored,HOODx $22.0M/30d: SOL to token [permanentDelegate(set) defaultAccountState(initialized) scaledUiAmountConfig pausableConfig(running) confidentialTransferMint transferHook(none)]
+18,1,sell,0.00633,XsvNBAYkrDRNhA7wPHQfX3ZUXZyZLdnCQDfHZ56bzpg,SOL,sponsored,HOODx $22.0M/30d: 60% back to SOL
+18,2,buy,0.00422,XsvNBAYkrDRNhA7wPHQfX3ZUXZyZLdnCQDfHZ56bzpg,SOL,sponsored,HOODx $22.0M/30d: BUY (exact-out) paying SOL
+19,0,sell,0.01,SOL,Xs7ZdzSHLU9ftNJsii5fCeJhoRWSC32SQGzGQtePxNu,sponsored,COINx $20.4M/30d: SOL to token [permanentDelegate(set) defaultAccountState(initialized) scaledUiAmountConfig pausableConfig(running) confidentialTransferMint transferHook(none)]
+19,1,sell,0.00386,Xs7ZdzSHLU9ftNJsii5fCeJhoRWSC32SQGzGQtePxNu,SOL,sponsored,COINx $20.4M/30d: 60% back to SOL
+19,2,buy,0.00257,Xs7ZdzSHLU9ftNJsii5fCeJhoRWSC32SQGzGQtePxNu,SOL,sponsored,COINx $20.4M/30d: BUY (exact-out) paying SOL
+20,0,sell,0.01,SOL,XsqE9cRRpzxcGKDXj1BJ7Xmg4GRhZoyY1KpmGSxAWT2,self,MCDx $19.9M/30d: SOL to token [permanentDelegate(set) defaultAccountState(initialized) scaledUiAmountConfig pausableConfig(running) confidentialTransferMint transferHook(none)]
+20,1,sell,0.003,XsqE9cRRpzxcGKDXj1BJ7Xmg4GRhZoyY1KpmGSxAWT2,SOL,self,MCDx $19.9M/30d: 60% back to SOL
+20,2,buy,0.002,XsqE9cRRpzxcGKDXj1BJ7Xmg4GRhZoyY1KpmGSxAWT2,SOL,self,MCDx $19.9M/30d: BUY (exact-out) paying SOL

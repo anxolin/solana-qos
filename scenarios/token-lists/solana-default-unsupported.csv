@@ -1,11 +1,27 @@
-# Solana Default (https://files.cow.fi/token-lists/SolanaDefault.json), classified on staging on 2026-10-06.
-# 7 tokens the backend rejects (Token-2022 extensions). Every row is expected to fail with UnsupportedToken; one trader, nothing is spent.
+# Solana Default (https://files.cow.fi/token-lists/SolanaDefault.json), classified on staging on 2026-10-07.
+# 23 tokens the backend rejects (Token-2022 extensions). Every row is expected to fail with UnsupportedToken; one trader, nothing is spent.
 # Regenerate: pnpm sim generate-token-list-session --list https://files.cow.fi/token-lists/SolanaDefault.json -o ../scenarios/token-lists/solana-default
 trader,time,type,amount,token,other_token,mode,note
+1,0,sell,0.005,SOL,527PdUTGwcFxVEMXt8tyRJA1nYbVedgSiSfh4s2LWTWz,sponsored,BOP: expected UnsupportedToken (Token-2022 transfer fee)
+1,0,sell,0.005,SOL,6UtY9iTZMQQ5QZVrbzFnNaJntV7oySm9k97mvwnuZcxr,sponsored,NEARKAT: expected UnsupportedToken (Token-2022 transfer fee)
 1,0,sell,0.005,SOL,7atgF8KQo4wJrD5ATGX7t1V2zVvykPJbFfNeVf1icFv1,sponsored,$CWIF: expected UnsupportedToken (Token-2022 transfer fee)
+1,0,sell,0.005,SOL,7ypCq2CJ4fnbtS3z2B1W1UT2he5E3u7Md6Gy1ri7uGrQ,sponsored,ANT: expected UnsupportedToken (Token-2022 transfer fee)
 1,0,sell,0.005,SOL,8FA3TPf84h9gEZAxDhiLkMN4vvZcdEUZxmGadbo12auh,sponsored,SCALES: expected UnsupportedToken (Token-2022 transfer fee)
+1,0,sell,0.005,SOL,8RVBk8vxLiUHueLUW1f4izFVqN3nWippLhkohKg6EGkS,sponsored,KNOTS: expected UnsupportedToken (Token-2022 transfer fee)
+1,0,sell,0.005,SOL,9h5AzEQzYu9CV5K6uLtFRMD1KcbxZSFNxZEgBTNfw5Na,sponsored,STONKCATS: expected UnsupportedToken (Token-2022 transfer fee)
+1,0,sell,0.005,SOL,AGi2s9zPRPHs3zEDPhPTroumTEXK5ufymYSfEFndCSSW,sponsored,LEVERCAT: expected UnsupportedToken (Token-2022 transfer fee)
+1,0,sell,0.005,SOL,AaEhFTX4naHSWSXz9TVe5QgLbtSLT8ZqYJGZzDDcoroh,sponsored,JUPCAT: expected UnsupportedToken (Token-2022 transfer fee)
+1,0,sell,0.005,SOL,CFNRDaxFcvRwRSNnA5cHrCCr6AHhk9dNkHWpRUjNupFL,sponsored,RAYCAT: expected UnsupportedToken (Token-2022 transfer fee)
 1,0,sell,0.005,SOL,CKfatsPMUf8SkiURsDXs7eK6GWb4Jsd6UDbs7twMCWxo,sponsored,BERN: expected UnsupportedToken (Token-2022 transfer fee)
+1,0,sell,0.005,SOL,EhzVcKKmGjLk6pD5gLT6ZrTg62bMgPgTSCXXmANnSyQA,sponsored,SANTA: expected UnsupportedToken (Token-2022 transfer fee)
 1,0,sell,0.005,SOL,FLUXBmPhT3Fd1EDVFdg46YREqHBeNypn1h4EbnTzWERX,sponsored,FLUXB: expected UnsupportedToken (Token-2022 transfer fee)
-1,0,sell,0.005,SOL,J5tzd1ww1V1qrgDUQHVCGqpmpbnEnjzGs9LAqJxwkNde,sponsored,FRN: expected UnsupportedToken (Token-2022 transfer fee)
-1,0,sell,0.005,SOL,stJUPZMmAWA1PNVPXCvqVK6MHABr4yFo5rv2JTethCa,sponsored,stJUP: expected UnsupportedToken (Token-2022 transfer hook program)
-1,0,sell,0.005,SOL,t3DohmswhKk94PPbPYwA6ZKACyY3y5kbcqeQerAJjmV,sponsored,TRD: expected UnsupportedToken (Token-2022 transfer fee)
+1,0,sell,0.005,SOL,G1jonmoSEbMJSwEg1AmgDAJq2utmuBSZct8oqttBf9rT,sponsored,GRAMS: expected UnsupportedToken (Token-2022 transfer fee)
+1,0,sell,0.005,SOL,HcRLc9VDgjLeK154xDawfb1dmVJ98DoSqcwTHGqiDeJR,sponsored,ZCAT: expected UnsupportedToken (Token-2022 transfer fee)
+1,0,sell,0.005,SOL,HgcxVs6kJhPAaGqnPNGaa7zYgNT49hJrLufiqcNMuYZT,sponsored,FEELSGOOD: expected UnsupportedToken (Token-2022 transfer fee)
+1,0,sell,0.005,SOL,Pre8AREmFPtoJFT8mQSXQLh56cwJmM7CFDRuoGBZiUP,sponsored,POLYMARKET: expected UnsupportedToken (Token-2022 transfer fee)
+1,0,sell,0.005,SOL,PreLWGkkeqG1s4HEfFZSy9moCrJ7btsHuUtfcCeoRua,sponsored,KALSHI: expected UnsupportedToken (Token-2022 transfer fee)
+1,0,sell,0.005,SOL,Pren1FvFX6J3E4kXhJuCiAD5aDmGEb7qJRncwA8Lkhw,sponsored,ANTHROPIC: expected UnsupportedToken (Token-2022 transfer fee)
+1,0,sell,0.005,SOL,PresTj4Yc2bAR197Er7wz4UUKSfqt6FryBEdAriBoQB,sponsored,ANDURIL: expected UnsupportedToken (Token-2022 transfer fee)
+1,0,sell,0.005,SOL,PreweJYECqtQwBtpxHL171nL2K6umo692gTm7Q3rpgF,sponsored,OPENAI: expected UnsupportedToken (Token-2022 transfer fee)
+1,0,sell,0.005,SOL,TKLSidmLVt3cqGaaodG8tyRzoANfQwoh67AccjmubeZ,sponsored,tKalshi: expected UnsupportedToken (Token-2022 transfer fee)
+1,0,sell,0.005,SOL,oPAiAikWTaFj9RYoRFD35ccfwhnMcB3ThgBZRHSkjTZ,sponsored,tOpenAI: expected UnsupportedToken (Token-2022 transfer fee)

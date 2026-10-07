@@ -1,21 +1,14 @@
-# Solana Default (https://files.cow.fi/token-lists/SolanaDefault.json), classified on staging on 2026-10-06.
-# 17 tokens with no route when classified. Every row is expected to fail at the quote; one trader. Rerun to see which gained a route.
+# Solana Default (https://files.cow.fi/token-lists/SolanaDefault.json), classified on staging on 2026-10-07.
+# 10 tokens with no route when classified. Every row is expected to fail at the quote; one trader. Rerun to see which gained a route.
 # Regenerate: pnpm sim generate-token-list-session --list https://files.cow.fi/token-lists/SolanaDefault.json -o ../scenarios/token-lists/solana-default
 trader,time,type,amount,token,other_token,mode,note
-1,0,sell,0.005,SOL,6FVyLVhQsShWVUsCq2FJRr1MrECGShc3QxBwWtgiVFwK,sponsored,BWB (classic): no route on 2026-10-06 (NoLiquidity)
-1,0,sell,0.005,SOL,9n4nbM75f5Ui33ZbPYXn59EwSgE8CGsHtAeTH5YFeJ9E,sponsored,soBTC (classic): no route on 2026-10-06 (NoLiquidity)
-1,0,sell,0.005,SOL,9vMJfxuKxXBoEa7rM12mYLMwTacLMLDJqHozw96WQL8i,sponsored,UST (classic): no route on 2026-10-06 (NoLiquidity)
-1,0,sell,0.005,SOL,AqEHVh8J2nXH9saV2ciZyYwPpqWFRfD2ffcq5Z8xxqm5,sponsored,YAKU (classic): no route on 2026-10-06 (NoLiquidity)
-1,0,sell,0.005,SOL,BANXbTpN8U2cU41FjPxe2Ti37PiT5cCxLUKDQZuJeMMR,sponsored,BANX (classic): no route on 2026-10-06 (NoLiquidity)
-1,0,sell,0.005,SOL,C4Kkr9NZU3VbyedcgutU6LKmi6MKz81sx6gRmk5pX519,sponsored,VEUR (classic): no route on 2026-10-06 (NoLiquidity)
-1,0,sell,0.005,SOL,CH74tuRLTYcxG7qNJCsV9rghfLXJCQJbsu7i52a8F1Gn,sponsored,SOLX (classic): no route on 2026-10-06 (NoLiquidity)
-1,0,sell,0.005,SOL,CY2E69dSG9vBsMoaXDvYmMDSMEP4SZtRY1rqVQ9tkNDu,sponsored,NFD (classic): no route on 2026-10-06 (NoLiquidity)
-1,0,sell,0.005,SOL,CvB1ztJvpYQPvdPBePtRzjL4aQidjydtUz61NWgcgQtP,sponsored,EPCT (classic): no route on 2026-10-06 (NoLiquidity)
-1,0,sell,0.005,SOL,F6v4wfAdJB8D8p77bMXZgYt8TDKsYxLYxH5AFhUkYx9W,sponsored,LUNA (classic): no route on 2026-10-06 (NoLiquidity)
-1,0,sell,0.005,SOL,FNMLmBPkhh7nBFyGHsdrmCuvgEf6ygpaVqFejimHEx9V,sponsored,vBLSH (classic): no route on 2026-10-06 (NoLiquidity)
-1,0,sell,0.005,SOL,HHjoYwUp5aU6pnrvN4s2pwEErwXNZKhxKGYjRJMoBjLw,sponsored,PIP (classic): no route on 2026-10-06 (NoLiquidity)
-1,0,sell,0.005,SOL,HRw8mqK8N3ASKFKJGMJpy4FodwR3GKvCFKPDQNqUNuEP,sponsored,DJT (classic): no route on 2026-10-06 (NoLiquidity)
-1,0,sell,0.005,SOL,HVbpJAQGNpkgBaYBZQBR1t7yFdvaYVp2vCQQfKKEN4tM,sponsored,USDP (token-2022): no route on 2026-10-06 (NoLiquidity)
-1,0,sell,0.005,SOL,VVWAy5U2KFd1p8AdchjUxqaJbZPBeP5vUQRZtAy8hyc,sponsored,FLIP (classic): no route on 2026-10-06 (NoLiquidity)
-1,0,sell,0.005,SOL,bobaM3u8QmqZhY1HwAtnvze9DLXvkgKYk3td3t8MLva,sponsored,BOBAOPPA (classic): no route on 2026-10-06 (NoLiquidity)
-1,0,sell,0.005,SOL,xLfNTYy76B8Tiix3hA51Jyvc1kMSFV4sPdR7szTZsRu,sponsored,xLFNTY (classic): no route on 2026-10-06 (NoLiquidity)
+1,0,sell,0.005,SOL,9n4nbM75f5Ui33ZbPYXn59EwSgE8CGsHtAeTH5YFeJ9E,sponsored,soBTC (classic): no route on 2026-10-07 (NoLiquidity)
+1,0,sell,0.005,SOL,9vMJfxuKxXBoEa7rM12mYLMwTacLMLDJqHozw96WQL8i,sponsored,UST (classic): no route on 2026-10-07 (NoLiquidity)
+1,0,sell,0.005,SOL,BANXbTpN8U2cU41FjPxe2Ti37PiT5cCxLUKDQZuJeMMR,sponsored,BANX (classic): no route on 2026-10-07 (NoLiquidity)
+1,0,sell,0.005,SOL,CvB1ztJvpYQPvdPBePtRzjL4aQidjydtUz61NWgcgQtP,sponsored,EPCT (classic): no route on 2026-10-07 (NoLiquidity)
+1,0,sell,0.005,SOL,F6v4wfAdJB8D8p77bMXZgYt8TDKsYxLYxH5AFhUkYx9W,sponsored,LUNA (classic): no route on 2026-10-07 (NoLiquidity)
+1,0,sell,0.005,SOL,HHjoYwUp5aU6pnrvN4s2pwEErwXNZKhxKGYjRJMoBjLw,sponsored,PIP (classic): no route on 2026-10-07 (NoLiquidity)
+1,0,sell,0.005,SOL,HRw8mqK8N3ASKFKJGMJpy4FodwR3GKvCFKPDQNqUNuEP,sponsored,DJT (classic): no route on 2026-10-07 (NoLiquidity)
+1,0,sell,0.005,SOL,HVbpJAQGNpkgBaYBZQBR1t7yFdvaYVp2vCQQfKKEN4tM,sponsored,USDP (token-2022): no route on 2026-10-07 (NoLiquidity)
+1,0,sell,0.005,SOL,SiLVFMgD3eD2rgK628NbTBq9MnuJF5FW2CRaVyTB35L,sponsored,SILV (token-2022): no route on 2026-10-07 (NoLiquidity)
+1,0,sell,0.005,SOL,bobaM3u8QmqZhY1HwAtnvze9DLXvkgKYk3td3t8MLva,sponsored,BOBAOPPA (classic): no route on 2026-10-07 (NoLiquidity)

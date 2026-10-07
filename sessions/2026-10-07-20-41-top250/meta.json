@@ -1,0 +1,23 @@
+{
+ "name": "2026-10-07-20-41-top250 trade session",
+ "title": "2026-10-07-20-41-top250",
+ "start": "2026-10-07T20:41:20.320Z",
+ "env": "staging",
+ "sim": {
+  "scenario": "/Users/anxo/Bunker/code/cow/solana-qos/scenarios/token-universe/top250.csv",
+  "traders": 30,
+  "rows": 500,
+  "solFundingPerTrader": 0.05
+ },
+ "trading_end": "2026-10-07T20:58:10.050Z",
+ "end": "2026-10-07T21:08:10.635Z",
+ "incidents": [
+  {
+   "start": "2026-10-07T21:00:26.947219473Z",
+   "end": "2026-10-07T21:01:07.145377398Z",
+   "label": "Funder out of SOL",
+   "detected": "from driver logs"
+  }
+ ],
+ "fetched_at": "2026-10-07T21:17:21+00:00"
+}

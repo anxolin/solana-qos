@@ -2,68 +2,68 @@
 # What it is: Name, symbol and URI live on the mint itself instead of a separate Metaplex account. It doesn't touch transfers. The most common Token-2022 shape: pump.fun and most new launches.
 # Read more: https://solana.com/docs/tokens/extensions/metadata
 # Barn: Tradable.
-# Tokens: 20 of 60 relevant ones (90-day DEX volume >= $1.0M, liquidity >= $50k, CoinGecko-listed, Jupiter price > 0), most traded first.
+# Tokens: 20 of 59 relevant ones, by 30-day volume. Relevant: 90-day DEX volume >= $1.0M, last 30 days >= 5% of it (still traded), liquidity >= $50k, CoinGecko-listed, Jupiter price > 0.
 # Each trader sells 0.01 SOL into one token, then 60% of it back; 20 tokens barn can also buy get a BUY (exact-out) row. Every 4th trader is self-paid. Cleanup sells the rest.
 # Fund with --sol-funding-per-trader 0.05.
-# Generated 2026-10-07 from token-universe/universe.csv, sized at SOL ≈ $115.97. Regenerate: python3 scenarios/token-2022/generate.py
+# Generated 2026-10-07 from token-universe/universe.csv, sized at SOL ≈ $115.71. Regenerate: python3 scenarios/token-2022/generate.py
 trader,time,type,amount,token,other_token,mode,note
-1,0,sell,0.01,SOL,9cRCn9rGT8V2imeM2BaKs13yhMEais3ruM3rPvTGpump,sponsored,ANSEM rank 10 $984.4M/90d: SOL to token [metadata only]
-1,1,sell,4.89,9cRCn9rGT8V2imeM2BaKs13yhMEais3ruM3rPvTGpump,SOL,sponsored,ANSEM rank 10 $984.4M/90d: 60% back to SOL
-1,2,buy,3.26,9cRCn9rGT8V2imeM2BaKs13yhMEais3ruM3rPvTGpump,SOL,sponsored,ANSEM rank 10 $984.4M/90d: BUY (exact-out) paying SOL
-2,0,sell,0.01,SOL,98kfF7rmsg1QDUEoCqNE7g7M1FdrTt92TEp2CLzypump,sponsored,PAID rank 25 $396.9M/90d: SOL to token [metadata only]
-2,1,sell,132,98kfF7rmsg1QDUEoCqNE7g7M1FdrTt92TEp2CLzypump,SOL,sponsored,PAID rank 25 $396.9M/90d: 60% back to SOL
-2,2,buy,88.1,98kfF7rmsg1QDUEoCqNE7g7M1FdrTt92TEp2CLzypump,SOL,sponsored,PAID rank 25 $396.9M/90d: BUY (exact-out) paying SOL
-3,0,sell,0.01,SOL,Ge87EtsjwRQbHaqQmKRno69RFTwh9bfSsm99XNxTpump,sponsored,Jimothy rank 26 $395.8M/90d: SOL to token [metadata only]
-3,1,sell,200,Ge87EtsjwRQbHaqQmKRno69RFTwh9bfSsm99XNxTpump,SOL,sponsored,Jimothy rank 26 $395.8M/90d: 60% back to SOL
-3,2,buy,133,Ge87EtsjwRQbHaqQmKRno69RFTwh9bfSsm99XNxTpump,SOL,sponsored,Jimothy rank 26 $395.8M/90d: BUY (exact-out) paying SOL
-4,0,sell,0.01,SOL,CTPoyCwkjMvoJwU4xvZZqoD8tiYk6yDchySiN5gGpump,self,fone rank 28 $352.1M/90d: SOL to token [metadata only]
-4,1,sell,172,CTPoyCwkjMvoJwU4xvZZqoD8tiYk6yDchySiN5gGpump,SOL,self,fone rank 28 $352.1M/90d: 60% back to SOL
-4,2,buy,115,CTPoyCwkjMvoJwU4xvZZqoD8tiYk6yDchySiN5gGpump,SOL,self,fone rank 28 $352.1M/90d: BUY (exact-out) paying SOL
-5,0,sell,0.01,SOL,CbcyNo7m1amFWqEQm2m4PLv1UNvpcL3C1Ujm6AkzpKoU,sponsored,e/acc rank 46 $188.8M/90d: SOL to token [metadata only]
-5,1,sell,115,CbcyNo7m1amFWqEQm2m4PLv1UNvpcL3C1Ujm6AkzpKoU,SOL,sponsored,e/acc rank 46 $188.8M/90d: 60% back to SOL
-5,2,buy,76.7,CbcyNo7m1amFWqEQm2m4PLv1UNvpcL3C1Ujm6AkzpKoU,SOL,sponsored,e/acc rank 46 $188.8M/90d: BUY (exact-out) paying SOL
-6,0,sell,0.01,SOL,A13oRB9FFaiUjfi6LdCg6p9ka1u8SfGkUFs4SKvPpump,sponsored,TOAD rank 48 $172.6M/90d: SOL to token [metadata only]
-6,1,sell,424,A13oRB9FFaiUjfi6LdCg6p9ka1u8SfGkUFs4SKvPpump,SOL,sponsored,TOAD rank 48 $172.6M/90d: 60% back to SOL
-6,2,buy,283,A13oRB9FFaiUjfi6LdCg6p9ka1u8SfGkUFs4SKvPpump,SOL,sponsored,TOAD rank 48 $172.6M/90d: BUY (exact-out) paying SOL
-7,0,sell,0.01,SOL,MukLDtJ8Cx9DxLbeyLRSWPSposTMWuwHANbuaudpump,sponsored,OTC rank 52 $159.9M/90d: SOL to token [metadata only]
-7,1,sell,87.9,MukLDtJ8Cx9DxLbeyLRSWPSposTMWuwHANbuaudpump,SOL,sponsored,OTC rank 52 $159.9M/90d: 60% back to SOL
-7,2,buy,58.6,MukLDtJ8Cx9DxLbeyLRSWPSposTMWuwHANbuaudpump,SOL,sponsored,OTC rank 52 $159.9M/90d: BUY (exact-out) paying SOL
-8,0,sell,0.01,SOL,Hg5Ja55T5wESq4vyFoiVCMeHXtGyVA69X2UHq8hgpump,self,baton rank 55 $134.8M/90d: SOL to token [metadata only]
-8,1,sell,79.6,Hg5Ja55T5wESq4vyFoiVCMeHXtGyVA69X2UHq8hgpump,SOL,self,baton rank 55 $134.8M/90d: 60% back to SOL
-8,2,buy,53.1,Hg5Ja55T5wESq4vyFoiVCMeHXtGyVA69X2UHq8hgpump,SOL,self,baton rank 55 $134.8M/90d: BUY (exact-out) paying SOL
-9,0,sell,0.01,SOL,7VertkgF9KLhxxJXHX6uaWuoYZTP9LdGj2bWmVXVpump,sponsored,Agency rank 64 $98.5M/90d: SOL to token [metadata only]
-9,1,sell,103,7VertkgF9KLhxxJXHX6uaWuoYZTP9LdGj2bWmVXVpump,SOL,sponsored,Agency rank 64 $98.5M/90d: 60% back to SOL
-9,2,buy,68.7,7VertkgF9KLhxxJXHX6uaWuoYZTP9LdGj2bWmVXVpump,SOL,sponsored,Agency rank 64 $98.5M/90d: BUY (exact-out) paying SOL
-10,0,sell,0.01,SOL,GTBxUiw6wJdmmkCGZgRHLyYxqu1vG4KtRpeox6yDpump,sponsored,JEANPHIL rank 65 $95.4M/90d: SOL to token [metadata only]
-10,1,sell,180,GTBxUiw6wJdmmkCGZgRHLyYxqu1vG4KtRpeox6yDpump,SOL,sponsored,JEANPHIL rank 65 $95.4M/90d: 60% back to SOL
-10,2,buy,120,GTBxUiw6wJdmmkCGZgRHLyYxqu1vG4KtRpeox6yDpump,SOL,sponsored,JEANPHIL rank 65 $95.4M/90d: BUY (exact-out) paying SOL
-11,0,sell,0.01,SOL,J8PSdNP3QewKq2Z1JJJFDMaqF7KcaiJhR7gbr5KZpump,sponsored,TripleT rank 73 $84.3M/90d: SOL to token [metadata only]
-11,1,sell,105,J8PSdNP3QewKq2Z1JJJFDMaqF7KcaiJhR7gbr5KZpump,SOL,sponsored,TripleT rank 73 $84.3M/90d: 60% back to SOL
-11,2,buy,70,J8PSdNP3QewKq2Z1JJJFDMaqF7KcaiJhR7gbr5KZpump,SOL,sponsored,TripleT rank 73 $84.3M/90d: BUY (exact-out) paying SOL
-12,0,sell,0.01,SOL,BCdwQBAn8dYB5YjTsoB6TdHAWokxv28k2oZUodERpump,self,MANIFEST rank 75 $78.7M/90d: SOL to token [metadata only]
-12,1,sell,68.5,BCdwQBAn8dYB5YjTsoB6TdHAWokxv28k2oZUodERpump,SOL,self,MANIFEST rank 75 $78.7M/90d: 60% back to SOL
-12,2,buy,45.7,BCdwQBAn8dYB5YjTsoB6TdHAWokxv28k2oZUodERpump,SOL,self,MANIFEST rank 75 $78.7M/90d: BUY (exact-out) paying SOL
-13,0,sell,0.01,SOL,GY9mZfyPpxXxBXBxS2hB2XjhP3kfUsywTvgveozxpump,sponsored,ELON rank 89 $61.8M/90d: SOL to token [metadata only]
-13,1,sell,1910,GY9mZfyPpxXxBXBxS2hB2XjhP3kfUsywTvgveozxpump,SOL,sponsored,ELON rank 89 $61.8M/90d: 60% back to SOL
-13,2,buy,1270,GY9mZfyPpxXxBXBxS2hB2XjhP3kfUsywTvgveozxpump,SOL,sponsored,ELON rank 89 $61.8M/90d: BUY (exact-out) paying SOL
-14,0,sell,0.01,SOL,Cm6fNnMk7NfzStP9CZpsQA2v3jjzbcYGAxdJySmHpump,sponsored,Buttcoin rank 113 $48.6M/90d: SOL to token [metadata only]
-14,1,sell,86.6,Cm6fNnMk7NfzStP9CZpsQA2v3jjzbcYGAxdJySmHpump,SOL,sponsored,Buttcoin rank 113 $48.6M/90d: 60% back to SOL
-14,2,buy,57.7,Cm6fNnMk7NfzStP9CZpsQA2v3jjzbcYGAxdJySmHpump,SOL,sponsored,Buttcoin rank 113 $48.6M/90d: BUY (exact-out) paying SOL
-15,0,sell,0.01,SOL,9aqmJjCnnMQv42TXLk921ceUkN35nea2QP969n1caqjj,sponsored,SI rank 116 $46.4M/90d: SOL to token [metadata only]
-15,1,sell,725,9aqmJjCnnMQv42TXLk921ceUkN35nea2QP969n1caqjj,SOL,sponsored,SI rank 116 $46.4M/90d: 60% back to SOL
-15,2,buy,484,9aqmJjCnnMQv42TXLk921ceUkN35nea2QP969n1caqjj,SOL,sponsored,SI rank 116 $46.4M/90d: BUY (exact-out) paying SOL
-16,0,sell,0.01,SOL,DoVAVzViX8Bjy3r15nwikSaSbzE6dV4ovd28aWpJpump,self,HIGGS rank 124 $40.9M/90d: SOL to token [metadata only]
-16,1,sell,554,DoVAVzViX8Bjy3r15nwikSaSbzE6dV4ovd28aWpJpump,SOL,self,HIGGS rank 124 $40.9M/90d: 60% back to SOL
-16,2,buy,369,DoVAVzViX8Bjy3r15nwikSaSbzE6dV4ovd28aWpJpump,SOL,self,HIGGS rank 124 $40.9M/90d: BUY (exact-out) paying SOL
-17,0,sell,0.01,SOL,BcHEaaTCvycPwwsJ9yQTXdHP9X2gCLkznDbZ8VySpump,sponsored,Jotchua rank 133 $37.4M/90d: SOL to token [metadata only]
-17,1,sell,477,BcHEaaTCvycPwwsJ9yQTXdHP9X2gCLkznDbZ8VySpump,SOL,sponsored,Jotchua rank 133 $37.4M/90d: 60% back to SOL
-17,2,buy,318,BcHEaaTCvycPwwsJ9yQTXdHP9X2gCLkznDbZ8VySpump,SOL,sponsored,Jotchua rank 133 $37.4M/90d: BUY (exact-out) paying SOL
-18,0,sell,0.01,SOL,BXoHJddsWJLHtAopeiSbKUSELsu8hSFMs8baGMDkpump,sponsored,CRAWL rank 135 $37.0M/90d: SOL to token [metadata only]
-18,1,sell,281,BXoHJddsWJLHtAopeiSbKUSELsu8hSFMs8baGMDkpump,SOL,sponsored,CRAWL rank 135 $37.0M/90d: 60% back to SOL
-18,2,buy,187,BXoHJddsWJLHtAopeiSbKUSELsu8hSFMs8baGMDkpump,SOL,sponsored,CRAWL rank 135 $37.0M/90d: BUY (exact-out) paying SOL
-19,0,sell,0.01,SOL,5tCju6YNxHq5zrA6tGndr6F7TK42mpUFmeE31cSFpump,sponsored,swordcat rank 175 $30.3M/90d: SOL to token [metadata only]
-19,1,sell,353,5tCju6YNxHq5zrA6tGndr6F7TK42mpUFmeE31cSFpump,SOL,sponsored,swordcat rank 175 $30.3M/90d: 60% back to SOL
-19,2,buy,235,5tCju6YNxHq5zrA6tGndr6F7TK42mpUFmeE31cSFpump,SOL,sponsored,swordcat rank 175 $30.3M/90d: BUY (exact-out) paying SOL
-20,0,sell,0.01,SOL,Tqj8yFmagrg7oorpQkVGYR52r96RFTamvWfth9bpump,self,KINS rank 188 $27.8M/90d: SOL to token [metadata only]
-20,1,sell,1080,Tqj8yFmagrg7oorpQkVGYR52r96RFTamvWfth9bpump,SOL,self,KINS rank 188 $27.8M/90d: 60% back to SOL
-20,2,buy,723,Tqj8yFmagrg7oorpQkVGYR52r96RFTamvWfth9bpump,SOL,self,KINS rank 188 $27.8M/90d: BUY (exact-out) paying SOL
+1,0,sell,0.01,SOL,98kfF7rmsg1QDUEoCqNE7g7M1FdrTt92TEp2CLzypump,sponsored,PAID $396.9M/30d: SOL to token [metadata only]
+1,1,sell,132,98kfF7rmsg1QDUEoCqNE7g7M1FdrTt92TEp2CLzypump,SOL,sponsored,PAID $396.9M/30d: 60% back to SOL
+1,2,buy,87.7,98kfF7rmsg1QDUEoCqNE7g7M1FdrTt92TEp2CLzypump,SOL,sponsored,PAID $396.9M/30d: BUY (exact-out) paying SOL
+2,0,sell,0.01,SOL,CbcyNo7m1amFWqEQm2m4PLv1UNvpcL3C1Ujm6AkzpKoU,sponsored,e/acc $188.8M/30d: SOL to token [metadata only]
+2,1,sell,113,CbcyNo7m1amFWqEQm2m4PLv1UNvpcL3C1Ujm6AkzpKoU,SOL,sponsored,e/acc $188.8M/30d: 60% back to SOL
+2,2,buy,75.4,CbcyNo7m1amFWqEQm2m4PLv1UNvpcL3C1Ujm6AkzpKoU,SOL,sponsored,e/acc $188.8M/30d: BUY (exact-out) paying SOL
+3,0,sell,0.01,SOL,9cRCn9rGT8V2imeM2BaKs13yhMEais3ruM3rPvTGpump,sponsored,ANSEM $182.0M/30d: SOL to token [metadata only]
+3,1,sell,4.94,9cRCn9rGT8V2imeM2BaKs13yhMEais3ruM3rPvTGpump,SOL,sponsored,ANSEM $182.0M/30d: 60% back to SOL
+3,2,buy,3.29,9cRCn9rGT8V2imeM2BaKs13yhMEais3ruM3rPvTGpump,SOL,sponsored,ANSEM $182.0M/30d: BUY (exact-out) paying SOL
+4,0,sell,0.01,SOL,Hg5Ja55T5wESq4vyFoiVCMeHXtGyVA69X2UHq8hgpump,self,baton $134.8M/30d: SOL to token [metadata only]
+4,1,sell,82.9,Hg5Ja55T5wESq4vyFoiVCMeHXtGyVA69X2UHq8hgpump,SOL,self,baton $134.8M/30d: 60% back to SOL
+4,2,buy,55.3,Hg5Ja55T5wESq4vyFoiVCMeHXtGyVA69X2UHq8hgpump,SOL,self,baton $134.8M/30d: BUY (exact-out) paying SOL
+5,0,sell,0.01,SOL,MukLDtJ8Cx9DxLbeyLRSWPSposTMWuwHANbuaudpump,sponsored,OTC $110.2M/30d: SOL to token [metadata only]
+5,1,sell,86.6,MukLDtJ8Cx9DxLbeyLRSWPSposTMWuwHANbuaudpump,SOL,sponsored,OTC $110.2M/30d: 60% back to SOL
+5,2,buy,57.7,MukLDtJ8Cx9DxLbeyLRSWPSposTMWuwHANbuaudpump,SOL,sponsored,OTC $110.2M/30d: BUY (exact-out) paying SOL
+6,0,sell,0.01,SOL,7VertkgF9KLhxxJXHX6uaWuoYZTP9LdGj2bWmVXVpump,sponsored,Agency $98.5M/30d: SOL to token [metadata only]
+6,1,sell,101,7VertkgF9KLhxxJXHX6uaWuoYZTP9LdGj2bWmVXVpump,SOL,sponsored,Agency $98.5M/30d: 60% back to SOL
+6,2,buy,67.6,7VertkgF9KLhxxJXHX6uaWuoYZTP9LdGj2bWmVXVpump,SOL,sponsored,Agency $98.5M/30d: BUY (exact-out) paying SOL
+7,0,sell,0.01,SOL,GTBxUiw6wJdmmkCGZgRHLyYxqu1vG4KtRpeox6yDpump,sponsored,JEANPHIL $95.4M/30d: SOL to token [metadata only]
+7,1,sell,185,GTBxUiw6wJdmmkCGZgRHLyYxqu1vG4KtRpeox6yDpump,SOL,sponsored,JEANPHIL $95.4M/30d: 60% back to SOL
+7,2,buy,123,GTBxUiw6wJdmmkCGZgRHLyYxqu1vG4KtRpeox6yDpump,SOL,sponsored,JEANPHIL $95.4M/30d: BUY (exact-out) paying SOL
+8,0,sell,0.01,SOL,CTPoyCwkjMvoJwU4xvZZqoD8tiYk6yDchySiN5gGpump,self,fone $66.8M/30d: SOL to token [metadata only]
+8,1,sell,169,CTPoyCwkjMvoJwU4xvZZqoD8tiYk6yDchySiN5gGpump,SOL,self,fone $66.8M/30d: 60% back to SOL
+8,2,buy,112,CTPoyCwkjMvoJwU4xvZZqoD8tiYk6yDchySiN5gGpump,SOL,self,fone $66.8M/30d: BUY (exact-out) paying SOL
+9,0,sell,0.01,SOL,GY9mZfyPpxXxBXBxS2hB2XjhP3kfUsywTvgveozxpump,sponsored,ELON $61.8M/30d: SOL to token [metadata only]
+9,1,sell,1960,GY9mZfyPpxXxBXBxS2hB2XjhP3kfUsywTvgveozxpump,SOL,sponsored,ELON $61.8M/30d: 60% back to SOL
+9,2,buy,1310,GY9mZfyPpxXxBXBxS2hB2XjhP3kfUsywTvgveozxpump,SOL,sponsored,ELON $61.8M/30d: BUY (exact-out) paying SOL
+10,0,sell,0.01,SOL,9aqmJjCnnMQv42TXLk921ceUkN35nea2QP969n1caqjj,sponsored,SI $46.4M/30d: SOL to token [metadata only]
+10,1,sell,718,9aqmJjCnnMQv42TXLk921ceUkN35nea2QP969n1caqjj,SOL,sponsored,SI $46.4M/30d: 60% back to SOL
+10,2,buy,479,9aqmJjCnnMQv42TXLk921ceUkN35nea2QP969n1caqjj,SOL,sponsored,SI $46.4M/30d: BUY (exact-out) paying SOL
+11,0,sell,0.01,SOL,DoVAVzViX8Bjy3r15nwikSaSbzE6dV4ovd28aWpJpump,sponsored,HIGGS $40.9M/30d: SOL to token [metadata only]
+11,1,sell,535,DoVAVzViX8Bjy3r15nwikSaSbzE6dV4ovd28aWpJpump,SOL,sponsored,HIGGS $40.9M/30d: 60% back to SOL
+11,2,buy,356,DoVAVzViX8Bjy3r15nwikSaSbzE6dV4ovd28aWpJpump,SOL,sponsored,HIGGS $40.9M/30d: BUY (exact-out) paying SOL
+12,0,sell,0.01,SOL,BXoHJddsWJLHtAopeiSbKUSELsu8hSFMs8baGMDkpump,self,CRAWL $37.0M/30d: SOL to token [metadata only]
+12,1,sell,177,BXoHJddsWJLHtAopeiSbKUSELsu8hSFMs8baGMDkpump,SOL,self,CRAWL $37.0M/30d: 60% back to SOL
+12,2,buy,118,BXoHJddsWJLHtAopeiSbKUSELsu8hSFMs8baGMDkpump,SOL,self,CRAWL $37.0M/30d: BUY (exact-out) paying SOL
+13,0,sell,0.01,SOL,5tCju6YNxHq5zrA6tGndr6F7TK42mpUFmeE31cSFpump,sponsored,swordcat $30.3M/30d: SOL to token [metadata only]
+13,1,sell,482,5tCju6YNxHq5zrA6tGndr6F7TK42mpUFmeE31cSFpump,SOL,sponsored,swordcat $30.3M/30d: 60% back to SOL
+13,2,buy,321,5tCju6YNxHq5zrA6tGndr6F7TK42mpUFmeE31cSFpump,SOL,sponsored,swordcat $30.3M/30d: BUY (exact-out) paying SOL
+14,0,sell,0.01,SOL,8k4sBtEeK4pf26noKqApv8NBTnuSJcbdwpKYknk5PbAA,sponsored,CALI $27.1M/30d: SOL to token [metadata only]
+14,1,sell,541,8k4sBtEeK4pf26noKqApv8NBTnuSJcbdwpKYknk5PbAA,SOL,sponsored,CALI $27.1M/30d: 60% back to SOL
+14,2,buy,360,8k4sBtEeK4pf26noKqApv8NBTnuSJcbdwpKYknk5PbAA,SOL,sponsored,CALI $27.1M/30d: BUY (exact-out) paying SOL
+15,0,sell,0.01,SOL,Ge87EtsjwRQbHaqQmKRno69RFTwh9bfSsm99XNxTpump,sponsored,Jimothy $24.9M/30d: SOL to token [metadata only]
+15,1,sell,202,Ge87EtsjwRQbHaqQmKRno69RFTwh9bfSsm99XNxTpump,SOL,sponsored,Jimothy $24.9M/30d: 60% back to SOL
+15,2,buy,135,Ge87EtsjwRQbHaqQmKRno69RFTwh9bfSsm99XNxTpump,SOL,sponsored,Jimothy $24.9M/30d: BUY (exact-out) paying SOL
+16,0,sell,0.01,SOL,J8PSdNP3QewKq2Z1JJJFDMaqF7KcaiJhR7gbr5KZpump,self,TripleT $22.0M/30d: SOL to token [metadata only]
+16,1,sell,103,J8PSdNP3QewKq2Z1JJJFDMaqF7KcaiJhR7gbr5KZpump,SOL,self,TripleT $22.0M/30d: 60% back to SOL
+16,2,buy,68.8,J8PSdNP3QewKq2Z1JJJFDMaqF7KcaiJhR7gbr5KZpump,SOL,self,TripleT $22.0M/30d: BUY (exact-out) paying SOL
+17,0,sell,0.01,SOL,BCdwQBAn8dYB5YjTsoB6TdHAWokxv28k2oZUodERpump,sponsored,MANIFEST $21.4M/30d: SOL to token [metadata only]
+17,1,sell,67.4,BCdwQBAn8dYB5YjTsoB6TdHAWokxv28k2oZUodERpump,SOL,sponsored,MANIFEST $21.4M/30d: 60% back to SOL
+17,2,buy,44.9,BCdwQBAn8dYB5YjTsoB6TdHAWokxv28k2oZUodERpump,SOL,sponsored,MANIFEST $21.4M/30d: BUY (exact-out) paying SOL
+18,0,sell,0.01,SOL,HKZDfZnkHZxd9agRDNPyDv4iT6LmAurJnpRtj9wpump,sponsored,MISTAKE $20.9M/30d: SOL to token [metadata only]
+18,1,sell,141,HKZDfZnkHZxd9agRDNPyDv4iT6LmAurJnpRtj9wpump,SOL,sponsored,MISTAKE $20.9M/30d: 60% back to SOL
+18,2,buy,94.2,HKZDfZnkHZxd9agRDNPyDv4iT6LmAurJnpRtj9wpump,SOL,sponsored,MISTAKE $20.9M/30d: BUY (exact-out) paying SOL
+19,0,sell,0.01,SOL,3Dgwn5E7H5a8k6iGrz3qirkaJqUaJrKHEZ2xPcLRpump,sponsored,knightcat $18.7M/30d: SOL to token [metadata only]
+19,1,sell,891,3Dgwn5E7H5a8k6iGrz3qirkaJqUaJrKHEZ2xPcLRpump,SOL,sponsored,knightcat $18.7M/30d: 60% back to SOL
+19,2,buy,594,3Dgwn5E7H5a8k6iGrz3qirkaJqUaJrKHEZ2xPcLRpump,SOL,sponsored,knightcat $18.7M/30d: BUY (exact-out) paying SOL
+20,0,sell,0.01,SOL,Cm6fNnMk7NfzStP9CZpsQA2v3jjzbcYGAxdJySmHpump,self,Buttcoin $15.8M/30d: SOL to token [metadata only]
+20,1,sell,83.9,Cm6fNnMk7NfzStP9CZpsQA2v3jjzbcYGAxdJySmHpump,SOL,self,Buttcoin $15.8M/30d: 60% back to SOL
+20,2,buy,55.9,Cm6fNnMk7NfzStP9CZpsQA2v3jjzbcYGAxdJySmHpump,SOL,self,Buttcoin $15.8M/30d: BUY (exact-out) paying SOL

@@ -1,0 +1,13 @@
+{
+ "rpc": "api.mainnet-beta.solana.com",
+ "name": "2026-10-07-21-27-top250 trade session",
+ "title": "2026-10-07-21-27-top250",
+ "start": "2026-10-07T21:27:40.549Z",
+ "env": "staging",
+ "sim": {
+  "scenario": "/Users/anxo/Bunker/code/cow/solana-qos/scenarios/token-universe/top250.csv",
+  "traders": 30,
+  "rows": 500,
+  "solFundingPerTrader": 0.05
+ }
+}
