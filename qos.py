@@ -16,6 +16,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import statistics
 import sys
 import time
@@ -349,6 +350,7 @@ def read_journal(session: Path) -> dict | None:
     orders, rows = {}, {}
     place_errors = retries = 0
     timeouts: set[str] = set()  # orders sim cancelled after its fill timeout
+    last_error: dict = {}  # row -> its last place_error event
     for line in path.read_text().splitlines():
         e = json.loads(line)
         ev, row = e.get("event"), e.get("row")
@@ -359,6 +361,7 @@ def read_journal(session: Path) -> dict | None:
                                 "forced_self": bool(e.get("forcedSelf"))}
         elif ev == "place_error":
             place_errors += 1
+            last_error[row] = e
         elif ev == "retry":
             retries += 1
         elif ev == "row_start":
@@ -370,11 +373,33 @@ def read_journal(session: Path) -> dict | None:
             if rows[row]["started"] and e.get("ts"):
                 rows[row]["seconds"] = (ts(e["ts"]) - ts(rows[row]["started"])).total_seconds()
             rows[row]["reason"] = e.get("reason", "")
+            rows[row]["error"] = last_error.get(row) if ev == "row_failed" else None
     for info in orders.values():
         if info["row"] in rows:
             rows[info["row"]]["orders"] += 1
     return {"orders": orders, "rows": [rows[k] for k in sorted(rows)], "place_errors": place_errors, "retries": retries,
             "timeouts": timeouts}
+
+
+# A failed row whose order existed and just didn't fill: already counted with the orders.
+ORDER_OUTCOME = re.compile(r"^(?:main|acquire)(?: \S+)? (?:expired|timeout|cancelled)$")
+API_ERROR = re.compile(r"\b\d{3} [A-Za-z ]+?: (\w+): (.*)$")
+
+
+def no_order_failure(r: dict) -> dict | None:
+    """For a scenario row that failed before its order existed: the step, the backend's error type and its detail."""
+    reason = r.get("reason") or ""
+    if r.get("status") != "failed" or ORDER_OUTCOME.match(reason):
+        return None
+    step = next((s for s in ("acquire", "main") if reason.startswith(s)), "quote" if reason.startswith("quote failed") else "setup")
+    body = (r.get("error") or {}).get("body")
+    if isinstance(body, dict) and body.get("errorType"):
+        return {"step": step, "type": body["errorType"], "detail": body.get("description", "")}
+    if m := API_ERROR.search(reason):
+        return {"step": step, "type": m.group(1), "detail": m.group(2)}
+    msg = re.sub(r"^(?:\w+(?: \S+)? error|quote failed): ", "", reason)
+    # Journals from before detailed errors only kept the HTTP status text.
+    return {"step": step, "type": msg, "detail": "no response body recorded" if msg in ("Bad Request", "Not Found") else ""}
 
 
 LOGS_MISSING = ("Log data wasn't fetched for this session, so failure causes are generic and the competition and "
@@ -420,6 +445,14 @@ def cmd_report(a):
     for r in (journal or {}).get("rows", []):
         r["mints"] = [mint_of(r.get("token")), mint_of(r.get("other"))]
         r["labels"] = [tok(t) if t and t == m else t for t, m in zip((r.get("token"), r.get("other")), r["mints"])]
+        r["failure"] = no_order_failure(r)
+        if r["failure"]:
+            (t, o), (mt, mo) = r["labels"], r["mints"]
+            sell, buy = ((t, mt), (o, mo)) if r.get("type") == "sell" else ((o, mo), (t, mt))
+            # An acquisition buys the row's sell token with SOL: that's the market that failed.
+            if r["failure"]["step"] == "acquire":
+                sell, buy = ("SOL", by_symbol["SOL"]), sell
+            r["market"] = {"sell": sell, "buy": buy, "text": f"{sell[0]} → {buy[0]}"}
 
     # Cleanup orders are tooling, not scenario traffic: listed in their own section, kept out of the stats.
     cleanup_orders = [o for o in orders if o["step"] == "cleanup"]
@@ -455,6 +488,17 @@ def cmd_report(a):
         md += [table(["Started (UTC)", "Row", "Trader", "Trade", "Result", "Took", "Orders", "Reason"],
                      [[r["started"][11:19], r["row"], r["trader"], r["trade"], r["status"],
                        f"{r['seconds']:.0f}s" if r["seconds"] is not None else "", r["orders"], r["reason"]] for r in rows_]), ""]
+        no_order = [r for r in rows_ if r.get("failure")]
+        if no_order:
+            by_err = defaultdict(list)
+            for r in no_order:
+                by_err[(r["failure"]["type"], r["failure"]["step"])].append(r)
+            md += ["### Rows without an order", "",
+                   f"{len(no_order)} rows failed before an order existed, so no order count includes them.", ""]
+            md += [table(["Error", "Step", "Rows", "Markets", "Detail"], [
+                [t, s, len(rs), ", ".join(f"{m} ×{n}" if n > 1 else m for m, n in Counter(r["market"]["text"] for r in rs).most_common()),
+                 next((r["failure"]["detail"] for r in rs if r["failure"]["detail"]), "")]
+                for (t, s), rs in sorted(by_err.items(), key=lambda kv: -len(kv[1]))]), ""]
         main = sum(o["step"] == "main" for o in orders)
         md += [f"Scenario orders: {len(orders)} ({main} main, {len(orders) - main} acquire). "
                f"Cleanup placed {len(cleanup_orders)} more, listed below and left out of the stats.", ""]

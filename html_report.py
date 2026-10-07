@@ -464,6 +464,39 @@ def trade_cell(r: dict) -> str:
     return f"{escape(str(r['type']))} {escape(str(r['amount']))} {token_link(a, ma)} {'→' if r['type'] == 'sell' else '←'} {token_link(b, mb)}"
 
 
+def market_cell(m: dict) -> str:
+    return f'{token_link(*m["sell"])} → {token_link(*m["buy"])}'
+
+
+def counted(items: list[tuple[str, str]]) -> str:
+    """Distinct (key, html) items, most common first, with a ×n suffix when repeated."""
+    html = dict(items)
+    return ", ".join(f"{html[k]} ×{n}" if n > 1 else html[k] for k, n in Counter(k for k, _ in items).most_common())
+
+
+def no_order_section(rows: list[dict]) -> list[str]:
+    """Scenario rows that failed before their order existed: the quote or the orderbook said no."""
+    steps = {"setup": "token lookup", "quote": "quote", "acquire": "acquiring the sell token", "main": "main order"}
+    by_err, by_market = defaultdict(list), defaultdict(list)
+    for r in rows:
+        by_err[(r["failure"]["type"], r["failure"]["step"])].append(r)
+        by_market[r["market"]["text"]].append(r)
+    err_rows = [[f'<span class="order"><i class="sw t-critical"></i>{escape(t)}</span>', steps.get(s, s), len(rs),
+                 counted([(r["market"]["text"], market_cell(r["market"])) for r in rs]),
+                 escape(next((r["failure"]["detail"] for r in rs if r["failure"]["detail"]), ""))]
+                for (t, s), rs in sorted(by_err.items(), key=lambda kv: -len(kv[1]))]
+    market_rows = [[market_cell(rs[0]["market"]), len(rs),
+                    counted([(r["failure"]["type"], escape(r["failure"]["type"])) for r in rs]),
+                    ", ".join(str(r["row"]) for r in rs)]
+                   for _, rs in sorted(by_market.items(), key=lambda kv: (-len(kv[1]), kv[0]))]
+    return ['<section id="no-order"><h2>Rows without an order</h2>',
+            f"<p>{len(rows)} scenario rows failed before an order existed: the quote or the orderbook rejected them. "
+            "They're in no order count, fill rate or chart above. Grouped by the backend's error, then by market.</p>",
+            '<div class="panel"><h3>By error</h3>' + table(["Error", "Failed at", "Rows", "Markets", "Detail"], err_rows, {2}) + "</div>",
+            f'<details><summary>By market ({len(by_market)})</summary>'
+            + table(["Market", "Rows", "Errors", "Scenario rows"], market_rows, {1}) + "</details></section>"]
+
+
 def scenario_section(journal: dict, orders: list[dict], cleanup: list[dict]) -> list[str]:
     rows = journal["rows"]
     done = sum(r["status"] == "filled" for r in rows)
@@ -575,8 +608,11 @@ def render(*, session, meta, orders, by_solver, drivers, autopilot, sol, compari
         h += rate_limit_section(rate_limits, meta, {o["uid"] for o in orders})
 
     fail_causes = Counter(o["cause"] for o in failed)
+    no_order = [r for r in (journal or {}).get("rows", []) if r.get("failure")]
+    no_order_note = (f' <strong>{len(no_order)} more scenario rows failed before an order existed</strong> and aren\'t '
+                     'counted here: see <a href="#no-order">Rows without an order</a>.') if no_order else ""
     h += ['<section><h2>Why orders didn\'t execute</h2>',
-          f"<p>{len(failed)} orders didn't execute. Causes come from the driver and autopilot logs.</p>",
+          f"<p>{len(failed)} orders didn't execute. Causes come from the driver and autopilot logs.{no_order_note}</p>",
           '<div class="panel">']
     vmax = max(fail_causes.values(), default=1)
     h.append('<div class="bars">')
@@ -586,6 +622,8 @@ def render(*, session, meta, orders, by_solver, drivers, autopilot, sol, compari
                  f'<div class="fill t-{tone(k, inc_labels)}" style="width:{100 * v / vmax:.1f}%"></div></div>'
                  f'<span class="num">{v}</span></div>')
     h += ["</div></div></section>"]
+    if no_order:
+        h += no_order_section(no_order)
 
     # Solvers
     total_settled = sum(v["orders"] for v in by_solver.values())
@@ -653,7 +691,7 @@ def render(*, session, meta, orders, by_solver, drivers, autopilot, sol, compari
     # Failed orders with cause filter
     h += ["<section><h2>Orders not executed</h2>",
           f'<p><span id="failed-count">{len(failed)}</span> orders shown. Filter by cause or trader, or click a trader in the table; '
-          "the ladybug opens the order in the debug tool.</p>",
+          f"the ladybug opens the order in the debug tool.{no_order_note}</p>",
           '<div class="chips" id="cause-filter" role="group" aria-label="Filter by cause">',
           f'<button type="button" id="cause-all" data-cause="*" aria-pressed="true">All <b>{len(failed)}</b></button>']
     for i, (k, v) in enumerate(fail_causes.most_common()):
