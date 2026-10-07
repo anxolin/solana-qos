@@ -123,7 +123,8 @@ Sponsored orders follow the orderbook's template:
 - create the buy ATA (paid by the funder; skipped for native SOL buys)
 - `CreateOrder`
 
-The backend's funder is the fee payer. Native SOL buys are sponsored when the deployment supports them
+The backend's funder is the fee payer: the `funder` named in the quote, or the environment's `sponsor` in
+`../environments.json` when set (the run then warns once if a quote names a different account). Native SOL buys are sponsored when the deployment supports them
 (services#4990). Otherwise they fall back to self-paid, and the journal records `forcedSelf`.
 
 ### App data
@@ -232,7 +233,7 @@ The CoW Swap app loads `SolanaDefault.json` (Jupiter's verified + strict tokens,
 
 ## Token universe
 
-`build-token-universe` ranks every Solana token by DEX volume and checks each one against CoW, to see whether the app's
+`build-token-universe` (~1h: quotes are asked again slowly when the solvers answer NoLiquidity) ranks every Solana token by DEX volume and checks each one against CoW, to see whether the app's
 lists cover what people actually trade:
 
 ```sh
@@ -251,7 +252,7 @@ towards the volume totals):
 | `jupiter`, `organic`, `liquidity_usd`, `jupiter_volume_24h_usd` | Jupiter token API (`verified`, `listed` or `unknown`) |
 | `coingecko` | CoinGecko's Solana mints. The backend's native prices come from CoinGecko: orders for tokens without one expire |
 | `program`, `extensions` | the mint on chain: classic SPL or Token-2022, with fee bps, hook program, default state |
-| `barn`, `barn_reason` | live quotes on `--env`: a sell of `--sol-per-token` SOL into the token, then a buy of half of it. `tradable`, `sell-only` (no exact-out route, normal for Token-2022), `unsupported`, `no-route` |
+| `barn`, `barn_reason` | live quotes on `--env`: a sell of `--sol-per-token` SOL into the token, then a buy of half of it. `tradable`, `sell-only` (no exact-out route; mostly Token-2022), `unsupported`, `no-route` |
 | `cow_supported` | sell quote works and CoinGecko prices it |
 | `lists` | membership in the app's `SolanaDefault` and `NearSolana` |
 | `proposed` | Jupiter verified with organic score high or medium (the list proposed in #solana) |

@@ -142,6 +142,8 @@ function context(
     slippageBps: opts.slippageBps,
     quoteRps: opts.quoteRps,
     settlementProgram: env.urls.settlementProgram,
+    sponsor: env.urls.sponsor,
+    warn: (m) => log(ui.warn(m)),
     apiRps: opts.apiRps,
   })
   const ctx: FlowContext = { link: links(env.urls), rpc, orders, session, maxRetries: opts.maxRetries ?? 0, acquireBufferBps: 300, log }
@@ -244,6 +246,7 @@ program
       ['Orderbook', c.dim(env.urls.api)],
       ['Debug tool', c.dim(env.urls.debug)],
       ['Settlement', `${orders.programId.toBase58()}${env.urls.settlementProgram ? c.yellow(' (override from environments.json)') : ''}`],
+      ['Sponsor', env.urls.sponsor ? `${env.urls.sponsor}${c.yellow(' (from environments.json)')}` : c.dim("the quote's funder")],
       ['Session', opts.dryRun ? c.dim('none (dry run)') : c.cyan(session.name)],
       ['Funder', `${w.funder.publicKey.toBase58()}  ${c.green(fmtSol(funderBalance))}`],
       ['Per trader', `${opts.solFundingPerTrader} SOL`],

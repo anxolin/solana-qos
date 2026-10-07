@@ -353,7 +353,7 @@ export function buildRows(inp: UniverseInputs): UniverseRow[] {
 
 /**
  * Ready for CoW: barn quotes sell orders into it and CoinGecko prices it (the native price orders need to settle).
- * Buy orders are reported apart (`sell-only`): barn has no exact-out route for Token-2022.
+ * Buy orders are reported apart (`sell-only`): exact-out routes are missing for many tokens, mostly Token-2022.
  */
 export const supported = (r: UniverseRow) => (r.barn === 'tradable' || r.barn === 'sell-only') && r.coingecko
 
@@ -429,7 +429,7 @@ export function summarize(rows: UniverseRow[], o: { date: string; source: string
       'the rest only count towards the volume.',
     '',
     '**Supported by CoW** means barn quotes a sell order into it and CoinGecko prices it (the native price orders need to settle). ' +
-      '**Sell-only** tokens have no buy (exact-out) quote: expected for Token-2022, where Jupiter has no exact-out route.',
+      '**Sell-only** tokens have no buy (exact-out) quote; most are Token-2022, where exact-out routes are scarcer.',
     '',
   )
 

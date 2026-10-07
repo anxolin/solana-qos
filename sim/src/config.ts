@@ -21,6 +21,8 @@ export interface Endpoints {
   logs: Record<string, string> | null
   /** Overrides the SDK's settlement program id when barn runs a newer deployment than the SDK knows. */
   settlementProgram?: string
+  /** Pins the account that pays for and signs sponsored creations, instead of trusting the quote's `funder`. */
+  sponsor?: string
 }
 
 export function endpoints(cowEnv: CowEnv): Endpoints {

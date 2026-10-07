@@ -123,6 +123,10 @@ export interface OrdersOptions {
   slippageBps?: number
   /** Settlement program to target instead of the SDK's built-in id (same PDA seeds). */
   settlementProgram?: string
+  /** Sponsoring account to use instead of the quote's `funder` (fee payer and `createdBy` of sponsored orders). */
+  sponsor?: string
+  /** Called once if a quote names a different funder than `sponsor`. */
+  warn?: (m: string) => void
   /** Our own orderbook calls (posting, polling) per second. */
   apiRps?: number
   /** Quotes per second through the SDK's client (its default is 5). */
@@ -133,8 +137,10 @@ export class Orders {
   readonly sdk: SolanaTradingSdk
   readonly ledger = new AllowanceLedger()
   private readonly api: RateLimiter
-  /** Backend's sponsoring funder, learnt from the first quote. */
+  /** Backend's sponsoring funder: `sponsor` if configured, otherwise learnt from the first quote. */
   sponsorFunder?: PublicKey
+  private readonly sponsor?: PublicKey
+  private warnedSponsor = false
   /** The settlement program orders are created on, and its state PDA (the SPL delegate approvals must name). */
   readonly programId: PublicKey
   readonly delegate: PublicKey
@@ -152,6 +158,8 @@ export class Orders {
     this.programId = opts.settlementProgram ? new PublicKey(opts.settlementProgram) : getSolanaSettlementProgramId(opts.env)
     ;[this.delegate] = findSettlementStatePda(this.programId, opts.env)
     this.api = new RateLimiter(opts.apiRps ?? 8)
+    this.sponsor = opts.sponsor ? new PublicKey(opts.sponsor) : undefined
+    this.sponsorFunder = this.sponsor
   }
 
   /** Quote, then stamp our app data on the intent and re-derive the uid and order PDA from it. */
@@ -200,9 +208,14 @@ export class Orders {
 
   private async placeAs(p: PlaceParams, mode: Mode, forcedSelf: boolean): Promise<Placed> {
     const q = await this.quote(p)
-    const funder = q.solanaQuote.funder
+    const quoted = q.solanaQuote.funder
+    if (mode === 'sponsored' && !quoted) throw new Error('sponsoring is disabled on this deployment (no funder in quote)')
+    if (this.sponsor && quoted && !quoted.equals(this.sponsor) && !this.warnedSponsor) {
+      this.warnedSponsor = true
+      this.opts.warn?.(`quote names funder ${quoted.toBase58()}, using the configured sponsor ${this.sponsor.toBase58()}`)
+    }
+    const funder = this.sponsor ?? quoted
     if (funder) this.sponsorFunder = funder
-    if (mode === 'sponsored' && !funder) throw new Error('sponsoring is disabled on this deployment (no funder in quote)')
 
     const order = await stage('build', { intent: q.solanaQuote.intent }, () =>
       q.buildOrder(undefined, mode === 'sponsored' ? { sponsor: funder } : undefined),
