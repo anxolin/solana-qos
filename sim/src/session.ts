@@ -34,7 +34,7 @@ export class Session {
 
   log(e: Omit<JournalEvent, 'ts'>) {
     this.ensure()
-    appendFileSync(resolve(this.dir, 'sim', 'journal.jsonl'), JSON.stringify({ ts: new Date().toISOString(), ...e }) + '\n')
+    appendFileSync(resolve(this.dir, 'sim', 'journal.jsonl'), JSON.stringify({ ts: new Date().toISOString(), ...e }, (_, v) => (typeof v === 'bigint' ? v.toString() : v)) + '\n')
   }
 
   /** Record a placed order so `qos.py fetch` picks it up. */

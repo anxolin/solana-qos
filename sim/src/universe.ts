@@ -15,6 +15,9 @@ import { loadTokenList, SOLANA_CHAIN_ID } from './tokenlist.js'
 /** Dune query 8910905: net swap volume per mint over 90 days, each transaction counted once per mint. */
 export const DEFAULT_DUNE_QUERY = 8910905
 
+/** A request that hangs (e.g. a connection left dead by the laptop sleeping) fails after this and is retried. */
+const HTTP_TIMEOUT_MS = 30_000
+
 export interface VolumeRow {
   mint: string
   symbol: string
@@ -37,7 +40,7 @@ export async function loadVolume(source: string): Promise<VolumeRow[]> {
     while (next) {
       const url: string = next
       const res = await retry(async () => {
-        const r = await fetch(url, { headers: { 'X-Dune-Api-Key': key } })
+        const r = await fetch(url, { headers: { 'X-Dune-Api-Key': key }, signal: AbortSignal.timeout(120_000) })
         if (!r.ok) throw new Error(`Dune query ${dune[1]}: HTTP ${r.status} ${await r.text()}`)
         return r
       })
@@ -82,7 +85,7 @@ export async function jupiterTokens(mints: string[], onProgress?: (done: number,
     const chunk = mints.slice(i, i + 100)
     const found = await retry(() =>
       limiter.run(async () => {
-        const res = await fetch(`https://lite-api.jup.ag/tokens/v2/search?query=${chunk.join(',')}`)
+        const res = await fetch(`https://lite-api.jup.ag/tokens/v2/search?query=${chunk.join(',')}`, { signal: AbortSignal.timeout(HTTP_TIMEOUT_MS) })
         if (!res.ok) throw new Error(`Jupiter token search: HTTP ${res.status}`)
         return (await res.json()) as JupiterToken[]
       }),
@@ -96,7 +99,7 @@ export async function jupiterTokens(mints: string[], onProgress?: (done: number,
 /** Mints CoinGecko lists on Solana. The backend's native prices come from CoinGecko: without it, orders can't settle. */
 export async function coingeckoMints(): Promise<Set<string>> {
   const coins = await retry(async () => {
-    const res = await fetch('https://api.coingecko.com/api/v3/coins/list?include_platform=true')
+    const res = await fetch('https://api.coingecko.com/api/v3/coins/list?include_platform=true', { signal: AbortSignal.timeout(120_000) })
     if (!res.ok) throw new Error(`CoinGecko coins list: HTTP ${res.status}`)
     return (await res.json()) as { platforms?: Record<string, string> }[]
   })
@@ -178,6 +181,7 @@ async function quote(apiBase: string, sellToken: string, buyToken: string, kind:
   const res = await retry(() =>
     fetch(`${apiBase}/v1/quote`, {
       method: 'POST',
+      signal: AbortSignal.timeout(HTTP_TIMEOUT_MS),
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({
         from: '11111111111111111111111111111112', // any valid key; quotes don't need a funded owner
@@ -207,31 +211,49 @@ export interface Quotes {
   buy?: QuoteResult
 }
 
-/** Sell and buy quotes on the orderbook for every mint, at `quoteRps`. */
+/**
+ * Sell and buy quotes on the orderbook for every mint, at `quoteRps`. Under load the solvers get rate limited and the
+ * orderbook answers NoLiquidity for routes that exist, so every NoLiquidity is asked again `retryRounds` times at
+ * `retryRps` (slowly) before it counts.
+ */
 export async function barnQuotes(
   apiBase: string,
   mints: string[],
   solIn: bigint,
   quoteRps: number,
-  onProgress?: (done: number, total: number) => void,
+  onProgress?: (done: number, total: number, round: number) => void,
+  { retryRounds = 2, retryRps = 1 } = {},
 ): Promise<Map<string, Quotes>> {
   const out = new Map<string, Quotes>()
-  const limiter = new RateLimiter(quoteRps)
   const wsol = WSOL_MINT.toBase58()
-  let done = 0
-  await Promise.all(
-    mints.map(async (mint) => {
-      await limiter.take()
-      const sell = await quote(apiBase, wsol, mint, 'sell', solIn)
-      let buy: QuoteResult | undefined
-      if (sell.ok && sell.amount > 1n) {
-        await limiter.take()
-        buy = await quote(apiBase, wsol, mint, 'buy', sell.amount / 2n)
-      }
-      out.set(mint, { sell, buy })
-      onProgress?.(++done, mints.length)
-    }),
-  )
+  const transient = (q?: QuoteResult) => !!q && !q.ok && q.error === 'NoLiquidity'
+  const pass = async (todo: string[], rps: number, round: number) => {
+    const limiter = new RateLimiter(rps)
+    let done = 0
+    await Promise.all(
+      todo.map(async (mint) => {
+        const prev = out.get(mint)
+        let sell = prev?.sell
+        if (!sell || transient(sell)) {
+          await limiter.take()
+          sell = await quote(apiBase, wsol, mint, 'sell', solIn)
+        }
+        let buy = prev?.buy
+        if (sell.ok && sell.amount > 1n && (!buy || transient(buy))) {
+          await limiter.take()
+          buy = await quote(apiBase, wsol, mint, 'buy', sell.amount / 2n)
+        }
+        out.set(mint, { sell, buy })
+        onProgress?.(++done, todo.length, round)
+      }),
+    )
+  }
+  await pass(mints, quoteRps, 0)
+  for (let round = 1; round <= retryRounds; round++) {
+    const again = mints.filter((m) => transient(out.get(m)?.sell) || transient(out.get(m)?.buy))
+    if (!again.length) break
+    await pass(again, retryRps, round)
+  }
   return out
 }
 

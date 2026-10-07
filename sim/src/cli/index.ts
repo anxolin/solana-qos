@@ -493,9 +493,9 @@ program
       mintFacts(rpc, mints),
     ])
     const toQuote = mints.filter((m) => facts.has(m) && m !== WSOL_MINT.toBase58())
-    log(`Quoting ${toQuote.length} mints on ${opts.env} (sell, then buy), ${opts.quoteRps}/s…`)
-    const quotes = await barnQuotes(env.apiBase, toQuote, BigInt(Math.round(opts.solPerToken * 1e9)), opts.quoteRps, (d, t) => {
-      if (d % 100 === 0 || d === t) log(c.dim(`  quoted ${d}/${t}`))
+    log(`Quoting ${toQuote.length} mints on ${opts.env} (sell, then buy), ${opts.quoteRps}/s; NoLiquidity answers are asked again slowly…`)
+    const quotes = await barnQuotes(env.apiBase, toQuote, BigInt(Math.round(opts.solPerToken * 1e9)), opts.quoteRps, (d, t, round) => {
+      if (d % 100 === 0 || d === t) log(c.dim(`  ${round ? `retry round ${round}: ` : ''}quoted ${d}/${t}`))
     })
     const rows = buildRows({ volume, jupiter, coingecko, facts, quotes, lists, checked: new Set(mints) })
     const date = new Date().toISOString().slice(0, 10)

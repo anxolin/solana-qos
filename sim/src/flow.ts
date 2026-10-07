@@ -1,6 +1,6 @@
 import type { Keypair } from '@solana/web3.js'
 import { solToLamports, TRADER_RESERVE_SOL } from './config.js'
-import { errorDetail, sleep } from './limiter.js'
+import { errorDetail, errorInfo, sleep } from './limiter.js'
 import type { Orders, PlaceParams, FinalStatus, Placed } from './orders.js'
 import type { Rpc } from './rpc.js'
 import type { Mode, TradeRow } from './scenario.js'
@@ -45,8 +45,9 @@ export async function placeAndWait(
       last = await ctx.orders.place(p)
     } catch (e) {
       const error = errorDetail(e)
-      ctx.session.log({ ...meta, event: 'place_error', attempt, mode: p.mode, error })
-      ctx.log(`  ${tag(meta.row, meta.trader)} ${stepLabel(meta.step)}: ${ui.error(`place failed: ${error}`)}`)
+      const info = errorInfo(e)
+      ctx.session.log({ ...meta, event: 'place_error', attempt, mode: p.mode, error, ...info })
+      ctx.log(`  ${tag(meta.row, meta.trader)} ${stepLabel(meta.step)}: ${ui.error(`place failed${info.stage ? ` (${info.stage})` : ''}: ${error}`)}`)
       if (attempt < ctx.maxRetries) {
         await sleep(5000)
         continue

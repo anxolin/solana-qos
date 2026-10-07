@@ -24,7 +24,7 @@ export type Verdict =
 export async function loadTokenList(source: string): Promise<{ name: string; tokens: ListToken[] }> {
   const raw = /^https?:\/\//.test(source)
     ? await retry(async () => {
-        const res = await fetch(source)
+        const res = await fetch(source, { signal: AbortSignal.timeout(60_000) })
         if (!res.ok) throw new Error(`${source}: HTTP ${res.status}`)
         return res.json()
       })
@@ -97,6 +97,7 @@ export async function classify(
       const res = await retry(() =>
         fetch(`${apiBase}/v1/quote`, {
           method: 'POST',
+          signal: AbortSignal.timeout(30_000),
           headers: { 'content-type': 'application/json' },
           body: JSON.stringify({
             from: '11111111111111111111111111111112', // any valid key; quotes don't need a funded owner

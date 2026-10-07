@@ -76,6 +76,16 @@ export function errorText(e: unknown): string {
   return `${err?.message ?? String(e)} ${extra}`
 }
 
+/** Tag an error with the placement stage that threw and what was sent, for the journal (see `errorInfo`). */
+async function stage<T>(name: string, request: unknown, fn: () => Promise<T>): Promise<T> {
+  try {
+    return await fn()
+  } catch (e) {
+    if (e && typeof e === 'object' && !('stage' in e)) Object.assign(e, { stage: name, request })
+    throw e
+  }
+}
+
 /** Sum of sell amounts of a trader's open orders per mint: an SPL approve replaces, never adds. */
 class AllowanceLedger {
   private open = new Map<string, Map<string, bigint>>()
@@ -146,7 +156,7 @@ export class Orders {
 
   /** Quote, then stamp our app data on the intent and re-derive the uid and order PDA from it. */
   async quote(p: Omit<PlaceParams, 'mode'>): Promise<SolanaQuoteAndPost> {
-    const q = await this.sdk.getQuote({
+    const params = {
       ownerAddress: p.owner.publicKey,
       sellTokenAddress: p.sell.mint,
       sellTokenDecimals: p.sell.decimals,
@@ -158,7 +168,8 @@ export class Orders {
       buyTokenProgramId: p.buy.programId,
       validForSeconds: this.opts.validFor + PLACEMENT_MARGIN_S,
       ...(this.opts.slippageBps !== undefined ? { slippageBps: this.opts.slippageBps } : {}),
-    })
+    }
+    const q = await stage('quote', { ...params, ownerAddress: params.ownerAddress.toBase58() }, () => this.sdk.getQuote(params))
     // buildOrder() reuses solanaQuote's uid/PDA when given no overrides, so they must match the new intent.
     const sq = q.solanaQuote
     sq.intent = { ...sq.intent, appData: APP_DATA }
@@ -193,7 +204,9 @@ export class Orders {
     if (funder) this.sponsorFunder = funder
     if (mode === 'sponsored' && !funder) throw new Error('sponsoring is disabled on this deployment (no funder in quote)')
 
-    const order = await q.buildOrder(undefined, mode === 'sponsored' ? { sponsor: funder } : undefined)
+    const order = await stage('build', { intent: q.solanaQuote.intent }, () =>
+      q.buildOrder(undefined, mode === 'sponsored' ? { sponsor: funder } : undefined),
+    )
     const { intent } = order
     const owner = p.owner.publicKey
     const sellMint = splMint(p.sell)
@@ -227,9 +240,9 @@ export class Orders {
       tx.partialSign(p.owner)
       const b64 = tx.serialize({ requireAllSignatures: false, verifySignatures: false }).toString('base64')
       await this.api.take()
-      await q.postSponsoredOrder(b64)
+      await stage('post', { uid: order.orderId, intent, transaction: b64 }, () => q.postSponsoredOrder(b64))
     } else {
-      signature = await this.rpc.sendAndConfirm(ixs, [p.owner])
+      signature = await stage('send', { uid: order.orderId, intent }, () => this.rpc.sendAndConfirm(ixs, [p.owner]))
     }
     this.ledger.add(owner, sellMint, order.orderId, intent.sellAmount)
     return {
