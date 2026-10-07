@@ -1,4 +1,9 @@
 import { describe, expect, it } from 'vitest'
+import { Keypair, PublicKey } from '@solana/web3.js'
+import { TOKEN_PROGRAM_ID } from '@solana/spl-token'
+import { RateLimiter } from '../src/limiter.js'
+import { Rpc } from '../src/rpc.js'
+import { runRow, type FlowContext } from '../src/flow.js'
 import { deriveKeypair } from '../src/wallets.js'
 import { parseScenario } from '../src/scenario.js'
 import { fromRaw, loadUniverse, toRaw } from '../src/tokens.js'
@@ -203,5 +208,54 @@ describe('token universe', () => {
     expect(rows.map(supported)).toEqual([true, false])
     expect(supported({ ...rows[0], barn: 'sell-only' })).toBe(true)
     expect(supported({ ...rows[0], barn: 'no-route' })).toBe(false)
+  })
+})
+
+describe('RPC rate limits', () => {
+  const owner = Keypair.generate().publicKey
+  const mint = new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v')
+  const rpcWith = (connection: object) => {
+    const rpc = new Rpc('http://localhost:8899', 1000)
+    Object.assign(rpc, { connection })
+    return rpc
+  }
+
+  it('pauses every caller after a pause', async () => {
+    const limiter = new RateLimiter(1000)
+    limiter.pause(300)
+    const t = Date.now()
+    await limiter.take()
+    expect(Date.now() - t).toBeGreaterThanOrEqual(250)
+  })
+
+  it('reads a missing token account as a zero balance', async () => {
+    const missing = Object.assign(new Error('failed to get token account balance: Invalid param: could not find account'), { code: -32602 })
+    const rpc = rpcWith({ getTokenAccountBalance: () => Promise.reject(missing) })
+    expect(await rpc.tokenBalance(owner, mint)).toBe(0n)
+  })
+
+  it('retries a 429 on a token balance instead of reading it as zero', async () => {
+    let calls = 0
+    const rpc = rpcWith({
+      getTokenAccountBalance: () =>
+        ++calls === 1 ? Promise.reject(new Error('429 Too Many Requests')) : Promise.resolve({ value: { amount: '42' } }),
+    })
+    expect(await rpc.tokenBalance(owner, mint)).toBe(42n)
+    expect(calls).toBe(2)
+  }, 10_000)
+
+  it('fails only the row when an RPC call keeps failing', async () => {
+    const logged: { event: string; reason?: string }[] = []
+    const ctx = {
+      rpc: { lamports: () => Promise.reject(new Error('failed to get balance: 429 Too Many Requests')),
+             mintInfo: () => Promise.resolve({ decimals: 6, programId: TOKEN_PROGRAM_ID }) },
+      session: { log: (e: { event: string; reason?: string }) => logged.push(e) },
+      log: () => {},
+    } as unknown as FlowContext
+    const row = { row: 7, trader: 3, time: 0, type: 'sell' as const, amount: 0.01, token: 'SOL', otherToken: 'USDC', mode: 'sponsored' as const, note: '' }
+    const res = await runRow(ctx, Keypair.generate(), row)
+    expect(res).toMatchObject({ row: 7, trader: 3, status: 'failed', orders: 0 })
+    expect(res.reason).toMatch(/^error: .*429/)
+    expect(logged.at(-1)).toMatchObject({ event: 'row_failed' })
   })
 })

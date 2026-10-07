@@ -15,6 +15,11 @@ export class RateLimiter {
     await this.take()
     return fn()
   }
+
+  /** Hold every caller back for `ms`: one 429 means the whole budget is spent, not just that call's. */
+  pause(ms: number) {
+    this.next = Math.max(this.next, Date.now() + ms)
+  }
 }
 
 export const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms))
@@ -40,7 +45,7 @@ export function errorInfo(e: unknown): Record<string, unknown> {
   return { stage: err?.stage, request: err?.request, status: err?.response?.status, url: err?.response?.url, body: err?.body, logs: err?.logs }
 }
 
-const isRateLimit = (e: unknown) => /\b429\b|too many requests/i.test(errorDetail(e))
+export const isRateLimit = (e: unknown) => /\b429\b|too many requests/i.test(errorDetail(e))
 /** The request never got an HTTP answer: connection reset, timeout (including our own AbortSignal.timeout), DNS. Worth waiting out like a rate limit. */
 const isNetwork = (e: unknown) =>
   /fetch failed|ECONNRESET|ETIMEDOUT|ECONNREFUSED|EAI_AGAIN|ENOTFOUND|EPIPE|socket hang up|UND_ERR|network|TimeoutError|aborted due to timeout/i.test(errorDetail(e))

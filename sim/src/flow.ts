@@ -103,8 +103,20 @@ export async function placeAndWait(
   return { status: 'timeout', attempts, last }
 }
 
-/** One scenario row: acquire the sell token if the trader is short, then place the main order. */
+/** One scenario row. Never throws: an unexpected error (an RPC that won't answer, say) fails just this row. */
 export async function runRow(ctx: FlowContext, owner: Keypair, row: TradeRow): Promise<RowResult> {
+  try {
+    return await playRow(ctx, owner, row)
+  } catch (e) {
+    const reason = `error: ${errorDetail(e)}`
+    ctx.session.log({ row: row.row, trader: row.trader, step: 'main', event: 'row_failed', reason })
+    ctx.log(`  ${tag(row.row, row.trader)}: ${ui.error(reason)}`)
+    return { row: row.row, trader: row.trader, status: 'failed', reason, orders: 0 }
+  }
+}
+
+/** Acquire the sell token if the trader is short, then place the main order. */
+async function playRow(ctx: FlowContext, owner: Keypair, row: TradeRow): Promise<RowResult> {
   const base = { row: row.row, trader: row.trader }
   let orders = 0
   const fail = (reason: string): RowResult => {

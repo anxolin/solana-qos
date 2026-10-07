@@ -6,10 +6,13 @@ import {
   type TransactionInstruction,
 } from '@solana/web3.js'
 import { getAssociatedTokenAddressSync, TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token'
-import { RateLimiter, retry, sleep } from './limiter.js'
+import { isRateLimit, RateLimiter, retry, sleep } from './limiter.js'
 
 export const WSOL_MINT = new PublicKey('So11111111111111111111111111111111111111112')
 export const NATIVE_SOL = new PublicKey('11111111111111111111111111111111')
+
+/** How long every RPC call waits after any of them gets a 429. */
+const RATE_LIMIT_PAUSE_MS = 2_000
 
 /** Connection plus a shared limiter, so 25 traders polling don't trip the RPC's rate limit. */
 export class Rpc {
@@ -28,11 +31,21 @@ export class Rpc {
   }
 
   private callHeavy<T>(fn: (c: Connection) => Promise<T>): Promise<T> {
-    return retry(() => this.heavy.run(() => this.limiter.run(() => fn(this.connection))))
+    return retry(() => this.heavy.run(() => this.limiter.run(() => this.throttled(fn))))
   }
 
   call<T>(fn: (c: Connection) => Promise<T>): Promise<T> {
-    return retry(() => this.limiter.run(() => fn(this.connection)))
+    return retry(() => this.limiter.run(() => this.throttled(fn)))
+  }
+
+  /** On a 429, pause every RPC call for a moment, not just this one: otherwise the others keep the limit hit. */
+  private async throttled<T>(fn: (c: Connection) => Promise<T>): Promise<T> {
+    try {
+      return await fn(this.connection)
+    } catch (e) {
+      if (isRateLimit(e)) this.limiter.pause(RATE_LIMIT_PAUSE_MS)
+      throw e
+    }
   }
 
   async lamports(owner: PublicKey): Promise<bigint> {
@@ -42,7 +55,13 @@ export class Rpc {
   /** Raw balance of `owner`'s associated token account for `mint`; 0 when it doesn't exist. */
   async tokenBalance(owner: PublicKey, mint: PublicKey, programId: PublicKey = TOKEN_PROGRAM_ID): Promise<bigint> {
     const ata = getAssociatedTokenAddressSync(mint, owner, false, programId)
-    const info = await this.call((c) => c.getTokenAccountBalance(ata).catch(() => null))
+    // Only a missing account is a zero balance; a 429 or timeout must be retried, not read as "holds nothing".
+    const info = await this.call((c) =>
+      c.getTokenAccountBalance(ata).catch((e) => {
+        if ((e as { code?: number }).code === -32602 && /could not find account/i.test(String((e as Error).message))) return null
+        throw e
+      }),
+    )
     return info ? BigInt(info.value.amount) : 0n
   }
 
