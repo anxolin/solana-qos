@@ -1,10 +1,9 @@
 # Solana token universe (2026-10-07)
 
-106134 tokens with at least $100k of DEX volume in the last 90 days (dune:8910905), $176.17B in total (each swap counted once per token, hops and arbitrage loops excluded; SOL left out of the shares).
-
-The top 2180 (by volume, plus the app lists' tokens) were checked on Jupiter, on chain and on barn; the rest only count towards the volume.
-
-**Supported by CoW** means barn quotes a sell order into it and CoinGecko prices it (the native price orders need to settle). **Sell-only** tokens have no buy (exact-out) quote; most are Token-2022, where exact-out routes are scarcer.
+- **106,134 tokens** traded at least $100k on Solana DEXs in the last 90 days, $176.17B in total (source: dune:8910905). Shares below leave SOL out.
+- **2,180 were checked** on Jupiter, on chain and on barn: the most traded, plus every token in the app lists. The rest only count towards the volume.
+- **Supported** = barn quotes a sell into the token and CoinGecko prices it (orders need a price to settle).
+- **Sell-only** = no buy quote. Mostly Token-2022 tokens.
 
 ## Coverage of the traded volume
 
