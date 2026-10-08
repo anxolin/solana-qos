@@ -1,0 +1,15 @@
+{
+ "name": "2026-10-08-10-09-opposing-sol-usdc trade session",
+ "title": "2026-10-08-10-09-opposing-sol-usdc",
+ "start": "2026-10-08T10:10:02.183Z",
+ "env": "staging",
+ "sim": {
+  "scenario": "/Users/igor/work/cowprotocol/solana-qos/scenarios/opposing-sol-usdc.csv",
+  "traders": 10,
+  "rows": 15,
+  "solFundingPerTrader": 0.06
+ },
+ "trading_end": "2026-10-08T10:13:37.328Z",
+ "end": "2026-10-08T10:15:08.782Z",
+ "fetched_at": "2026-10-08T10:15:16+00:00"
+}
