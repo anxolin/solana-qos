@@ -1,0 +1,12 @@
+{
+ "_source": "VictoriaLogs via Grafana, container solana-autopilot-staging",
+ "drivers": {},
+ "autopilot": {
+  "winner_skipped_creation_blockhash_expired": 0,
+  "sponsored_creation_expired_orders": 380,
+  "filtered": {
+   "unfunded_sell_token_account": 274,
+   "unreceivable_buy_token_account": 274
+  }
+ }
+}
