@@ -132,7 +132,7 @@ function context(
   session: Session,
 ) {
   const env = loadEnv({ cowEnv: opts.env })
-  const rpc = new Rpc(env.rpcUrl, opts.rpcRps ?? 10)
+  const rpc = new Rpc(env.rpcUrl, opts.rpcRps ?? 10, env.rpcBackupUrl)
   const orders = new Orders(rpc, {
     env: opts.env,
     apiBase: env.apiBase,
@@ -547,7 +547,7 @@ program
   .option('--traders <spec>', 'e.g. 1-25', '1-25')
   .action(async (opts) => {
     const env = loadEnv()
-    const rpc = new Rpc(env.rpcUrl)
+    const rpc = new Rpc(env.rpcUrl, 10, env.rpcBackupUrl)
     const w = wallets(env.mnemonic)
     console.log(`${c.bold('funder  ')} ${w.funder.publicKey.toBase58()}  ${c.green(fmtSol(await rpc.lamports(w.funder.publicKey)))}`)
     for (const n of parseTraders(opts.traders)) {

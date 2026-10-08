@@ -32,6 +32,16 @@ RPC_URL="https://…"   # a paid RPC (Helius, Triton, QuickNode…); the public 
 
 Exported environment variables work too and take precedence. `SOLANA_RPC_URL` is accepted as an alias for `RPC_URL`.
 
+Set `RPC_BACKUP_URL` to a second **Solana mainnet** RPC provider with an independent quota:
+
+```sh
+RPC_BACKUP_URL="https://…"
+```
+
+On temporary RPC errors, the simulator tries the other provider and keeps using whichever works. Requests time out after 10 seconds when a backup is configured; failed providers cool down for 30 seconds unless both fail. Both share the existing rate limits and retries. Program errors do not trigger failover, and transaction resubmission uses identical signed bytes. `qos.py` report fetching has separate RPC configuration.
+
+Quotes and sponsored posts have separate pacing. The simulator waits before quoting and signing so the API queue does not age the transaction. A failed balance read fails that row while later rows and cleanup continue. Order retries remain controlled by `--max-retries` (default 0).
+
 ### 3. Fund the funder
 
 Send SOL from any wallet to the funder address. A session needs about `traders × --sol-funding-per-trader`, plus fees.
@@ -275,5 +285,7 @@ pnpm sim generate-token-list-session --list ../token-universe/tokenlist-missing.
 - wallet derivation against `solana-keygen`
 - CSV validation and amount conversion
 - generator rules: determinism, budget, spacing, native SOL payouts, and that a token is only sold after it was acquired
+- RPC failover, stalled requests, concurrent reads and identical transaction bytes on resubmission
+- quote pacing, waiting before sponsored signing and continuing after a row's balance read fails
 
 Never use the test mnemonic (`abandon … about`) for real funds: it's public.

@@ -63,6 +63,7 @@ export const links = (e: Endpoints) => ({
 export interface Env {
   mnemonic: string
   rpcUrl: string
+  rpcBackupUrl?: string
   cowEnv: CowEnv
   /** Orderbook base, e.g. https://barn.api.cow.fi/solana/api */
   apiBase: string
@@ -75,8 +76,9 @@ export function loadEnv({ needMnemonic = true, cowEnv = 'staging' as CowEnv } = 
   // RPC_URL is the documented name; SOLANA_RPC_URL still works.
   const rpcUrl = (process.env.RPC_URL || process.env.SOLANA_RPC_URL || '').trim()
   if (!rpcUrl) throw new Error('Set RPC_URL; the public mainnet RPC is too rate-limited for a session.')
+  const rpcBackupUrl = process.env.RPC_BACKUP_URL?.trim() || undefined
   const urls = endpoints(cowEnv)
-  return { mnemonic, rpcUrl, cowEnv, apiBase: urls.api, urls }
+  return { mnemonic, rpcUrl, rpcBackupUrl, cowEnv, apiBase: urls.api, urls }
 }
 
 export function solToLamports(sol: number): bigint {

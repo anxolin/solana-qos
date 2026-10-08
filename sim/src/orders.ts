@@ -130,7 +130,7 @@ export interface OrdersOptions {
   warn?: (m: string) => void
   /** Our own orderbook calls (posting, polling) per second. */
   apiRps?: number
-  /** Quotes per second through the SDK's client (its default is 5). */
+  /** Quotes per second (the SDK also uses its client for sponsored posts). */
   quoteRps?: number
 }
 
@@ -138,6 +138,7 @@ export class Orders {
   readonly sdk: SolanaTradingSdk
   readonly ledger = new AllowanceLedger()
   private readonly api: RateLimiter
+  private readonly quotes: RateLimiter
   /** Backend's sponsoring funder: `sponsor` if configured, otherwise learnt from the first quote. */
   sponsorFunder?: PublicKey
   private readonly sponsor?: PublicKey
@@ -150,21 +151,26 @@ export class Orders {
     private readonly rpc: Rpc,
     private readonly opts: OrdersOptions,
   ) {
+    const quoteRps = opts.quoteRps ?? 5
+    const apiRps = opts.apiRps ?? 8
     const orderBookApi = new OrderBookApi({
       chainId: SupportedChainId.SOLANA,
       env: opts.env,
-      limiterOpts: { tokensPerInterval: opts.quoteRps ?? 5, interval: 'second' },
+      // The SDK shares one limit for quotes and posts; allow both configured lanes.
+      limiterOpts: { tokensPerInterval: quoteRps + apiRps, interval: 'second' },
     })
     this.sdk = new SolanaTradingSdk({ env: opts.env, orderBookApi })
     this.programId = opts.settlementProgram ? new PublicKey(opts.settlementProgram) : getSolanaSettlementProgramId(opts.env)
     ;[this.delegate] = findSettlementStatePda(this.programId, opts.env)
-    this.api = new RateLimiter(opts.apiRps ?? 8)
+    this.api = new RateLimiter(apiRps)
+    this.quotes = new RateLimiter(quoteRps)
     this.sponsor = opts.sponsor ? new PublicKey(opts.sponsor) : undefined
     this.sponsorFunder = this.sponsor
   }
 
   /** Quote, then stamp our app data on the intent and re-derive the uid and order PDA from it. */
   async quote(p: Omit<PlaceParams, 'mode'>): Promise<SolanaQuoteAndPost> {
+    await this.quotes.take()
     const params = {
       ownerAddress: p.owner.publicKey,
       sellTokenAddress: p.sell.mint,
@@ -212,6 +218,8 @@ export class Orders {
   }
 
   private async placeAs(p: PlaceParams, mode: Mode, forcedSelf: boolean): Promise<Placed> {
+    // Wait before quoting/signing, so our API queue does not age the quote or blockhash.
+    if (mode === 'sponsored') await this.api.take()
     const q = await this.quote(p)
     const quoted = q.solanaQuote.funder
     if (mode === 'sponsored' && !quoted) throw new Error('sponsoring is disabled on this deployment (no funder in quote)')
@@ -257,7 +265,6 @@ export class Orders {
       const tx = new Transaction({ feePayer: funder!, blockhash, lastValidBlockHeight }).add(...ixs)
       tx.partialSign(p.owner)
       const b64 = tx.serialize({ requireAllSignatures: false, verifySignatures: false }).toString('base64')
-      await this.api.take()
       await stage('post', { uid: order.orderId, intent, transaction: b64 }, () => q.postSponsoredOrder(b64))
     } else {
       signature = await stage('send', { uid: order.orderId, intent }, () => this.rpc.sendAndConfirm(ixs, [p.owner]))

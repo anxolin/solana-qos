@@ -216,7 +216,7 @@ describe('RPC rate limits', () => {
   const mint = new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v')
   const rpcWith = (connection: object) => {
     const rpc = new Rpc('http://localhost:8899', 1000)
-    Object.assign(rpc, { connection })
+    Object.assign(rpc.connection, connection)
     return rpc
   }
 

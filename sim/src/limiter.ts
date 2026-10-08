@@ -47,7 +47,7 @@ export function errorInfo(e: unknown): Record<string, unknown> {
 
 export const isRateLimit = (e: unknown) => /\b429\b|too many requests/i.test(errorDetail(e))
 /** The request never got an HTTP answer: connection reset, timeout (including our own AbortSignal.timeout), DNS. Worth waiting out like a rate limit. */
-const isNetwork = (e: unknown) =>
+export const isNetwork = (e: unknown) =>
   /fetch failed|ECONNRESET|ETIMEDOUT|ECONNREFUSED|EAI_AGAIN|ENOTFOUND|EPIPE|socket hang up|UND_ERR|network|TimeoutError|aborted due to timeout/i.test(errorDetail(e))
 
 /**

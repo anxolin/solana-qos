@@ -2,11 +2,13 @@ import {
   Connection,
   PublicKey,
   Transaction,
+  SendTransactionError,
+  type ConnectionConfig,
   type Keypair,
   type TransactionInstruction,
 } from '@solana/web3.js'
 import { getAssociatedTokenAddressSync, TOKEN_2022_PROGRAM_ID, TOKEN_PROGRAM_ID } from '@solana/spl-token'
-import { isRateLimit, RateLimiter, retry, sleep } from './limiter.js'
+import { errorDetail, isNetwork, isRateLimit, RateLimiter, retry, sleep } from './limiter.js'
 
 export const WSOL_MINT = new PublicKey('So11111111111111111111111111111111111111112')
 export const NATIVE_SOL = new PublicKey('11111111111111111111111111111111')
@@ -14,38 +16,99 @@ export const NATIVE_SOL = new PublicKey('11111111111111111111111111111111')
 /** How long every RPC call waits after any of them gets a 429. */
 const RATE_LIMIT_PAUSE_MS = 2_000
 
+function transientRpcError(e: unknown): boolean {
+  if (e instanceof SendTransactionError) {
+    // web3.js also wraps unhealthy-node RPC errors in this class. Never inspect program logs.
+    const { message, logs } = e.transactionError
+    return !logs?.length && /^Node is (?:unhealthy\b|behind\b)/i.test(message)
+  }
+  const code = (e as { code?: number })?.code
+  if (typeof code === 'number' && code < 0) return code === -32005 // node unhealthy
+  return isNetwork(e) || /(?:^|\bError:\s*|\bHTTP\s+)(429|500|502|503|504)\b|too many requests|rate limit|timeout|timed out|node is (?:unhealthy|behind)/i.test(errorDetail(e))
+}
+
+interface RpcEndpoint {
+  connection: Connection
+  cooldownUntil: number
+  failureVersion: number
+  label: string
+}
+
 /** Connection plus a shared limiter, so 25 traders polling don't trip the RPC's rate limit. */
 export class Rpc {
-  readonly connection: Connection
+  private readonly endpoints: RpcEndpoint[]
+  private active: RpcEndpoint
   private readonly limiter: RateLimiter
   private readonly mints = new Map<string, { decimals: number; programId: PublicKey }>()
 
   /** Heavy calls (token account scans) get their own, slower lane: RPCs rate-limit them per method. */
   private readonly heavy: RateLimiter
 
-  constructor(url: string, rps = 10) {
+  constructor(url: string, rps = 10, backupUrl?: string) {
     // web3.js's own 429 retry is noisy and short; ours backs off longer and quietly.
-    this.connection = new Connection(url, { commitment: 'confirmed', disableRetryOnRateLimit: true })
+    const urls = [...new Set([url, backupUrl].filter((u): u is string => Boolean(u)).map((u) => new URL(u).toString()))]
+    const config: ConnectionConfig = { commitment: 'confirmed', disableRetryOnRateLimit: true }
+    if (urls.length > 1) {
+      config.fetch = (input, init) => {
+        const timeout = AbortSignal.timeout(10_000)
+        const signal = init?.signal ? AbortSignal.any([init.signal, timeout]) : timeout
+        return fetch(input, { ...init, signal })
+      }
+    }
+    this.endpoints = urls.map((endpoint, index) => ({
+      connection: new Connection(endpoint, config),
+      cooldownUntil: 0,
+      failureVersion: 0,
+      label: index === 0 ? 'primary' : 'backup',
+    }))
+    this.active = this.endpoints[0]
     this.limiter = new RateLimiter(rps)
     this.heavy = new RateLimiter(Math.max(1, Math.floor(rps / 4)))
   }
 
+  get connection(): Connection {
+    return this.active.connection
+  }
+
+  /** Each callback is a single RPC operation; submissions must reuse already signed bytes. */
+  private async callOnce<T>(fn: (c: Connection) => Promise<T>, heavy = false): Promise<T> {
+    const remaining = new Set(this.endpoints)
+    let last: unknown
+    while (remaining.size) {
+      if (heavy) await this.heavy.take()
+      await this.limiter.take()
+      // Choose after waiting: another trader may have discovered an outage meanwhile.
+      const healthy = [...remaining].filter((endpoint) => endpoint.cooldownUntil <= Date.now())
+      const candidates = healthy.length ? healthy : [...remaining]
+      const endpoint = candidates.includes(this.active) ? this.active : candidates[0]
+      remaining.delete(endpoint)
+      const version = endpoint.failureVersion
+      try {
+        const result = await fn(endpoint.connection)
+        // An older response must not undo a newer failure discovered by another trader.
+        if (endpoint.failureVersion === version) {
+          endpoint.cooldownUntil = 0
+          this.active = endpoint
+        }
+        return result
+      } catch (e) {
+        if (isRateLimit(e)) this.limiter.pause(RATE_LIMIT_PAUSE_MS)
+        if (!transientRpcError(e)) throw e
+        endpoint.failureVersion++
+        endpoint.cooldownUntil = Date.now() + 30_000
+        if (this.endpoints.length > 1) console.warn(`RPC ${endpoint.label} unavailable; trying the other endpoint.`)
+        last = e
+      }
+    }
+    throw last
+  }
+
   private callHeavy<T>(fn: (c: Connection) => Promise<T>): Promise<T> {
-    return retry(() => this.heavy.run(() => this.limiter.run(() => this.throttled(fn))))
+    return retry(() => this.callOnce(fn, true))
   }
 
   call<T>(fn: (c: Connection) => Promise<T>): Promise<T> {
-    return retry(() => this.limiter.run(() => this.throttled(fn)))
-  }
-
-  /** On a 429, pause every RPC call for a moment, not just this one: otherwise the others keep the limit hit. */
-  private async throttled<T>(fn: (c: Connection) => Promise<T>): Promise<T> {
-    try {
-      return await fn(this.connection)
-    } catch (e) {
-      if (isRateLimit(e)) this.limiter.pause(RATE_LIMIT_PAUSE_MS)
-      throw e
-    }
+    return retry(() => this.callOnce(fn))
   }
 
   async lamports(owner: PublicKey): Promise<bigint> {
