@@ -1,64 +1,18 @@
-# Get USDC first. Then compare everyone selling SOL with half selling and half buying wSOL.
-# 20 traders, 60 orders including setup. Fund 0.06 SOL each: 1.20 SOL total.
-# Run from sim/: pnpm sim simulate-trade-session ../scenarios/opposing-sol-usdc.csv --sol-funding-per-trader 0.06 --max-total-sol 1.9 --report
+# Prepare USDC for 5 buyers, then one wave of 5 SOL sellers and 5 wSOL buyers.
+# Run from sim/: pnpm sim simulate-trade-session ../scenarios/opposing-sol-usdc.csv --sol-funding-per-trader 0.06 --max-total-sol 0.6 --max-creation-sol 0.2 --report
 trader,time,type,amount,token,other_token,mode,note
-1,0,sell,0.01,SOL,USDC,sponsored,setup USDC for both groups
-2,0,sell,0.01,SOL,USDC,sponsored,setup USDC for both groups
-3,0,sell,0.01,SOL,USDC,sponsored,setup USDC for both groups
-4,0,sell,0.01,SOL,USDC,sponsored,setup USDC for both groups
-5,0,sell,0.01,SOL,USDC,sponsored,setup USDC for both groups
-6,0,sell,0.01,SOL,USDC,sponsored,setup USDC for both groups
-7,0,sell,0.01,SOL,USDC,sponsored,setup USDC for both groups
-8,0,sell,0.01,SOL,USDC,sponsored,setup USDC for both groups
-9,0,sell,0.01,SOL,USDC,sponsored,setup USDC for both groups
-10,0,sell,0.01,SOL,USDC,sponsored,setup USDC for both groups
-11,0,sell,0.01,SOL,USDC,sponsored,setup USDC for both groups
-12,0,sell,0.01,SOL,USDC,sponsored,setup USDC for both groups
-13,0,sell,0.01,SOL,USDC,sponsored,setup USDC for both groups
-14,0,sell,0.01,SOL,USDC,sponsored,setup USDC for both groups
-15,0,sell,0.01,SOL,USDC,sponsored,setup USDC for both groups
-16,0,sell,0.01,SOL,USDC,sponsored,setup USDC for both groups
-17,0,sell,0.01,SOL,USDC,sponsored,setup USDC for both groups
-18,0,sell,0.01,SOL,USDC,sponsored,setup USDC for both groups
-19,0,sell,0.01,SOL,USDC,sponsored,setup USDC for both groups
-20,0,sell,0.01,SOL,USDC,sponsored,setup USDC for both groups
-1,180,sell,0.0025,SOL,USDC,sponsored,control everyone sells SOL
-2,180,sell,0.0025,SOL,USDC,sponsored,control everyone sells SOL
-3,180,sell,0.0025,SOL,USDC,sponsored,control everyone sells SOL
-4,180,sell,0.0025,SOL,USDC,sponsored,control everyone sells SOL
-5,180,sell,0.0025,SOL,USDC,sponsored,control everyone sells SOL
-6,180,sell,0.0025,SOL,USDC,sponsored,control everyone sells SOL
-7,180,sell,0.0025,SOL,USDC,sponsored,control everyone sells SOL
-8,180,sell,0.0025,SOL,USDC,sponsored,control everyone sells SOL
-9,180,sell,0.0025,SOL,USDC,sponsored,control everyone sells SOL
-10,180,sell,0.0025,SOL,USDC,sponsored,control everyone sells SOL
-11,180,sell,0.0025,SOL,USDC,sponsored,control everyone sells SOL
-12,180,sell,0.0025,SOL,USDC,sponsored,control everyone sells SOL
-13,180,sell,0.0025,SOL,USDC,sponsored,control everyone sells SOL
-14,180,sell,0.0025,SOL,USDC,sponsored,control everyone sells SOL
-15,180,sell,0.0025,SOL,USDC,sponsored,control everyone sells SOL
-16,180,sell,0.0025,SOL,USDC,sponsored,control everyone sells SOL
-17,180,sell,0.0025,SOL,USDC,sponsored,control everyone sells SOL
-18,180,sell,0.0025,SOL,USDC,sponsored,control everyone sells SOL
-19,180,sell,0.0025,SOL,USDC,sponsored,control everyone sells SOL
-20,180,sell,0.0025,SOL,USDC,sponsored,control everyone sells SOL
-1,360,sell,0.0025,SOL,USDC,sponsored,opposing sell SOL
-2,360,buy,0.0025,wSOL,USDC,sponsored,opposing buy exact wSOL using held USDC
-3,360,sell,0.0025,SOL,USDC,sponsored,opposing sell SOL
-4,360,buy,0.0025,wSOL,USDC,sponsored,opposing buy exact wSOL using held USDC
-5,360,sell,0.0025,SOL,USDC,sponsored,opposing sell SOL
-6,360,buy,0.0025,wSOL,USDC,sponsored,opposing buy exact wSOL using held USDC
-7,360,sell,0.0025,SOL,USDC,sponsored,opposing sell SOL
-8,360,buy,0.0025,wSOL,USDC,sponsored,opposing buy exact wSOL using held USDC
-9,360,sell,0.0025,SOL,USDC,sponsored,opposing sell SOL
-10,360,buy,0.0025,wSOL,USDC,sponsored,opposing buy exact wSOL using held USDC
-11,360,sell,0.0025,SOL,USDC,sponsored,opposing sell SOL
-12,360,buy,0.0025,wSOL,USDC,sponsored,opposing buy exact wSOL using held USDC
-13,360,sell,0.0025,SOL,USDC,sponsored,opposing sell SOL
-14,360,buy,0.0025,wSOL,USDC,sponsored,opposing buy exact wSOL using held USDC
-15,360,sell,0.0025,SOL,USDC,sponsored,opposing sell SOL
-16,360,buy,0.0025,wSOL,USDC,sponsored,opposing buy exact wSOL using held USDC
-17,360,sell,0.0025,SOL,USDC,sponsored,opposing sell SOL
-18,360,buy,0.0025,wSOL,USDC,sponsored,opposing buy exact wSOL using held USDC
-19,360,sell,0.0025,SOL,USDC,sponsored,opposing sell SOL
-20,360,buy,0.0025,wSOL,USDC,sponsored,opposing buy exact wSOL using held USDC
+2,0,sell,0.01,SOL,USDC,sponsored,prepare USDC for buyer
+4,0,sell,0.01,SOL,USDC,sponsored,prepare USDC for buyer
+6,0,sell,0.01,SOL,USDC,sponsored,prepare USDC for buyer
+8,0,sell,0.01,SOL,USDC,sponsored,prepare USDC for buyer
+10,0,sell,0.01,SOL,USDC,sponsored,prepare USDC for buyer
+1,180,sell,0.0025,SOL,USDC,sponsored,sell SOL for USDC
+2,180,buy,0.0025,wSOL,USDC,sponsored,buy wSOL with USDC
+3,180,sell,0.0025,SOL,USDC,sponsored,sell SOL for USDC
+4,180,buy,0.0025,wSOL,USDC,sponsored,buy wSOL with USDC
+5,180,sell,0.0025,SOL,USDC,sponsored,sell SOL for USDC
+6,180,buy,0.0025,wSOL,USDC,sponsored,buy wSOL with USDC
+7,180,sell,0.0025,SOL,USDC,sponsored,sell SOL for USDC
+8,180,buy,0.0025,wSOL,USDC,sponsored,buy wSOL with USDC
+9,180,sell,0.0025,SOL,USDC,sponsored,sell SOL for USDC
+10,180,buy,0.0025,wSOL,USDC,sponsored,buy wSOL with USDC

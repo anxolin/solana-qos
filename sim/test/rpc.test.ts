@@ -1,9 +1,11 @@
 import { createServer, type Server } from 'node:http'
+import { spawn } from 'node:child_process'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { Keypair, SystemProgram, Transaction } from '@solana/web3.js'
 import bs58 from 'bs58'
-import { loadEnv } from '../src/config.js'
+import { endpoints, loadEnv } from '../src/config.js'
 import { Rpc } from '../src/rpc.js'
+import { deriveKeypair } from '../src/wallets.js'
 
 const servers: Server[] = []
 const owner = Keypair.generate()
@@ -199,4 +201,31 @@ describe('backup RPC', () => {
     expect(submitted[0]).toBe(submitted[1])
     expect(signature).toBe(bs58.encode(Transaction.from(Buffer.from(submitted[0], 'base64')).signature!))
   })
+})
+
+describe('budget preflight', () => {
+  it.each(['creation limit', 'empty sponsor'])('refuses %s before submitting any transaction', async (reason) => {
+    const mnemonic = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about'
+    const funder = deriveKeypair(mnemonic, 0).publicKey.toBase58()
+    const sponsor = endpoints('staging').sponsor!
+    const rpc = await endpoint((_, params) => ({ result: { context: { slot: 1 }, value: params[0] === funder ? 10_000_000_000 : params[0] === sponsor && reason !== 'empty sponsor' ? 20_000_000_000 : 0 } }))
+    const scenario = '../scenarios/burst-8-16-24-32.csv'
+    const args = reason === 'creation limit'
+      ? ['simulate-trade-session', scenario, '--yes', '--rpc-rps', '1000', '--max-creation-sol', '0']
+      : ['check-budget', scenario]
+    const result = await new Promise<{ code: number | null; output: string }>((resolve, reject) => {
+      const child = spawn(process.execPath, ['--import', 'tsx', 'src/cli/index.ts', ...args], {
+        env: { ...process.env, MNEMONIC: mnemonic, RPC_URL: rpc.url, RPC_BACKUP_URL: '', COW_SOLANA_API: 'http://unused.invalid' },
+      })
+      let output = ''
+      child.stdout.on('data', (chunk) => { output += chunk })
+      child.stderr.on('data', (chunk) => { output += chunk })
+      child.once('error', reject)
+      child.once('close', (code) => resolve({ code, output }))
+    })
+    expect(result.code).not.toBe(0)
+    expect(result.output).toMatch(reason === 'creation limit' ? /exceeds --max-creation-sol/ : /Sponsor needs an estimated/)
+    expect(rpc.calls.length).toBeGreaterThan(0)
+    expect(rpc.calls.every((call) => call.method === 'getBalance')).toBe(true)
+  }, 15_000)
 })

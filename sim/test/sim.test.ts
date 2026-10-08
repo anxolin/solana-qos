@@ -9,6 +9,7 @@ import { parseScenario } from '../src/scenario.js'
 import { fromRaw, loadUniverse, toRaw } from '../src/tokens.js'
 import { generate, MIN_GAP_S, mulberry32, roundAmount } from '../src/generator.js'
 import { TRADER_RESERVE_SOL } from '../src/config.js'
+import { creationBudget } from '../src/budget.js'
 import { APP_DATA_DOC, APP_DATA_HEX } from '../src/appData.js'
 import { barnStatus, buildRows, describeExtension, supported } from '../src/universe.js'
 
@@ -65,6 +66,26 @@ describe('amounts', () => {
   it('rounds to three significant digits', () => {
     expect(roundAmount(12345.6)).toBe(12300)
     expect(roundAmount(0.0123456)).toBeCloseTo(0.0123, 10)
+  })
+})
+
+describe('creation budget', () => {
+  const rows = parseScenario('trader,time,type,amount,token,other_token,mode\n1,0,sell,0.01,SOL,USDC,sponsored\n1,60,sell,1,USDC,SOL,self\n')
+
+  it('includes setup rows, possible acquisitions and one cleanup per trader/token', () => {
+    expect(creationBudget(rows)).toMatchObject({ main: 2, acquisitions: 1, cleanup: 1, creations: 4, total: 12_000_000n, sponsoredCost: 3_000_000n, selfCost: 9_000_000n })
+    expect(creationBudget(rows).selfCosts.get(1)).toBe(9_000_000n)
+  })
+
+  it('includes retries and honors disabled cleanup', () => {
+    expect(creationBudget(rows, 1, false)).toMatchObject({ main: 4, acquisitions: 2, cleanup: 0, total: 18_000_000n })
+    expect(() => creationBudget(rows, -1)).toThrow(/non-negative/)
+  })
+
+  it('recognizes SOL/wSOL addresses and keeps separate trader cleanup costs', () => {
+    const aliases = parseScenario('trader,time,type,amount,token,other_token\n1,0,sell,0.01,So11111111111111111111111111111111111111112,USDC\n2,0,buy,0.01,SOL,USDC\n')
+    expect(creationBudget(aliases)).toMatchObject({ main: 2, acquisitions: 1, cleanup: 2, creations: 5 })
+    expect(creationBudget(aliases).selfCosts.size).toBe(2)
   })
 })
 

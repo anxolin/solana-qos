@@ -1,0 +1,58 @@
+# Sustained: 5 traders, 10 one-minute waves, then a recovery probe.
+# Run from sim/: pnpm sim simulate-trade-session ../scenarios/sustained-5x10.csv --sol-funding-per-trader 0.07 --max-total-sol 0.35 --max-creation-sol 0.2 --report
+trader,time,type,amount,token,other_token,mode,note
+1,0,sell,0.0025,SOL,USDC,sponsored,load wave 1
+2,0,sell,0.0025,SOL,USDC,sponsored,load wave 1
+3,0,sell,0.0025,SOL,USDC,sponsored,load wave 1
+4,0,sell,0.0025,SOL,USDC,sponsored,load wave 1
+5,0,sell,0.0025,SOL,USDC,sponsored,load wave 1
+1,60,sell,0.0025,SOL,USDC,sponsored,load wave 2
+2,60,sell,0.0025,SOL,USDC,sponsored,load wave 2
+3,60,sell,0.0025,SOL,USDC,sponsored,load wave 2
+4,60,sell,0.0025,SOL,USDC,sponsored,load wave 2
+5,60,sell,0.0025,SOL,USDC,sponsored,load wave 2
+1,120,sell,0.0025,SOL,USDC,sponsored,load wave 3
+2,120,sell,0.0025,SOL,USDC,sponsored,load wave 3
+3,120,sell,0.0025,SOL,USDC,sponsored,load wave 3
+4,120,sell,0.0025,SOL,USDC,sponsored,load wave 3
+5,120,sell,0.0025,SOL,USDC,sponsored,load wave 3
+1,180,sell,0.0025,SOL,USDC,sponsored,load wave 4
+2,180,sell,0.0025,SOL,USDC,sponsored,load wave 4
+3,180,sell,0.0025,SOL,USDC,sponsored,load wave 4
+4,180,sell,0.0025,SOL,USDC,sponsored,load wave 4
+5,180,sell,0.0025,SOL,USDC,sponsored,load wave 4
+1,240,sell,0.0025,SOL,USDC,sponsored,load wave 5
+2,240,sell,0.0025,SOL,USDC,sponsored,load wave 5
+3,240,sell,0.0025,SOL,USDC,sponsored,load wave 5
+4,240,sell,0.0025,SOL,USDC,sponsored,load wave 5
+5,240,sell,0.0025,SOL,USDC,sponsored,load wave 5
+1,300,sell,0.0025,SOL,USDC,sponsored,load wave 6
+2,300,sell,0.0025,SOL,USDC,sponsored,load wave 6
+3,300,sell,0.0025,SOL,USDC,sponsored,load wave 6
+4,300,sell,0.0025,SOL,USDC,sponsored,load wave 6
+5,300,sell,0.0025,SOL,USDC,sponsored,load wave 6
+1,360,sell,0.0025,SOL,USDC,sponsored,load wave 7
+2,360,sell,0.0025,SOL,USDC,sponsored,load wave 7
+3,360,sell,0.0025,SOL,USDC,sponsored,load wave 7
+4,360,sell,0.0025,SOL,USDC,sponsored,load wave 7
+5,360,sell,0.0025,SOL,USDC,sponsored,load wave 7
+1,420,sell,0.0025,SOL,USDC,sponsored,load wave 8
+2,420,sell,0.0025,SOL,USDC,sponsored,load wave 8
+3,420,sell,0.0025,SOL,USDC,sponsored,load wave 8
+4,420,sell,0.0025,SOL,USDC,sponsored,load wave 8
+5,420,sell,0.0025,SOL,USDC,sponsored,load wave 8
+1,480,sell,0.0025,SOL,USDC,sponsored,load wave 9
+2,480,sell,0.0025,SOL,USDC,sponsored,load wave 9
+3,480,sell,0.0025,SOL,USDC,sponsored,load wave 9
+4,480,sell,0.0025,SOL,USDC,sponsored,load wave 9
+5,480,sell,0.0025,SOL,USDC,sponsored,load wave 9
+1,540,sell,0.0025,SOL,USDC,sponsored,load wave 10
+2,540,sell,0.0025,SOL,USDC,sponsored,load wave 10
+3,540,sell,0.0025,SOL,USDC,sponsored,load wave 10
+4,540,sell,0.0025,SOL,USDC,sponsored,load wave 10
+5,540,sell,0.0025,SOL,USDC,sponsored,load wave 10
+1,720,sell,0.0025,SOL,USDC,sponsored,recovery probe after quiet period
+2,720,sell,0.0025,SOL,USDC,sponsored,recovery probe after quiet period
+3,720,sell,0.0025,SOL,USDC,sponsored,recovery probe after quiet period
+4,720,sell,0.0025,SOL,USDC,sponsored,recovery probe after quiet period
+5,720,sell,0.0025,SOL,USDC,sponsored,recovery probe after quiet period

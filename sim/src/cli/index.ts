@@ -17,6 +17,7 @@ import { generate, MIN_GAP_S, MIXES } from '../generator.js'
 import { classify, listRows, loadTokenList } from '../tokenlist.js'
 import { barnQuotes, buildRows, coingeckoMints, DEFAULT_DUNE_QUERY, jupiterTokens, listMembership, loadVolume, mintFacts, summarize, supported, toCsv, toTokenList } from '../universe.js'
 import { errorDetail, sleep } from '../limiter.js'
+import { creationBudget, ORDER_CREATION_LAMPORTS } from '../budget.js'
 import * as ui from '../ui.js'
 import { c, tag } from '../ui.js'
 
@@ -150,6 +151,43 @@ function context(
   return { env, rpc, orders, ctx, w: wallets(env.mnemonic) }
 }
 
+/** Read-only creation budget; scenario estimates are separate so each includes its own cleanup. */
+async function checkCreationBudget(
+  run: ReturnType<typeof context>,
+  scenarios: { name: string; rows: TradeRow[] }[],
+  opts: { maxRetries: number; cleanup: boolean; maxCreationSol?: number },
+) {
+  const estimates = scenarios.map(({ name, rows }) => ({ name, ...creationBudget(rows, opts.maxRetries, opts.cleanup) }))
+  const total = estimates.reduce((sum, estimate) => sum + estimate.total, 0n)
+  const sponsored = estimates.reduce((sum, estimate) => sum + estimate.sponsoredCost, 0n)
+  const self = total - sponsored
+  let sponsor = run.orders.sponsorFunder
+  if (sponsored && !sponsor) {
+    const row = scenarios.flatMap((s) => s.rows).find((r) => r.mode === 'sponsored')!
+    const t = await resolveToken(run.rpc, row.token)
+    const o = await resolveToken(run.rpc, row.otherToken)
+    const [sell, buy] = row.type === 'sell' ? [t, o] : [o, t]
+    const quote = await run.orders.quote({ owner: run.w.trader(row.trader), sell, buy, kind: row.type, amount: toRaw(row.amount, row.type === 'sell' ? sell.decimals : buy.decimals) })
+    sponsor = quote.solanaQuote.funder
+  }
+  const sponsorBalance = sponsor && sponsored ? await run.rpc.lamports(sponsor) : undefined
+  console.log(`\n${c.bold('Order creation budget')} ${c.dim(`(${fmtSol(ORDER_CREATION_LAMPORTS)} each, before rent refunds)`)}`)
+  for (const estimate of estimates) {
+    console.log(`  ${estimate.name}: ${estimate.main} row attempts + ${estimate.acquisitions} possible acquisitions + ${estimate.cleanup} cleanup orders = ${fmtSol(estimate.total)}`)
+  }
+  console.log(`  Total: ${c.bold(fmtSol(total))}; sponsor ${fmtSol(sponsored)}, traders ${fmtSol(self)}`)
+  if (sponsorBalance !== undefined) console.log(`  Sponsor ${sponsor!.toBase58()}: ${fmtSol(sponsorBalance)} available`)
+  console.log(c.dim('  Estimate only: trade amounts, other transaction fees, existing unrelated tokens and extra cleanup passes are excluded. Solver wallets are not checked.'))
+  const issues: string[] = []
+  if (sponsored && !sponsor) issues.push('No sponsoring funder is available for the planned sponsored creations')
+  if (sponsorBalance !== undefined && sponsorBalance < sponsored) issues.push(`Sponsor needs an estimated ${fmtSol(sponsored)}, but has ${fmtSol(sponsorBalance)}`)
+  if (opts.maxCreationSol !== undefined) {
+    if (!Number.isFinite(opts.maxCreationSol) || opts.maxCreationSol < 0) throw new Error('--max-creation-sol must be a non-negative number')
+    if (total > solToLamports(opts.maxCreationSol)) issues.push(`Estimated creation cost ${fmtSol(total)} exceeds --max-creation-sol ${opts.maxCreationSol}`)
+  }
+  return { estimates, issues, sponsor, sponsorBalance, sponsored }
+}
+
 /** Quote every row without trading: routes, and the SOL each trader is expected to spend. */
 async function dryRun(ctx: FlowContext, w: ReturnType<typeof wallets>, rows: TradeRow[], fundingSol: number) {
   const spend = new Map<number, bigint>()
@@ -202,11 +240,27 @@ async function dryRun(ctx: FlowContext, w: ReturnType<typeof wallets>, rows: Tra
 const program = new Command().name('sim').description('Scripted CoW Protocol Solana trade sessions for solana-qos')
 
 program
+  .command('check-budget')
+  .description('Estimate creation costs across scenarios and read funder balances; never trade')
+  .argument('<scenarios...>', 'scenario CSV files, in run order')
+  .option('--max-retries <n>', 'order retries to include in the estimate', (v) => parseInt(v, 10), 0)
+  .option('--max-creation-sol <sol>', 'fail if estimated creation costs exceed this amount', Number)
+  .option('--no-cleanup', 'exclude cleanup orders from the estimate')
+  .addOption(envOption)
+  .action(async (paths: string[], opts) => {
+    const run = context(opts, new Session('budget-check'))
+    console.log(`Test funder ${run.w.funder.publicKey.toBase58()}: ${fmtSol(await run.rpc.lamports(run.w.funder.publicKey))}`)
+    const budget = await checkCreationBudget(run, paths.map((name) => ({ name, rows: readScenario(name) })), opts)
+    if (budget.issues.length) throw new Error(budget.issues.join('; '))
+  })
+
+program
   .command('simulate-trade-session')
   .argument('<scenario>', 'CSV: trader,time,type,amount,token,other_token[,mode,note]')
   .option('--session <name>', 'session folder name under solana-qos/sessions')
   .option('--sol-funding-per-trader <sol>', 'SOL each trader is topped up to', parseFloat, 0.1)
   .option('--max-total-sol <sol>', 'refuse to fund more than this in total', parseFloat, 3)
+  .option('--max-creation-sol <sol>', 'refuse a run whose estimated creation costs exceed this amount', Number)
   .option('--max-retries <n>', 're-quote and retry an order that expires or times out (0 = move on)', (v) => parseInt(v, 10), 0)
   .option('--order-validity <s>', 'seconds an order has left when placed (orderbook minimum 120)', (v) => {
     const n = parseInt(v, 10)
@@ -229,7 +283,8 @@ program
     const traders = tradersIn(rows)
     const stamp = new Date().toISOString().slice(0, 16).replace(/[T:]/g, '-')
     const session = new Session(opts.session ?? `${stamp}-${basename(scenarioPath, '.csv')}`)
-    const { env, rpc, orders, ctx, w } = context(opts, session)
+    const run = context(opts, session)
+    const { env, rpc, orders, ctx, w } = run
 
     const target = solToLamports(opts.solFundingPerTrader)
     const plan = await fundingPlan(rpc, w, traders, target)
@@ -265,9 +320,15 @@ program
           : ui.warn(`not configured, the report will be basic. Set ${LOG_ENV_HINT}`),
       ],
     ])
+    const budget = await checkCreationBudget(run, [{ name: scenarioPath, rows }], opts)
     const issues = [
+      ...budget.issues,
       ...(total > solToLamports(opts.maxTotalSol) ? [`Funding ${fmtSol(total)} is over --max-total-sol ${opts.maxTotalSol}`] : []),
       ...(total + 100_000n > funderBalance ? [`The funder can't cover ${fmtSol(total)}`] : []),
+      ...(budget.sponsor?.equals(w.funder.publicKey) && total + budget.sponsored + 100_000n > funderBalance
+        ? ['The shared funder cannot cover both trader top-ups and sponsored creations'] : []),
+      ...plan.filter((line) => (budget.estimates[0].selfCosts.get(line.trader) ?? 0n) > line.balance + line.topUp)
+        .map((line) => `Trader ${line.trader} cannot cover its estimated self-paid creation costs after funding`),
     ]
     if (issues.length && !opts.dryRun) throw new Error(issues.join('; '))
     for (const i of issues) console.log(ui.warn(i))

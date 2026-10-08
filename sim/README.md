@@ -49,6 +49,16 @@ Most of it comes back at cleanup:
 - 25 traders at 0.1 SOL is about 2.5 SOL
 - the smoke test is about 0.1 SOL
 
+Before live runs, the tool checks funding and estimates **0.003 SOL per creation**, including setup, possible acquisitions, retries and cleanup. Trader top-ups are separate.
+
+Preview costs without trading (accepts multiple scenario files):
+
+```sh
+pnpm sim check-budget ../scenarios/burst-8-16-24-32.csv
+```
+
+Add `--max-creation-sol <sol>` to refuse runs above your estimated creation budget, even with `--yes`. This is an estimate, not a hard spending cap: trade amounts and other fees are extra, refunds are not assumed, and driver/solver balances are not checked. `check-budget` checks creation costs and the sponsor balance; live runs also check trader funding.
+
 Check the balances with:
 
 ```sh
@@ -84,6 +94,7 @@ pnpm sim new-wallet
 |---|---|---|
 | `--sol-funding-per-trader` | 0.1 | Each trader is topped up to this; traders already at it are skipped |
 | `--max-total-sol` | 3 | Refuses to fund more than this in total |
+| `--max-creation-sol` | optional | Refuses a run above the estimated creation cost, including acquisition, retries and cleanup allowances |
 | `--session` | `<date>-<scenario>` | Folder under `../sessions/` |
 | `--max-retries` | 0 | Re-quote and retry an order that expires or times out (new uid each time). 0 = move on |
 | `--order-validity` | 120 | Seconds an order has left when placed (the orderbook's minimum is 120). The quote asks for 30s more to cover placement time, and a post rejected with `InsufficientValidTo` is re-quoted once |
