@@ -1,0 +1,63 @@
+# Token coverage: Token-2022 extensions, memecoins, LSTs, Bitcoin, synthetic dollar, euro stablecoin, treasury and liquidity pool tokens.
+# First-round coverage sample prepared from the October 7 extension sample plus frontend-listed controls checked on October 9. Existing token-2022/all.csv is preserved.
+# 40 distinct tokens; original Token-2022 sell and buy order types retained. Expected rejection rows are backend probes.
+# Read more: https://solana.com/docs/tokens/extensions
+# Fund with --sol-funding-per-trader 0.05.
+# Token-2022 rows: SOL-to-token sell and exact-output buy; cleanup covers token-to-SOL. Explicit return sells removed to avoid repeating cleanup.
+# No main-order retries: 55 main + 0 acquisitions + 40 cleanup = 95 estimated orders (0.285 SOL at 0.003/order, before refunds).
+trader,time,type,amount,token,other_token,mode,note
+1,0,sell,0.01,SOL,9cRCn9rGT8V2imeM2BaKs13yhMEais3ruM3rPvTGpump,sponsored,metadata-only: ANSEM rank 10 $984.4M/90d: SOL to token [metadata only]
+1,2,buy,3.26,9cRCn9rGT8V2imeM2BaKs13yhMEais3ruM3rPvTGpump,SOL,sponsored,metadata-only: ANSEM rank 10 $984.4M/90d: BUY (exact-out) paying SOL
+2,0,sell,0.01,SOL,98kfF7rmsg1QDUEoCqNE7g7M1FdrTt92TEp2CLzypump,sponsored,metadata-only: PAID rank 25 $396.9M/90d: SOL to token [metadata only]
+2,2,buy,88.1,98kfF7rmsg1QDUEoCqNE7g7M1FdrTt92TEp2CLzypump,SOL,sponsored,metadata-only: PAID rank 25 $396.9M/90d: BUY (exact-out) paying SOL
+3,0,sell,0.01,SOL,2u1tszSeqZ3qBWF3uNGPFc8TzMk2tdiwknnRMWGWjGWH,sponsored,transfer-hook-unset: USDG rank 4 $2.9B/90d: SOL to token [mintCloseAuthority permanentDelegate(set) transferFeeConfig(0bps) confidentialTransferMint confidentialTransferFeeConfig transferHook(none)]
+3,2,buy,0.464,2u1tszSeqZ3qBWF3uNGPFc8TzMk2tdiwknnRMWGWjGWH,SOL,sponsored,transfer-hook-unset: USDG rank 4 $2.9B/90d: BUY (exact-out) paying SOL
+4,0,sell,0.01,SOL,pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn,self,transfer-hook-unset: PUMP rank 6 $2.3B/90d: SOL to token [transferHook(none)]
+4,2,buy,71.6,pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn,SOL,self,transfer-hook-unset: PUMP rank 6 $2.3B/90d: BUY (exact-out) paying SOL
+5,0,sell,0.01,SOL,2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo,sponsored,permanent-delegate: PYUSD rank 7 $1.4B/90d: SOL to token [mintCloseAuthority permanentDelegate(set) transferFeeConfig(0bps) confidentialTransferMint confidentialTransferFeeConfig transferHook(none)]
+5,2,buy,0.464,2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo,SOL,sponsored,permanent-delegate: PYUSD rank 7 $1.4B/90d: BUY (exact-out) paying SOL
+6,0,sell,0.01,SOL,CASHx9KJUStyftLFWGvEVf59SGeG9sh5FfcnZMVPCASH,sponsored,permanent-delegate: CASH rank 15 $815.6M/90d: SOL to token [mintCloseAuthority permanentDelegate(set) defaultAccountState(initialized) confidentialTransferMint transferHook(none)]
+6,2,buy,0.464,CASHx9KJUStyftLFWGvEVf59SGeG9sh5FfcnZMVPCASH,SOL,sponsored,permanent-delegate: CASH rank 15 $815.6M/90d: BUY (exact-out) paying SOL
+7,0,sell,0.01,SOL,XsueG8BtpquVJX9LVLLEGuViXUungE6WmK5YZ3p3bd1,sponsored,confidential-transfer: CRCLx rank 24 $398.8M/90d: SOL to token [permanentDelegate(set) defaultAccountState(initialized) scaledUiAmountConfig pausableConfig(running) confidentialTransferMint transferHook(none)]
+7,2,buy,0.00574,XsueG8BtpquVJX9LVLLEGuViXUungE6WmK5YZ3p3bd1,SOL,sponsored,confidential-transfer: CRCLx rank 24 $398.8M/90d: BUY (exact-out) paying SOL
+8,0,sell,0.01,SOL,XsoCS1TfEyfFhfvj8EtZ528L3CaKBDBRqRapnBbDF2W,self,confidential-transfer: SPYx rank 29 $330.0M/90d: SOL to token [permanentDelegate(set) defaultAccountState(initialized) scaledUiAmountConfig pausableConfig(running) confidentialTransferMint transferHook(none)]
+8,2,buy,0.000597,XsoCS1TfEyfFhfvj8EtZ528L3CaKBDBRqRapnBbDF2W,SOL,self,confidential-transfer: SPYx rank 29 $330.0M/90d: BUY (exact-out) paying SOL
+9,0,sell,0.01,SOL,USDvUSpnhCr9yBgj3UyVrD239HRUv4RsHwH2FxsWuMk,sponsored,mint-close-authority: USDv rank 4759 $2.2M/90d: SOL to token [transferHook(none) confidentialTransferMint permanentDelegate(set) pausableConfig(running) mintCloseAuthority defaultAccountState(initialized)]
+9,2,buy,0.464,USDvUSpnhCr9yBgj3UyVrD239HRUv4RsHwH2FxsWuMk,SOL,sponsored,mint-close-authority: USDv rank 4759 $2.2M/90d: BUY (exact-out) paying SOL
+10,0,sell,0.01,SOL,SKHYhSjuRWHgikq8eRKbtBbpABgJSkd7ytQV14i9EQ3,sponsored,default-account-state: SKHY rank 33 $282.2M/90d: SOL to token [permanentDelegate(set) defaultAccountState(initialized) pausableConfig(running) confidentialTransferMint transferHook(none) scaledUiAmountConfig]
+10,2,buy,0.0026,SKHYhSjuRWHgikq8eRKbtBbpABgJSkd7ytQV14i9EQ3,SOL,sponsored,default-account-state: SKHY rank 33 $282.2M/90d: BUY (exact-out) paying SOL
+11,0,sell,0.01,SOL,Xsc9qvGR1efVDFGLrVsmkzv3qi45LTBjeUKSPmx9qEh,sponsored,default-account-state: NVDAx rank 38 $234.1M/90d: SOL to token [permanentDelegate(set) defaultAccountState(initialized) scaledUiAmountConfig pausableConfig(running) confidentialTransferMint transferHook(none)]
+11,2,buy,0.00196,Xsc9qvGR1efVDFGLrVsmkzv3qi45LTBjeUKSPmx9qEh,SOL,sponsored,default-account-state: NVDAx rank 38 $234.1M/90d: BUY (exact-out) paying SOL
+12,0,sell,0.01,SOL,MUxEsUKSMACyw5fZf68wxf5FLnZVhtU9CwH8uNNGay1,self,pausable: MU rank 42 $212.5M/90d: SOL to token [permanentDelegate(set) defaultAccountState(initialized) pausableConfig(running) confidentialTransferMint transferHook(none) scaledUiAmountConfig]
+12,2,buy,0.000427,MUxEsUKSMACyw5fZf68wxf5FLnZVhtU9CwH8uNNGay1,SOL,self,pausable: MU rank 42 $212.5M/90d: BUY (exact-out) paying SOL
+13,0,sell,0.01,SOL,SPCXxcqXj6e5dJDVNovHN8744zkbhM2bYudU45BimGb,sponsored,pausable: SPCX rank 45 $194.8M/90d: SOL to token [permanentDelegate(set) defaultAccountState(initialized) pausableConfig(running) confidentialTransferMint transferHook(none) scaledUiAmountConfig]
+13,2,buy,0.00276,SPCXxcqXj6e5dJDVNovHN8744zkbhM2bYudU45BimGb,SOL,sponsored,pausable: SPCX rank 45 $194.8M/90d: BUY (exact-out) paying SOL
+14,0,sell,0.01,SOL,Xs3oZwbHvqis4NYcf4YKWmEia2eC84wSiVrcYcTqpH8,sponsored,scaled-ui-amount: SPCXx rank 50 $162.8M/90d: SOL to token [permanentDelegate(set) defaultAccountState(initialized) scaledUiAmountConfig pausableConfig(running) confidentialTransferMint transferHook(none)]
+14,2,buy,0.00277,Xs3oZwbHvqis4NYcf4YKWmEia2eC84wSiVrcYcTqpH8,SOL,sponsored,scaled-ui-amount: SPCXx rank 50 $162.8M/90d: BUY (exact-out) paying SOL
+15,0,sell,0.01,SOL,XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB,sponsored,scaled-ui-amount: TSLAx rank 60 $113.4M/90d: SOL to token [permanentDelegate(set) defaultAccountState(initialized) scaledUiAmountConfig pausableConfig(running) confidentialTransferMint transferHook(none)]
+15,2,buy,0.00123,XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB,SOL,sponsored,scaled-ui-amount: TSLAx rank 60 $113.4M/90d: BUY (exact-out) paying SOL
+16,0,sell,0.005,SOL,DEW9dSN6QpWyNthphCpMmAbZP1Q4cEKR9xQXAri98WDP,sponsored,transfer-fee-rejected: SI [transferFeeConfig(100bps)]: expected UnsupportedToken
+17,0,sell,0.005,SOL,HcRLc9VDgjLeK154xDawfb1dmVJ98DoSqcwTHGqiDeJR,sponsored,transfer-fee-rejected: ZCAT [transferFeeConfig(300bps)]: expected UnsupportedToken
+18,0,sell,0.005,SOL,Pren1FvFX6J3E4kXhJuCiAD5aDmGEb7qJRncwA8Lkhw,sponsored,transfer-fee-rejected: ANTHROPIC [permanentDelegate(set) defaultAccountState(initialized) transferFeeConfig(100bps) confidentialTransferMint confidentialTransferFeeConfig transferHook(none) scaledUiAmountConfig pausableConfig(running)]: expected UnsupportedToken
+19,0,sell,0.005,SOL,DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263,self,memecoin: BONK; classic control; cleanup sells back
+20,0,sell,0.005,SOL,EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm,self,memecoin: WIF; classic control; cleanup sells back
+21,0,sell,0.005,SOL,7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr,self,memecoin: POPCAT; classic control; cleanup sells back
+22,0,sell,0.005,SOL,J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn,self,LST: JitoSOL; classic control; cleanup sells back
+23,0,sell,0.005,SOL,mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So,self,LST: mSOL; classic control; cleanup sells back
+24,0,sell,0.005,SOL,jupSoLaHXQiZZTSfEWMTRRgpnyFm8f6sZdosWBjx93v,self,LST: JupSOL; classic control; cleanup sells back
+25,0,sell,0.005,SOL,cbbtcf3aa214zXHbiAZQwf4122FBYbraNdFqgw4iMij,self,Bitcoin: Coinbase wrapped BTC; frontend SolanaDefault and staging sell quote confirmed 2026-10-09; cleanup sells back
+26,0,sell,0.005,SOL,DEkqHyPN7GMRJ5cArtQFAWefqbZb33Hyf6s5iCwjEonT,self,synthetic dollar: Ethena USDe; frontend SolanaDefault and staging sell quote confirmed 2026-10-09; cleanup sells back
+27,0,sell,0.005,SOL,HzwqbKZw8HxMN6bF2yFZNrht3c2iXXzpKcFu7uBEDKtr,self,euro stablecoin: Circle EURC; frontend SolanaDefault and staging sell quote confirmed 2026-10-09; cleanup sells back
+28,0,sell,0.005,SOL,A1KLoBrKBde8Ty9qtNQUtq3C2ortoC3u7twggz7sEto6,self,treasury token: Ondo USDY; frontend SolanaDefault and staging sell quote confirmed 2026-10-09; cleanup sells back
+29,0,sell,0.005,SOL,27G8MtK7VtTcCHkpASjSDdkWWYfoqT6ggEuKidVJidD4,self,liquidity pool token: Jupiter JLP; frontend SolanaDefault and staging sell quote confirmed 2026-10-09; cleanup sells back
+30,0,sell,0.005,SOL,5oVNBeEEQvYi1cX3ir8Dx5n1P7pdxydbGF2X4TxVusJm,self,LST pool token: Sanctum Infinity; frontend SolanaDefault and staging sell quote confirmed 2026-10-09; cleanup sells back
+31,0,sell,0.005,SOL,7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs,self,bridged asset: Ether Portal; frontend SolanaDefault and staging sell quote confirmed 2026-10-09; cleanup sells back
+32,0,sell,0.005,SOL,9gP2kCy3wA1ctvYWQk75guqXuHfrEomqydHLtcTCqiLa,self,bridged asset: BNB Portal; frontend SolanaDefault and staging sell quote confirmed 2026-10-09; cleanup sells back
+33,0,sell,0.005,SOL,AymATz4TCL9sWNEEV9Kvyz45CHVhDZ6kUgjTJPzLpU9P,self,gold token: Tether Gold; frontend SolanaDefault and staging sell quote confirmed 2026-10-09; cleanup sells back
+34,0,sell,0.005,SOL,Xsv9hRk1z5ystj9MhnA7Lq4vjSsLwzL2nxrwmwtD3re,self,tokenized gold fund: Gold xStock; frontend SolanaDefault and staging sell quote confirmed 2026-10-09; cleanup sells back
+35,0,sell,0.005,SOL,euro5sNHrZC2wu2RoLvy6xxoVMc3Qnd1vjxoWf4MftA,self,Token-2022 euro stablecoin: EUROPs zero transfer fee; frontend SolanaDefault and staging sell quote confirmed 2026-10-09; cleanup sells back
+36,0,sell,0.005,SOL,9BB6NFEcjBCtnNLFko2FqVQBq8HHM13kCyYcdQbgpump,self,memecoin: Fartcoin; frontend SolanaDefault and staging sell quote confirmed 2026-10-09; cleanup sells back
+37,0,sell,0.005,SOL,MEW1gQWJ3nEXg2qgERiKu7FAFj79PHvQVREQUzScPP5,self,memecoin: MEW; frontend SolanaDefault and staging sell quote confirmed 2026-10-09; cleanup sells back
+38,0,sell,0.005,SOL,ukHH6c7mMyiWCf1b9pnWe25TSpkDDt3H5pQZgZ74J82,self,memecoin: BOME; frontend SolanaDefault and staging sell quote confirmed 2026-10-09; cleanup sells back
+39,0,sell,0.005,SOL,hy1oXYgrBW6PVcJ4s6s2FKavRdwgWTXdfE69AxT7kPT,self,LST: Hylo Staked SOL; frontend SolanaDefault and staging sell quote confirmed 2026-10-09; cleanup sells back
+40,0,sell,0.005,SOL,pSo1f9nQXWgXibFtKf7NWYxb5enAM4qfP6UJSiXRQfL,self,LST: Phantom Staked SOL; frontend SolanaDefault and staging sell quote confirmed 2026-10-09; cleanup sells back
