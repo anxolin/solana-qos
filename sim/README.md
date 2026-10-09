@@ -143,7 +143,7 @@ In `../scenarios/`. Run `smoke.csv` first.
 | `same-direction-25x1.csv` | 25 traders buy JUP at the same moment. Fund 0.06 |
 | `longtail-25x6.csv` | The Kaffeekränzchen's long-tail tokens |
 | `token-2022/` | One file per Token-2022 extension, plus expected rejections. See its [README](../scenarios/token-2022/README.md) |
-| `token-universe/` | **Token coverage sequence**, run in order, each token in one file only: `test_01_cow-swap` (relevant tokens in the app lists), `test_02_jupiter` (every other relevant token, by Jupiter volume), `test_03_long-tail` (a 50-token sample). See its [README](../scenarios/token-universe/README.md) |
+| `token-universe/` | **Token coverage sequence**, run in order, each token in one file only: `test_01_cow-swap-top` (the 50 most traded CoW Swap tokens with a CoinGecko price: a quick health check), `test_02_cow-swap` (the rest of the app lists), `test_03_jupiter` (other relevant tokens), `test_04_long-tail` (a 50-token sample), `test_05_buy-vs-jupiter` (buys). `expected.csv` holds every row that should work today, as a regression suite. See its [README](../scenarios/token-universe/README.md) |
 | `experiments/` | One-off probes from the token universe: `buy-gap-classic.csv`, `liquidity-ladder.csv`, `no-coingecko-price.csv`, `volume-weighted-20x10.csv` |
 | `unsupported.csv` | `SolanaDefault` tokens CoW can't trade. Every row should fail at the quote |
 
@@ -211,10 +211,12 @@ pnpm sim build-token-sequence                                   # from universe.
 pnpm sim build-token-sequence --routed-volume dune:8921585      # refresh the routed volume first
 ```
 
-Writes `../scenarios/token-universe/test_01_cow-swap.csv`, `test_02_jupiter.csv`, `test_03_long-tail.csv` and a README
-with what each file covers, alone and cumulatively (also in each file's header). Each token appears in one file only.
-`test_04_buy-vs-jupiter.csv` tests buys on their own: one per token of test_01-02, each annotated with whether Jupiter
-can quote that exact-out buy (CoW should fill where Jupiter can). `--no-buys` skips it.
+Writes `../scenarios/token-universe/`: `test_01_cow-swap-top.csv` (`--top`, default 50), `test_02_cow-swap.csv`,
+`test_03_jupiter.csv`, `test_04_long-tail.csv`, and a README with what each file covers, alone and cumulatively (also in
+each file's header). Each token appears in one file only. `test_05_buy-vs-jupiter.csv` tests buys on their own: one per
+token of test_01-03, annotated with whether Jupiter can quote that exact-out buy (CoW should fill where Jupiter can;
+`--no-buys` skips it). `expected.csv` gathers every row that should work on the API today (sells into tokens barn
+quotes, buys Jupiter can do): run it to catch regressions.
 The token lists behind them are in `../token-universe/sequence/`.
 
 ## Tests

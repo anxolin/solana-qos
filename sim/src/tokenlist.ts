@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { PublicKey } from '@solana/web3.js'
 import { TOKEN_2022_PROGRAM_ID } from '@solana/spl-token'
-import { RateLimiter, retry } from './limiter.js'
+import { RateLimiter, retry, sleep } from './limiter.js'
 import type { Rpc } from './rpc.js'
 import { NATIVE_SOL, WSOL_MINT } from './rpc.js'
 import type { Mode, TradeRow } from './scenario.js'
@@ -59,6 +59,10 @@ export function backendVerdict(extensions: { extension: string; state?: { accoun
   return null
 }
 
+/** Extra slow rounds for tokens that first answered "no route". */
+const NO_ROUTE_ROUNDS = 2
+const USDC_MINT = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'
+
 /**
  * Classify every token with a live sell quote (SOL → token) on the orderbook, which is the source of truth: its rules
  * change between deployments. The mint's extensions (read on chain) are kept to explain the result.
@@ -84,41 +88,59 @@ export async function classify(
       parsed.set(t.mint, { program, extensions: data.parsed.info.extensions ?? [] })
     })
   }
-  const limiter = new RateLimiter(quoteRps)
-  let done = 0
-  await Promise.all(
-    tokens.map(async (t) => {
-      const p = parsed.get(t.mint)
-      if (!p) return
-      // The orderbook decides: its rules change with deployments, so a local verdict only explains a rejection.
-      const localReason = backendVerdict(p.extensions)
-      const extNames = p.extensions.map((e) => e.extension).filter((e) => e !== 'metadataPointer' && e !== 'tokenMetadata')
-      await limiter.take()
-      const res = await retry(() =>
-        fetch(`${apiBase}/v1/quote`, {
-          method: 'POST',
-          signal: AbortSignal.timeout(30_000),
-          headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({
-            from: '11111111111111111111111111111112', // any valid key; quotes don't need a funded owner
-            sellToken: WSOL_MINT.toBase58(),
-            buyToken: t.mint,
-            kind: 'sell',
-            sellAmountBeforeFee: solIn.toString(),
-          }),
+  const quote = async (mint: string) => {
+    const res = await retry(() =>
+      fetch(`${apiBase}/v1/quote`, {
+        method: 'POST',
+        signal: AbortSignal.timeout(30_000),
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          from: '11111111111111111111111111111112', // any valid key; quotes don't need a funded owner
+          sellToken: WSOL_MINT.toBase58(),
+          buyToken: mint,
+          kind: 'sell',
+          sellAmountBeforeFee: solIn.toString(),
         }),
-      )
-      const body = (await res.json().catch(() => ({}))) as { quote?: { buyAmount: string }; errorType?: string; description?: string }
-      if (res.ok && body.quote) {
-        out.set(t.mint, { kind: 'tradable', program: p.program, extensions: extNames, quotedOut: BigInt(body.quote.buyAmount) })
-      } else if (body.errorType === 'UnsupportedToken') {
-        out.set(t.mint, { kind: 'unsupported', reason: body.description?.replace(/^Token \S+ is unsupported: /, '') ?? localReason ?? 'UnsupportedToken', extensions: extNames })
-      } else {
-        out.set(t.mint, { kind: 'no-route', reason: body.errorType ?? `HTTP ${res.status}`, program: p.program })
-      }
-      onProgress?.(++done, tokens.length)
-    }),
-  )
+      }),
+    )
+    return { res, body: (await res.json().catch(() => ({}))) as { quote?: { buyAmount: string }; errorType?: string; description?: string } }
+  }
+  // Canary: when barn can't even quote SOL to USDC, every token would read "no route" and the scenarios would be wrong.
+  const canary = await quote(USDC_MINT)
+  if (!canary.res.ok || !canary.body.quote) {
+    throw new Error(`barn can't quote SOL to USDC right now (${canary.body.errorType ?? `HTTP ${canary.res.status}`}): not classifying, try again later`)
+  }
+  const verdict = (t: ListToken, p: NonNullable<ReturnType<typeof parsed.get>>, r: Awaited<ReturnType<typeof quote>>): Verdict => {
+    const localReason = backendVerdict(p.extensions)
+    const extNames = p.extensions.map((e) => e.extension).filter((e) => e !== 'metadataPointer' && e !== 'tokenMetadata')
+    if (r.res.ok && r.body.quote) return { kind: 'tradable', program: p.program, extensions: extNames, quotedOut: BigInt(r.body.quote.buyAmount) }
+    if (r.body.errorType === 'UnsupportedToken') {
+      return { kind: 'unsupported', reason: r.body.description?.replace(/^Token \S+ is unsupported: /, '') ?? localReason ?? 'UnsupportedToken', extensions: extNames }
+    }
+    return { kind: 'no-route', reason: r.body.errorType ?? `HTTP ${r.res.status}`, program: p.program }
+  }
+  // The orderbook decides: its rules change with deployments, so a local verdict only explains a rejection.
+  const pass = async (todo: ListToken[], rps: number) => {
+    const limiter = new RateLimiter(rps)
+    await Promise.all(
+      todo.map(async (t) => {
+        const p = parsed.get(t.mint)
+        if (!p) return
+        await limiter.take()
+        out.set(t.mint, verdict(t, p, await quote(t.mint)))
+        if (rps === quoteRps) onProgress?.(++done, tokens.length)
+      }),
+    )
+  }
+  let done = 0
+  await pass(tokens, quoteRps)
+  // "No route" is often a solver rate-limited for a moment: ask those again, slowly, before believing it.
+  for (let round = 0; round < NO_ROUTE_ROUNDS; round++) {
+    const again = tokens.filter((t) => out.get(t.mint)?.kind === 'no-route')
+    if (!again.length) break
+    await sleep(10_000)
+    await pass(again, 1)
+  }
   return out
 }
 

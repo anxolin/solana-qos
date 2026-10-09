@@ -22,7 +22,12 @@
     "api": "https://api.cow.fi/solana/api",
     "debug": "https://debug.cow.fi",
     "solscan": "https://solscan.io",
-    "logs": null,
+    "logs": {
+      "autopilot": "solana-autopilot-prod",
+      "driver": "solana-driver-prod",
+      "api": "solana-api-prod",
+      "jupiter": "solana-jupiter-prod-solve"
+    },
     "settlementProgram": "Moook87DzJ25dELx3LXJ3dnu5a4ERVFwKo1PWWF4p7Y",
     "settlementVersion": "0.5",
     "_settlementProgramNote": "Prod soft-launch settlement, v0.5 (Federico, #solana, 7 Oct 2026); a final address comes later. The prod Solana API (api.cow.fi/solana/api) wasn't live yet on 9 Oct."

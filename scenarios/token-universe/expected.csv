@@ -1,0 +1,689 @@
+# Expected to work on the API today (2026-10-09): one SOL -> token sell for each of 454 tokens barn quotes (test_01-04) and 229 buys Jupiter can quote exact-out (test_05). Tokens barn rejects or can't route, and buys Jupiter can't do, aren't here.
+# Coverage of the 454 tokens: 90.1% Jupiter-routed, 81.2% DFlow-routed, 97.9% Titan-routed (label unconfirmed), 63.7% direct DEX, 64.1% of all DEX volume ($46.0B of $71.8B) over 30 days; SOL excluded.
+# A row failing here is a regression (or a market change: rebuild with build-token-sequence). Notes keep the file each row comes from.
+# Fund with --sol-funding-per-trader 0.19.
+# Regenerate: pnpm sim build-expected (from the test files as they are)
+trader,time,type,amount,token,other_token,mode,note
+1,0,sell,0.005,SOL,EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v,sponsored,test_01_cow-swap-top: USDC (classic): SOL to token
+2,0,sell,0.005,SOL,Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB,sponsored,test_01_cow-swap-top: USDT (classic): SOL to token
+3,0,sell,0.005,SOL,2u1tszSeqZ3qBWF3uNGPFc8TzMk2tdiwknnRMWGWjGWH,sponsored,test_01_cow-swap-top: USDG (token-2022: mintCloseAuthority permanentDelegate transferFeeConfig confidentialTransferMint confidentialTransferFeeConfig transferHook): SOL to token
+4,0,sell,0.005,SOL,6GmAFSYs4gk3FDao5FzzySQpPZaWsa4rUJHacpMpUNgx,sponsored,test_01_cow-swap-top: STONK (classic): SOL to token
+5,0,sell,0.005,SOL,A7bdiYdS5GjqGFtxf17ppRHtDKPkkRqbKtR27dxvQXaS,sponsored,test_01_cow-swap-top: ZEC (classic): SOL to token
+6,0,sell,0.005,SOL,JuprjznTrTSp2UFa3ZBUFgwdAmtZCq4MQCwysN55USD,sponsored,test_01_cow-swap-top: JupUSD (classic): SOL to token
+7,0,sell,0.005,SOL,2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo,sponsored,test_01_cow-swap-top: PYUSD (token-2022: mintCloseAuthority permanentDelegate transferFeeConfig confidentialTransferMint confidentialTransferFeeConfig transferHook): SOL to token
+8,0,sell,0.005,SOL,DEkqHyPN7GMRJ5cArtQFAWefqbZb33Hyf6s5iCwjEonT,sponsored,test_01_cow-swap-top: USDe (classic): SOL to token
+9,0,sell,0.005,SOL,pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn,sponsored,test_01_cow-swap-top: PUMP (token-2022: transferHook): SOL to token
+10,0,sell,0.005,SOL,cbbtcf3aa214zXHbiAZQwf4122FBYbraNdFqgw4iMij,sponsored,test_01_cow-swap-top: cbBTC (classic): SOL to token
+11,0,sell,0.005,SOL,7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs,sponsored,test_01_cow-swap-top: ETH (classic): SOL to token
+12,0,sell,0.005,SOL,BPxxfRCXkUVhig4HS1Lh7kZqV6SPJhzfEk4x6fVBjPCy,sponsored,test_01_cow-swap-top: BP (classic): SOL to token
+13,0,sell,0.005,SOL,98sMhvDwXj1RQi5c5Mndm3vPe9cBqPrbLaufMXFNMh5g,sponsored,test_01_cow-swap-top: HYPE (classic): SOL to token
+14,0,sell,0.005,SOL,CASHx9KJUStyftLFWGvEVf59SGeG9sh5FfcnZMVPCASH,sponsored,test_01_cow-swap-top: CASH (token-2022: mintCloseAuthority permanentDelegate defaultAccountState confidentialTransferMint transferHook): SOL to token
+15,0,sell,0.005,SOL,CARDSccUMFKoPRZxt5vt3ksUbxEFEcnZ3H2pd3dKxYjp,sponsored,test_01_cow-swap-top: CARDS (classic): SOL to token
+16,0,sell,0.005,SOL,5dvXTZ5qwgafnHtwu3Ls3QrWx1U4LQsFeCuJgkk4QEC6,sponsored,test_01_cow-swap-top: EMBER (classic): SOL to token
+17,0,sell,0.005,SOL,9cRCn9rGT8V2imeM2BaKs13yhMEais3ruM3rPvTGpump,sponsored,test_01_cow-swap-top: ANSEM (token-2022): SOL to token
+18,0,sell,0.005,SOL,3NZ9JMVBmGAqocybic2c7LQCJScmgsAZ6vQqTDzcqmJh,sponsored,test_01_cow-swap-top: WBTC (classic): SOL to token
+19,0,sell,0.005,SOL,Dz9mQ9NzkBcCsuGPFJ3r1bS4wgqKMHBPiVuniW8Mbonk,sponsored,test_01_cow-swap-top: USELESS (classic): SOL to token
+20,0,sell,0.005,SOL,4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R,sponsored,test_01_cow-swap-top: RAY (classic): SOL to token
+21,0,sell,0.005,SOL,USD1ttGY1N17NEEHLmELoaybftRBUSErhqYiQzvEmuB,sponsored,test_01_cow-swap-top: USD1 (classic): SOL to token
+22,0,sell,0.005,SOL,CWZ6BsdnjkDVTGkmL6bGbJXXig6ceef12KvyGQW14cMt,sponsored,test_01_cow-swap-top: ANTFUN (classic): SOL to token
+23,0,sell,0.005,SOL,JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN,sponsored,test_01_cow-swap-top: JUP (classic): SOL to token
+24,0,sell,0.005,SOL,XsoCS1TfEyfFhfvj8EtZ528L3CaKBDBRqRapnBbDF2W,sponsored,test_01_cow-swap-top: SPYx (token-2022: permanentDelegate defaultAccountState scaledUiAmountConfig pausableConfig confidentialTransferMint transferHook): SOL to token
+25,0,sell,0.005,SOL,Xs3oZwbHvqis4NYcf4YKWmEia2eC84wSiVrcYcTqpH8,sponsored,test_01_cow-swap-top: SPCXx (token-2022: permanentDelegate defaultAccountState scaledUiAmountConfig pausableConfig confidentialTransferMint transferHook): SOL to token
+26,0,sell,0.005,SOL,Xsc9qvGR1efVDFGLrVsmkzv3qi45LTBjeUKSPmx9qEh,sponsored,test_01_cow-swap-top: NVDAx (token-2022: permanentDelegate defaultAccountState scaledUiAmountConfig pausableConfig confidentialTransferMint transferHook): SOL to token
+27,0,sell,0.005,SOL,2zMMhcVQEXDtdE6vsFS7S7D5oUodfJHE8vd1gnBouauv,sponsored,test_01_cow-swap-top: PENGU (classic): SOL to token
+28,0,sell,0.005,SOL,SPCXxcqXj6e5dJDVNovHN8744zkbhM2bYudU45BimGb,sponsored,test_01_cow-swap-top: SPCX (token-2022: permanentDelegate defaultAccountState pausableConfig confidentialTransferMint transferHook scaledUiAmountConfig): SOL to token
+29,0,sell,0.005,SOL,J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn,sponsored,test_01_cow-swap-top: JitoSOL (classic): SOL to token
+30,0,sell,0.005,SOL,27G8MtK7VtTcCHkpASjSDdkWWYfoqT6ggEuKidVJidD4,sponsored,test_01_cow-swap-top: JLP (classic): SOL to token
+1,0,sell,0.005,SOL,jupSoLaHXQiZZTSfEWMTRRgpnyFm8f6sZdosWBjx93v,sponsored,test_01_cow-swap-top: JupSOL (classic): SOL to token
+2,0,sell,0.005,SOL,MukLDtJ8Cx9DxLbeyLRSWPSposTMWuwHANbuaudpump,sponsored,test_01_cow-swap-top: OTC (token-2022): SOL to token
+3,0,sell,0.005,SOL,GTBxUiw6wJdmmkCGZgRHLyYxqu1vG4KtRpeox6yDpump,sponsored,test_01_cow-swap-top: JEANPHIL (token-2022): SOL to token
+4,0,sell,0.005,SOL,METvsvVRapdj9cFLzq4Tr43xK4tAjQfwX76z3n6mWQL,sponsored,test_01_cow-swap-top: MET (classic): SOL to token
+5,0,sell,0.005,SOL,6FrrzDk5mQARGc1TDYoyVnSyRdds1t4PbtohCD6p3tgG,sponsored,test_01_cow-swap-top: USX (classic): SOL to token
+6,0,sell,0.005,SOL,AvZZF1YaZDziPY2RCK4oJrRVrbN3mTD9NL24hPeaZeUj,sponsored,test_01_cow-swap-top: syrupUSDC (classic): SOL to token
+7,0,sell,0.005,SOL,C1mBfBoDkwWfd6uTFZp62ARHLjeVp3bDpCDMfMZtPngE,sponsored,test_01_cow-swap-top: HOOKED (classic): SOL to token
+8,0,sell,0.005,SOL,5Y8NV33Vv7WbnLfq3zBcKSdYPrk7g2KoiQoe7M2tcxp5,sponsored,test_01_cow-swap-top: ONyc (classic): SOL to token
+9,0,sell,0.005,SOL,CTPoyCwkjMvoJwU4xvZZqoD8tiYk6yDchySiN5gGpump,sponsored,test_01_cow-swap-top: fone (token-2022): SOL to token
+10,0,sell,0.005,SOL,5UUH9RTDiSpq6HKS6bp4NdU9PNJpXRXuiw6ShBTBhgH2,sponsored,test_01_cow-swap-top: TROLL (classic): SOL to token
+11,0,sell,0.005,SOL,Ce2gx9KGXJ6C9Mp5b5x1sn9Mg87JwEbrQby4Zqo3pump,sponsored,test_01_cow-swap-top: neet (classic): SOL to token
+12,0,sell,0.005,SOL,7JA5eZdCzztSfQbJvS8aVVxMFfd81Rs9VvwnocV1mKHu,sponsored,test_01_cow-swap-top: GEOD (classic): SOL to token
+13,0,sell,0.005,SOL,oreoU2P8bN6jkk3jbaiVxYnG1dCXcYxwhwyK9jSybcp,sponsored,test_01_cow-swap-top: ORE (classic): SOL to token
+14,0,sell,0.005,SOL,4sWNB8zGWHkh6UnmwiEtzNxL4XrN7uK9tosbESbJFfVs,sponsored,test_01_cow-swap-top: xSOL (classic): SOL to token
+15,0,sell,0.005,SOL,mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So,sponsored,test_01_cow-swap-top: mSOL (classic): SOL to token
+16,0,sell,0.005,SOL,9BB6NFEcjBCtnNLFko2FqVQBq8HHM13kCyYcdQbgpump,sponsored,test_01_cow-swap-top: Fartcoin (classic): SOL to token
+17,0,sell,0.005,SOL,D1YZZg9dBZ7AbfknZVbaeVLto36eySwoFYEVhZrD4F4n,sponsored,test_01_cow-swap-top: GO (classic): SOL to token
+1,0,sell,0.005,SOL,6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN,sponsored,test_02_cow-swap: TRUMP (classic): SOL to token
+2,0,sell,0.005,SOL,DJTu7vi8norVzdVAffgvb39VP7wjKeTsgaMBJrzfxvoF,sponsored,test_02_cow-swap: DJT (token-2022: permanentDelegate defaultAccountState pausableConfig confidentialTransferMint transferHook scaledUiAmountConfig): SOL to token
+3,0,sell,0.005,SOL,Xsa62P5mvPszXL1krVUnU5ar38bBSVcWAB6fmPCo5Zu,sponsored,test_02_cow-swap: METAx (token-2022: permanentDelegate defaultAccountState scaledUiAmountConfig pausableConfig confidentialTransferMint transferHook): SOL to token
+4,0,sell,0.005,SOL,PerPsCe2SJ7Q25CN4R5TTX4fmBdmknE2hQmqCt96fHL,sponsored,test_02_cow-swap: PERPSPAD (classic): SOL to token
+5,0,sell,0.005,SOL,SKHYhSjuRWHgikq8eRKbtBbpABgJSkd7ytQV14i9EQ3,sponsored,test_02_cow-swap: SKHY (token-2022: permanentDelegate defaultAccountState pausableConfig confidentialTransferMint transferHook scaledUiAmountConfig): SOL to token
+6,0,sell,0.005,SOL,XspzcW1PRtgf6Wj92HCiZdjzKCyFekVD8P5Ueh3dRMX,sponsored,test_02_cow-swap: MSFTx (token-2022: permanentDelegate defaultAccountState scaledUiAmountConfig pausableConfig confidentialTransferMint transferHook): SOL to token
+7,0,sell,0.005,SOL,5YMkXAYccHSGnHn9nob9xEvv6Pvka9DZWH7nTbotTu9E,sponsored,test_02_cow-swap: hyUSD (classic): SOL to token
+8,0,sell,0.005,SOL,Xsv9hRk1z5ystj9MhnA7Lq4vjSsLwzL2nxrwmwtD3re,sponsored,test_02_cow-swap: GLDx (token-2022: permanentDelegate defaultAccountState scaledUiAmountConfig pausableConfig confidentialTransferMint transferHook): SOL to token
+9,0,sell,0.005,SOL,BCdwQBAn8dYB5YjTsoB6TdHAWokxv28k2oZUodERpump,sponsored,test_02_cow-swap: MANIFEST (token-2022): SOL to token
+10,0,sell,0.005,SOL,SNDKbwMUQvZhnLnxLduradgLHG5KrPuKwpnrkkGRhfH,sponsored,test_02_cow-swap: SNDK (token-2022: permanentDelegate defaultAccountState pausableConfig confidentialTransferMint transferHook scaledUiAmountConfig): SOL to token
+11,0,sell,0.005,SOL,DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263,sponsored,test_02_cow-swap: Bonk (classic): SOL to token
+12,0,sell,0.005,SOL,Grass7B4RdKfBCjTKgSqnXkqjwiGvQyFbuSCUJr3XXjs,sponsored,test_02_cow-swap: GRASS (classic): SOL to token
+13,0,sell,0.005,SOL,orcaEKTdK7LKz57vaAYr9QeNsVEPfiu6QeMU1kektZE,sponsored,test_02_cow-swap: ORCA (classic): SOL to token
+14,0,sell,0.005,SOL,jtojtomepa8beP8AuQc6eXt5FriJwfFMwQx2v2f9mCL,sponsored,test_02_cow-swap: JTO (classic): SOL to token
+15,0,sell,0.005,SOL,Ge87EtsjwRQbHaqQmKRno69RFTwh9bfSsm99XNxTpump,sponsored,test_02_cow-swap: Jimothy (token-2022): SOL to token
+16,0,sell,0.005,SOL,J8PSdNP3QewKq2Z1JJJFDMaqF7KcaiJhR7gbr5KZpump,sponsored,test_02_cow-swap: TripleT (token-2022): SOL to token
+17,0,sell,0.005,SOL,HzwqbKZw8HxMN6bF2yFZNrht3c2iXXzpKcFu7uBEDKtr,sponsored,test_02_cow-swap: EURC (classic): SOL to token
+18,0,sell,0.005,SOL,J3NKxxXZcnNiMjKw9hYb2K4LUxgwB6t1FtPtQVsv3KFr,sponsored,test_02_cow-swap: SPX (classic): SOL to token
+19,0,sell,0.005,SOL,MUxEsUKSMACyw5fZf68wxf5FLnZVhtU9CwH8uNNGay1,sponsored,test_02_cow-swap: MU (token-2022: permanentDelegate defaultAccountState pausableConfig confidentialTransferMint transferHook scaledUiAmountConfig): SOL to token
+20,0,sell,0.005,SOL,USDSwr9ApdHk5bvJKMjzff41FfuX8bSxdKcR81vTwcA,sponsored,test_02_cow-swap: USDS (classic): SOL to token
+21,0,sell,0.005,SOL,XsCPL9dNWBMvFtTmwcCA5v3xWPSMEBCszbQdiLLq6aN,sponsored,test_02_cow-swap: GOOGLx (token-2022: permanentDelegate defaultAccountState scaledUiAmountConfig pausableConfig confidentialTransferMint transferHook): SOL to token
+22,0,sell,0.005,SOL,Xsf9mBktVB9BSU5kf4nHxPq5hCBJ2j2ui3ecFGxPRGc,sponsored,test_02_cow-swap: GMEx (token-2022: permanentDelegate defaultAccountState scaledUiAmountConfig pausableConfig confidentialTransferMint transferHook): SOL to token
+23,0,sell,0.005,SOL,METAewgxyPbgwsseH8T16a39CQ5VyVxZi9zXiDPY18m,sponsored,test_02_cow-swap: MPLX (classic): SOL to token
+24,0,sell,0.005,SOL,Cm6fNnMk7NfzStP9CZpsQA2v3jjzbcYGAxdJySmHpump,sponsored,test_02_cow-swap: Buttcoin (token-2022): SOL to token
+25,0,sell,0.005,SOL,DtR4D9FtVoTX2569gaL837ZgrB6wNjj6tkmnX9Rdk9B2,sponsored,test_02_cow-swap: aura (classic): SOL to token
+26,0,sell,0.005,SOL,XsueG8BtpquVJX9LVLLEGuViXUungE6WmK5YZ3p3bd1,sponsored,test_02_cow-swap: CRCLx (token-2022: permanentDelegate defaultAccountState scaledUiAmountConfig pausableConfig confidentialTransferMint transferHook): SOL to token
+27,0,sell,0.005,SOL,DBRiDgJAMsM95moTzJs7M9LnkGErpbv9v6CUR1DXnUu5,sponsored,test_02_cow-swap: DBR (classic): SOL to token
+28,0,sell,0.005,SOL,nosXBVoaCTtYdLvKY6Csb4AC8JCdQKKAaWYtx2ZMoo7,sponsored,test_02_cow-swap: NOS (classic): SOL to token
+29,0,sell,0.005,SOL,BoTx8y9ynfdxf5ZjWtCoBVkff52qKA82ysaLU8ZM6d8T,sponsored,test_02_cow-swap: BOT (token-2022: permanentDelegate defaultAccountState pausableConfig confidentialTransferMint transferHook scaledUiAmountConfig): SOL to token
+30,0,sell,0.005,SOL,5oVNBeEEQvYi1cX3ir8Dx5n1P7pdxydbGF2X4TxVusJm,sponsored,test_02_cow-swap: INF (classic): SOL to token
+1,0,sell,0.005,SOL,KMNo3nJsBXfcpJTVhZcXLW7RmTwTt4GVFE7suUBo9sS,sponsored,test_02_cow-swap: KMNO (classic): SOL to token
+2,0,sell,0.005,SOL,7ga6rtE9qSb3wdEiDCpTu2kHqoGVfT52jD8ign1rYTvx,sponsored,test_02_cow-swap: xHYPE (classic): SOL to token
+3,0,sell,0.005,SOL,Xs8S1uUs1zvS2p7iwtsG3b6fkhpvmwz4GYU3gWAmWHZ,sponsored,test_02_cow-swap: QQQx (token-2022: permanentDelegate defaultAccountState scaledUiAmountConfig pausableConfig confidentialTransferMint transferHook): SOL to token
+4,0,sell,0.005,SOL,69LjZUUzxj3Cb3Fxeo1X4QpYEQTboApkhXTysPpbpump,sponsored,test_02_cow-swap: CODEC (classic): SOL to token
+5,0,sell,0.005,SOL,XsqE9cRRpzxcGKDXj1BJ7Xmg4GRhZoyY1KpmGSxAWT2,sponsored,test_02_cow-swap: MCDx (token-2022: permanentDelegate defaultAccountState scaledUiAmountConfig pausableConfig confidentialTransferMint transferHook): SOL to token
+6,0,sell,0.005,SOL,PEAQjk7SRS6rXHVFFmpRr7zrC4g5ZuEebpwTxvaLr3b,sponsored,test_02_cow-swap: PEAQ (classic): SOL to token
+7,0,sell,0.005,SOL,CtzPWv73Sn1dMGVU3ZtLv9yWSyUAanBni19YWDaznnkn,sponsored,test_02_cow-swap: xBTC (classic): SOL to token
+8,0,sell,0.005,SOL,31k88G5Mq7ptbRDf3AM13HAq6wRQHXHikR8hik7wPygk,sponsored,test_02_cow-swap: GP (classic): SOL to token
+9,0,sell,0.005,SOL,XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp,sponsored,test_02_cow-swap: AAPLx (token-2022: permanentDelegate defaultAccountState scaledUiAmountConfig pausableConfig confidentialTransferMint transferHook): SOL to token
+10,0,sell,0.005,SOL,XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB,sponsored,test_02_cow-swap: TSLAx (token-2022: permanentDelegate defaultAccountState scaledUiAmountConfig pausableConfig confidentialTransferMint transferHook): SOL to token
+11,0,sell,0.005,SOL,Xs7ZdzSHLU9ftNJsii5fCeJhoRWSC32SQGzGQtePxNu,sponsored,test_02_cow-swap: COINx (token-2022: permanentDelegate defaultAccountState scaledUiAmountConfig pausableConfig confidentialTransferMint transferHook): SOL to token
+12,0,sell,0.005,SOL,TTWofwAge91oFhZs7kpQdyrVRkmevgM88xijGvQFbKo,sponsored,test_02_cow-swap: TTWO (token-2022: permanentDelegate defaultAccountState pausableConfig confidentialTransferMint transferHook scaledUiAmountConfig): SOL to token
+13,0,sell,0.005,SOL,59obFNBzyTBGowrkif5uK7ojS58vsuWz3ZCvg6tfZAGw,sponsored,test_02_cow-swap: PST (classic): SOL to token
+14,0,sell,0.005,SOL,EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm,sponsored,test_02_cow-swap: $WIF (classic): SOL to token
+15,0,sell,0.005,SOL,SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3,sponsored,test_02_cow-swap: SKR (classic): SOL to token
+16,0,sell,0.005,SOL,SATqS9DYpLQsM2z51P4QCoqJRHa5wboV4qjJerJRUSH,sponsored,test_02_cow-swap: RUSH (classic): SOL to token
+17,0,sell,0.005,SOL,ZBCNpuD7YMXzTHB2fhGkGi78MNsHGLRXUhRewNRm9RU,sponsored,test_02_cow-swap: ZBCN (classic): SOL to token
+18,0,sell,0.005,SOL,XsvNBAYkrDRNhA7wPHQfX3ZUXZyZLdnCQDfHZ56bzpg,sponsored,test_02_cow-swap: HOODx (token-2022: permanentDelegate defaultAccountState scaledUiAmountConfig pausableConfig confidentialTransferMint transferHook): SOL to token
+19,0,sell,0.005,SOL,7KEPApdbBMByrmqihz3bht2uMhFQcatjfSFQCKq66kH3,sponsored,test_02_cow-swap: DARK (token-2022): SOL to token
+20,0,sell,0.005,SOL,pSo1f9nQXWgXibFtKf7NWYxb5enAM4qfP6UJSiXRQfL,sponsored,test_02_cow-swap: PSOL (classic): SOL to token
+21,0,sell,0.005,SOL,C1MHyoTJpRTeS9AQCyspNVu2EWAYCZwmJ1jNkEArFP1f,sponsored,test_02_cow-swap: APE (classic): SOL to token
+22,0,sell,0.005,SOL,XsP7xzNPvEHS1m6qfanPUGjNmdnmsLKEoNAnHjdxxyZ,sponsored,test_02_cow-swap: MSTRx (token-2022: permanentDelegate defaultAccountState scaledUiAmountConfig pausableConfig confidentialTransferMint transferHook): SOL to token
+23,0,sell,0.005,SOL,ukHH6c7mMyiWCf1b9pnWe25TSpkDDt3H5pQZgZ74J82,sponsored,test_02_cow-swap: BOME (classic): SOL to token
+24,0,sell,0.005,SOL,AymATz4TCL9sWNEEV9Kvyz45CHVhDZ6kUgjTJPzLpU9P,sponsored,test_02_cow-swap: XAUt0 (classic): SOL to token
+25,0,sell,0.005,SOL,8SMMso8Muv8d6i4WmMDthKt6TN1ysN6937sx3DKLXZqB,sponsored,test_02_cow-swap: RHEA (classic): SOL to token
+26,0,sell,0.005,SOL,63LfDmNb3MQ8mw9MtZ2To9bEA2M71kZUUGq5tiJxcqj9,sponsored,test_02_cow-swap: GIGA (classic): SOL to token
+27,0,sell,0.005,SOL,A13oRB9FFaiUjfi6LdCg6p9ka1u8SfGkUFs4SKvPpump,sponsored,test_02_cow-swap: TOAD (token-2022): SOL to token
+28,0,sell,0.005,SOL,5XZw2LKTyrfvfiskJ78AMpackRjPcyCif1WhUsPDuVqQ,sponsored,test_02_cow-swap: WBTC (classic): SOL to token
+29,0,sell,0.005,SOL,9gP2kCy3wA1ctvYWQk75guqXuHfrEomqydHLtcTCqiLa,sponsored,test_02_cow-swap: BNB (classic): SOL to token
+30,0,sell,0.005,SOL,GRNDYDpqwpCm6jVxpbh4xT5AM4r3p391qYsKTHqgaET2,sponsored,test_02_cow-swap: GRND (token-2022: permanentDelegate defaultAccountState pausableConfig confidentialTransferMint transferHook scaledUiAmountConfig): SOL to token
+1,0,sell,0.005,SOL,J6pQQ3FAcJQeWPPGppWRb4nM8jU3wLyYbRrLh7feMfvd,sponsored,test_02_cow-swap: 2Z (classic): SOL to token
+2,0,sell,0.005,SOL,6UpQcMAb5xMzxc7ZfPaVMgx3KqsvKZdT5U718BzD5We2,sponsored,test_02_cow-swap: wXRP (classic): SOL to token
+3,0,sell,0.005,SOL,DKNGQFNGQmoBdXSRGKJ8tTu7uPDasw5JDcfMmWniNfow,sponsored,test_02_cow-swap: DKNG (token-2022: permanentDelegate defaultAccountState pausableConfig confidentialTransferMint transferHook scaledUiAmountConfig): SOL to token
+4,0,sell,0.005,SOL,XsoBhf2ufR8fTyNSjqfU71DYGaE6Z3SUGAidpzriAA4,sponsored,test_02_cow-swap: PLTRx (token-2022: permanentDelegate defaultAccountState scaledUiAmountConfig pausableConfig confidentialTransferMint transferHook): SOL to token
+5,0,sell,0.005,SOL,3ThdFZQKM6kRyVGLG48kaPg5TRMhYMKY1iCRa9xop1WC,sponsored,test_02_cow-swap: eUSX (classic): SOL to token
+6,0,sell,0.005,SOL,GoLDppdjB1vDTPSGxyMJFqdnj134yH6Prg9eqsGDiw6A,sponsored,test_02_cow-swap: GOLD (classic): SOL to token
+7,0,sell,0.005,SOL,GkyPYa7NnCFbduLknCfBfP7p8564X1VZhwZYJ6CZpump,sponsored,test_02_cow-swap: CHILLHOUSE (classic): SOL to token
+8,0,sell,0.005,SOL,HZ1JovNiVvGrGNiiYvEozEVgZ58xaU3RKwX8eACQBCt3,sponsored,test_02_cow-swap: PYTH (classic): SOL to token
+9,0,sell,0.005,SOL,8XtRWb4uAAJFMP4QQhoYYCWR6XXb7ybcCdiqPwz9s5WS,sponsored,test_02_cow-swap: ALON (classic): SOL to token
+10,0,sell,0.005,SOL,CLoUDKc4Ane7HeQcPpE3YHnznRxhMimJ4MyaUqyHFzAu,sponsored,test_02_cow-swap: SANC (classic): SOL to token
+11,0,sell,0.005,SOL,H74CYmXgMkYHYuSRsZt6RJb4NYp2u72Vw8BS5huApump,sponsored,test_02_cow-swap: LMAO! (classic): SOL to token
+12,0,sell,0.005,SOL,Eg2ymQ2aQqjMcibnmTt8erC6Tvk9PVpJZCxvVPJz2agu,sponsored,test_02_cow-swap: PUMPCADE (classic): SOL to token
+13,0,sell,0.005,SOL,6NwarBvDkXhByqVp2Qkq5i9XbtA2B3Bwe8SWGu9vpump,sponsored,test_02_cow-swap: Cupsey (classic): SOL to token
+14,0,sell,0.005,SOL,1zJX5gRnjLgmTpq5sVwkq69mNDQkCemqoasyjaPW6jm,sponsored,test_02_cow-swap: KLED (classic): SOL to token
+15,0,sell,0.005,SOL,HiMSSzzwkZkrXJ4PGVJRdtfLaANeAztjjcgk5Dxe7Lwx,sponsored,test_02_cow-swap: HIMS (token-2022: permanentDelegate defaultAccountState pausableConfig confidentialTransferMint transferHook scaledUiAmountConfig): SOL to token
+16,0,sell,0.005,SOL,METAwkXcqyXKy1AtsSgJ8JiUHwGCafnZL38n3vYmeta,sponsored,test_02_cow-swap: META (classic): SOL to token
+17,0,sell,0.005,SOL,Xs78JED6PFZxWc2wCEPspZW9kL3Se5J7L5TChKgsidH,sponsored,test_02_cow-swap: STRCx (token-2022: permanentDelegate defaultAccountState scaledUiAmountConfig pausableConfig confidentialTransferMint transferHook): SOL to token
+18,0,sell,0.005,SOL,NKEda5nHhNGgjrE9nDdMvaEmkmJ96qqxzBVZEcKmjSg,sponsored,test_02_cow-swap: NKE (token-2022: permanentDelegate defaultAccountState pausableConfig confidentialTransferMint transferHook scaledUiAmountConfig): SOL to token
+19,0,sell,0.005,SOL,9Pfync3ejPC9eHqVzq3nYQJAhyhjqpnB9UsaSfLxpump,sponsored,test_02_cow-swap: KET (classic): SOL to token
+20,0,sell,0.005,SOL,CzLTZppPdZtTjyq3WGpHLstoc3GLhu7zH5Zg6xUa6Gv5,sponsored,test_02_cow-swap: COPX (token-2022: permanentDelegate defaultAccountState pausableConfig confidentialTransferMint transferHook scaledUiAmountConfig): SOL to token
+21,0,sell,0.005,SOL,72QvBVwpxqmheEPfaCwWSWqEFsUy3rhWt6JhQBMNTwD1,sponsored,test_02_cow-swap: ENA (classic): SOL to token
+22,0,sell,0.005,SOL,GbbesPbaYh5uiAZSYNXTc7w9jty1rpg3P9L4JeN4LkKc,sponsored,test_02_cow-swap: TRX (classic): SOL to token
+23,0,sell,0.005,SOL,bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1,sponsored,test_02_cow-swap: bSOL (classic): SOL to token
+24,0,sell,0.005,SOL,739dnZEG4yaBWFsY8L8ZwrfhGG6dhtCSercW8Umspump,sponsored,test_02_cow-swap: CLAW (classic): SOL to token
+25,0,sell,0.005,SOL,Xs3eBt7uRfJX8QUs4suhyU8p2M6DoUDrJyWBa8LLZsg,sponsored,test_02_cow-swap: AMZNx (token-2022: permanentDelegate defaultAccountState scaledUiAmountConfig pausableConfig confidentialTransferMint transferHook): SOL to token
+26,0,sell,0.005,SOL,EpXtn6xGoZ4Y45vRjiDUHSCGbBoJD5FaEqZbF98YswH1,sponsored,test_02_cow-swap: MADE (token-2022): SOL to token
+27,0,sell,0.005,SOL,BCNT4t3rv5Hva8RnUtJUJLnxzeFAabcYp8CghC1SmWin,sponsored,test_02_cow-swap: BC (classic): SOL to token
+28,0,sell,0.005,SOL,RBLXDGRD64AtRamHMFVcjqne3Ar7NLWtFtYNtsrf1cE,sponsored,test_02_cow-swap: RBLX (token-2022: permanentDelegate defaultAccountState pausableConfig confidentialTransferMint transferHook scaledUiAmountConfig): SOL to token
+29,0,sell,0.005,SOL,AMC1qwR9KhiyrQBRPrxnfo4JfMeMZqEBvt5tgTytNNoc,sponsored,test_02_cow-swap: AMC (token-2022: permanentDelegate defaultAccountState pausableConfig confidentialTransferMint transferHook scaledUiAmountConfig): SOL to token
+30,0,sell,0.005,SOL,rndrizKT3MK1iimdxRdWabcF7Zg7AR5T4nud4EkHBof,sponsored,test_02_cow-swap: RENDER (classic): SOL to token
+1,0,sell,0.005,SOL,BcHEaaTCvycPwwsJ9yQTXdHP9X2gCLkznDbZ8VySpump,sponsored,test_02_cow-swap: Jotchua (token-2022): SOL to token
+2,0,sell,0.005,SOL,8J69rbLTzWWgUJziFY8jeu5tDwEPBwUz4pKBMr5rpump,sponsored,test_02_cow-swap: WOJAK (classic): SOL to token
+3,0,sell,0.005,SOL,XkeTXo1125vz5H9svJpGiw4JvLbN8VmMu9cmMvspump,sponsored,test_02_cow-swap: DREGG (token-2022): SOL to token
+4,0,sell,0.005,SOL,BABANGA4JE7Kkam4nTrALAwAVgsNJUuFJnnkF7S16BZp,sponsored,test_02_cow-swap: BABA (token-2022: permanentDelegate defaultAccountState pausableConfig confidentialTransferMint transferHook scaledUiAmountConfig): SOL to token
+5,0,sell,0.005,SOL,DRAMjSWR7HRfJKjRkvQWYL2bcaejaVhuxEcjf4pAY4Cw,sponsored,test_02_cow-swap: DRAM (token-2022: permanentDelegate defaultAccountState pausableConfig confidentialTransferMint transferHook scaledUiAmountConfig): SOL to token
+6,0,sell,0.005,SOL,AavE1kKKnesPw4MuRJmJ9jZs9QzEE8CPxQ3ViczUDfc1,sponsored,test_02_cow-swap: AAVE (classic): SOL to token
+7,0,sell,0.005,SOL,he1iusmfkpAdwvxLNGV8Y1iSbj4rUy6yMhEA3fotn9A,sponsored,test_02_cow-swap: hSOL (classic): SOL to token
+8,0,sell,0.005,SOL,9McvH6w97oewLmPxqQEoHUAv3u5iYMyQ9AeZZhguYf1T,sponsored,test_02_cow-swap: Anon (classic): SOL to token
+9,0,sell,0.005,SOL,3vgopg7xm3EWkXfxmWPUpcf7g939hecfqg18sLuXDzVt,sponsored,test_02_cow-swap: HAROLD (classic): SOL to token
+10,0,sell,0.005,SOL,HgBRWfYxEfvPhtqkaeymCQtHCrKE46qQ43pKe8HCpump,sponsored,test_02_cow-swap: Bert (classic): SOL to token
+11,0,sell,0.005,SOL,B5WTLaRwaUQpKk7ir1wniNB6m5o8GgMrimhKMYan2R6B,sponsored,test_02_cow-swap: Pepe (classic): SOL to token
+12,0,sell,0.005,SOL,1NJMqVM4PadjuzYmeB7zV7q7DV8oB3ExaQCd9x6KsLz,sponsored,test_02_cow-swap: INJ (classic): SOL to token
+13,0,sell,0.005,SOL,A8C3xuqscfmyLrte3VmTqrAq8kgMASius9AFNANwpump,sponsored,test_02_cow-swap: FWOG (classic): SOL to token
+14,0,sell,0.005,SOL,BeGY8KqKxboEwRbJd1q9H2K829jS4Rc5dEyNMYXCbV5p,sponsored,test_02_cow-swap: NPC (classic): SOL to token
+15,0,sell,0.005,SOL,5g6wVay8NYQ5Tspo4irj9YqSFfQoPDW7apkX352N29PP,sponsored,test_02_cow-swap: EDEL (classic): SOL to token
+16,0,sell,0.005,SOL,ZEUS1aR7aX8DFFJf5QjWj2ftDDdNTroMNGo8YoQm3Gq,sponsored,test_02_cow-swap: ZEUS (classic): SOL to token
+17,0,sell,0.005,SOL,SNAPcESrvnH8yUdgeMF6xm1hym9b6hW6s8YeqeHdZFz,sponsored,test_02_cow-swap: SNAP (token-2022: permanentDelegate defaultAccountState pausableConfig confidentialTransferMint transferHook scaledUiAmountConfig): SOL to token
+18,0,sell,0.005,SOL,BMKdM4yUxX12moFqVk195k7coMbaybd4RUKCUdm7D1Sk,sponsored,test_02_cow-swap: IBM (token-2022: permanentDelegate defaultAccountState pausableConfig confidentialTransferMint transferHook scaledUiAmountConfig): SOL to token
+19,0,sell,0.005,SOL,6SjVTj1VGwFSXn7wEjwFm77LvACeTqB7sQUebYKX8Ds5,sponsored,test_02_cow-swap: ROUTER (classic): SOL to token
+20,0,sell,0.005,SOL,A1KLoBrKBde8Ty9qtNQUtq3C2ortoC3u7twggz7sEto6,sponsored,test_02_cow-swap: USDY (classic): SOL to token
+21,0,sell,0.005,SOL,RDDTGbhHwVXfyCvQMXzzowKjf5qrYBZAnehoXW83ooh,sponsored,test_02_cow-swap: RDDT (token-2022: permanentDelegate defaultAccountState pausableConfig confidentialTransferMint transferHook scaledUiAmountConfig): SOL to token
+22,0,sell,0.005,SOL,CrAr4RRJMBVwRsZtT62pEhfA9H5utymC2mVx8e7FreP2,sponsored,test_02_cow-swap: MON (classic): SOL to token
+23,0,sell,0.005,SOL,zj1jpp7QMveWHLs61vL9KMZf254KvW7j4AAmBF8ry2k,sponsored,test_02_cow-swap: BULLSHIT (classic): SOL to token
+24,0,sell,0.005,SOL,MEW1gQWJ3nEXg2qgERiKu7FAFj79PHvQVREQUzScPP5,sponsored,test_02_cow-swap: MEW (classic): SOL to token
+25,0,sell,0.005,SOL,AMD8XwJXgQ9WV45Wyj9yFLejxzf2J6VM1PJY8bJEjeES,sponsored,test_02_cow-swap: AMD (token-2022: permanentDelegate defaultAccountState pausableConfig confidentialTransferMint transferHook scaledUiAmountConfig): SOL to token
+26,0,sell,0.005,SOL,EN2nnxrg8uUi6x2sJkzNPd2eT6rB9rdSoQNNaENA4RZA,sponsored,test_02_cow-swap: SQUIRE (token-2022): SOL to token
+27,0,sell,0.005,SOL,hntyVP6YFm1Hg25TN9WGLqM12b8TQmcknKrdu1oxWux,sponsored,test_02_cow-swap: HNT (classic): SOL to token
+28,0,sell,0.005,SOL,6AJcP7wuLwmRYLBNbi825wgguaPsWzPBEHcHndpRpump,sponsored,test_02_cow-swap: VINE (classic): SOL to token
+29,0,sell,0.005,SOL,CB9dDufT3ZuQXqqSfa1c5kY935TEreyBw9XJXxHKpump,sponsored,test_02_cow-swap: USDUC (classic): SOL to token
+30,0,sell,0.005,SOL,7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr,sponsored,test_02_cow-swap: POPCAT (classic): SOL to token
+1,0,sell,0.005,SOL,PAYmo6moDF3Ro3X6bU2jwe2UdBnBhv8YjLgL1j4DxGu,sponsored,test_02_cow-swap: PAYAI (classic): SOL to token
+2,0,sell,0.005,SOL,61V8vBaqAGMpgDQi4JcAwo1dmBGHsyhzodcPqnEVpump,sponsored,test_02_cow-swap: arc (classic): SOL to token
+3,0,sell,0.005,SOL,CGEDT9QZDvvH5GmVkWJH2BXiMJqMJySC9ihWyr7Spump,sponsored,test_02_cow-swap: BURNIE (token-2022): SOL to token
+4,0,sell,0.005,SOL,3iQL8BFS2vE7mww4ehAqQHAsbmRNCrPxizWAT2Zfyr9y,sponsored,test_02_cow-swap: VIRTUAL (classic): SOL to token
+5,0,sell,0.005,SOL,Df6yfrKC8kZE3KNkrHERKzAetSxbrWeniQfyJY4Jpump,sponsored,test_02_cow-swap: CHILLGUY (classic): SOL to token
+6,0,sell,0.005,SOL,LinkhB3afbBKb2EQQu7s7umdZceV3wcvAUJhQAfQ23L,sponsored,test_02_cow-swap: LINK (classic): SOL to token
+7,0,sell,0.005,SOL,4qQeZ5LwSz6HuupUu8jCtgXyW1mYQcNbFAW1sWZp89HL,sponsored,test_02_cow-swap: Cake (classic): SOL to token
+8,0,sell,0.005,SOL,KENJSUYLASHUMfHyy5o4Hp2FdNqZg1AsUPhfH2kYvEP,sponsored,test_02_cow-swap: GRIFFAIN (classic): SOL to token
+9,0,sell,0.005,SOL,eL5fUxj2J4CiQsmW85k5FG9DvuQjjUoBHoQBi2Kpump,sponsored,test_02_cow-swap: UFD (classic): SOL to token
+10,0,sell,0.005,SOL,CREDBHvVqREBCAxMihzr8D1nepHMr2gmQoZWpmgGmeta,sponsored,test_02_cow-swap: CRED (classic): SOL to token
+11,0,sell,0.005,SOL,DvjbEsdca43oQcw2h3HW1CT7N3x5vRcr3QrvTUHnXvgV,sponsored,test_02_cow-swap: DOOD (classic): SOL to token
+12,0,sell,0.005,SOL,8PzFWyLpCVEmbZmVJcaRTU5r69XKJx1rd7YGpWvnpump,sponsored,test_02_cow-swap: Percolator (classic): SOL to token
+13,0,sell,0.005,SOL,CniPCE4b3s8gSUPhUiyMjXnytrEqUrMfSsnbBjLCpump,sponsored,test_02_cow-swap: pwease (classic): SOL to token
+14,0,sell,0.005,SOL,USDvUSpnhCr9yBgj3UyVrD239HRUv4RsHwH2FxsWuMk,sponsored,test_02_cow-swap: USDv (token-2022: transferHook confidentialTransferMint permanentDelegate pausableConfig mintCloseAuthority defaultAccountState): SOL to token
+15,0,sell,0.005,SOL,HUMA1821qVDKta3u2ovmfDQeW2fSQouSKE8fkF44wvGw,sponsored,test_02_cow-swap: HUMA (classic): SOL to token
+16,0,sell,0.005,SOL,MEFNBXixkEbait3xn9bkm8WsJzXtVsaJEn4c8Sam21u,sponsored,test_02_cow-swap: ME (classic): SOL to token
+17,0,sell,0.005,SOL,3B1ijcocM5EDga6XxQ7JLW7weocQPWWjuhBYG8Vepump,sponsored,test_02_cow-swap: BP (token-2022): SOL to token
+18,0,sell,0.005,SOL,Tqj8yFmagrg7oorpQkVGYR52r96RFTamvWfth9bpump,sponsored,test_02_cow-swap: KINS (token-2022): SOL to token
+19,0,sell,0.005,SOL,463SK47VkB7uE7XenTHKiVcMtxRsfNE2X4Q9wByaURVA,sponsored,test_02_cow-swap: TSUKI (classic): SOL to token
+20,0,sell,0.005,SOL,USNv3NkKA27Dh4nsHJDPhW4VoEcTQmjoZyJt2dqdwFu,sponsored,test_02_cow-swap: USO (token-2022: permanentDelegate defaultAccountState pausableConfig confidentialTransferMint transferHook scaledUiAmountConfig): SOL to token
+21,0,sell,0.005,SOL,SLXdx4BUt2v9uJQNzWqSfzTJ9UKLUDsvxHFMEEdrfgq,sponsored,test_02_cow-swap: SLX (classic): SOL to token
+22,0,sell,0.005,SOL,5z3EqYQo9HiCEs3R84RCDMu2n7anpDMxRhdK8PSWmrRC,sponsored,test_02_cow-swap: PONKE (classic): SOL to token
+23,0,sell,0.005,SOL,CARSsxWPkpQWvfyRBwfGMGvysJBHdHGfE46X5MNgmeta,sponsored,test_02_cow-swap: CARS (classic): SOL to token
+24,0,sell,0.005,SOL,8wXtPeU6557ETkp9WHFY1n1EcU6NxDvbAggHGsMYiHsB,sponsored,test_02_cow-swap: GME (classic): SOL to token
+25,0,sell,0.005,SOL,G7iK3prSzAA4vzcJWvsLUEsdCqzR7PnMzJV61vSdFSNW,sponsored,test_02_cow-swap: NST (classic): SOL to token
+26,0,sell,0.005,SOL,Cy1GS2FqefgaMbi45UunrUzin1rfEmTUYnomddzBpump,sponsored,test_02_cow-swap: MOBY (classic): SOL to token
+27,0,sell,0.005,SOL,XsaBXg8dU5cPM6ehmVctMkVqoiRG2ZjMo1cyBJ3AykQ,sponsored,test_02_cow-swap: KOx (token-2022: permanentDelegate defaultAccountState scaledUiAmountConfig pausableConfig confidentialTransferMint transferHook): SOL to token
+28,0,sell,0.005,SOL,G7vQWurMkMMm2dU3iZpXYFTHT9Biio4F4gZCrwFpKNwG,sponsored,test_02_cow-swap: BIRB (classic): SOL to token
+29,0,sell,0.005,SOL,ED5nyyWEzpPPiWimP8vYm7sD7TD3LAt3Q3gRTWHzPJBY,sponsored,test_02_cow-swap: MOODENG (classic): SOL to token
+30,0,sell,0.005,SOL,HtTYHz1Kf3rrQo6AqDLmss7gq5WrkWAaXn3tupUZbonk,sponsored,test_02_cow-swap: KORI (classic): SOL to token
+1,0,sell,0.005,SOL,2qEHjDLDLbuBgRYvsxhc5D6uDWAivNFZGan56P1tpump,sponsored,test_02_cow-swap: Pnut (classic): SOL to token
+2,0,sell,0.005,SOL,FeMbDoX7R1Psc4GEcvJdsbNbZA3bfztcyDCatJVJpump,sponsored,test_02_cow-swap: three (token-2022): SOL to token
+3,0,sell,0.005,SOL,4nV5gNwwP68zUDat26ySChREqVaQaLudfJBkSgEzpump,sponsored,test_02_cow-swap: BOBO (classic): SOL to token
+4,0,sell,0.005,SOL,9AvytnUKsLxPxFHFqS6VLxaxt5p6BhYNr53SD2Chpump,sponsored,test_02_cow-swap: 67 (classic): SOL to token
+5,0,sell,0.005,SOL,WENWENvqqNya429ubCdR81ZmD69brwQaaBYY6p3LCpk,sponsored,test_02_cow-swap: WEN (classic): SOL to token
+6,0,sell,0.005,SOL,Hh3oTaqDCKKfdBgsQEvxp9sUwyNf8x9qmKqEMLBWpump,sponsored,test_02_cow-swap: HODL (token-2022): SOL to token
+7,0,sell,0.005,SOL,HKJHsYJHMVK5VRyHHk5GhvzY9tBAAtPvDkZfDH6RLDTd,sponsored,test_02_cow-swap: READY (classic): SOL to token
+8,0,sell,0.005,SOL,GJAFwWjJ3vnTsrQVabjBVK2TYB1YtRCQXRDfDgUnpump,sponsored,test_02_cow-swap: ACT (classic): SOL to token
+9,0,sell,0.005,SOL,GMzuntWYJLpNuCizrSR7ZXggiMdDzTNiEmSNHHunpump,sponsored,test_02_cow-swap: dreams (classic): SOL to token
+10,0,sell,0.005,SOL,x95HN3DWvbfCBtTjGm587z8suK3ec6cwQwgZNLbWKyp,sponsored,test_02_cow-swap: $HACHI (classic): SOL to token
+11,0,sell,0.005,SOL,8wxkvAfEns76yBzu4MnbV7VnXWjg3iDPA9uwAQ6cpump,sponsored,test_02_cow-swap: SOLANGELES (token-2022): SOL to token
+12,0,sell,0.005,SOL,4QsNTBKwHgyYUUHq9tDzk1CCVu7y5hK7z3GE9R36pump,sponsored,test_02_cow-swap: nub (classic): SOL to token
+13,0,sell,0.005,SOL,CYPHuMmCL1GxJWa2tsPhLKykC7GrHJTCHwbXD4g5uawK,sponsored,test_02_cow-swap: CYPH (token-2022: permanentDelegate defaultAccountState pausableConfig confidentialTransferMint transferHook scaledUiAmountConfig): SOL to token
+14,0,sell,0.005,SOL,bioJ9JTqW62MLz7UKHU69gtKhPpGi1BQhccj2kmSvUJ,sponsored,test_02_cow-swap: BIO (token-2022): SOL to token
+15,0,sell,0.005,SOL,H8xQ6poBjB9DTPMDTKWzWPrnxu4bDEhybxiouF8Ppump,sponsored,test_02_cow-swap: Tokabu (classic): SOL to token
+16,0,sell,0.005,SOL,CcLd8HTAKLWtQHatqPwBQjtuCA72FNB9E1ckRTEzpump,sponsored,test_02_cow-swap: ALTSZN (token-2022): SOL to token
+17,0,sell,0.005,SOL,7BgBvyjrZX1YKz4oh9mjb8ZScatkkwb8DzFx7LoiVkM3,sponsored,test_02_cow-swap: Old Slerf (classic): SOL to token
+18,0,sell,0.005,SOL,6nR8wBnfsmXfcdDr1hovJKjvFQxNSidN6XFyfAFZpump,sponsored,test_02_cow-swap: Clash (classic): SOL to token
+19,0,sell,0.005,SOL,AMjzRn1TBQwQfNAjHFeBb7uGbbqbJB7FzXAnGgdFPk6K,sponsored,test_02_cow-swap: SOLCEX (classic): SOL to token
+20,0,sell,0.005,SOL,FRySi8LPkuByB7VPSCCggxpewFUeeJiwEGRKKuhwpKcX,sponsored,test_02_cow-swap: NATIX (classic): SOL to token
+21,0,sell,0.005,SOL,BLVxek8YMXUQhcKmMvrFTrzh5FXg8ec88Crp6otEaCMf,sponsored,test_02_cow-swap: BELIEVE (classic): SOL to token
+22,0,sell,0.005,SOL,3psH1Mj1f7yUfaD5gh6Zj7epE8hhrMkMETgv5TshQA4o,sponsored,test_02_cow-swap: boden (classic): SOL to token
+23,0,sell,0.005,SOL,MRNAzXzhNcaEXJPibHEn8cd4vyekCDiivTyEwswLUCT,sponsored,test_02_cow-swap: MRNA (token-2022: permanentDelegate defaultAccountState pausableConfig confidentialTransferMint transferHook scaledUiAmountConfig): SOL to token
+24,0,sell,0.005,SOL,Xs6B6zawENwAbWVi7w92rjazLuAr5Az59qgWKcNb45x,sponsored,test_02_cow-swap: BRK.Bx (token-2022: permanentDelegate defaultAccountState scaledUiAmountConfig pausableConfig confidentialTransferMint transferHook): SOL to token
+25,0,sell,0.005,SOL,FUAfBo2jgks6gB4Z4LfZkqSZgzNucisEHqnNebaRxM1P,sponsored,test_02_cow-swap: MELANIA (classic): SOL to token
+26,0,sell,0.005,SOL,hy1oXYgrBW6PVcJ4s6s2FKavRdwgWTXdfE69AxT7kPT,sponsored,test_02_cow-swap: hyloSOL (classic): SOL to token
+27,0,sell,0.005,SOL,AWGCDT2gd8JadbYbYyZy1iKxfWokPNgrEQoU24zUpump,sponsored,test_02_cow-swap: Clude (token-2022): SOL to token
+28,0,sell,0.005,SOL,MRVLSjkR2ceUBukujaD3xCyHP1H3B2SzpsNTZF546jo,sponsored,test_02_cow-swap: MRVL (token-2022: permanentDelegate defaultAccountState pausableConfig confidentialTransferMint transferHook scaledUiAmountConfig): SOL to token
+29,0,sell,0.005,SOL,BonK1YhkXEGLZzwtcvRTip3gAL9nCeQD7ppZBLXhtTs,sponsored,test_02_cow-swap: bonkSOL (classic): SOL to token
+30,0,sell,0.005,SOL,85VBFQZC9TZkfaptBWjvUw7YbZjy52A6mjtPGjstQAmQ,sponsored,test_02_cow-swap: W (classic): SOL to token
+1,0,sell,0.005,SOL,LLYuwZ33keFihgwoxXsBawy31AiRFLFSva32TYq5TvD,sponsored,test_02_cow-swap: LLY (token-2022: permanentDelegate defaultAccountState pausableConfig confidentialTransferMint transferHook scaledUiAmountConfig): SOL to token
+2,0,sell,0.005,SOL,EmcxFTNVDqyLHp11NvwvLZ4D7LKGbG9i7B8RF7dwpump,sponsored,test_02_cow-swap: ZERO (token-2022): SOL to token
+3,0,sell,0.005,SOL,BZLbGTNCSFfoth2GYDtwr7e4imWzpR5jqcUuGEwr646K,sponsored,test_02_cow-swap: IO (classic): SOL to token
+4,0,sell,0.005,SOL,PFER6ENqP8r8NF3CqVt4mFowxsin3V5MLidBNQFCC3x,sponsored,test_02_cow-swap: PFE (token-2022: permanentDelegate defaultAccountState pausableConfig confidentialTransferMint transferHook scaledUiAmountConfig): SOL to token
+5,0,sell,0.005,SOL,HeeBovJNKd27tQ6xkeP1dfSyTr8LyLwhJz9wfFTbPLEX,sponsored,test_02_cow-swap: HEEBOO (classic): SOL to token
+6,0,sell,0.005,SOL,zGh48JtNHVBb5evgoZLXwgPD2Qu4MhkWdJLGDAupump,sponsored,test_02_cow-swap: retire (classic): SOL to token
+7,0,sell,0.005,SOL,7dHbWXmci3dT8UFYWYZweBLXgycu7Y3iL6trKn1Y7ARj,sponsored,test_02_cow-swap: stSOL (classic): SOL to token
+8,0,sell,0.005,SOL,6ogzHhzdrQr9Pgv6hZ2MNze7UrzBMAFyBBWUYp1Fhitx,sponsored,test_02_cow-swap: RETARDIO (classic): SOL to token
+9,0,sell,0.005,SOL,BBKPiLM9KjdJW7oQSKt99RVWcZdhF6sEHRKnwqeBGHST,sponsored,test_02_cow-swap: GHOST (classic): SOL to token
+10,0,sell,0.005,SOL,Dfh5DzRgSvvCFDoYc2ciTkMrbDfRKybA4SoFbPmApump,sponsored,test_02_cow-swap: pippin (classic): SOL to token
+11,0,sell,0.005,SOL,3wtGGWZ8wLWW6BqtC5rxmkHdqvM62atUcGTH4cw3pump,sponsored,test_02_cow-swap: ALPHA (classic): SOL to token
+12,0,sell,0.005,SOL,7HgfXftRBBqsYtAEYcqjGLQrNJLL6Tww9ek4rE3Apump,sponsored,test_02_cow-swap: RKC (token-2022): SOL to token
+13,0,sell,0.005,SOL,DQnkBM4eYYMnVE8Qy2K3BB7uts1fh2EwBVktEz6jpump,sponsored,test_02_cow-swap: DJI6930 (classic): SOL to token
+14,0,sell,0.005,SOL,WENAZ2WyPbmgvUcKfQ8hyMDfBQP9bZ65hsZ5KTFrRGZ,sponsored,test_02_cow-swap: WEN (token-2022: permanentDelegate defaultAccountState pausableConfig confidentialTransferMint transferHook scaledUiAmountConfig): SOL to token
+15,0,sell,0.005,SOL,E1kvzJNxShvvWTrudokpzuc789vRiDXfXG3duCuY6ooE,sponsored,test_02_cow-swap: DITH (classic): SOL to token
+16,0,sell,0.005,SOL,HNg5PYJmtqcmzXrv6S9zP1CDKk5BgDuyFBxbvNApump,sponsored,test_02_cow-swap: ALCH (classic): SOL to token
+17,0,sell,0.005,SOL,CzLSujWBLFsSjncfkh59rUFqvafWcY5tzedWJSuypump,sponsored,test_02_cow-swap: GOAT (classic): SOL to token
+18,0,sell,0.005,SOL,PRVT6TB7uss3FrUd2D9xs2zqDBsa3GbMJMwCQsgmeta,sponsored,test_02_cow-swap: UMBRA (classic): SOL to token
+19,0,sell,0.005,SOL,4Cnk9EPnW5ixfLZatCPJjDB1PUtcRpVVgTQukm9epump,sponsored,test_02_cow-swap: DADDY (classic): SOL to token
+20,0,sell,0.005,SOL,BFgdzMkTPdKKJeTipv2njtDEwhKxkgFueJQfJGt1jups,sponsored,test_02_cow-swap: URANUS (classic): SOL to token
+21,0,sell,0.005,SOL,CTgiaZUK12kCcB8sosn4Nt2NZtzLgtPqDwyQyr2syATC,sponsored,test_02_cow-swap: BITCOIN (classic): SOL to token
+22,0,sell,0.005,SOL,6yjNqPzTSanBWSa6dxVEgTjePXBrZ2FoHLDQwYwEsyM6,sponsored,test_02_cow-swap: Chud (classic): SOL to token
+23,0,sell,0.005,SOL,ACtfUWtgvaXrQGNMiohTusi5jcx5RJf5zwu9aAxkpump,sponsored,test_02_cow-swap: unc (token-2022): SOL to token
+24,0,sell,0.005,SOL,4ikwYoNvoGEwtMbziUyYBTz1zRM6nmxspsfw9G7Bpump,sponsored,test_02_cow-swap: crypto (classic): SOL to token
+25,0,sell,0.005,SOL,42cXQvAAr7hcPBPWAS4ocVtDyeJ4Fa6gRR2uG4gppump,sponsored,test_02_cow-swap: TBB (token-2022): SOL to token
+26,0,sell,0.005,SOL,SoLo9oxzLDpcq1dpqAgMwgce5WqkRDtNXK7EPnbmeta,sponsored,test_02_cow-swap: SOLO (classic): SOL to token
+27,0,sell,0.005,SOL,74SBV4zDXxTRgv1pEMoECskKBkZHc2yGPnc7GYVepump,sponsored,test_02_cow-swap: swarms (classic): SOL to token
+28,0,sell,0.005,SOL,C2omVhcvt3DDY77S2KZzawFJQeETZofgZ4eNWWkXpump,sponsored,test_02_cow-swap: BULLISH (classic): SOL to token
+29,0,sell,0.005,SOL,dTzEP9JU2NRDPuWtM32gaVKip2fTHBqjheU1APBpump,sponsored,test_02_cow-swap: BITTY (classic): SOL to token
+30,0,sell,0.005,SOL,2oGLxYuNBJRcepT1mEV6KnETaLD7Bf6qq3CM6skasBfe,sponsored,test_02_cow-swap: PUPS (classic): SOL to token
+1,0,sell,0.005,SOL,69G8CpUVZAxbPMiEBrfCCCH445NwFxH6PzVL693Xpump,sponsored,test_02_cow-swap: xavier (classic): SOL to token
+2,0,sell,0.005,SOL,8x5VqbHA8D7NkD52uNuS5nnt3PwA8pLD34ymskeSo2Wn,sponsored,test_02_cow-swap: ZEREBRO (classic): SOL to token
+3,0,sell,0.005,SOL,GvV7sFu6FHJsSVXfpG7xqFnWar3c7YkcC74rqe7Bpump,sponsored,test_02_cow-swap: RAGEGUY (classic): SOL to token
+4,0,sell,0.005,SOL,HBoNJ5v8g71s2boRivrHnfSB5MVPLDHHyVjruPfhGkvL,sponsored,test_02_cow-swap: PURPE (classic): SOL to token
+5,0,sell,0.005,SOL,RKLBnAXGqv31iZomqsuAWkQm1aqC7JwwvbCfzGdqAhz,sponsored,test_02_cow-swap: RKLB (token-2022: permanentDelegate defaultAccountState pausableConfig confidentialTransferMint transferHook scaledUiAmountConfig): SOL to token
+6,0,sell,0.005,SOL,STREAMribRwybYpMmSYoCsQUdr6MZNXEqHgm7p1gu9M,sponsored,test_02_cow-swap: STREAM (classic): SOL to token
+7,0,sell,0.005,SOL,8Ki8DpuWNxu9VsS3kQbarsCWMcFGWkzzA8pUPto9zBd5,sponsored,test_02_cow-swap: LOCKIN (classic): SOL to token
+8,0,sell,0.005,SOL,GvEMgNT6GKiYTvg7TskDio6RKzQdCuhwmH55tVCLaJTe,sponsored,test_02_cow-swap: sUSD.infra (token-2022: mintCloseAuthority): SOL to token
+9,0,sell,0.005,SOL,ARXwZkNAtzPfdcoqQiduJn8EPv9fKiDfGn2KyggyDrFs,sponsored,test_02_cow-swap: ARX (classic): SOL to token
+10,0,sell,0.005,SOL,vSoLxydx6akxyMD9XEcPvGYNGq6Nn66oqVb3UkGkei7,sponsored,test_02_cow-swap: vSOL (classic): SOL to token
+11,0,sell,0.005,SOL,HfMbPyDdZH6QMaDDUokjYCkHxzjoGBMpgaUvpLWGbF5p,sponsored,test_02_cow-swap: PBTC (classic): SOL to token
+12,0,sell,0.005,SOL,Hax9LTgsQkze1YFychnBLtFH8gYbQKtKfWKKg2SP6gdD,sponsored,test_02_cow-swap: TAI (classic): SOL to token
+13,0,sell,0.005,SOL,2JcXacFwt9mVAwBQ5nZkYwCyXQkRcdsYrDXn6hj22SbP,sponsored,test_02_cow-swap: mini (classic): SOL to token
+14,0,sell,0.005,SOL,71Jvq4Epe2FCJ7JFSF7jLXdNk1Wy4Bhqd9iL6bEFELvg,sponsored,test_02_cow-swap: GOR (classic): SOL to token
+15,0,sell,0.005,SOL,5SVG3T9CNQsm2kEwzbRq6hASqh1oGfjqTtLXYUibpump,sponsored,test_02_cow-swap: SIGMA (classic): SOL to token
+16,0,sell,0.005,SOL,DNhQZ1CE9qZ2FNrVhsCXwQJ2vZG8ufZkcYakTS5Jpump,sponsored,test_02_cow-swap: ZAUTH (token-2022): SOL to token
+17,0,sell,0.005,SOL,H2c31USxu35MDkBrGph8pUDUnmzo2e4Rf4hnvL2Upump,sponsored,test_02_cow-swap: Shoggoth (classic): SOL to token
+18,0,sell,0.005,SOL,3dQTr7ror2QPKQ3GbBCokJUmjErGg8kTJzdnYjNfvi3Z,sponsored,test_02_cow-swap: BORG (classic): SOL to token
+19,0,sell,0.005,SOL,4nswj3o1Lo9iWYvvRJxUD8vbCy9ay7QQoXYcncHNbonk,sponsored,test_02_cow-swap: SPSC (classic): SOL to token
+20,0,sell,0.005,SOL,SCSuPPNUSypLBsV4darsrYNg4ANPgaGhKhsA3GmMyjz,sponsored,test_02_cow-swap: SCS (classic): SOL to token
+21,0,sell,0.005,SOL,6D7NaB2xsLd7cauWu1wKk6KBsJohJmP2qZH9GEfVi5Ui,sponsored,test_02_cow-swap: SC (classic): SOL to token
+22,0,sell,0.005,SOL,sSo14endRuUbvQaJS3dq36Q829a3A6BEfoeeRGJywEh,sponsored,test_02_cow-swap: sSOL (classic): SOL to token
+23,0,sell,0.005,SOL,Dso1bDeDjCQxTrWHqUUi63oBvV7Mdm6WaobLbQ7gnPQ,sponsored,test_02_cow-swap: dSOL (classic): SOL to token
+24,0,sell,0.005,SOL,2fUFhZyd47Mapv9wcfXh5gnQwFXtqcYu9xAN4THBpump,sponsored,test_02_cow-swap: RNT (classic): SOL to token
+25,0,sell,0.005,SOL,LSTxxxnJzKDFSLr4dUkPcmCf5VyryEqzPLz5j4bpxFp,sponsored,test_02_cow-swap: LST (classic): SOL to token
+26,0,sell,0.005,SOL,65nTNuJGHme4PQvKQyJykKp1bJAkK4A8Q66sd2yBWugf,sponsored,test_02_cow-swap: RBT (classic): SOL to token
+27,0,sell,0.005,SOL,DeaKMzAeZja3Mh5okZE6WUvygLP3Lfuvm6Rg78HqXTz9,sponsored,test_02_cow-swap: SOLNIC (classic): SOL to token
+28,0,sell,0.005,SOL,3WPep4ufaToK1aS5s8BL9inzeUrt4DYaQCiic6ZkkC1U,sponsored,test_02_cow-swap: GIKO (classic): SOL to token
+29,0,sell,0.005,SOL,ULwSJmmpxmnRfpu6BjnK6rprKXqD5jXUmPpS1FxHXFy,sponsored,test_02_cow-swap: HEGE (classic): SOL to token
+30,0,sell,0.005,SOL,69kdRLyP5DTRkpHraaSZAQbWmAwzF9guKjZfzMXzcbAs,sponsored,test_02_cow-swap: USA (classic): SOL to token
+1,0,sell,0.005,SOL,F6qoefQq4iCBLoNZ34RjEqHjHkD8vtmoRSdw9Nd55J1k,sponsored,test_02_cow-swap: SHIB (classic): SOL to token
+2,0,sell,0.005,SOL,AZsHEMXd36Bj1EMNXhowJajpUXzrKcK57wW4ZGXVa7yR,sponsored,test_02_cow-swap: GUAC (classic): SOL to token
+3,0,sell,0.005,SOL,URARfsinxCRw4JpvQhuT4CxavdZXZEMjv9ZwWmWpwag,sponsored,test_02_cow-swap: URA (token-2022: permanentDelegate defaultAccountState pausableConfig confidentialTransferMint transferHook scaledUiAmountConfig): SOL to token
+4,0,sell,0.005,SOL,moonThZEkkTVoNB7v6YVCQiT56JYDZ1oN185ba3WizL,sponsored,test_02_cow-swap: MF (classic): SOL to token
+5,0,sell,0.005,SOL,Fch1oixTPri8zxBnmdCEADoJW2toyFHxqDZacQkwdvSP,sponsored,test_02_cow-swap: HARAMBE (classic): SOL to token
+6,0,sell,0.005,SOL,9LzCMqDgTKYz9Drzqnpgee3SGa89up3a247ypMj2xrqM,sponsored,test_02_cow-swap: AUDIO (classic): SOL to token
+7,0,sell,0.005,SOL,WingsAYbfs4qnEgcw8jpSvetqp8XHM3GkKvow54WLcd,sponsored,test_02_cow-swap: WINGS (token-2022): SOL to token
+8,0,sell,0.005,SOL,3B5wuUrMEi5yATD7on46hKfej3pfmd7t1RKgrsN3pump,sponsored,test_02_cow-swap: BILLY (classic): SOL to token
+9,0,sell,0.005,SOL,LnTRntk2kTfWEY6cVB8K9649pgJbt6dJLS1Ns1GZCWg,sponsored,test_02_cow-swap: lanternSOL (classic): SOL to token
+10,0,sell,0.005,SOL,HQ7DaoiUxzC2K1Dr7KXRHccNtXvEYgNvoUextXe8dmBh,sponsored,test_02_cow-swap: SLOTH (classic): SOL to token
+11,0,sell,0.005,SOL,DLUNTKRQt7CrpqSX1naHUYoBznJ9pvMP65uCeWQgYnRK,sponsored,test_02_cow-swap: SOLC (classic): SOL to token
+12,0,sell,0.005,SOL,ATRLuHph8dxnPny4WSNW7fxkhbeivBrtWbY6BfB4xpLj,sponsored,test_02_cow-swap: ATR (classic): SOL to token
+13,0,sell,0.005,SOL,4YK1njyeCkBuXG6phNtidJWKCbBhB659iwGkUJx98P5Z,sponsored,test_02_cow-swap: DOLAN (classic): SOL to token
+14,0,sell,0.005,SOL,J9BcrQfX4p9D1bvLzRNCbMDv8f44a9LFdeqNE4Yk2WMD,sponsored,test_02_cow-swap: ISC (classic): SOL to token
+15,0,sell,0.005,SOL,4Zp52aF4hZi9fzH19xpbWKYKQvgLyCN67KFbrQDqeTKh,sponsored,test_02_cow-swap: ZAMA (classic): SOL to token
+16,0,sell,0.005,SOL,3S8qX1MsMqRbiwKg2cQyx7nis1oHMgaCuc9c4VfvVdPN,sponsored,test_02_cow-swap: MOTHER (classic): SOL to token
+17,0,sell,0.005,SOL,euro5sNHrZC2wu2RoLvy6xxoVMc3Qnd1vjxoWf4MftA,sponsored,test_02_cow-swap: EUROP (token-2022: permanentDelegate transferFeeConfig pausableConfig): SOL to token
+18,0,sell,0.005,SOL,9WPTUkh8fKuCnepRWoPYLH3aK9gSjPHFDenBq2X1Czdp,sponsored,test_02_cow-swap: SELFIE (classic): SOL to token
+19,0,sell,0.005,SOL,CQSzJzwW5H1oyWrp6QhfUKYYwyovbSiVDKnAxNfb1tJC,sponsored,test_02_cow-swap: STAN (classic): SOL to token
+20,0,sell,0.005,SOL,5mbK36SZ7J19An8jFochhQS4of8g6BwUjbeCSxBSoWdp,sponsored,test_02_cow-swap: $michi (classic): SOL to token
+21,0,sell,0.005,SOL,9gwTegFJJErDpWJKjPfLr2g2zrE3nL1v5zpwbtsk3c6P,sponsored,test_02_cow-swap: USEDCAR (classic): SOL to token
+22,0,sell,0.005,SOL,7Q2afV64in6N6SeZsAAB81TJzwDoD6zpqmHkzi9Dcavn,sponsored,test_02_cow-swap: JSOL (classic): SOL to token
+23,0,sell,0.005,SOL,AURYydfxJib1ZkTir1Jn1J9ECYUtjb6rKQVmtYaixWPP,sponsored,test_02_cow-swap: AURY (classic): SOL to token
+24,0,sell,0.005,SOL,AhhdRu5YZdjVkKR3wbnUDaymVQL2ucjMQ63sZ3LFHsch,sponsored,test_02_cow-swap: VCHF (classic): SOL to token
+25,0,sell,0.005,SOL,HLptm5e6rTgh4EKgDpYFrnRHbjpkMyVdEeREEa2G7rf9,sponsored,test_02_cow-swap: DUKO (classic): SOL to token
+26,0,sell,0.005,SOL,8doS8nzmgVZEaACxALkbK5fZtw4UuoRp4Yt8NEaXfDMb,sponsored,test_02_cow-swap: $WAFFLES (classic): SOL to token
+27,0,sell,0.005,SOL,UPTx1d24aBWuRgwxVnFmX4gNraj3QGFzL3QqBgxtWQG,sponsored,test_02_cow-swap: UPT (classic): SOL to token
+28,0,sell,0.005,SOL,FU1q8vJpZNUrmqsciSjp8bAKKidGsLmouB8CBdf8TKQv,sponsored,test_02_cow-swap: tremp (classic): SOL to token
+29,0,sell,0.005,SOL,FViMp5phQH2bX81S7Yyn1yXjj3BRddFBNcMCbTH8FCze,sponsored,test_02_cow-swap: $TOAD (classic): SOL to token
+30,0,sell,0.005,SOL,MangoCzJ36AjZyKwVj3VnYU4GTonjfVEnJmvvWaxLac,sponsored,test_02_cow-swap: MNGO (classic): SOL to token
+1,0,sell,0.005,SOL,9dLuVbJMd4ZpTpFgmaFHAGSsFwVjtcnzFWaLAA1expHg,sponsored,test_02_cow-swap: HEEHEE (classic): SOL to token
+2,0,sell,0.005,SOL,25hAyBQfoDhfWx9ay6rarbgvWGwDdNqcHsXS3jQ3mTDJ,sponsored,test_02_cow-swap: MANEKI (classic): SOL to token
+3,0,sell,0.005,SOL,BANKJmvhT8tiJRsBSS1n2HryMBPvT5Ze4HU95DUAmeta,sponsored,test_02_cow-swap: AVICI (classic): SOL to token
+4,0,sell,0.005,SOL,AVLhahDcDQ4m4vHM4ug63oh7xc8Jtk49Dm5hoe9Sazqr,sponsored,test_02_cow-swap: SOLAMA (classic): SOL to token
+5,0,sell,0.005,SOL,947tEoG318GUmyjVYhraNRvWpMX7fpBTDQFBoJvSkSG3,sponsored,test_02_cow-swap: CHAT (classic): SOL to token
+6,0,sell,0.005,SOL,GTH3wG3NErjwcf7VGCoXEXkgXSHvYhx5gtATeeM5JAS1,sponsored,test_02_cow-swap: WHALES (classic): SOL to token
+7,0,sell,0.005,SOL,26KMQVgDUoB6rEfnJ51yAABWWJND8uMtpnQgsHQ64Udr,sponsored,test_02_cow-swap: HAMMY (classic): SOL to token
+8,0,sell,0.005,SOL,6n7Janary9fqzxKaJVrhL9TG2F61VbAtwUMu1YZscaQS,sponsored,test_02_cow-swap: Hobbes (classic): SOL to token
+9,0,sell,0.005,SOL,AujTJJ7aMS8LDo3bFzoyXDwT3jBALUbu4VZhzZdTZLmG,sponsored,test_02_cow-swap: $BEER (classic): SOL to token
+1,0,sell,0.005,SOL,98kfF7rmsg1QDUEoCqNE7g7M1FdrTt92TEp2CLzypump,sponsored,test_03_jupiter: PAID (token-2022): SOL to token
+2,0,sell,0.005,SOL,Ai66LHZG9MCzg1WKdawwqduVAXpNDUuV8M3uyq5ppump,sponsored,test_03_jupiter: CATE (token-2022): SOL to token
+3,0,sell,0.005,SOL,3ZLekZYq2qkZiSpnSvabjit34tUkjSwD1JFuW9as9wBG,sponsored,test_03_jupiter: wNEAR (classic): SOL to token
+4,0,sell,0.005,SOL,Hg5Ja55T5wESq4vyFoiVCMeHXtGyVA69X2UHq8hgpump,sponsored,test_03_jupiter: baton (token-2022): SOL to token
+5,0,sell,0.005,SOL,CbcyNo7m1amFWqEQm2m4PLv1UNvpcL3C1Ujm6AkzpKoU,sponsored,test_03_jupiter: e/acc (token-2022): SOL to token
+6,0,sell,0.005,SOL,WXMRyRZhsa19ety5erZhHg4N3xj3EVN92u94422teJp,sponsored,test_03_jupiter: XMR (classic): SOL to token
+7,0,sell,0.005,SOL,7VertkgF9KLhxxJXHX6uaWuoYZTP9LdGj2bWmVXVpump,sponsored,test_03_jupiter: Agency (token-2022): SOL to token
+8,0,sell,0.005,SOL,sUSDai6Y3GxysDEtA9BVcEFTaog6UZpYUVxJiMhAKYE,sponsored,test_03_jupiter: sUSDai (token-2022: permanentDelegate transferHook pausableConfig): SOL to token
+9,0,sell,0.005,SOL,PEPEqnuuCDbBC89p1u9vpnP1KQ2oj1xTcQBsjt9X55m,sponsored,test_03_jupiter: PEPE (classic): SOL to token
+10,0,sell,0.005,SOL,DoGEV7LASBkQbibMc5k5vKnTZoMg423GpJ5QtJEGfm7R,sponsored,test_03_jupiter: DOGE (classic): SOL to token
+11,0,sell,0.005,SOL,EicWvteVi2fWepEzS3FYWsnuPoP6caZfjnKqNvydLjCH,sponsored,test_03_jupiter: LIT (classic): SOL to token
+12,0,sell,0.005,SOL,CbyTNf7UPzvewHh4Zp6umogM2RWahhmGRJWLJnPwpump,sponsored,test_03_jupiter: biketyson (token-2022): SOL to token
+13,0,sell,0.005,SOL,DvdmEnztCmXwBnAbedD48XVGZJSxq31zNvnyftXdpump,sponsored,test_03_jupiter: pill (token-2022): SOL to token
+14,0,sell,0.005,SOL,LBTCgU4b3wsFKsPwBn1rRZDx5DoFutM6RPiEt1TPDsY,sponsored,test_03_jupiter: LBTC (classic): SOL to token
+15,0,sell,0.005,SOL,GY9mZfyPpxXxBXBxS2hB2XjhP3kfUsywTvgveozxpump,sponsored,test_03_jupiter: ELON (token-2022): SOL to token
+16,0,sell,0.005,SOL,Ax5dAamJPeuaLpFUzs9FdcpoUhHDcxyjPzxCJQidjups,sponsored,test_03_jupiter: MINI (classic): SOL to token
+17,0,sell,0.005,SOL,3b8X44fLF9ooXaUm3hhSgjpmVs6rZZ3pPoGnGahc3Uu7,sponsored,test_03_jupiter: PRIME (classic): SOL to token
+18,0,sell,0.005,SOL,9aqmJjCnnMQv42TXLk921ceUkN35nea2QP969n1caqjj,sponsored,test_03_jupiter: SI (token-2022): SOL to token
+19,0,sell,0.005,SOL,5tCju6YNxHq5zrA6tGndr6F7TK42mpUFmeE31cSFpump,sponsored,test_03_jupiter: swordcat (token-2022): SOL to token
+20,0,sell,0.005,SOL,BXoHJddsWJLHtAopeiSbKUSELsu8hSFMs8baGMDkpump,sponsored,test_03_jupiter: CRAWL (token-2022): SOL to token
+21,0,sell,0.005,SOL,39ahtL8ynzE4amH26J29C93PA5172V3ft9UuUcqQS8fz,sponsored,test_03_jupiter: AUTON (classic): SOL to token
+22,0,sell,0.005,SOL,DoVAVzViX8Bjy3r15nwikSaSbzE6dV4ovd28aWpJpump,sponsored,test_03_jupiter: HIGGS (token-2022): SOL to token
+23,0,sell,0.005,SOL,7M3gDRgozcumFsiTeXwjB8cYxpg7Q9R7rH7rkw2Fpump,sponsored,test_03_jupiter: CRIME (classic): SOL to token
+24,0,sell,0.005,SOL,8k4sBtEeK4pf26noKqApv8NBTnuSJcbdwpKYknk5PbAA,sponsored,test_03_jupiter: CALI (token-2022): SOL to token
+25,0,sell,0.005,SOL,taoC6xyv2v8tDLcev4uaGUgV4vdQsWJrGft2kcBRrBY,sponsored,test_03_jupiter: TAO (classic): SOL to token
+26,0,sell,0.005,SOL,2zCo6bUowJMvr89ajxuWsPadAqJ2F9akCkxumNsSdgsL,sponsored,test_03_jupiter: xBTC (classic): SOL to token
+27,0,sell,0.005,SOL,C8fU5GdfAt5mnw2RK7HE6XJGFNxHpaskZMkXxdm88888,sponsored,test_03_jupiter: CTM (classic): SOL to token
+28,0,sell,0.005,SOL,5GgRAEmv8ZxF2PR5hY72Qs5x1bnQ6UK2RbTPoqJ3wSwW,sponsored,test_03_jupiter: PAXG (token-2022: mintCloseAuthority permanentDelegate transferFeeConfig confidentialTransferMint confidentialTransferFeeConfig transferHook): SOL to token
+29,0,sell,0.005,SOL,6sXzcNzDk8x4Atcee6vv25iw5bLyg8mLJRtVhwM8Kgan,sponsored,test_03_jupiter: LUCKY99 (classic): SOL to token
+30,0,sell,0.005,SOL,HzYCHqAN2uoHGRnL9v2ChCfFQX3bvJuJd5zu2Hd5MZQy,sponsored,test_03_jupiter: TWEETCRAFT (token-2022): SOL to token
+1,0,sell,0.005,SOL,MSTRdWXMeZxdE8osAQy3fA4rvTY5rgummDSMEx6U7Nz,sponsored,test_03_jupiter: MSTR (token-2022: permanentDelegate defaultAccountState pausableConfig confidentialTransferMint transferHook scaledUiAmountConfig): SOL to token
+2,0,sell,0.005,SOL,avaxGHCq3T7hoxd73oY2KY9hJSTaeMibXvHy5KNzh5D,sponsored,test_03_jupiter: AVAX (classic): SOL to token
+3,0,sell,0.005,SOL,H4KUxsEgCp2yDpFvyDuGM5k6XevSKKrrKUxZ3Zr6nyJc,sponsored,test_03_jupiter: COCKROACH (token-2022): SOL to token
+4,0,sell,0.005,SOL,uniHfuPhEQSrtpzXpJZDCSq53yaejKKpNhFUiKoHKHV,sponsored,test_03_jupiter: UNI (classic): SOL to token
+5,0,sell,0.005,SOL,Morpho2VPeTr2E1Jx6monxCzF7mqwUnjz74RdwLXYyP,sponsored,test_03_jupiter: MORPHO (classic): SOL to token
+6,0,sell,0.005,SOL,UpBBfyC75u3kxDGWmmmW2yauk9YY3CqZhdt1KUDkids,sponsored,test_03_jupiter: SHARTCOIN (classic): SOL to token
+7,0,sell,0.005,SOL,8nPoBHiBM6pybxMws9PA2JRb9BjkppBfqcZGmot4DMBC,sponsored,test_03_jupiter: Human (token-2022): SOL to token
+8,0,sell,0.005,SOL,CJMihkPYswa3k6az9SUbepjKnkJQ6KWpGG5p9qW9n7NV,sponsored,test_03_jupiter: LIKE (classic): SOL to token
+9,0,sell,0.005,SOL,4N4DnNo3qpPks9aQCkcWkzoir8tnvT6diS4TnnZibonk,sponsored,test_03_jupiter: KITTY (classic): SOL to token
+10,0,sell,0.005,SOL,3Dgwn5E7H5a8k6iGrz3qirkaJqUaJrKHEZ2xPcLRpump,sponsored,test_03_jupiter: knightcat (token-2022): SOL to token
+11,0,sell,0.005,SOL,StargWr5r6r8gZSjmEKGZ1dmvKWkj79r2z1xqjFstar,sponsored,test_03_jupiter: STAR (classic): SOL to token
+12,0,sell,0.005,SOL,CdhZy8wrRxNxoV8HtoByXKN7mvS46avtuZ1b39tKfx7,sponsored,test_03_jupiter: X7 (classic): SOL to token
+13,0,sell,0.005,SOL,CscZaq5twomhUkvCY8Jdd1tge32L4Yj9FbkFFEZQpump,sponsored,test_03_jupiter: PLAGUE (classic): SOL to token
+14,0,sell,0.005,SOL,suifhC9gU1VbJAPYPTBkHJyyyStKGLLYPVDTmPoqbvA,sponsored,test_03_jupiter: SUI (classic): SOL to token
+15,0,sell,0.005,SOL,8nnaeWCw8mUypcGAgbmSuzAT85uWx4UN12adDrMhXrGF,sponsored,test_03_jupiter: HOTBOT (token-2022): SOL to token
+16,0,sell,0.005,SOL,RACEyWiM2ztEZcJx2AHXU2eWjhxU57x3vXn92b39dLD,sponsored,test_03_jupiter: RACE (token-2022: permanentDelegate defaultAccountState pausableConfig confidentialTransferMint transferHook scaledUiAmountConfig): SOL to token
+17,0,sell,0.005,SOL,NFLX7qV57zuVxCoHy3s1jiGZyALraLNwttbxdvmYJLJ,sponsored,test_03_jupiter: NFLX (token-2022: permanentDelegate defaultAccountState pausableConfig confidentialTransferMint transferHook scaledUiAmountConfig): SOL to token
+18,0,sell,0.005,SOL,BZFYNPeQAEW3HWQ4DNsTVahC1n4ZjTgn6jB2nnBbB96W,sponsored,test_03_jupiter: SAPLING (token-2022): SOL to token
+19,0,sell,0.005,SOL,SV151D5pjygAKA8aJJcKzm4wFnRX5G92Fye94jQJk7g,sponsored,test_03_jupiter: SV151 (classic): SOL to token
+20,0,sell,0.005,SOL,GtDZKAqvMZMnti46ZewMiXCa4oXF4bZxwQPoKzXPFxZn,sponsored,test_03_jupiter: nub (classic): SOL to token
+21,0,sell,0.005,SOL,5VnbrKp28Qs9CAH6PyZdxBNvLxZcbeX3YBsozgWnpump,sponsored,test_03_jupiter: darwin (token-2022): SOL to token
+22,0,sell,0.005,SOL,F4K2SbLNgyz9gzNqT8bPeLpRkxy4oMA9twaffUDdZtB6,sponsored,test_03_jupiter: POD (classic): SOL to token
+23,0,sell,0.005,SOL,3VPoXaRcXxju8qgkVRN87UuXZxbdBD7zyaXPDqqmpump,sponsored,test_03_jupiter: SI (token-2022): SOL to token
+24,0,sell,0.005,SOL,55Vr2VpSwxsDkB6uGGHAvRv86K6zax2Zb4TT8ivwDEzW,sponsored,test_03_jupiter: slopcannon (token-2022): SOL to token
+25,0,sell,0.005,SOL,qntUzPUsJ51abNP7VYNxkmsQ4RnvEZAhavUxsCxpxH4,sponsored,test_03_jupiter: QNT (classic): SOL to token
+26,0,sell,0.005,SOL,HooDYv5RewLRiMLnEVq3VJqdqxhuE6c5eYvqejMC3e9A,sponsored,test_03_jupiter: HOOD (token-2022: permanentDelegate defaultAccountState pausableConfig confidentialTransferMint transferHook scaledUiAmountConfig): SOL to token
+27,0,sell,0.005,SOL,poNSfquKq512ApeYjVghwViSun4x1MhCqHVH2Paq4jN,sponsored,test_03_jupiter: PONS (classic): SOL to token
+28,0,sell,0.005,SOL,6ZnCkq5t8XG4q42b5JiVvU6hV5cZFaNdSBoFq5E7Vf9q,sponsored,test_03_jupiter: BLUAI (classic): SOL to token
+29,0,sell,0.005,SOL,GoADAwux19tGxb3W4ykPzZz8p5JCSYaxBRpuW7s9pump,sponsored,test_03_jupiter: OCTO (token-2022): SOL to token
+30,0,sell,0.005,SOL,G5W6LwkLeoj6rZqBP1y3KT8k6Cz6rXGJmMNU3TArXtXw,sponsored,test_03_jupiter: STEALF (classic): SOL to token
+1,0,sell,0.005,SOL,BLKKYfF41c6xRPrtX1rdYbxLE1xxEdZUnxQsB5hcZ8Nf,sponsored,test_03_jupiter: BLK (token-2022: permanentDelegate defaultAccountState pausableConfig confidentialTransferMint transferHook scaledUiAmountConfig): SOL to token
+2,0,sell,0.005,SOL,CortexFv3fRcLKTgACr7aLqckGh5eP7TP3z9JHoKqMc6,sponsored,test_03_jupiter: CX (classic): SOL to token
+3,0,sell,0.005,SOL,2uxaYT1fVrp6Fg2BrxQcyKSW91hefM6dG9krpbeDiirT,sponsored,test_03_jupiter: reUSD (classic): SOL to token
+4,0,sell,0.005,SOL,4mS5JinFf5f1GCr5K2MRLgQiu95ifd4X763Uhj2Ypump,sponsored,test_03_jupiter: UDR (token-2022): SOL to token
+5,0,sell,0.005,SOL,CreiuhfwdWCN5mJbMJtA9bBpYQrQF2tCBuZwSPWfpump,sponsored,test_03_jupiter: PYTHIA (classic): SOL to token
+6,0,sell,0.005,SOL,EzfgjvkSwthhgHaceR3LnKXUoRkP6NUhfghdaHAj1tUv,sponsored,test_03_jupiter: FTX Token (classic): SOL to token
+7,0,sell,0.005,SOL,ondohH8Vssxiqcy5u6Efi4AYN17KZrzQtv2a91dnrgW,sponsored,test_03_jupiter: ONDO (classic): SOL to token
+8,0,sell,0.005,SOL,iNTCy1qTsUEZQe3DSocLz1ZXXai34Gdw8THQh5rxFaF,sponsored,test_03_jupiter: INTC (token-2022: permanentDelegate defaultAccountState pausableConfig confidentialTransferMint transferHook scaledUiAmountConfig): SOL to token
+9,0,sell,0.005,SOL,4ChT49V1iazP2XUGtycGkEsS6pRMqvGfUbqvRC9Z91ZT,sponsored,test_03_jupiter: MOS (token-2022): SOL to token
+10,0,sell,0.005,SOL,LMT3i1BHgixFqPUgcyteJhnEz2dpy9i3cYy4pi9BoeV,sponsored,test_03_jupiter: LMT (token-2022: permanentDelegate defaultAccountState pausableConfig confidentialTransferMint transferHook scaledUiAmountConfig): SOL to token
+11,0,sell,0.005,SOL,CZEB3WNZuF2Yz1z2H81RcCk8T7fsw82KB33zqamASVsg,sponsored,test_03_jupiter: COST (token-2022: permanentDelegate defaultAccountState pausableConfig confidentialTransferMint transferHook scaledUiAmountConfig): SOL to token
+12,0,sell,0.005,SOL,FMqh9mqR6drPZqqW6wPqLHxX4rqNDWGhYLaMfoaJpump,sponsored,test_03_jupiter: world (token-2022): SOL to token
+13,0,sell,0.005,SOL,DLGRpmkMGr7J4KD1xR5x2XjaGeQH64PLFQkyxNNSpump,sponsored,test_03_jupiter: TCG (token-2022): SOL to token
+14,0,sell,0.005,SOL,6dX5M8DY6VTFtVRX5yzWn9RE4MkJTyoAVbAodk6cpump,sponsored,test_03_jupiter: GEOM (token-2022): SOL to token
+15,0,sell,0.005,SOL,CSRRgTwf9o5KLgguS2M16aEAhV5PUUzfshrAAQ8opump,sponsored,test_03_jupiter: RETARDIO (token-2022): SOL to token
+16,0,sell,0.005,SOL,HyDKNdnhZNVYQMruBevbNsUWruA9STmAQrS4srXApump,sponsored,test_03_jupiter: ALLINDOGE (classic): SOL to token
+17,0,sell,0.005,SOL,y1AZt42vceCmStjW4zetK3VoNarC1VxJ5iDjpiupump,sponsored,test_03_jupiter: FARTBOY (classic): SOL to token
+18,0,sell,0.005,SOL,JDzPbXboQYWVmdxXS3LbvjM52RtsV1QaSv2AzoCiai2o,sponsored,test_03_jupiter: FO (classic): SOL to token
+19,0,sell,0.005,SOL,DKu9kykSfbN5LBfFXtNNDPaX35o4Fv6vJ9FKk7pZpump,sponsored,test_03_jupiter: AVA (classic): SOL to token
+20,0,sell,0.005,SOL,4K1m7gAMDKzrxQn68yuZAd767w57Fw7Ykw69dG3umeta,sponsored,test_03_jupiter: RAWR (classic): SOL to token
+21,0,sell,0.005,SOL,DpBzjtgGLF7QA9Ug3eUVGbnqa6j3jvYBn1XuQuktvfhm,sponsored,test_03_jupiter: DOGE-1 (classic): SOL to token
+22,0,sell,0.005,SOL,FeR8VBqNRSUD5NtXAj2n3j1dAHkZHfyDktKuLXD4pump,sponsored,test_03_jupiter: jellyjelly (classic): SOL to token
+23,0,sell,0.005,SOL,HsprHxBRgiVaQdRf3TnKNuZZtaX9JUSPgMFdAkk6pump,sponsored,test_03_jupiter: GATO (token-2022): SOL to token
+24,0,sell,0.005,SOL,HKZDfZnkHZxd9agRDNPyDv4iT6LmAurJnpRtj9wpump,sponsored,test_03_jupiter: MISTAKE (token-2022): SOL to token
+25,0,sell,0.005,SOL,8ZHE4ow1a2jjxuoMfyExuNamQNALv5ekZhsBn5nMDf5e,sponsored,test_03_jupiter: MORI (classic): SOL to token
+26,0,sell,0.005,SOL,XshPgPdXFRWB8tP1j82rebb2Q9rPgGX37RuqzohmArM,sponsored,test_03_jupiter: INTCx (token-2022: permanentDelegate defaultAccountState scaledUiAmountConfig pausableConfig confidentialTransferMint transferHook): SOL to token
+27,0,sell,0.005,SOL,ATBR4i19gcQ31Rfr7ymA2XvkCQEAkNFGBtVKTmdqpump,sponsored,test_03_jupiter: Machi (token-2022): SOL to token
+28,0,sell,0.005,SOL,4TyZGqRLG3VcHTGMcLBoPUmqYitMVojXinAmkL8xpump,sponsored,test_03_jupiter: testicle (token-2022): SOL to token
+29,0,sell,0.005,SOL,J1Wpmugrooj1yMyQKrdZ2vwRXG5rhfx3vTnYE39gpump,sponsored,test_03_jupiter: WOULD (classic): SOL to token
+30,0,sell,0.005,SOL,DN4L5JE9VuGpMt1SsEWqyybUqyrYuWuywmTq7Q5GVDFK,sponsored,test_03_jupiter: WLD (classic): SOL to token
+1,0,sell,0.005,SOL,2nP9yKQNSGQy851iyawDvBkzkK2R2aqKArQCKc2gpump,sponsored,test_03_jupiter: PsyopAnime (token-2022): SOL to token
+2,0,sell,0.005,SOL,8Jx8AAHj86wbQgUTjGuj6GTTL5Ps3cqxKRTvpaJApump,sponsored,test_03_jupiter: PENGUIN (token-2022): SOL to token
+3,0,sell,0.005,SOL,2c1KjiyQow66QfsnCtoyuqfo3AuxgpBMEoAq5oiiXqdu,sponsored,test_03_jupiter: Chiikawa (token-2022): SOL to token
+4,0,sell,0.005,SOL,8G5ayEsJF4Q7FEWEGeF4jtnUWZBEKCqhySTFQf9Ppump,sponsored,test_03_jupiter: HeavyPulp (token-2022): SOL to token
+5,0,sell,0.005,SOL,utLyQQCPvjuCc6zeaXdsFeEC3JNdxKS3vxaZWoGdoge,sponsored,test_03_jupiter: OGDOGE (classic): SOL to token
+6,0,sell,0.005,SOL,GvUCjmWSXA5hrTh9smmNA1AU55YCtP9mDLQcrKA1pump,sponsored,test_03_jupiter: WSOLP (token-2022): SOL to token
+7,0,sell,0.005,SOL,stke7uu3fXHsGqKVVjKnkmj65LRPVrqr4bLG2SJg7rh,sponsored,test_03_jupiter: STKESOL (classic): SOL to token
+8,0,sell,0.005,SOL,BsbsB3WLq7vbY5En3MBCAsTrcwaCxNKY2Mp5pGuLpump,sponsored,test_03_jupiter: GTA (token-2022): SOL to token
+9,0,sell,0.005,SOL,5Jr9hGmJgxBRjjF8XGcGgQzXUdsbpZNNMpigEv8Wpump,sponsored,test_03_jupiter: MUSHU (classic): SOL to token
+10,0,sell,0.005,SOL,9PR7nCP9DpcUotnDPVLUBUZKu5WAYkwrCUx9wDnSpump,sponsored,test_03_jupiter: Ban (classic): SOL to token
+11,0,sell,0.005,SOL,4SnKwnz6DyagftnFqdxsvWvehrcbEDhxmmXNQk2Jpump,sponsored,test_03_jupiter: Joby (token-2022): SOL to token
+12,0,sell,0.005,SOL,9BVn3Y8tPghbnGuuuxoj2mGekqgSQV1M7nALF7brpump,sponsored,test_03_jupiter: NYAN (token-2022): SOL to token
+13,0,sell,0.005,SOL,NV2RYH954cTJ3ckFUpvfqaQXU4ARqqDH3562nFSpump,sponsored,test_03_jupiter: Punch (token-2022): SOL to token
+14,0,sell,0.005,SOL,Fh7mLxtPAysdvHcMcJ37A3vc6WvBVh7JVDwxmwk6pump,sponsored,test_03_jupiter: GBACK (classic): SOL to token
+15,0,sell,0.005,SOL,HcfnJxLov6tY8i1dq9uYRRZKCvxADPpovcfkyXzdpump,sponsored,test_03_jupiter: Chonketha (token-2022): SOL to token
+16,0,sell,0.005,SOL,FQgtfugBdpFN7PZ6NdPrZpVLDBrPGxXesi4gVu3vErhY,sponsored,test_03_jupiter: BMT (classic): SOL to token
+17,0,sell,0.005,SOL,9oxGicd5KXNcthYM6yD23X9zcznQVnHjrAEN38fFpump,sponsored,test_03_jupiter: BioLLM (token-2022): SOL to token
+18,0,sell,0.005,SOL,AGdGTQa8iRnSx4fQJehWo4Xwbh1bzTazs55R6Jwupump,sponsored,test_03_jupiter: 114514 (token-2022): SOL to token
+19,0,sell,0.005,SOL,2bpT3ksMdwdZ6DuHyq3FDUr7HDwvZ5DRZoT1fUPALJaH,sponsored,test_03_jupiter: RIV (classic): SOL to token
+20,0,sell,0.005,SOL,rxczFZFvzksquCazjtv9vtEBYW7q4SwiqXkzBcw8NFW,sponsored,test_03_jupiter: NFW (classic): SOL to token
+21,0,sell,0.005,SOL,9ckR7pPPvyPadACDTzLwK2ZAEeUJ3qGSnzPs8bVaHrSy,sponsored,test_03_jupiter: USDu (token-2022): SOL to token
+22,0,sell,0.005,SOL,HeC2xWqGT9gPfdvaMuqxPo2bUQ1XgY5wRtnrwTEHpump,sponsored,test_03_jupiter: BELIEVE (token-2022): SOL to token
+23,0,sell,0.005,SOL,vRseBFqTy9QLmmo5qGiwo74AVpdqqMTnxPqWoWMpump,sponsored,test_03_jupiter: Verse (classic): SOL to token
+24,0,sell,0.005,SOL,3P6WB3hifQ9Z38Ja5qNuaETkgstJUWmP6vf58aYupump,sponsored,test_03_jupiter: CIGR (classic): SOL to token
+25,0,sell,0.005,SOL,TSPXcLV76s6V2zDiZQ18kBfcbnjaE2ZzNT3ga2Pd99v,sponsored,test_03_jupiter: tSpaceX (token-2022: transferFeeConfig): SOL to token
+26,0,sell,0.005,SOL,4SoQ8UkWfeDH47T56PA53CZCeW4KytYCiU65CwBWoJUt,sponsored,test_03_jupiter: MNT (classic): SOL to token
+27,0,sell,0.005,SOL,D6xWgRCSHoMEB5fqPwk3p6Stxirn5ytm2WwboSTTx4oE,sponsored,test_03_jupiter: PYBOBO (classic): SOL to token
+1,0,sell,0.005,SOL,9HNEutCZLoo6GZWQTmAgVvbtmLGV1mdeR8X3HWTooYXt,sponsored,test_04_long-tail: BABYANSEM (classic): SOL to token
+2,0,sell,0.005,SOL,AbRrcddzqTeCNokts2thcRsZR8PxTmakQV7G7VVJXzg6,sponsored,test_04_long-tail: 90° (token-2022): SOL to token
+3,0,sell,0.005,SOL,98S3A9sgLHhdUHUdpviZQrbEGsXFMf4ZXfNRBpeMpump,sponsored,test_04_long-tail: SOLMAS (token-2022): SOL to token
+4,0,sell,0.005,SOL,B2JBQ98ZARAABHvDmhjrkviz1XzoQrXr75G7RTFQpump,sponsored,test_04_long-tail: LASTDITCH (token-2022): SOL to token
+5,0,sell,0.005,SOL,WZ9xx4xvHUPzqKkdRLksHMMbjGKwkFVtz56ozpJpump,sponsored,test_04_long-tail: MAGACOIN (token-2022): SOL to token
+6,0,sell,0.005,SOL,139WGR9ah9Nfd3iDCaD2QiTjeC4TeUy3BuswM3ehpump,sponsored,test_04_long-tail: PEPEBOT (token-2022): SOL to token
+7,0,sell,0.005,SOL,62YE1d4sRArBQzR5bdbxsx2k9LV3MdPV4xMC4Di2pump,sponsored,test_04_long-tail: BIF (token-2022): SOL to token
+8,0,sell,0.005,SOL,Cm35AonJQD8nw1j7hm674Wua7GvibkfEgKtq4XSfpump,sponsored,test_04_long-tail: UNEMPLOYED (token-2022): SOL to token
+9,0,sell,0.005,SOL,CjvBXge6CJPXDrGDT5TmXyxXvCjLTQPXKCHET28Bpump,sponsored,test_04_long-tail: COPCAT (token-2022): SOL to token
+10,0,sell,0.005,SOL,9shma1ut5DwsGHg1CG1R3UdvcR61XyWMN99eBeFNpump,sponsored,test_04_long-tail: Neuralnauts (token-2022): SOL to token
+11,0,sell,0.005,SOL,ED92dgDp91SuGaXJ1UTyxy8NwTENwyAq9mER4e8gbonk,sponsored,test_04_long-tail: Milho (classic): SOL to token
+1,0,buy,0.548,EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v,SOL,sponsored,"test_05_buy-vs-jupiter: USDC (classic): Jupiter can buy exact-out, expected to fill"
+2,0,buy,0.549,Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB,SOL,sponsored,"test_05_buy-vs-jupiter: USDT (classic): Jupiter can buy exact-out, expected to fill"
+4,0,buy,3.87,6GmAFSYs4gk3FDao5FzzySQpPZaWsa4rUJHacpMpUNgx,SOL,sponsored,"test_05_buy-vs-jupiter: STONK (classic): Jupiter can buy exact-out, expected to fill"
+5,0,buy,0.00045,A7bdiYdS5GjqGFtxf17ppRHtDKPkkRqbKtR27dxvQXaS,SOL,sponsored,"test_05_buy-vs-jupiter: ZEC (classic): Jupiter can buy exact-out, expected to fill"
+6,0,buy,0.548,JuprjznTrTSp2UFa3ZBUFgwdAmtZCq4MQCwysN55USD,SOL,sponsored,"test_05_buy-vs-jupiter: JupUSD (classic): Jupiter can buy exact-out, expected to fill"
+8,0,buy,0.548,DEkqHyPN7GMRJ5cArtQFAWefqbZb33Hyf6s5iCwjEonT,SOL,sponsored,"test_05_buy-vs-jupiter: USDe (classic): Jupiter can buy exact-out, expected to fill"
+10,0,buy,0.00000661,cbbtcf3aa214zXHbiAZQwf4122FBYbraNdFqgw4iMij,SOL,sponsored,"test_05_buy-vs-jupiter: cbBTC (classic): Jupiter can buy exact-out, expected to fill"
+11,0,buy,0.00022,7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs,SOL,sponsored,"test_05_buy-vs-jupiter: ETH (classic): Jupiter can buy exact-out, expected to fill"
+12,0,buy,0.448,BPxxfRCXkUVhig4HS1Lh7kZqV6SPJhzfEk4x6fVBjPCy,SOL,sponsored,"test_05_buy-vs-jupiter: BP (classic): Jupiter can buy exact-out, expected to fill"
+13,0,buy,0.00642,98sMhvDwXj1RQi5c5Mndm3vPe9cBqPrbLaufMXFNMh5g,SOL,sponsored,"test_05_buy-vs-jupiter: HYPE (classic): Jupiter can buy exact-out, expected to fill"
+15,0,buy,1.9,CARDSccUMFKoPRZxt5vt3ksUbxEFEcnZ3H2pd3dKxYjp,SOL,sponsored,"test_05_buy-vs-jupiter: CARDS (classic): Jupiter can buy exact-out, expected to fill"
+16,0,buy,91.7,5dvXTZ5qwgafnHtwu3Ls3QrWx1U4LQsFeCuJgkk4QEC6,SOL,sponsored,"test_05_buy-vs-jupiter: EMBER (classic): Jupiter can buy exact-out, expected to fill"
+18,0,buy,0.00000661,3NZ9JMVBmGAqocybic2c7LQCJScmgsAZ6vQqTDzcqmJh,SOL,sponsored,"test_05_buy-vs-jupiter: WBTC (classic): Jupiter can buy exact-out, expected to fill"
+19,0,buy,2.87,Dz9mQ9NzkBcCsuGPFJ3r1bS4wgqKMHBPiVuniW8Mbonk,SOL,sponsored,"test_05_buy-vs-jupiter: USELESS (classic): Jupiter can buy exact-out, expected to fill"
+20,0,buy,0.23,4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R,SOL,sponsored,"test_05_buy-vs-jupiter: RAY (classic): Jupiter can buy exact-out, expected to fill"
+22,0,buy,0.549,USD1ttGY1N17NEEHLmELoaybftRBUSErhqYiQzvEmuB,SOL,sponsored,"test_05_buy-vs-jupiter: USD1 (classic): Jupiter can buy exact-out, expected to fill"
+24,0,buy,1.49,JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN,SOL,sponsored,"test_05_buy-vs-jupiter: JUP (classic): Jupiter can buy exact-out, expected to fill"
+28,0,buy,68.2,2zMMhcVQEXDtdE6vsFS7S7D5oUodfJHE8vd1gnBouauv,SOL,sponsored,"test_05_buy-vs-jupiter: PENGU (classic): Jupiter can buy exact-out, expected to fill"
+30,0,buy,0.00383,J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn,SOL,sponsored,"test_05_buy-vs-jupiter: JitoSOL (classic): Jupiter can buy exact-out, expected to fill"
+1,0,buy,0.118,27G8MtK7VtTcCHkpASjSDdkWWYfoqT6ggEuKidVJidD4,SOL,sponsored,"test_05_buy-vs-jupiter: JLP (classic): Jupiter can buy exact-out, expected to fill"
+2,0,buy,0.00412,jupSoLaHXQiZZTSfEWMTRRgpnyFm8f6sZdosWBjx93v,SOL,sponsored,"test_05_buy-vs-jupiter: JupSOL (classic): Jupiter can buy exact-out, expected to fill"
+6,0,buy,1.31,METvsvVRapdj9cFLzq4Tr43xK4tAjQfwX76z3n6mWQL,SOL,sponsored,"test_05_buy-vs-jupiter: MET (classic): Jupiter can buy exact-out, expected to fill"
+7,0,buy,0.548,6FrrzDk5mQARGc1TDYoyVnSyRdds1t4PbtohCD6p3tgG,SOL,sponsored,"test_05_buy-vs-jupiter: USX (classic): Jupiter can buy exact-out, expected to fill"
+8,0,buy,0.462,AvZZF1YaZDziPY2RCK4oJrRVrbN3mTD9NL24hPeaZeUj,SOL,sponsored,"test_05_buy-vs-jupiter: syrupUSDC (classic): Jupiter can buy exact-out, expected to fill"
+9,0,buy,58.5,C1mBfBoDkwWfd6uTFZp62ARHLjeVp3bDpCDMfMZtPngE,SOL,sponsored,"test_05_buy-vs-jupiter: HOOKED (classic): Jupiter can buy exact-out, expected to fill"
+10,0,buy,0.476,5Y8NV33Vv7WbnLfq3zBcKSdYPrk7g2KoiQoe7M2tcxp5,SOL,sponsored,"test_05_buy-vs-jupiter: ONyc (classic): Jupiter can buy exact-out, expected to fill"
+12,0,buy,14.2,5UUH9RTDiSpq6HKS6bp4NdU9PNJpXRXuiw6ShBTBhgH2,SOL,sponsored,"test_05_buy-vs-jupiter: TROLL (classic): Jupiter can buy exact-out, expected to fill"
+13,0,buy,17.4,Ce2gx9KGXJ6C9Mp5b5x1sn9Mg87JwEbrQby4Zqo3pump,SOL,sponsored,"test_05_buy-vs-jupiter: neet (classic): Jupiter can buy exact-out, expected to fill"
+14,0,buy,1.82,7JA5eZdCzztSfQbJvS8aVVxMFfd81Rs9VvwnocV1mKHu,SOL,sponsored,"test_05_buy-vs-jupiter: GEOD (classic): Jupiter can buy exact-out, expected to fill"
+15,0,buy,0.00514,oreoU2P8bN6jkk3jbaiVxYnG1dCXcYxwhwyK9jSybcp,SOL,sponsored,"test_05_buy-vs-jupiter: ORE (classic): Jupiter can buy exact-out, expected to fill"
+17,0,buy,7.49,4sWNB8zGWHkh6UnmwiEtzNxL4XrN7uK9tosbESbJFfVs,SOL,sponsored,"test_05_buy-vs-jupiter: xSOL (classic): Jupiter can buy exact-out, expected to fill"
+18,0,buy,0.00355,mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So,SOL,sponsored,"test_05_buy-vs-jupiter: mSOL (classic): Jupiter can buy exact-out, expected to fill"
+19,0,buy,3.36,9BB6NFEcjBCtnNLFko2FqVQBq8HHM13kCyYcdQbgpump,SOL,sponsored,"test_05_buy-vs-jupiter: Fartcoin (classic): Jupiter can buy exact-out, expected to fill"
+20,0,buy,3360,D1YZZg9dBZ7AbfknZVbaeVLto36eySwoFYEVhZrD4F4n,SOL,sponsored,"test_05_buy-vs-jupiter: GO (classic): Jupiter can buy exact-out, expected to fill"
+21,0,buy,0.297,6p6xgHyF7AeE6TZkSmFsko444wqoP15icUSqi2jfGiPN,SOL,sponsored,"test_05_buy-vs-jupiter: TRUMP (classic): Jupiter can buy exact-out, expected to fill"
+25,0,buy,331,PerPsCe2SJ7Q25CN4R5TTX4fmBdmknE2hQmqCt96fHL,SOL,sponsored,"test_05_buy-vs-jupiter: PERPSPAD (classic): Jupiter can buy exact-out, expected to fill"
+28,0,buy,0.549,5YMkXAYccHSGnHn9nob9xEvv6Pvka9DZWH7nTbotTu9E,SOL,sponsored,"test_05_buy-vs-jupiter: hyUSD (classic): Jupiter can buy exact-out, expected to fill"
+4,0,buy,165000,DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263,SOL,sponsored,"test_05_buy-vs-jupiter: Bonk (classic): Jupiter can buy exact-out, expected to fill"
+5,0,buy,0.865,Grass7B4RdKfBCjTKgSqnXkqjwiGvQyFbuSCUJr3XXjs,SOL,sponsored,"test_05_buy-vs-jupiter: GRASS (classic): Jupiter can buy exact-out, expected to fill"
+7,0,buy,0.23,orcaEKTdK7LKz57vaAYr9QeNsVEPfiu6QeMU1kektZE,SOL,sponsored,"test_05_buy-vs-jupiter: ORCA (classic): Jupiter can buy exact-out, expected to fill"
+8,0,buy,1.06,jtojtomepa8beP8AuQc6eXt5FriJwfFMwQx2v2f9mCL,SOL,sponsored,"test_05_buy-vs-jupiter: JTO (classic): Jupiter can buy exact-out, expected to fill"
+12,0,buy,0.49,HzwqbKZw8HxMN6bF2yFZNrht3c2iXXzpKcFu7uBEDKtr,SOL,sponsored,"test_05_buy-vs-jupiter: EURC (classic): Jupiter can buy exact-out, expected to fill"
+13,0,buy,1.46,J3NKxxXZcnNiMjKw9hYb2K4LUxgwB6t1FtPtQVsv3KFr,SOL,sponsored,"test_05_buy-vs-jupiter: SPX (classic): Jupiter can buy exact-out, expected to fill"
+15,0,buy,0.548,USDSwr9ApdHk5bvJKMjzff41FfuX8bSxdKcR81vTwcA,SOL,sponsored,"test_05_buy-vs-jupiter: USDS (classic): Jupiter can buy exact-out, expected to fill"
+18,0,buy,11.1,METAewgxyPbgwsseH8T16a39CQ5VyVxZi9zXiDPY18m,SOL,sponsored,"test_05_buy-vs-jupiter: MPLX (classic): Jupiter can buy exact-out, expected to fill"
+20,0,buy,64.2,DtR4D9FtVoTX2569gaL837ZgrB6wNjj6tkmnX9Rdk9B2,SOL,sponsored,"test_05_buy-vs-jupiter: aura (classic): Jupiter can buy exact-out, expected to fill"
+22,0,buy,29,DBRiDgJAMsM95moTzJs7M9LnkGErpbv9v6CUR1DXnUu5,SOL,sponsored,"test_05_buy-vs-jupiter: DBR (classic): Jupiter can buy exact-out, expected to fill"
+23,0,buy,0.937,nosXBVoaCTtYdLvKY6Csb4AC8JCdQKKAaWYtx2ZMoo7,SOL,sponsored,"test_05_buy-vs-jupiter: NOS (classic): Jupiter can buy exact-out, expected to fill"
+25,0,buy,0.00344,5oVNBeEEQvYi1cX3ir8Dx5n1P7pdxydbGF2X4TxVusJm,SOL,sponsored,"test_05_buy-vs-jupiter: INF (classic): Jupiter can buy exact-out, expected to fill"
+26,0,buy,15.8,KMNo3nJsBXfcpJTVhZcXLW7RmTwTt4GVFE7suUBo9sS,SOL,sponsored,"test_05_buy-vs-jupiter: KMNO (classic): Jupiter can buy exact-out, expected to fill"
+27,0,buy,0.271,7ga6rtE9qSb3wdEiDCpTu2kHqoGVfT52jD8ign1rYTvx,SOL,sponsored,"test_05_buy-vs-jupiter: xHYPE (classic): Jupiter can buy exact-out, expected to fill"
+1,0,buy,12.3,PEAQjk7SRS6rXHVFFmpRr7zrC4g5ZuEebpwTxvaLr3b,SOL,sponsored,"test_05_buy-vs-jupiter: PEAQ (classic): Jupiter can buy exact-out, expected to fill"
+2,0,buy,0.00000661,CtzPWv73Sn1dMGVU3ZtLv9yWSyUAanBni19YWDaznnkn,SOL,sponsored,"test_05_buy-vs-jupiter: xBTC (classic): Jupiter can buy exact-out, expected to fill"
+3,0,buy,0.978,31k88G5Mq7ptbRDf3AM13HAq6wRQHXHikR8hik7wPygk,SOL,sponsored,"test_05_buy-vs-jupiter: GP (classic): Jupiter can buy exact-out, expected to fill"
+8,0,buy,0.482,59obFNBzyTBGowrkif5uK7ojS58vsuWz3ZCvg6tfZAGw,SOL,sponsored,"test_05_buy-vs-jupiter: PST (classic): Jupiter can buy exact-out, expected to fill"
+9,0,buy,2.59,EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm,SOL,sponsored,"test_05_buy-vs-jupiter: $WIF (classic): Jupiter can buy exact-out, expected to fill"
+10,0,buy,33.5,SKRbvo6Gf7GondiT3BbTfuRDPqLWei4j2Qy2NPGZhW3,SOL,sponsored,"test_05_buy-vs-jupiter: SKR (classic): Jupiter can buy exact-out, expected to fill"
+11,0,buy,0.00598,SATqS9DYpLQsM2z51P4QCoqJRHa5wboV4qjJerJRUSH,SOL,sponsored,"test_05_buy-vs-jupiter: RUSH (classic): Jupiter can buy exact-out, expected to fill"
+12,0,buy,236,ZBCNpuD7YMXzTHB2fhGkGi78MNsHGLRXUhRewNRm9RU,SOL,sponsored,"test_05_buy-vs-jupiter: ZBCN (classic): Jupiter can buy exact-out, expected to fill"
+15,0,buy,0.00455,pSo1f9nQXWgXibFtKf7NWYxb5enAM4qfP6UJSiXRQfL,SOL,sponsored,"test_05_buy-vs-jupiter: PSOL (classic): Jupiter can buy exact-out, expected to fill"
+16,0,buy,3.86,C1MHyoTJpRTeS9AQCyspNVu2EWAYCZwmJ1jNkEArFP1f,SOL,sponsored,"test_05_buy-vs-jupiter: APE (classic): Jupiter can buy exact-out, expected to fill"
+18,0,buy,532,ukHH6c7mMyiWCf1b9pnWe25TSpkDDt3H5pQZgZ74J82,SOL,sponsored,"test_05_buy-vs-jupiter: BOME (classic): Jupiter can buy exact-out, expected to fill"
+19,0,buy,0.000131,AymATz4TCL9sWNEEV9Kvyz45CHVhDZ6kUgjTJPzLpU9P,SOL,sponsored,"test_05_buy-vs-jupiter: XAUt0 (classic): Jupiter can buy exact-out, expected to fill"
+20,0,buy,9.08,8SMMso8Muv8d6i4WmMDthKt6TN1ysN6937sx3DKLXZqB,SOL,sponsored,"test_05_buy-vs-jupiter: RHEA (classic): Jupiter can buy exact-out, expected to fill"
+21,0,buy,276,63LfDmNb3MQ8mw9MtZ2To9bEA2M71kZUUGq5tiJxcqj9,SOL,sponsored,"test_05_buy-vs-jupiter: GIGA (classic): Jupiter can buy exact-out, expected to fill"
+23,0,buy,0.00000661,5XZw2LKTyrfvfiskJ78AMpackRjPcyCif1WhUsPDuVqQ,SOL,sponsored,"test_05_buy-vs-jupiter: WBTC (classic): Jupiter can buy exact-out, expected to fill"
+24,0,buy,0.000744,9gP2kCy3wA1ctvYWQk75guqXuHfrEomqydHLtcTCqiLa,SOL,sponsored,"test_05_buy-vs-jupiter: BNB (classic): Jupiter can buy exact-out, expected to fill"
+26,0,buy,15.3,J6pQQ3FAcJQeWPPGppWRb4nM8jU3wLyYbRrLh7feMfvd,SOL,sponsored,"test_05_buy-vs-jupiter: 2Z (classic): Jupiter can buy exact-out, expected to fill"
+27,0,buy,0.382,6UpQcMAb5xMzxc7ZfPaVMgx3KqsvKZdT5U718BzD5We2,SOL,sponsored,"test_05_buy-vs-jupiter: wXRP (classic): Jupiter can buy exact-out, expected to fill"
+30,0,buy,0.523,3ThdFZQKM6kRyVGLG48kaPg5TRMhYMKY1iCRa9xop1WC,SOL,sponsored,"test_05_buy-vs-jupiter: eUSX (classic): Jupiter can buy exact-out, expected to fill"
+1,0,buy,0.000131,GoLDppdjB1vDTPSGxyMJFqdnj134yH6Prg9eqsGDiw6A,SOL,sponsored,"test_05_buy-vs-jupiter: GOLD (classic): Jupiter can buy exact-out, expected to fill"
+3,0,buy,6.37,HZ1JovNiVvGrGNiiYvEozEVgZ58xaU3RKwX8eACQBCt3,SOL,sponsored,"test_05_buy-vs-jupiter: PYTH (classic): Jupiter can buy exact-out, expected to fill"
+4,0,buy,132,8XtRWb4uAAJFMP4QQhoYYCWR6XXb7ybcCdiqPwz9s5WS,SOL,sponsored,"test_05_buy-vs-jupiter: ALON (classic): Jupiter can buy exact-out, expected to fill"
+5,0,buy,8.41,CLoUDKc4Ane7HeQcPpE3YHnznRxhMimJ4MyaUqyHFzAu,SOL,sponsored,"test_05_buy-vs-jupiter: SANC (classic): Jupiter can buy exact-out, expected to fill"
+11,0,buy,0.0946,METAwkXcqyXKy1AtsSgJ8JiUHwGCafnZL38n3vYmeta,SOL,sponsored,"test_05_buy-vs-jupiter: META (classic): Jupiter can buy exact-out, expected to fill"
+16,0,buy,2.55,72QvBVwpxqmheEPfaCwWSWqEFsUy3rhWt6JhQBMNTwD1,SOL,sponsored,"test_05_buy-vs-jupiter: ENA (classic): Jupiter can buy exact-out, expected to fill"
+17,0,buy,1.65,GbbesPbaYh5uiAZSYNXTc7w9jty1rpg3P9L4JeN4LkKc,SOL,sponsored,"test_05_buy-vs-jupiter: TRX (classic): Jupiter can buy exact-out, expected to fill"
+18,0,buy,0.0038,bSo13r4TkiE4KumL71LsHTPpL2euBYLFx6h9HP3piy1,SOL,sponsored,"test_05_buy-vs-jupiter: bSOL (classic): Jupiter can buy exact-out, expected to fill"
+22,0,buy,14.6,BCNT4t3rv5Hva8RnUtJUJLnxzeFAabcYp8CghC1SmWin,SOL,sponsored,"test_05_buy-vs-jupiter: BC (classic): Jupiter can buy exact-out, expected to fill"
+25,0,buy,0.293,rndrizKT3MK1iimdxRdWabcF7Zg7AR5T4nud4EkHBof,SOL,sponsored,"test_05_buy-vs-jupiter: RENDER (classic): Jupiter can buy exact-out, expected to fill"
+1,0,buy,0.00322,AavE1kKKnesPw4MuRJmJ9jZs9QzEE8CPxQ3ViczUDfc1,SOL,sponsored,"test_05_buy-vs-jupiter: AAVE (classic): Jupiter can buy exact-out, expected to fill"
+2,0,buy,0.0042,he1iusmfkpAdwvxLNGV8Y1iSbj4rUy6yMhEA3fotn9A,SOL,sponsored,"test_05_buy-vs-jupiter: hSOL (classic): Jupiter can buy exact-out, expected to fill"
+3,0,buy,1.57,9McvH6w97oewLmPxqQEoHUAv3u5iYMyQ9AeZZhguYf1T,SOL,sponsored,"test_05_buy-vs-jupiter: Anon (classic): Jupiter can buy exact-out, expected to fill"
+5,0,buy,36.8,HgBRWfYxEfvPhtqkaeymCQtHCrKE46qQ43pKe8HCpump,SOL,sponsored,"test_05_buy-vs-jupiter: Bert (classic): Jupiter can buy exact-out, expected to fill"
+6,0,buy,682,B5WTLaRwaUQpKk7ir1wniNB6m5o8GgMrimhKMYan2R6B,SOL,sponsored,"test_05_buy-vs-jupiter: Pepe (classic): Jupiter can buy exact-out, expected to fill"
+7,0,buy,0.0803,1NJMqVM4PadjuzYmeB7zV7q7DV8oB3ExaQCd9x6KsLz,SOL,sponsored,"test_05_buy-vs-jupiter: INJ (classic): Jupiter can buy exact-out, expected to fill"
+8,0,buy,110,A8C3xuqscfmyLrte3VmTqrAq8kgMASius9AFNANwpump,SOL,sponsored,"test_05_buy-vs-jupiter: FWOG (classic): Jupiter can buy exact-out, expected to fill"
+9,0,buy,25.5,BeGY8KqKxboEwRbJd1q9H2K829jS4Rc5dEyNMYXCbV5p,SOL,sponsored,"test_05_buy-vs-jupiter: NPC (classic): Jupiter can buy exact-out, expected to fill"
+10,0,buy,14.1,5g6wVay8NYQ5Tspo4irj9YqSFfQoPDW7apkX352N29PP,SOL,sponsored,"test_05_buy-vs-jupiter: EDEL (classic): Jupiter can buy exact-out, expected to fill"
+11,0,buy,63,ZEUS1aR7aX8DFFJf5QjWj2ftDDdNTroMNGo8YoQm3Gq,SOL,sponsored,"test_05_buy-vs-jupiter: ZEUS (classic): Jupiter can buy exact-out, expected to fill"
+15,0,buy,0.476,A1KLoBrKBde8Ty9qtNQUtq3C2ortoC3u7twggz7sEto6,SOL,sponsored,"test_05_buy-vs-jupiter: USDY (classic): Jupiter can buy exact-out, expected to fill"
+17,0,buy,22.1,CrAr4RRJMBVwRsZtT62pEhfA9H5utymC2mVx8e7FreP2,SOL,sponsored,"test_05_buy-vs-jupiter: MON (classic): Jupiter can buy exact-out, expected to fill"
+20,0,buy,1180,MEW1gQWJ3nEXg2qgERiKu7FAFj79PHvQVREQUzScPP5,SOL,sponsored,"test_05_buy-vs-jupiter: MEW (classic): Jupiter can buy exact-out, expected to fill"
+23,0,buy,1.08,hntyVP6YFm1Hg25TN9WGLqM12b8TQmcknKrdu1oxWux,SOL,sponsored,"test_05_buy-vs-jupiter: HNT (classic): Jupiter can buy exact-out, expected to fill"
+24,0,buy,73.4,6AJcP7wuLwmRYLBNbi825wgguaPsWzPBEHcHndpRpump,SOL,sponsored,"test_05_buy-vs-jupiter: VINE (classic): Jupiter can buy exact-out, expected to fill"
+26,0,buy,11.7,7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr,SOL,sponsored,"test_05_buy-vs-jupiter: POPCAT (classic): Jupiter can buy exact-out, expected to fill"
+27,0,buy,65.2,PAYmo6moDF3Ro3X6bU2jwe2UdBnBhv8YjLgL1j4DxGu,SOL,sponsored,"test_05_buy-vs-jupiter: PAYAI (classic): Jupiter can buy exact-out, expected to fill"
+28,0,buy,9.07,61V8vBaqAGMpgDQi4JcAwo1dmBGHsyhzodcPqnEVpump,SOL,sponsored,"test_05_buy-vs-jupiter: arc (classic): Jupiter can buy exact-out, expected to fill"
+30,0,buy,0.771,3iQL8BFS2vE7mww4ehAqQHAsbmRNCrPxizWAT2Zfyr9y,SOL,sponsored,"test_05_buy-vs-jupiter: VIRTUAL (classic): Jupiter can buy exact-out, expected to fill"
+1,0,buy,50.3,Df6yfrKC8kZE3KNkrHERKzAetSxbrWeniQfyJY4Jpump,SOL,sponsored,"test_05_buy-vs-jupiter: CHILLGUY (classic): Jupiter can buy exact-out, expected to fill"
+2,0,buy,0.0427,LinkhB3afbBKb2EQQu7s7umdZceV3wcvAUJhQAfQ23L,SOL,sponsored,"test_05_buy-vs-jupiter: LINK (classic): Jupiter can buy exact-out, expected to fill"
+3,0,buy,0.25,4qQeZ5LwSz6HuupUu8jCtgXyW1mYQcNbFAW1sWZp89HL,SOL,sponsored,"test_05_buy-vs-jupiter: Cake (classic): Jupiter can buy exact-out, expected to fill"
+4,0,buy,30.7,KENJSUYLASHUMfHyy5o4Hp2FdNqZg1AsUPhfH2kYvEP,SOL,sponsored,"test_05_buy-vs-jupiter: GRIFFAIN (classic): Jupiter can buy exact-out, expected to fill"
+5,0,buy,78.3,eL5fUxj2J4CiQsmW85k5FG9DvuQjjUoBHoQBi2Kpump,SOL,sponsored,"test_05_buy-vs-jupiter: UFD (classic): Jupiter can buy exact-out, expected to fill"
+6,0,buy,0.726,CREDBHvVqREBCAxMihzr8D1nepHMr2gmQoZWpmgGmeta,SOL,sponsored,"test_05_buy-vs-jupiter: CRED (classic): Jupiter can buy exact-out, expected to fill"
+7,0,buy,349,DvjbEsdca43oQcw2h3HW1CT7N3x5vRcr3QrvTUHnXvgV,SOL,sponsored,"test_05_buy-vs-jupiter: DOOD (classic): Jupiter can buy exact-out, expected to fill"
+9,0,buy,143,CniPCE4b3s8gSUPhUiyMjXnytrEqUrMfSsnbBjLCpump,SOL,sponsored,"test_05_buy-vs-jupiter: pwease (classic): Jupiter can buy exact-out, expected to fill"
+12,0,buy,7.88,MEFNBXixkEbait3xn9bkm8WsJzXtVsaJEn4c8Sam21u,SOL,sponsored,"test_05_buy-vs-jupiter: ME (classic): Jupiter can buy exact-out, expected to fill"
+16,0,buy,142,463SK47VkB7uE7XenTHKiVcMtxRsfNE2X4Q9wByaURVA,SOL,sponsored,"test_05_buy-vs-jupiter: TSUKI (classic): Jupiter can buy exact-out, expected to fill"
+18,0,buy,9.31,SLXdx4BUt2v9uJQNzWqSfzTJ9UKLUDsvxHFMEEdrfgq,SOL,sponsored,"test_05_buy-vs-jupiter: SLX (classic): Jupiter can buy exact-out, expected to fill"
+19,0,buy,25.4,5z3EqYQo9HiCEs3R84RCDMu2n7anpDMxRhdK8PSWmrRC,SOL,sponsored,"test_05_buy-vs-jupiter: PONKE (classic): Jupiter can buy exact-out, expected to fill"
+20,0,buy,4.68,CARSsxWPkpQWvfyRBwfGMGvysJBHdHGfE46X5MNgmeta,SOL,sponsored,"test_05_buy-vs-jupiter: CARS (classic): Jupiter can buy exact-out, expected to fill"
+21,0,buy,1120,8wXtPeU6557ETkp9WHFY1n1EcU6NxDvbAggHGsMYiHsB,SOL,sponsored,"test_05_buy-vs-jupiter: GME (classic): Jupiter can buy exact-out, expected to fill"
+23,0,buy,374,Cy1GS2FqefgaMbi45UunrUzin1rfEmTUYnomddzBpump,SOL,sponsored,"test_05_buy-vs-jupiter: MOBY (classic): Jupiter can buy exact-out, expected to fill"
+26,0,buy,9.45,G7vQWurMkMMm2dU3iZpXYFTHT9Biio4F4gZCrwFpKNwG,SOL,sponsored,"test_05_buy-vs-jupiter: BIRB (classic): Jupiter can buy exact-out, expected to fill"
+27,0,buy,13.4,ED5nyyWEzpPPiWimP8vYm7sD7TD3LAt3Q3gRTWHzPJBY,SOL,sponsored,"test_05_buy-vs-jupiter: MOODENG (classic): Jupiter can buy exact-out, expected to fill"
+29,0,buy,11.1,2qEHjDLDLbuBgRYvsxhc5D6uDWAivNFZGan56P1tpump,SOL,sponsored,"test_05_buy-vs-jupiter: Pnut (classic): Jupiter can buy exact-out, expected to fill"
+3,0,buy,83600,WENWENvqqNya429ubCdR81ZmD69brwQaaBYY6p3LCpk,SOL,sponsored,"test_05_buy-vs-jupiter: WEN (classic): Jupiter can buy exact-out, expected to fill"
+6,0,buy,56.1,GJAFwWjJ3vnTsrQVabjBVK2TYB1YtRCQXRDfDgUnpump,SOL,sponsored,"test_05_buy-vs-jupiter: ACT (classic): Jupiter can buy exact-out, expected to fill"
+7,0,buy,168,GMzuntWYJLpNuCizrSR7ZXggiMdDzTNiEmSNHHunpump,SOL,sponsored,"test_05_buy-vs-jupiter: dreams (classic): Jupiter can buy exact-out, expected to fill"
+8,0,buy,580000000,x95HN3DWvbfCBtTjGm587z8suK3ec6cwQwgZNLbWKyp,SOL,sponsored,"test_05_buy-vs-jupiter: $HACHI (classic): Jupiter can buy exact-out, expected to fill"
+10,0,buy,217,4QsNTBKwHgyYUUHq9tDzk1CCVu7y5hK7z3GE9R36pump,SOL,sponsored,"test_05_buy-vs-jupiter: nub (classic): Jupiter can buy exact-out, expected to fill"
+13,0,buy,397,H8xQ6poBjB9DTPMDTKWzWPrnxu4bDEhybxiouF8Ppump,SOL,sponsored,"test_05_buy-vs-jupiter: Tokabu (classic): Jupiter can buy exact-out, expected to fill"
+15,0,buy,25.5,7BgBvyjrZX1YKz4oh9mjb8ZScatkkwb8DzFx7LoiVkM3,SOL,sponsored,"test_05_buy-vs-jupiter: Old Slerf (classic): Jupiter can buy exact-out, expected to fill"
+17,0,buy,287,AMjzRn1TBQwQfNAjHFeBb7uGbbqbJB7FzXAnGgdFPk6K,SOL,sponsored,"test_05_buy-vs-jupiter: SOLCEX (classic): Jupiter can buy exact-out, expected to fill"
+18,0,buy,1970,FRySi8LPkuByB7VPSCCggxpewFUeeJiwEGRKKuhwpKcX,SOL,sponsored,"test_05_buy-vs-jupiter: NATIX (classic): Jupiter can buy exact-out, expected to fill"
+20,0,buy,431,3psH1Mj1f7yUfaD5gh6Zj7epE8hhrMkMETgv5TshQA4o,SOL,sponsored,"test_05_buy-vs-jupiter: boden (classic): Jupiter can buy exact-out, expected to fill"
+24,0,buy,0.00464,hy1oXYgrBW6PVcJ4s6s2FKavRdwgWTXdfE69AxT7kPT,SOL,sponsored,"test_05_buy-vs-jupiter: hyloSOL (classic): Jupiter can buy exact-out, expected to fill"
+28,0,buy,31.6,85VBFQZC9TZkfaptBWjvUw7YbZjy52A6mjtPGjstQAmQ,SOL,sponsored,"test_05_buy-vs-jupiter: W (classic): Jupiter can buy exact-out, expected to fill"
+1,0,buy,3.74,BZLbGTNCSFfoth2GYDtwr7e4imWzpR5jqcUuGEwr646K,SOL,sponsored,"test_05_buy-vs-jupiter: IO (classic): Jupiter can buy exact-out, expected to fill"
+3,0,buy,62.7,HeeBovJNKd27tQ6xkeP1dfSyTr8LyLwhJz9wfFTbPLEX,SOL,sponsored,"test_05_buy-vs-jupiter: HEEBOO (classic): Jupiter can buy exact-out, expected to fill"
+4,0,buy,262,zGh48JtNHVBb5evgoZLXwgPD2Qu4MhkWdJLGDAupump,SOL,sponsored,"test_05_buy-vs-jupiter: retire (classic): Jupiter can buy exact-out, expected to fill"
+5,0,buy,0.00454,7dHbWXmci3dT8UFYWYZweBLXgycu7Y3iL6trKn1Y7ARj,SOL,sponsored,"test_05_buy-vs-jupiter: stSOL (classic): Jupiter can buy exact-out, expected to fill"
+6,0,buy,427,6ogzHhzdrQr9Pgv6hZ2MNze7UrzBMAFyBBWUYp1Fhitx,SOL,sponsored,"test_05_buy-vs-jupiter: RETARDIO (classic): Jupiter can buy exact-out, expected to fill"
+8,0,buy,32.2,Dfh5DzRgSvvCFDoYc2ciTkMrbDfRKybA4SoFbPmApump,SOL,sponsored,"test_05_buy-vs-jupiter: pippin (classic): Jupiter can buy exact-out, expected to fill"
+13,0,buy,27.4,E1kvzJNxShvvWTrudokpzuc789vRiDXfXG3duCuY6ooE,SOL,sponsored,"test_05_buy-vs-jupiter: DITH (classic): Jupiter can buy exact-out, expected to fill"
+14,0,buy,12.8,HNg5PYJmtqcmzXrv6S9zP1CDKk5BgDuyFBxbvNApump,SOL,sponsored,"test_05_buy-vs-jupiter: ALCH (classic): Jupiter can buy exact-out, expected to fill"
+15,0,buy,33.8,CzLSujWBLFsSjncfkh59rUFqvafWcY5tzedWJSuypump,SOL,sponsored,"test_05_buy-vs-jupiter: GOAT (classic): Jupiter can buy exact-out, expected to fill"
+17,0,buy,72.3,4Cnk9EPnW5ixfLZatCPJjDB1PUtcRpVVgTQukm9epump,SOL,sponsored,"test_05_buy-vs-jupiter: DADDY (classic): Jupiter can buy exact-out, expected to fill"
+19,0,buy,36.7,CTgiaZUK12kCcB8sosn4Nt2NZtzLgtPqDwyQyr2syATC,SOL,sponsored,"test_05_buy-vs-jupiter: BITCOIN (classic): Jupiter can buy exact-out, expected to fill"
+20,0,buy,448,6yjNqPzTSanBWSa6dxVEgTjePXBrZ2FoHLDQwYwEsyM6,SOL,sponsored,"test_05_buy-vs-jupiter: Chud (classic): Jupiter can buy exact-out, expected to fill"
+22,0,buy,141,4ikwYoNvoGEwtMbziUyYBTz1zRM6nmxspsfw9G7Bpump,SOL,sponsored,"test_05_buy-vs-jupiter: crypto (classic): Jupiter can buy exact-out, expected to fill"
+24,0,buy,0.601,SoLo9oxzLDpcq1dpqAgMwgce5WqkRDtNXK7EPnbmeta,SOL,sponsored,"test_05_buy-vs-jupiter: SOLO (classic): Jupiter can buy exact-out, expected to fill"
+25,0,buy,67.7,74SBV4zDXxTRgv1pEMoECskKBkZHc2yGPnc7GYVepump,SOL,sponsored,"test_05_buy-vs-jupiter: swarms (classic): Jupiter can buy exact-out, expected to fill"
+29,0,buy,122,2oGLxYuNBJRcepT1mEV6KnETaLD7Bf6qq3CM6skasBfe,SOL,sponsored,"test_05_buy-vs-jupiter: PUPS (classic): Jupiter can buy exact-out, expected to fill"
+30,0,buy,344,69G8CpUVZAxbPMiEBrfCCCH445NwFxH6PzVL693Xpump,SOL,sponsored,"test_05_buy-vs-jupiter: xavier (classic): Jupiter can buy exact-out, expected to fill"
+1,0,buy,19.1,8x5VqbHA8D7NkD52uNuS5nnt3PwA8pLD34ymskeSo2Wn,SOL,sponsored,"test_05_buy-vs-jupiter: ZEREBRO (classic): Jupiter can buy exact-out, expected to fill"
+5,0,buy,57,STREAMribRwybYpMmSYoCsQUdr6MZNXEqHgm7p1gu9M,SOL,sponsored,"test_05_buy-vs-jupiter: STREAM (classic): Jupiter can buy exact-out, expected to fill"
+6,0,buy,554,8Ki8DpuWNxu9VsS3kQbarsCWMcFGWkzzA8pUPto9zBd5,SOL,sponsored,"test_05_buy-vs-jupiter: LOCKIN (classic): Jupiter can buy exact-out, expected to fill"
+10,0,buy,3.51,HfMbPyDdZH6QMaDDUokjYCkHxzjoGBMpgaUvpLWGbF5p,SOL,sponsored,"test_05_buy-vs-jupiter: PBTC (classic): Jupiter can buy exact-out, expected to fill"
+11,0,buy,137,Hax9LTgsQkze1YFychnBLtFH8gYbQKtKfWKKg2SP6gdD,SOL,sponsored,"test_05_buy-vs-jupiter: TAI (classic): Jupiter can buy exact-out, expected to fill"
+12,0,buy,568,2JcXacFwt9mVAwBQ5nZkYwCyXQkRcdsYrDXn6hj22SbP,SOL,sponsored,"test_05_buy-vs-jupiter: mini (classic): Jupiter can buy exact-out, expected to fill"
+13,0,buy,373,71Jvq4Epe2FCJ7JFSF7jLXdNk1Wy4Bhqd9iL6bEFELvg,SOL,sponsored,"test_05_buy-vs-jupiter: GOR (classic): Jupiter can buy exact-out, expected to fill"
+14,0,buy,443,5SVG3T9CNQsm2kEwzbRq6hASqh1oGfjqTtLXYUibpump,SOL,sponsored,"test_05_buy-vs-jupiter: SIGMA (classic): Jupiter can buy exact-out, expected to fill"
+16,0,buy,506,H2c31USxu35MDkBrGph8pUDUnmzo2e4Rf4hnvL2Upump,SOL,sponsored,"test_05_buy-vs-jupiter: Shoggoth (classic): Jupiter can buy exact-out, expected to fill"
+17,0,buy,3.32,3dQTr7ror2QPKQ3GbBCokJUmjErGg8kTJzdnYjNfvi3Z,SOL,sponsored,"test_05_buy-vs-jupiter: BORG (classic): Jupiter can buy exact-out, expected to fill"
+19,0,buy,338,SCSuPPNUSypLBsV4darsrYNg4ANPgaGhKhsA3GmMyjz,SOL,sponsored,"test_05_buy-vs-jupiter: SCS (classic): Jupiter can buy exact-out, expected to fill"
+20,0,buy,579,6D7NaB2xsLd7cauWu1wKk6KBsJohJmP2qZH9GEfVi5Ui,SOL,sponsored,"test_05_buy-vs-jupiter: SC (classic): Jupiter can buy exact-out, expected to fill"
+21,0,buy,0.00424,sSo14endRuUbvQaJS3dq36Q829a3A6BEfoeeRGJywEh,SOL,sponsored,"test_05_buy-vs-jupiter: sSOL (classic): Jupiter can buy exact-out, expected to fill"
+23,0,buy,725,2fUFhZyd47Mapv9wcfXh5gnQwFXtqcYu9xAN4THBpump,SOL,sponsored,"test_05_buy-vs-jupiter: RNT (classic): Jupiter can buy exact-out, expected to fill"
+25,0,buy,551000,65nTNuJGHme4PQvKQyJykKp1bJAkK4A8Q66sd2yBWugf,SOL,sponsored,"test_05_buy-vs-jupiter: RBT (classic): Jupiter can buy exact-out, expected to fill"
+26,0,buy,440,DeaKMzAeZja3Mh5okZE6WUvygLP3Lfuvm6Rg78HqXTz9,SOL,sponsored,"test_05_buy-vs-jupiter: SOLNIC (classic): Jupiter can buy exact-out, expected to fill"
+27,0,buy,17.1,3WPep4ufaToK1aS5s8BL9inzeUrt4DYaQCiic6ZkkC1U,SOL,sponsored,"test_05_buy-vs-jupiter: GIKO (classic): Jupiter can buy exact-out, expected to fill"
+28,0,buy,315,ULwSJmmpxmnRfpu6BjnK6rprKXqD5jXUmPpS1FxHXFy,SOL,sponsored,"test_05_buy-vs-jupiter: HEGE (classic): Jupiter can buy exact-out, expected to fill"
+29,0,buy,4060000,69kdRLyP5DTRkpHraaSZAQbWmAwzF9guKjZfzMXzcbAs,SOL,sponsored,"test_05_buy-vs-jupiter: USA (classic): Jupiter can buy exact-out, expected to fill"
+30,0,buy,1480,F6qoefQq4iCBLoNZ34RjEqHjHkD8vtmoRSdw9Nd55J1k,SOL,sponsored,"test_05_buy-vs-jupiter: SHIB (classic): Jupiter can buy exact-out, expected to fill"
+1,0,buy,124000000,AZsHEMXd36Bj1EMNXhowJajpUXzrKcK57wW4ZGXVa7yR,SOL,sponsored,"test_05_buy-vs-jupiter: GUAC (classic): Jupiter can buy exact-out, expected to fill"
+3,0,buy,115,moonThZEkkTVoNB7v6YVCQiT56JYDZ1oN185ba3WizL,SOL,sponsored,"test_05_buy-vs-jupiter: MF (classic): Jupiter can buy exact-out, expected to fill"
+4,0,buy,1770,Fch1oixTPri8zxBnmdCEADoJW2toyFHxqDZacQkwdvSP,SOL,sponsored,"test_05_buy-vs-jupiter: HARAMBE (classic): Jupiter can buy exact-out, expected to fill"
+5,0,buy,32.9,9LzCMqDgTKYz9Drzqnpgee3SGa89up3a247ypMj2xrqM,SOL,sponsored,"test_05_buy-vs-jupiter: AUDIO (classic): Jupiter can buy exact-out, expected to fill"
+7,0,buy,1210,3B5wuUrMEi5yATD7on46hKfej3pfmd7t1RKgrsN3pump,SOL,sponsored,"test_05_buy-vs-jupiter: BILLY (classic): Jupiter can buy exact-out, expected to fill"
+8,0,buy,0.00403,LnTRntk2kTfWEY6cVB8K9649pgJbt6dJLS1Ns1GZCWg,SOL,sponsored,"test_05_buy-vs-jupiter: lanternSOL (classic): Jupiter can buy exact-out, expected to fill"
+9,0,buy,452,HQ7DaoiUxzC2K1Dr7KXRHccNtXvEYgNvoUextXe8dmBh,SOL,sponsored,"test_05_buy-vs-jupiter: SLOTH (classic): Jupiter can buy exact-out, expected to fill"
+10,0,buy,42.6,DLUNTKRQt7CrpqSX1naHUYoBznJ9pvMP65uCeWQgYnRK,SOL,sponsored,"test_05_buy-vs-jupiter: SOLC (classic): Jupiter can buy exact-out, expected to fill"
+11,0,buy,758,ATRLuHph8dxnPny4WSNW7fxkhbeivBrtWbY6BfB4xpLj,SOL,sponsored,"test_05_buy-vs-jupiter: ATR (classic): Jupiter can buy exact-out, expected to fill"
+12,0,buy,152,4YK1njyeCkBuXG6phNtidJWKCbBhB659iwGkUJx98P5Z,SOL,sponsored,"test_05_buy-vs-jupiter: DOLAN (classic): Jupiter can buy exact-out, expected to fill"
+13,0,buy,0.253,J9BcrQfX4p9D1bvLzRNCbMDv8f44a9LFdeqNE4Yk2WMD,SOL,sponsored,"test_05_buy-vs-jupiter: ISC (classic): Jupiter can buy exact-out, expected to fill"
+14,0,buy,7.43,4Zp52aF4hZi9fzH19xpbWKYKQvgLyCN67KFbrQDqeTKh,SOL,sponsored,"test_05_buy-vs-jupiter: ZAMA (classic): Jupiter can buy exact-out, expected to fill"
+15,0,buy,1680,3S8qX1MsMqRbiwKg2cQyx7nis1oHMgaCuc9c4VfvVdPN,SOL,sponsored,"test_05_buy-vs-jupiter: MOTHER (classic): Jupiter can buy exact-out, expected to fill"
+17,0,buy,1630,9WPTUkh8fKuCnepRWoPYLH3aK9gSjPHFDenBq2X1Czdp,SOL,sponsored,"test_05_buy-vs-jupiter: SELFIE (classic): Jupiter can buy exact-out, expected to fill"
+18,0,buy,1410,CQSzJzwW5H1oyWrp6QhfUKYYwyovbSiVDKnAxNfb1tJC,SOL,sponsored,"test_05_buy-vs-jupiter: STAN (classic): Jupiter can buy exact-out, expected to fill"
+19,0,buy,811,5mbK36SZ7J19An8jFochhQS4of8g6BwUjbeCSxBSoWdp,SOL,sponsored,"test_05_buy-vs-jupiter: $michi (classic): Jupiter can buy exact-out, expected to fill"
+20,0,buy,1160,9gwTegFJJErDpWJKjPfLr2g2zrE3nL1v5zpwbtsk3c6P,SOL,sponsored,"test_05_buy-vs-jupiter: USEDCAR (classic): Jupiter can buy exact-out, expected to fill"
+22,0,buy,22.6,AURYydfxJib1ZkTir1Jn1J9ECYUtjb6rKQVmtYaixWPP,SOL,sponsored,"test_05_buy-vs-jupiter: AURY (classic): Jupiter can buy exact-out, expected to fill"
+23,0,buy,0.453,AhhdRu5YZdjVkKR3wbnUDaymVQL2ucjMQ63sZ3LFHsch,SOL,sponsored,"test_05_buy-vs-jupiter: VCHF (classic): Jupiter can buy exact-out, expected to fill"
+24,0,buy,18900,HLptm5e6rTgh4EKgDpYFrnRHbjpkMyVdEeREEa2G7rf9,SOL,sponsored,"test_05_buy-vs-jupiter: DUKO (classic): Jupiter can buy exact-out, expected to fill"
+25,0,buy,957,8doS8nzmgVZEaACxALkbK5fZtw4UuoRp4Yt8NEaXfDMb,SOL,sponsored,"test_05_buy-vs-jupiter: $WAFFLES (classic): Jupiter can buy exact-out, expected to fill"
+26,0,buy,322,UPTx1d24aBWuRgwxVnFmX4gNraj3QGFzL3QqBgxtWQG,SOL,sponsored,"test_05_buy-vs-jupiter: UPT (classic): Jupiter can buy exact-out, expected to fill"
+27,0,buy,150,FU1q8vJpZNUrmqsciSjp8bAKKidGsLmouB8CBdf8TKQv,SOL,sponsored,"test_05_buy-vs-jupiter: tremp (classic): Jupiter can buy exact-out, expected to fill"
+28,0,buy,629000000,FViMp5phQH2bX81S7Yyn1yXjj3BRddFBNcMCbTH8FCze,SOL,sponsored,"test_05_buy-vs-jupiter: $TOAD (classic): Jupiter can buy exact-out, expected to fill"
+29,0,buy,17,MangoCzJ36AjZyKwVj3VnYU4GTonjfVEnJmvvWaxLac,SOL,sponsored,"test_05_buy-vs-jupiter: MNGO (classic): Jupiter can buy exact-out, expected to fill"
+30,0,buy,376,9dLuVbJMd4ZpTpFgmaFHAGSsFwVjtcnzFWaLAA1expHg,SOL,sponsored,"test_05_buy-vs-jupiter: HEEHEE (classic): Jupiter can buy exact-out, expected to fill"
+1,0,buy,1910,25hAyBQfoDhfWx9ay6rarbgvWGwDdNqcHsXS3jQ3mTDJ,SOL,sponsored,"test_05_buy-vs-jupiter: MANEKI (classic): Jupiter can buy exact-out, expected to fill"
+3,0,buy,602,AVLhahDcDQ4m4vHM4ug63oh7xc8Jtk49Dm5hoe9Sazqr,SOL,sponsored,"test_05_buy-vs-jupiter: SOLAMA (classic): Jupiter can buy exact-out, expected to fill"
+4,0,buy,19.8,947tEoG318GUmyjVYhraNRvWpMX7fpBTDQFBoJvSkSG3,SOL,sponsored,"test_05_buy-vs-jupiter: CHAT (classic): Jupiter can buy exact-out, expected to fill"
+5,0,buy,44.9,GTH3wG3NErjwcf7VGCoXEXkgXSHvYhx5gtATeeM5JAS1,SOL,sponsored,"test_05_buy-vs-jupiter: WHALES (classic): Jupiter can buy exact-out, expected to fill"
+6,0,buy,2310,26KMQVgDUoB6rEfnJ51yAABWWJND8uMtpnQgsHQ64Udr,SOL,sponsored,"test_05_buy-vs-jupiter: HAMMY (classic): Jupiter can buy exact-out, expected to fill"
+7,0,buy,5610,6n7Janary9fqzxKaJVrhL9TG2F61VbAtwUMu1YZscaQS,SOL,sponsored,"test_05_buy-vs-jupiter: Hobbes (classic): Jupiter can buy exact-out, expected to fill"
+8,0,buy,667000,AujTJJ7aMS8LDo3bFzoyXDwT3jBALUbu4VZhzZdTZLmG,SOL,sponsored,"test_05_buy-vs-jupiter: $BEER (classic): Jupiter can buy exact-out, expected to fill"
+11,0,buy,0.115,3ZLekZYq2qkZiSpnSvabjit34tUkjSwD1JFuW9as9wBG,SOL,sponsored,"test_05_buy-vs-jupiter: wNEAR (classic): Jupiter can buy exact-out, expected to fill"
+17,0,buy,0.00102,WXMRyRZhsa19ety5erZhHg4N3xj3EVN92u94422teJp,SOL,sponsored,"test_05_buy-vs-jupiter: XMR (classic): Jupiter can buy exact-out, expected to fill"
+21,0,buy,141000,PEPEqnuuCDbBC89p1u9vpnP1KQ2oj1xTcQBsjt9X55m,SOL,sponsored,"test_05_buy-vs-jupiter: PEPE (classic): Jupiter can buy exact-out, expected to fill"
+22,0,buy,6.47,DoGEV7LASBkQbibMc5k5vKnTZoMg423GpJ5QtJEGfm7R,SOL,sponsored,"test_05_buy-vs-jupiter: DOGE (classic): Jupiter can buy exact-out, expected to fill"
+23,0,buy,0.15,EicWvteVi2fWepEzS3FYWsnuPoP6caZfjnKqNvydLjCH,SOL,sponsored,"test_05_buy-vs-jupiter: LIT (classic): Jupiter can buy exact-out, expected to fill"
+8,0,buy,215,7M3gDRgozcumFsiTeXwjB8cYxpg7Q9R7rH7rkw2Fpump,SOL,sponsored,"test_05_buy-vs-jupiter: CRIME (classic): Jupiter can buy exact-out, expected to fill"
+11,0,buy,0.00199,taoC6xyv2v8tDLcev4uaGUgV4vdQsWJrGft2kcBRrBY,SOL,sponsored,"test_05_buy-vs-jupiter: TAO (classic): Jupiter can buy exact-out, expected to fill"
+12,0,buy,0.264,2zCo6bUowJMvr89ajxuWsPadAqJ2F9akCkxumNsSdgsL,SOL,sponsored,"test_05_buy-vs-jupiter: xBTC (classic): Jupiter can buy exact-out, expected to fill"
+18,0,buy,0.054,avaxGHCq3T7hoxd73oY2KY9hJSTaeMibXvHy5KNzh5D,SOL,sponsored,"test_05_buy-vs-jupiter: AVAX (classic): Jupiter can buy exact-out, expected to fill"
+20,0,buy,0.0744,uniHfuPhEQSrtpzXpJZDCSq53yaejKKpNhFUiKoHKHV,SOL,sponsored,"test_05_buy-vs-jupiter: UNI (classic): Jupiter can buy exact-out, expected to fill"
+21,0,buy,0.227,Morpho2VPeTr2E1Jx6monxCzF7mqwUnjz74RdwLXYyP,SOL,sponsored,"test_05_buy-vs-jupiter: MORPHO (classic): Jupiter can buy exact-out, expected to fill"
+1,0,buy,0.517,suifhC9gU1VbJAPYPTBkHJyyyStKGLLYPVDTmPoqbvA,SOL,sponsored,"test_05_buy-vs-jupiter: SUI (classic): Jupiter can buy exact-out, expected to fill"
+7,0,buy,3180,GtDZKAqvMZMnti46ZewMiXCa4oXF4bZxwQPoKzXPFxZn,SOL,sponsored,"test_05_buy-vs-jupiter: nub (classic): Jupiter can buy exact-out, expected to fill"
+9,0,buy,1180,F4K2SbLNgyz9gzNqT8bPeLpRkxy4oMA9twaffUDdZtB6,SOL,sponsored,"test_05_buy-vs-jupiter: POD (classic): Jupiter can buy exact-out, expected to fill"
+13,0,buy,0.00217,qntUzPUsJ51abNP7VYNxkmsQ4RnvEZAhavUxsCxpxH4,SOL,sponsored,"test_05_buy-vs-jupiter: QNT (classic): Jupiter can buy exact-out, expected to fill"
+15,0,buy,1.58,poNSfquKq512ApeYjVghwViSun4x1MhCqHVH2Paq4jN,SOL,sponsored,"test_05_buy-vs-jupiter: PONS (classic): Jupiter can buy exact-out, expected to fill"
+17,0,buy,65.8,6ZnCkq5t8XG4q42b5JiVvU6hV5cZFaNdSBoFq5E7Vf9q,SOL,sponsored,"test_05_buy-vs-jupiter: BLUAI (classic): Jupiter can buy exact-out, expected to fill"
+21,0,buy,15.8,CortexFv3fRcLKTgACr7aLqckGh5eP7TP3z9JHoKqMc6,SOL,sponsored,"test_05_buy-vs-jupiter: CX (classic): Jupiter can buy exact-out, expected to fill"
+24,0,buy,1030,CreiuhfwdWCN5mJbMJtA9bBpYQrQF2tCBuZwSPWfpump,SOL,sponsored,"test_05_buy-vs-jupiter: PYTHIA (classic): Jupiter can buy exact-out, expected to fill"
+25,0,buy,2.17,EzfgjvkSwthhgHaceR3LnKXUoRkP6NUhfghdaHAj1tUv,SOL,sponsored,"test_05_buy-vs-jupiter: FTX Token (classic): Jupiter can buy exact-out, expected to fill"
+26,0,buy,1.14,ondohH8Vssxiqcy5u6Efi4AYN17KZrzQtv2a91dnrgW,SOL,sponsored,"test_05_buy-vs-jupiter: ONDO (classic): Jupiter can buy exact-out, expected to fill"
+6,0,buy,221,HyDKNdnhZNVYQMruBevbNsUWruA9STmAQrS4srXApump,SOL,sponsored,"test_05_buy-vs-jupiter: ALLINDOGE (classic): Jupiter can buy exact-out, expected to fill"
+7,0,buy,28.9,y1AZt42vceCmStjW4zetK3VoNarC1VxJ5iDjpiupump,SOL,sponsored,"test_05_buy-vs-jupiter: FARTBOY (classic): Jupiter can buy exact-out, expected to fill"
+9,0,buy,61.4,DKu9kykSfbN5LBfFXtNNDPaX35o4Fv6vJ9FKk7pZpump,SOL,sponsored,"test_05_buy-vs-jupiter: AVA (classic): Jupiter can buy exact-out, expected to fill"
+12,0,buy,10.6,FeR8VBqNRSUD5NtXAj2n3j1dAHkZHfyDktKuLXD4pump,SOL,sponsored,"test_05_buy-vs-jupiter: jellyjelly (classic): Jupiter can buy exact-out, expected to fill"
+19,0,buy,21.4,J1Wpmugrooj1yMyQKrdZ2vwRXG5rhfx3vTnYE39gpump,SOL,sponsored,"test_05_buy-vs-jupiter: WOULD (classic): Jupiter can buy exact-out, expected to fill"
+27,0,buy,0.00476,stke7uu3fXHsGqKVVjKnkmj65LRPVrqr4bLG2SJg7rh,SOL,sponsored,"test_05_buy-vs-jupiter: STKESOL (classic): Jupiter can buy exact-out, expected to fill"
+29,0,buy,156,5Jr9hGmJgxBRjjF8XGcGgQzXUdsbpZNNMpigEv8Wpump,SOL,sponsored,"test_05_buy-vs-jupiter: MUSHU (classic): Jupiter can buy exact-out, expected to fill"
+30,0,buy,8.88,9PR7nCP9DpcUotnDPVLUBUZKu5WAYkwrCUx9wDnSpump,SOL,sponsored,"test_05_buy-vs-jupiter: Ban (classic): Jupiter can buy exact-out, expected to fill"
+6,0,buy,29.4,FQgtfugBdpFN7PZ6NdPrZpVLDBrPGxXesi4gVu3vErhY,SOL,sponsored,"test_05_buy-vs-jupiter: BMT (classic): Jupiter can buy exact-out, expected to fill"

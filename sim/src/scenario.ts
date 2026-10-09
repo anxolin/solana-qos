@@ -65,7 +65,8 @@ export function parseScenario(text: string): TradeRow[] {
 export const readScenario = (path: string) => parseScenario(readFileSync(path, 'utf8'))
 
 export function writeScenario(path: string, rows: Omit<TradeRow, 'row'>[], comment?: string) {
-  const esc = (v: string | number) => (/[",\n]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : String(v))
+  // Quote anything with a quote, comma, newline or '#': the parser reads an unquoted '#' as a comment, even mid-line.
+  const esc = (v: string | number) => (/[",\n#]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : String(v))
   const lines = [
     ...(comment ? comment.split('\n').map((l) => `# ${l}`) : []),
     HEADER.join(','),

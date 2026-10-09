@@ -146,7 +146,7 @@ export async function jupiterTokens(mints: string[], onProgress?: (done: number,
   return out
 }
 
-/** Mints CoinGecko lists on Solana. The backend's native prices come from CoinGecko: without it, orders can't settle. */
+/** Mints CoinGecko lists on Solana. Kept as information: barn trades tokens without a CoinGecko price too. */
 export async function coingeckoMints(): Promise<Set<string>> {
   const coins = await retry(async () => {
     const res = await fetch('https://api.coingecko.com/api/v3/coins/list?include_platform=true', { signal: AbortSignal.timeout(120_000) })
@@ -407,10 +407,10 @@ export function buildRows(inp: UniverseInputs): UniverseRow[] {
 }
 
 /**
- * Ready for CoW: barn quotes sell orders into it and CoinGecko prices it (the native price orders need to settle).
- * Buy orders are reported apart (`sell-only`): exact-out routes are missing for many tokens, mostly Token-2022.
+ * Ready for CoW: barn quotes sell orders into it. A CoinGecko price isn't needed: in the 9 Oct top-250 run, 33 of 39
+ * orders into tokens without one filled (the rest failed for unrelated reasons).
  */
-export const supported = (r: UniverseRow) => (r.barn === 'tradable' || r.barn === 'sell-only') && r.coingecko
+export const supported = (r: UniverseRow) => r.barn === 'tradable' || r.barn === 'sell-only'
 
 /**
  * A relevant token matters to traders: enough liquidity to absorb a test trade, and still traded (thin pools and faded
@@ -528,6 +528,8 @@ export interface SequenceStep {
 export interface SequenceOptions {
   /** Mints in CoW Swap's app lists (SolanaDefault + NearSolana). */
   appMints: Set<string>
+  /** Size of the first, quick file: the most traded app-list tokens with a CoinGecko price. */
+  topSize: number
   /** Long-tail candidates already read on chain, in sampling order (see sampleLongTail). */
   longTail: UniverseRow[]
   longTailSize: number
@@ -535,7 +537,8 @@ export interface SequenceOptions {
 
 /**
  * The token coverage sequence: each step takes the tokens no earlier step used, so every token is tested once.
- * 1: relevant tokens CoW Swap lists. 2: every other relevant token, by Jupiter-routed volume. 3: a long-tail sample.
+ * 1: the top app-list tokens (CoinGecko-priced, most traded), a quick health check. 2: the rest of the relevant tokens
+ * CoW Swap lists. 3: every other relevant token, by Jupiter-routed volume. 4: a long-tail sample.
  * Per-router steps (DFlow, Titan, direct) were tried and dropped: steps 1-2 already hold 84-98% of each router's
  * volume, and what's left sits in pools under $50k.
  */
@@ -548,12 +551,19 @@ export function buildSequence(rows: UniverseRow[], o: SequenceOptions): Sequence
     for (const r of picked) used.add(r.mint)
     return picked
   }
+  const app = pool.filter((r) => o.appMints.has(r.mint))
+  const top = (rows: UniverseRow[]) => {
+    const picked = rows.filter((r) => r.coingecko).sort((a, b) => jupiter(b) - jupiter(a)).slice(0, o.topSize)
+    return take(picked, jupiter)
+  }
   return [
-    { id: 'test_01_cow-swap', title: 'CoW Swap app lists',
-      criteria: `${RELEVANCE}; in SolanaDefault or NearSolana; ranked by Jupiter-routed volume`, rows: take(pool.filter((r) => o.appMints.has(r.mint)), jupiter) },
-    { id: 'test_02_jupiter', title: 'Every other relevant token',
+    { id: 'test_01_cow-swap-top', title: `Top ${o.topSize} CoW Swap tokens`,
+      criteria: `${RELEVANCE}; in SolanaDefault or NearSolana, with a CoinGecko price; the ${o.topSize} with the most Jupiter-routed volume`, rows: top(app) },
+    { id: 'test_02_cow-swap', title: 'The rest of the CoW Swap lists',
+      criteria: `${RELEVANCE}; in SolanaDefault or NearSolana; ranked by Jupiter-routed volume`, rows: take(app, jupiter) },
+    { id: 'test_03_jupiter', title: 'Every other relevant token',
       criteria: `${RELEVANCE}; not in the app lists; ranked by Jupiter-routed volume`, rows: take(pool, jupiter) },
-    { id: 'test_03_long-tail', title: 'Long-tail sample',
+    { id: 'test_04_long-tail', title: 'Long-tail sample',
       criteria: `random sample of ${o.longTailSize} tokens outside the ~2,200 the universe checked (>= $100k over 90 days); not relevance-filtered`,
       rows: o.longTail.filter((r) => !used.has(r.mint) && r.program !== '' && r.decimals !== null).slice(0, o.longTailSize) },
   ]
@@ -604,7 +614,7 @@ export function summarize(rows: UniverseRow[], o: { date: string; source: string
       `(source: ${o.source}). Shares below leave SOL out.`,
     `- **${tokens.filter((r) => r.jupiter !== 'unchecked').length.toLocaleString('en-US')} were checked** on Jupiter, on chain and on barn: ` +
       'the most traded, plus every token in the app lists. The rest only count towards the volume.',
-    '- **Supported** = barn quotes a sell into the token and CoinGecko prices it (orders need a price to settle).',
+    '- **Supported** = barn quotes a sell into the token (a CoinGecko price isn\'t needed).',
     '- **Sell-only** = no buy quote. Mostly Token-2022 tokens.',
     '',
   )
@@ -630,7 +640,7 @@ export function summarize(rows: UniverseRow[], o: { date: string; source: string
   out.push(`## Top-500 tokens CoW can't trade (${blocked.length}, ${pct(vol(blocked) / total)} of the volume)`, '')
   out.push('| # | Token | 90d volume | Why | In lists |', '|---:|---|---:|---|---|')
   for (const r of blocked.slice(0, 60)) {
-    const why = supported(r) ? '' : r.coingecko ? `${r.barn}${r.barnReason ? `: ${r.barnReason}` : ''}` : r.barn === 'tradable' || r.barn === 'sell-only' ? 'no CoinGecko price' : `${r.barn}${r.barnReason ? `: ${r.barnReason}` : ''}, no CoinGecko price`
+    const why = supported(r) ? '' : `${r.barn}${r.barnReason ? `: ${r.barnReason}` : ''}`
     out.push(`| ${r.rank} | ${r.symbol} \`${r.mint}\` | ${usd(r.volume90d)} | ${why} | ${r.lists.join(', ') || '–'} |`)
   }
   out.push('')
@@ -638,7 +648,7 @@ export function summarize(rows: UniverseRow[], o: { date: string; source: string
   const listed = tokens.filter((r) => r.lists.includes(app))
   const stale = listed.filter((r) => !supported(r))
   out.push(`## In ${app} but not supported (${stale.length})`, '')
-  for (const r of stale) out.push(`- ${r.symbol} \`${r.mint}\` (${usd(r.volume90d)}): ${r.coingecko ? `${r.barn} ${r.barnReason}` : `no CoinGecko price (barn: ${r.barn})`}`)
+  for (const r of stale) out.push(`- ${r.symbol} \`${r.mint}\` (${usd(r.volume90d)}): ${r.barn} ${r.barnReason}`)
   const sellOnly = listed.filter((r) => r.barn === 'sell-only')
   out.push('', `Sell-only in ${app} (no buy orders): ${sellOnly.length}, ${sellOnly.filter((r) => r.program === 'classic').length} of them classic SPL` +
     (sellOnly.some((r) => r.program === 'classic') ? `: ${sellOnly.filter((r) => r.program === 'classic').map((r) => r.symbol).join(', ')}` : '') + '.')

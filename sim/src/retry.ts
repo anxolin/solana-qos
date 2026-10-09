@@ -1,5 +1,7 @@
 import type { Mode, TradeRow } from './scenario.js'
 
+const isSol = (t?: string) => !t || t === 'SOL' || t === 'So11111111111111111111111111111111111111112' || t === '11111111111111111111111111111111'
+
 /** A failure from the sim's own RPC (rate limit, timeout, unreachable node) rather than from CoW or the market. */
 export const isRpcFailure = (reason: string) =>
   /\b429\b|too many requests|rate limit|fetch failed|ECONNRESET|ETIMEDOUT|timed? ?out|socket hang up|node is (?:unhealthy|behind)/i.test(reason)
@@ -86,14 +88,15 @@ export function retryRows(journal: JournalLine[] | JournalLine[][], original: Tr
     const s = trade(row)
     if (!s) continue
     const bought = s.type === 'sell' ? s.other : s.token
-    for (const [later, reason] of failed) {
+    // SOL is what traders are funded with: rows don't depend on each other through it.
+    for (const [later, reason] of isSol(bought) ? [] : failed) {
       const l = trade(later)
       const sells = l?.type === 'sell' ? l.token : l?.other
       if (later > row && l?.trader === s.trader && sells === bought && !match(reason)) picked.add(later)
     }
     // And the other way: the earlier row that was meant to deliver this row's sell token, if it failed too.
     const sells = s.type === 'sell' ? s.token : s.other
-    for (const [earlier] of failed) {
+    for (const [earlier] of isSol(sells) ? [] : failed) {
       const e = trade(earlier)
       const delivers = e?.type === 'sell' ? e.other : e?.token
       if (earlier < row && e?.trader === s.trader && delivers === sells) picked.add(earlier)

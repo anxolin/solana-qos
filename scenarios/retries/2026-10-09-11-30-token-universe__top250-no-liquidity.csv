@@ -1,0 +1,30 @@
+# Retry of session 2026-10-09-11-30-token-universe__top250 (after 1 retry run): 19 rows matching /NoLiquidity/, and 7 rows of the same traders that depend on them (the other leg of the same token). Same traders, amounts and modes.
+# Regenerate: pnpm sim retry-session 2026-10-09-11-30-token-universe__top250 2026-10-09-12-36-retries__2026-10-09-11-30-token-universe__top250 --match 'NoLiquidity' --label no-liquidity
+# Afterwards: pnpm sim session-stats 2026-10-09-11-30-token-universe__top250 2026-10-09-12-36-retries__2026-10-09-11-30-token-universe__top250 <this run's session>
+trader,time,type,amount,token,other_token,mode,note
+12,0,sell,103,98kfF7rmsg1QDUEoCqNE7g7M1FdrTt92TEp2CLzypump,SOL,sponsored,retry of row 24
+28,0,sell,36.2,Hg5Ja55T5wESq4vyFoiVCMeHXtGyVA69X2UHq8hgpump,SOL,sponsored,retry of row 56
+8,0,sell,68.5,MukLDtJ8Cx9DxLbeyLRSWPSposTMWuwHANbuaudpump,SOL,sponsored,retry of row 76
+9,0,sell,41.6,GTBxUiw6wJdmmkCGZgRHLyYxqu1vG4KtRpeox6yDpump,SOL,sponsored,retry of row 78
+18,0,sell,95.6,CTPoyCwkjMvoJwU4xvZZqoD8tiYk6yDchySiN5gGpump,SOL,sponsored,retry of row 96
+21,0,sell,163,Ge87EtsjwRQbHaqQmKRno69RFTwh9bfSsm99XNxTpump,SOL,sponsored,retry of row 162
+24,0,sell,0.005,SOL,39ahtL8ynzE4amH26J29C93PA5172V3ft9UuUcqQS8fz,sponsored,retry of row 167
+24,0,sell,14500,39ahtL8ynzE4amH26J29C93PA5172V3ft9UuUcqQS8fz,SOL,sponsored,retry of row 168
+9,0,sell,0.00601,XsueG8BtpquVJX9LVLLEGuViXUungE6WmK5YZ3p3bd1,SOL,sponsored,retry of row 198
+12,0,sell,0.0173,BoTx8y9ynfdxf5ZjWtCoBVkff52qKA82ysaLU8ZM6d8T,SOL,sponsored,retry of row 204
+18,0,sell,0.00205,XsqE9cRRpzxcGKDXj1BJ7Xmg4GRhZoyY1KpmGSxAWT2,SOL,sponsored,retry of row 216
+23,0,sell,0.0013,XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB,SOL,sponsored,retry of row 226
+1,0,sell,0.005,SOL,6sXzcNzDk8x4Atcee6vv25iw5bLyg8mLJRtVhwM8Kgan,sponsored,retry of row 241
+1,0,sell,206,6sXzcNzDk8x4Atcee6vv25iw5bLyg8mLJRtVhwM8Kgan,SOL,sponsored,retry of row 242
+11,0,sell,0.005,SOL,UpBBfyC75u3kxDGWmmmW2yauk9YY3CqZhdt1KUDkids,sponsored,retry of row 261
+11,0,sell,2120,UpBBfyC75u3kxDGWmmmW2yauk9YY3CqZhdt1KUDkids,SOL,sponsored,retry of row 262
+1,0,sell,0.005,SOL,StargWr5r6r8gZSjmEKGZ1dmvKWkj79r2z1xqjFstar,sponsored,retry of row 301
+1,0,sell,169,StargWr5r6r8gZSjmEKGZ1dmvKWkj79r2z1xqjFstar,SOL,sponsored,retry of row 302
+7,0,sell,0.005,SOL,CdhZy8wrRxNxoV8HtoByXKN7mvS46avtuZ1b39tKfx7,sponsored,retry of row 313
+7,0,sell,2020,CdhZy8wrRxNxoV8HtoByXKN7mvS46avtuZ1b39tKfx7,SOL,sponsored,retry of row 314
+19,0,sell,0.00126,RACEyWiM2ztEZcJx2AHXU2eWjhxU57x3vXn92b39dLD,SOL,sponsored,retry of row 338
+12,0,sell,289,8J69rbLTzWWgUJziFY8jeu5tDwEPBwUz4pKBMr5rpump,SOL,sponsored,retry of row 384
+5,0,sell,0.005,SOL,GoADAwux19tGxb3W4ykPzZz8p5JCSYaxBRpuW7s9pump,sponsored,retry of row 429
+5,0,sell,897,GoADAwux19tGxb3W4ykPzZz8p5JCSYaxBRpuW7s9pump,SOL,sponsored,retry of row 430
+7,0,sell,0.005,SOL,G5W6LwkLeoj6rZqBP1y3KT8k6Cz6rXGJmMNU3TArXtXw,sponsored,retry of row 433
+7,0,sell,1360,G5W6LwkLeoj6rZqBP1y3KT8k6Cz6rXGJmMNU3TArXtXw,SOL,sponsored,retry of row 434

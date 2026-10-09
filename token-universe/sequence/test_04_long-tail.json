@@ -1,8 +1,8 @@
 {
-  "name": "test_03_long-tail: Long-tail sample (50 tokens, universe of 2026-10-09)",
+  "name": "test_04_long-tail: Long-tail sample (50 tokens, universe of 2026-10-07)",
   "criteria": "random sample of 50 tokens outside the ~2,200 the universe checked (>= $100k over 90 days); not relevance-filtered",
   "coverage": "0.0% Jupiter-routed, 0.0% DFlow-routed, 0.0% Titan-routed (label unconfirmed), 0.0% direct DEX, 0.0% of all DEX volume ($11M of $71.8B) over 30 days; SOL excluded",
-  "timestamp": "2026-10-09T13:28:48.355Z",
+  "timestamp": "2026-10-09T15:38:45.893Z",
   "version": {
     "major": 1,
     "minor": 0,

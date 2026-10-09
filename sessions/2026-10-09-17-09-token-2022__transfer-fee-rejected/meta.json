@@ -1,0 +1,16 @@
+{
+ "rpc": "solana-mainnet.g.alchemy.com",
+ "name": "2026-10-09-17-09-token-2022__transfer-fee-rejected trade session",
+ "title": "2026-10-09-17-09-token-2022__transfer-fee-rejected",
+ "start": "2026-10-09T17:09:50.440Z",
+ "env": "prod",
+ "sim": {
+  "scenario": "/Users/anxo/Bunker/code/cow/solana-qos/scenarios/token-2022/transfer-fee-rejected.csv",
+  "traders": 1,
+  "rows": 25,
+  "solFundingPerTrader": 0.1
+ },
+ "trading_end": "2026-10-09T17:20:27.391Z",
+ "end": "2026-10-09T17:22:40.137Z",
+ "fetched_at": "2026-10-09T17:22:20+00:00"
+}

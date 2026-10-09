@@ -1,0 +1,16 @@
+{
+ "rpc": "solana-mainnet.g.alchemy.com",
+ "name": "2026-10-09-14-02-retries__2026-10-09-11-30-token-universe__top250-no-liquidity trade session",
+ "title": "2026-10-09-14-02-retries__2026-10-09-11-30-token-universe__top250-no-liquidity",
+ "start": "2026-10-09T14:03:23.336Z",
+ "env": "staging",
+ "sim": {
+  "scenario": "/Users/anxo/Bunker/code/cow/solana-qos/scenarios/retries/2026-10-09-11-30-token-universe__top250-no-liquidity.csv",
+  "traders": 13,
+  "rows": 26,
+  "solFundingPerTrader": 0.05
+ },
+ "trading_end": "2026-10-09T14:05:27.404Z",
+ "end": "2026-10-09T14:06:16.181Z",
+ "fetched_at": "2026-10-09T14:05:53+00:00"
+}

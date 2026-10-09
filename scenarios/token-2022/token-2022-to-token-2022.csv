@@ -2,18 +2,18 @@
 # What it is: Both legs are Token-2022: the settlement transfers with the Token-2022 program on both sides, and the buy account is a Token-2022 account.
 # Read more: https://solana.com/docs/tokens/extensions
 # Barn: Tradable when both tokens are.
-# Tokens: 10 of 118 relevant ones, by 30-day volume. Relevant: 90-day DEX volume >= $1.0M, last 30 days >= 5% of it (still traded), liquidity >= $50k, CoinGecko-listed, Jupiter price > 0.
+# Tokens: 10 of 140 relevant ones, by 30-day volume. Relevant: 90-day DEX volume >= $1.0M, last 30 days >= 5% of it (still traded), liquidity >= $50k, barn quotes it, Jupiter price > 0.
 # Each trader buys the first token with SOL, then sells it straight into the second (the most traded tokens, paired).
 # Fund with --sol-funding-per-trader 0.04.
-# Generated 2026-10-07 from token-universe/universe.csv, sized at SOL ≈ $115.71. Regenerate: python3 scenarios/token-2022/generate.py
+# Generated 2026-10-09 from token-universe/universe.csv, sized at SOL ≈ $110.08. Regenerate: python3 scenarios/token-2022/generate.py
 trader,time,type,amount,token,other_token,mode,note
 1,0,sell,0.01,SOL,2u1tszSeqZ3qBWF3uNGPFc8TzMk2tdiwknnRMWGWjGWH,sponsored,setup: SOL to USDG
-1,1,sell,0.694,2u1tszSeqZ3qBWF3uNGPFc8TzMk2tdiwknnRMWGWjGWH,pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn,sponsored,USDG to PUMP: Token-2022 on both sides
+1,1,sell,0.661,2u1tszSeqZ3qBWF3uNGPFc8TzMk2tdiwknnRMWGWjGWH,pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn,sponsored,USDG to PUMP: Token-2022 on both sides
 2,0,sell,0.01,SOL,2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo,sponsored,setup: SOL to PYUSD
-2,1,sell,0.694,2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo,98kfF7rmsg1QDUEoCqNE7g7M1FdrTt92TEp2CLzypump,sponsored,PYUSD to PAID: Token-2022 on both sides
+2,1,sell,0.661,2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo,98kfF7rmsg1QDUEoCqNE7g7M1FdrTt92TEp2CLzypump,sponsored,PYUSD to PAID: Token-2022 on both sides
 3,0,sell,0.01,SOL,CASHx9KJUStyftLFWGvEVf59SGeG9sh5FfcnZMVPCASH,sponsored,setup: SOL to CASH
-3,1,sell,0.695,CASHx9KJUStyftLFWGvEVf59SGeG9sh5FfcnZMVPCASH,XsoCS1TfEyfFhfvj8EtZ528L3CaKBDBRqRapnBbDF2W,sponsored,CASH to SPYx: Token-2022 on both sides
-4,0,sell,0.01,SOL,CbcyNo7m1amFWqEQm2m4PLv1UNvpcL3C1Ujm6AkzpKoU,sponsored,setup: SOL to e/acc
-4,1,sell,113,CbcyNo7m1amFWqEQm2m4PLv1UNvpcL3C1Ujm6AkzpKoU,9cRCn9rGT8V2imeM2BaKs13yhMEais3ruM3rPvTGpump,sponsored,e/acc to ANSEM: Token-2022 on both sides
-5,0,sell,0.01,SOL,XsueG8BtpquVJX9LVLLEGuViXUungE6WmK5YZ3p3bd1,sponsored,setup: SOL to CRCLx
-5,1,sell,0.00859,XsueG8BtpquVJX9LVLLEGuViXUungE6WmK5YZ3p3bd1,Xsc9qvGR1efVDFGLrVsmkzv3qi45LTBjeUKSPmx9qEh,sponsored,CRCLx to NVDAx: Token-2022 on both sides
+3,1,sell,0.661,CASHx9KJUStyftLFWGvEVf59SGeG9sh5FfcnZMVPCASH,Ai66LHZG9MCzg1WKdawwqduVAXpNDUuV8M3uyq5ppump,sponsored,CASH to CATE: Token-2022 on both sides
+4,0,sell,0.01,SOL,XsoCS1TfEyfFhfvj8EtZ528L3CaKBDBRqRapnBbDF2W,sponsored,setup: SOL to SPYx
+4,1,sell,0.000851,XsoCS1TfEyfFhfvj8EtZ528L3CaKBDBRqRapnBbDF2W,CbcyNo7m1amFWqEQm2m4PLv1UNvpcL3C1Ujm6AkzpKoU,sponsored,SPYx to e/acc: Token-2022 on both sides
+5,0,sell,0.01,SOL,9cRCn9rGT8V2imeM2BaKs13yhMEais3ruM3rPvTGpump,sponsored,setup: SOL to ANSEM
+5,1,sell,4.71,9cRCn9rGT8V2imeM2BaKs13yhMEais3ruM3rPvTGpump,XsueG8BtpquVJX9LVLLEGuViXUungE6WmK5YZ3p3bd1,sponsored,ANSEM to CRCLx: Token-2022 on both sides

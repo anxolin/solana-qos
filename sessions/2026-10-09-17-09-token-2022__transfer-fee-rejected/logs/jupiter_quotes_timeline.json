@@ -1,0 +1,30 @@
+{
+ "_source": "container solana-jupiter-prod-solve, per 5m",
+ "bucket_min": 5,
+ "rows": [
+  {
+   "t": "2026-10-09T17:05:00Z",
+   "solved": 2,
+   "no_match": 0,
+   "rate_limited": 0
+  },
+  {
+   "t": "2026-10-09T17:10:00Z",
+   "solved": 53,
+   "no_match": 3,
+   "rate_limited": 0
+  },
+  {
+   "t": "2026-10-09T17:15:00Z",
+   "solved": 45,
+   "no_match": 7,
+   "rate_limited": 0
+  },
+  {
+   "t": "2026-10-09T17:20:00Z",
+   "solved": 187,
+   "no_match": 16,
+   "rate_limited": 0
+  }
+ ]
+}

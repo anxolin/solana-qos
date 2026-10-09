@@ -1,0 +1,106 @@
+# test_01_cow-swap-top: Top 50 CoW Swap tokens (50 tokens, universe of 2026-10-07) (token-universe/sequence/test_01_cow-swap-top.json), classified on staging on 2026-10-09.
+# Token criteria: liquidity >= $50k and the last 30 days carry >= 5% of the 90-day DEX volume. CoW support is not required: tokens barn rejects or has no route for stay in; in SolanaDefault or NearSolana, with a CoinGecko price; the 50 with the most Jupiter-routed volume.
+# Coverage: 82.2% Jupiter-routed, 72.5% DFlow-routed, 86.1% Titan-routed (label unconfirmed), 57.3% direct DEX, 56.9% of all DEX volume ($40.9B of $71.8B) over 30 days; SOL excluded.
+# Through this step (test_01 to test_01): 82.2% Jupiter-routed, 72.5% DFlow-routed, 86.1% Titan-routed (label unconfirmed), 57.3% direct DEX, 56.9% of all DEX volume ($40.9B of $71.8B) over 30 days; SOL excluded.
+# 47 tradable tokens (12 Token-2022): sell 0.005 SOL into each, then 90% of the quote back. 30 traders, ~2 tokens each, back to back.
+# Plus 3 tokens expected to fail at the quote (3 rejected by the backend, 0 without a route): one SOL to token row each, kept in so the report shows what isn't supported.
+# Fund with --sol-funding-per-trader 0.05.
+# Regenerate: pnpm sim build-token-sequence
+trader,time,type,amount,token,other_token,mode,note
+1,0,sell,0.005,SOL,EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v,sponsored,USDC (classic): SOL to token
+1,0,sell,0.492,EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v,SOL,sponsored,USDC (classic): token to SOL
+2,0,sell,0.005,SOL,Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB,sponsored,USDT (classic): SOL to token
+2,0,sell,0.492,Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB,SOL,sponsored,USDT (classic): token to SOL
+3,0,sell,0.005,SOL,2u1tszSeqZ3qBWF3uNGPFc8TzMk2tdiwknnRMWGWjGWH,sponsored,USDG (token-2022: mintCloseAuthority permanentDelegate transferFeeConfig confidentialTransferMint confidentialTransferFeeConfig transferHook): SOL to token
+3,0,sell,0.491,2u1tszSeqZ3qBWF3uNGPFc8TzMk2tdiwknnRMWGWjGWH,SOL,sponsored,USDG (token-2022: mintCloseAuthority permanentDelegate transferFeeConfig confidentialTransferMint confidentialTransferFeeConfig transferHook): token to SOL
+4,0,sell,0.005,SOL,6GmAFSYs4gk3FDao5FzzySQpPZaWsa4rUJHacpMpUNgx,sponsored,STONK (classic): SOL to token
+4,0,sell,3.45,6GmAFSYs4gk3FDao5FzzySQpPZaWsa4rUJHacpMpUNgx,SOL,sponsored,STONK (classic): token to SOL
+5,0,sell,0.005,SOL,A7bdiYdS5GjqGFtxf17ppRHtDKPkkRqbKtR27dxvQXaS,sponsored,ZEC (classic): SOL to token
+5,0,sell,0.000405,A7bdiYdS5GjqGFtxf17ppRHtDKPkkRqbKtR27dxvQXaS,SOL,sponsored,ZEC (classic): token to SOL
+6,0,sell,0.005,SOL,JuprjznTrTSp2UFa3ZBUFgwdAmtZCq4MQCwysN55USD,sponsored,JupUSD (classic): SOL to token
+6,0,sell,0.492,JuprjznTrTSp2UFa3ZBUFgwdAmtZCq4MQCwysN55USD,SOL,sponsored,JupUSD (classic): token to SOL
+7,0,sell,0.005,SOL,2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo,sponsored,PYUSD (token-2022: mintCloseAuthority permanentDelegate transferFeeConfig confidentialTransferMint confidentialTransferFeeConfig transferHook): SOL to token
+7,0,sell,0.491,2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo,SOL,sponsored,PYUSD (token-2022: mintCloseAuthority permanentDelegate transferFeeConfig confidentialTransferMint confidentialTransferFeeConfig transferHook): token to SOL
+8,0,sell,0.005,SOL,DEkqHyPN7GMRJ5cArtQFAWefqbZb33Hyf6s5iCwjEonT,sponsored,USDe (classic): SOL to token
+8,0,sell,0.492,DEkqHyPN7GMRJ5cArtQFAWefqbZb33Hyf6s5iCwjEonT,SOL,sponsored,USDe (classic): token to SOL
+9,0,sell,0.005,SOL,pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn,sponsored,PUMP (token-2022: transferHook): SOL to token
+9,0,sell,90.2,pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn,SOL,sponsored,PUMP (token-2022: transferHook): token to SOL
+10,0,sell,0.005,SOL,cbbtcf3aa214zXHbiAZQwf4122FBYbraNdFqgw4iMij,sponsored,cbBTC (classic): SOL to token
+10,0,sell,0.00000593,cbbtcf3aa214zXHbiAZQwf4122FBYbraNdFqgw4iMij,SOL,sponsored,cbBTC (classic): token to SOL
+11,0,sell,0.005,SOL,7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs,sponsored,ETH (classic): SOL to token
+11,0,sell,0.000198,7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs,SOL,sponsored,ETH (classic): token to SOL
+12,0,sell,0.005,SOL,BPxxfRCXkUVhig4HS1Lh7kZqV6SPJhzfEk4x6fVBjPCy,sponsored,BP (classic): SOL to token
+12,0,sell,0.401,BPxxfRCXkUVhig4HS1Lh7kZqV6SPJhzfEk4x6fVBjPCy,SOL,sponsored,BP (classic): token to SOL
+13,0,sell,0.005,SOL,98sMhvDwXj1RQi5c5Mndm3vPe9cBqPrbLaufMXFNMh5g,sponsored,HYPE (classic): SOL to token
+13,0,sell,0.00577,98sMhvDwXj1RQi5c5Mndm3vPe9cBqPrbLaufMXFNMh5g,SOL,sponsored,HYPE (classic): token to SOL
+14,0,sell,0.005,SOL,CASHx9KJUStyftLFWGvEVf59SGeG9sh5FfcnZMVPCASH,sponsored,CASH (token-2022: mintCloseAuthority permanentDelegate defaultAccountState confidentialTransferMint transferHook): SOL to token
+14,0,sell,0.492,CASHx9KJUStyftLFWGvEVf59SGeG9sh5FfcnZMVPCASH,SOL,sponsored,CASH (token-2022: mintCloseAuthority permanentDelegate defaultAccountState confidentialTransferMint transferHook): token to SOL
+15,0,sell,0.005,SOL,CARDSccUMFKoPRZxt5vt3ksUbxEFEcnZ3H2pd3dKxYjp,sponsored,CARDS (classic): SOL to token
+15,0,sell,1.7,CARDSccUMFKoPRZxt5vt3ksUbxEFEcnZ3H2pd3dKxYjp,SOL,sponsored,CARDS (classic): token to SOL
+16,0,sell,0.005,SOL,5dvXTZ5qwgafnHtwu3Ls3QrWx1U4LQsFeCuJgkk4QEC6,sponsored,EMBER (classic): SOL to token
+16,0,sell,81.5,5dvXTZ5qwgafnHtwu3Ls3QrWx1U4LQsFeCuJgkk4QEC6,SOL,sponsored,EMBER (classic): token to SOL
+17,0,sell,0.005,SOL,9cRCn9rGT8V2imeM2BaKs13yhMEais3ruM3rPvTGpump,sponsored,ANSEM (token-2022): SOL to token
+17,0,sell,3.6,9cRCn9rGT8V2imeM2BaKs13yhMEais3ruM3rPvTGpump,SOL,sponsored,ANSEM (token-2022): token to SOL
+18,0,sell,0.005,SOL,3NZ9JMVBmGAqocybic2c7LQCJScmgsAZ6vQqTDzcqmJh,sponsored,WBTC (classic): SOL to token
+18,0,sell,0.00000593,3NZ9JMVBmGAqocybic2c7LQCJScmgsAZ6vQqTDzcqmJh,SOL,sponsored,WBTC (classic): token to SOL
+19,0,sell,0.005,SOL,Dz9mQ9NzkBcCsuGPFJ3r1bS4wgqKMHBPiVuniW8Mbonk,sponsored,USELESS (classic): SOL to token
+19,0,sell,2.58,Dz9mQ9NzkBcCsuGPFJ3r1bS4wgqKMHBPiVuniW8Mbonk,SOL,sponsored,USELESS (classic): token to SOL
+20,0,sell,0.005,SOL,4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R,sponsored,RAY (classic): SOL to token
+20,0,sell,0.207,4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R,SOL,sponsored,RAY (classic): token to SOL
+21,0,sell,0.005,SOL,USD1ttGY1N17NEEHLmELoaybftRBUSErhqYiQzvEmuB,sponsored,USD1 (classic): SOL to token
+21,0,sell,0.492,USD1ttGY1N17NEEHLmELoaybftRBUSErhqYiQzvEmuB,SOL,sponsored,USD1 (classic): token to SOL
+22,0,sell,0.005,SOL,CWZ6BsdnjkDVTGkmL6bGbJXXig6ceef12KvyGQW14cMt,sponsored,ANTFUN (classic): SOL to token
+22,0,sell,42,CWZ6BsdnjkDVTGkmL6bGbJXXig6ceef12KvyGQW14cMt,SOL,sponsored,ANTFUN (classic): token to SOL
+23,0,sell,0.005,SOL,JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN,sponsored,JUP (classic): SOL to token
+23,0,sell,1.35,JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN,SOL,sponsored,JUP (classic): token to SOL
+24,0,sell,0.005,SOL,XsoCS1TfEyfFhfvj8EtZ528L3CaKBDBRqRapnBbDF2W,sponsored,SPYx (token-2022: permanentDelegate defaultAccountState scaledUiAmountConfig pausableConfig confidentialTransferMint transferHook): SOL to token
+24,0,sell,0.000629,XsoCS1TfEyfFhfvj8EtZ528L3CaKBDBRqRapnBbDF2W,SOL,sponsored,SPYx (token-2022: permanentDelegate defaultAccountState scaledUiAmountConfig pausableConfig confidentialTransferMint transferHook): token to SOL
+25,0,sell,0.005,SOL,Xs3oZwbHvqis4NYcf4YKWmEia2eC84wSiVrcYcTqpH8,sponsored,SPCXx (token-2022: permanentDelegate defaultAccountState scaledUiAmountConfig pausableConfig confidentialTransferMint transferHook): SOL to token
+25,0,sell,0.003,Xs3oZwbHvqis4NYcf4YKWmEia2eC84wSiVrcYcTqpH8,SOL,sponsored,SPCXx (token-2022: permanentDelegate defaultAccountState scaledUiAmountConfig pausableConfig confidentialTransferMint transferHook): token to SOL
+26,0,sell,0.005,SOL,Xsc9qvGR1efVDFGLrVsmkzv3qi45LTBjeUKSPmx9qEh,sponsored,NVDAx (token-2022: permanentDelegate defaultAccountState scaledUiAmountConfig pausableConfig confidentialTransferMint transferHook): SOL to token
+26,0,sell,0.00214,Xsc9qvGR1efVDFGLrVsmkzv3qi45LTBjeUKSPmx9qEh,SOL,sponsored,NVDAx (token-2022: permanentDelegate defaultAccountState scaledUiAmountConfig pausableConfig confidentialTransferMint transferHook): token to SOL
+27,0,sell,0.005,SOL,2zMMhcVQEXDtdE6vsFS7S7D5oUodfJHE8vd1gnBouauv,sponsored,PENGU (classic): SOL to token
+27,0,sell,61.6,2zMMhcVQEXDtdE6vsFS7S7D5oUodfJHE8vd1gnBouauv,SOL,sponsored,PENGU (classic): token to SOL
+28,0,sell,0.005,SOL,SPCXxcqXj6e5dJDVNovHN8744zkbhM2bYudU45BimGb,sponsored,SPCX (token-2022: permanentDelegate defaultAccountState pausableConfig confidentialTransferMint transferHook scaledUiAmountConfig): SOL to token
+28,0,sell,0.00301,SPCXxcqXj6e5dJDVNovHN8744zkbhM2bYudU45BimGb,SOL,sponsored,SPCX (token-2022: permanentDelegate defaultAccountState pausableConfig confidentialTransferMint transferHook scaledUiAmountConfig): token to SOL
+29,0,sell,0.005,SOL,J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn,sponsored,JitoSOL (classic): SOL to token
+29,0,sell,0.00345,J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn,SOL,sponsored,JitoSOL (classic): token to SOL
+30,0,sell,0.005,SOL,27G8MtK7VtTcCHkpASjSDdkWWYfoqT6ggEuKidVJidD4,sponsored,JLP (classic): SOL to token
+30,0,sell,0.106,27G8MtK7VtTcCHkpASjSDdkWWYfoqT6ggEuKidVJidD4,SOL,sponsored,JLP (classic): token to SOL
+1,0,sell,0.005,SOL,jupSoLaHXQiZZTSfEWMTRRgpnyFm8f6sZdosWBjx93v,sponsored,JupSOL (classic): SOL to token
+1,0,sell,0.00371,jupSoLaHXQiZZTSfEWMTRRgpnyFm8f6sZdosWBjx93v,SOL,sponsored,JupSOL (classic): token to SOL
+2,0,sell,0.005,SOL,MukLDtJ8Cx9DxLbeyLRSWPSposTMWuwHANbuaudpump,sponsored,OTC (token-2022): SOL to token
+2,0,sell,68.4,MukLDtJ8Cx9DxLbeyLRSWPSposTMWuwHANbuaudpump,SOL,sponsored,OTC (token-2022): token to SOL
+3,0,sell,0.005,SOL,GTBxUiw6wJdmmkCGZgRHLyYxqu1vG4KtRpeox6yDpump,sponsored,JEANPHIL (token-2022): SOL to token
+3,0,sell,43.7,GTBxUiw6wJdmmkCGZgRHLyYxqu1vG4KtRpeox6yDpump,SOL,sponsored,JEANPHIL (token-2022): token to SOL
+4,0,sell,0.005,SOL,METvsvVRapdj9cFLzq4Tr43xK4tAjQfwX76z3n6mWQL,sponsored,MET (classic): SOL to token
+4,0,sell,1.17,METvsvVRapdj9cFLzq4Tr43xK4tAjQfwX76z3n6mWQL,SOL,sponsored,MET (classic): token to SOL
+5,0,sell,0.005,SOL,6FrrzDk5mQARGc1TDYoyVnSyRdds1t4PbtohCD6p3tgG,sponsored,USX (classic): SOL to token
+5,0,sell,0.492,6FrrzDk5mQARGc1TDYoyVnSyRdds1t4PbtohCD6p3tgG,SOL,sponsored,USX (classic): token to SOL
+6,0,sell,0.005,SOL,AvZZF1YaZDziPY2RCK4oJrRVrbN3mTD9NL24hPeaZeUj,sponsored,syrupUSDC (classic): SOL to token
+6,0,sell,0.415,AvZZF1YaZDziPY2RCK4oJrRVrbN3mTD9NL24hPeaZeUj,SOL,sponsored,syrupUSDC (classic): token to SOL
+7,0,sell,0.005,SOL,C1mBfBoDkwWfd6uTFZp62ARHLjeVp3bDpCDMfMZtPngE,sponsored,HOOKED (classic): SOL to token
+7,0,sell,51.8,C1mBfBoDkwWfd6uTFZp62ARHLjeVp3bDpCDMfMZtPngE,SOL,sponsored,HOOKED (classic): token to SOL
+8,0,sell,0.005,SOL,5Y8NV33Vv7WbnLfq3zBcKSdYPrk7g2KoiQoe7M2tcxp5,sponsored,ONyc (classic): SOL to token
+8,0,sell,0.428,5Y8NV33Vv7WbnLfq3zBcKSdYPrk7g2KoiQoe7M2tcxp5,SOL,sponsored,ONyc (classic): token to SOL
+9,0,sell,0.005,SOL,CTPoyCwkjMvoJwU4xvZZqoD8tiYk6yDchySiN5gGpump,sponsored,fone (token-2022): SOL to token
+9,0,sell,107,CTPoyCwkjMvoJwU4xvZZqoD8tiYk6yDchySiN5gGpump,SOL,sponsored,fone (token-2022): token to SOL
+10,0,sell,0.005,SOL,5UUH9RTDiSpq6HKS6bp4NdU9PNJpXRXuiw6ShBTBhgH2,sponsored,TROLL (classic): SOL to token
+10,0,sell,12.7,5UUH9RTDiSpq6HKS6bp4NdU9PNJpXRXuiw6ShBTBhgH2,SOL,sponsored,TROLL (classic): token to SOL
+11,0,sell,0.005,SOL,Ce2gx9KGXJ6C9Mp5b5x1sn9Mg87JwEbrQby4Zqo3pump,sponsored,neet (classic): SOL to token
+11,0,sell,15.6,Ce2gx9KGXJ6C9Mp5b5x1sn9Mg87JwEbrQby4Zqo3pump,SOL,sponsored,neet (classic): token to SOL
+12,0,sell,0.005,SOL,7JA5eZdCzztSfQbJvS8aVVxMFfd81Rs9VvwnocV1mKHu,sponsored,GEOD (classic): SOL to token
+12,0,sell,1.63,7JA5eZdCzztSfQbJvS8aVVxMFfd81Rs9VvwnocV1mKHu,SOL,sponsored,GEOD (classic): token to SOL
+13,0,sell,0.005,SOL,oreoU2P8bN6jkk3jbaiVxYnG1dCXcYxwhwyK9jSybcp,sponsored,ORE (classic): SOL to token
+13,0,sell,0.0046,oreoU2P8bN6jkk3jbaiVxYnG1dCXcYxwhwyK9jSybcp,SOL,sponsored,ORE (classic): token to SOL
+14,0,sell,0.005,SOL,4sWNB8zGWHkh6UnmwiEtzNxL4XrN7uK9tosbESbJFfVs,sponsored,xSOL (classic): SOL to token
+14,0,sell,6.7,4sWNB8zGWHkh6UnmwiEtzNxL4XrN7uK9tosbESbJFfVs,SOL,sponsored,xSOL (classic): token to SOL
+15,0,sell,0.005,SOL,mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So,sponsored,mSOL (classic): SOL to token
+15,0,sell,0.00319,mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So,SOL,sponsored,mSOL (classic): token to SOL
+16,0,sell,0.005,SOL,9BB6NFEcjBCtnNLFko2FqVQBq8HHM13kCyYcdQbgpump,sponsored,Fartcoin (classic): SOL to token
+16,0,sell,3.04,9BB6NFEcjBCtnNLFko2FqVQBq8HHM13kCyYcdQbgpump,SOL,sponsored,Fartcoin (classic): token to SOL
+17,0,sell,0.005,SOL,D1YZZg9dBZ7AbfknZVbaeVLto36eySwoFYEVhZrD4F4n,sponsored,GO (classic): SOL to token
+17,0,sell,3000,D1YZZg9dBZ7AbfknZVbaeVLto36eySwoFYEVhZrD4F4n,SOL,sponsored,GO (classic): token to SOL
+1,0,sell,0.005,SOL,HcRLc9VDgjLeK154xDawfb1dmVJ98DoSqcwTHGqiDeJR,sponsored,ZCAT: expected UnsupportedToken (Token-2022 transfer fee)
+2,0,sell,0.005,SOL,8RVBk8vxLiUHueLUW1f4izFVqN3nWippLhkohKg6EGkS,sponsored,KNOTS: expected UnsupportedToken (Token-2022 transfer fee)
+3,0,sell,0.005,SOL,6UtY9iTZMQQ5QZVrbzFnNaJntV7oySm9k97mvwnuZcxr,sponsored,NEARKAT: expected UnsupportedToken (Token-2022 transfer fee)

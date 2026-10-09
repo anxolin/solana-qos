@@ -1,0 +1,16 @@
+{
+ "rpc": "solana-mainnet.g.alchemy.com",
+ "name": "2026-10-09-14-34-experiments__thin-jupiter trade session",
+ "title": "2026-10-09-14-34-experiments__thin-jupiter",
+ "start": "2026-10-09T14:34:34.767Z",
+ "env": "staging",
+ "sim": {
+  "scenario": "/Users/anxo/Bunker/code/cow/solana-qos/scenarios/experiments/thin-jupiter.csv",
+  "traders": 9,
+  "rows": 27,
+  "solFundingPerTrader": 0.05
+ },
+ "trading_end": "2026-10-09T14:36:11.349Z",
+ "end": "2026-10-09T14:37:00.350Z",
+ "fetched_at": "2026-10-09T14:36:37+00:00"
+}

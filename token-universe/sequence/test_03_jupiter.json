@@ -1,8 +1,8 @@
 {
-  "name": "test_02_jupiter: Every other relevant token (130 tokens, universe of 2026-10-09)",
+  "name": "test_03_jupiter: Every other relevant token (130 tokens, universe of 2026-10-07)",
   "criteria": "liquidity >= $50k and the last 30 days carry >= 5% of the 90-day DEX volume. CoW support is not required: tokens barn rejects or has no route for stay in; not in the app lists; ranked by Jupiter-routed volume",
   "coverage": "6.0% Jupiter-routed, 9.0% DFlow-routed, 5.2% Titan-routed (label unconfirmed), 1.4% direct DEX, 4.3% of all DEX volume ($3.1B of $71.8B) over 30 days; SOL excluded",
-  "timestamp": "2026-10-09T13:28:17.364Z",
+  "timestamp": "2026-10-09T15:36:53.073Z",
   "version": {
     "major": 1,
     "minor": 0,

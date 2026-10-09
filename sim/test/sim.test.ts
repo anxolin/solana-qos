@@ -7,7 +7,7 @@ import { runRow, type FlowContext } from '../src/flow.js'
 import { canBuild, sdkVersion, settlementFor } from '../src/settlement.js'
 import { encodeOrderIntent, findSettlementStatePda } from '@cowprotocol/sdk-trading-solana'
 import { deriveKeypair } from '../src/wallets.js'
-import { parseScenario, sessionSlug } from '../src/scenario.js'
+import { parseScenario, readScenario, sessionSlug, writeScenario } from '../src/scenario.js'
 import { isRpcFailure, retryRows } from '../src/retry.js'
 import { fromRaw, loadUniverse, toRaw } from '../src/tokens.js'
 import { generate, MIN_GAP_S, mulberry32, roundAmount } from '../src/generator.js'
@@ -214,7 +214,7 @@ describe('token universe', () => {
     expect(barnStatus(mint(1), facts, { sell: ok(10n), buy: ok(5n) }).barn).toBe('tradable')
   })
 
-  it('ranks by volume with running shares, and needs a CoinGecko price to count as supported', () => {
+  it('ranks by volume with running shares; supported only needs barn to quote, not a CoinGecko price', () => {
     const rows = buildRows({
       volume: [
         { mint: mint(1), symbol: 'A', volume90d: 100, volume30d: 30, txs90d: 1, traders90d: 1 },
@@ -229,7 +229,8 @@ describe('token universe', () => {
     })
     expect(rows.map((r) => [r.symbol, r.rank, r.cumShare])).toEqual([['B', 1, 0.75], ['A', 2, 1]])
     expect(rows[0]).toMatchObject({ proposed: true, jupiter: 'verified', lists: ['SolanaDefault'] })
-    expect(rows.map(supported)).toEqual([true, false])
+    expect(rows.map((r) => r.coingecko)).toEqual([true, false])
+    expect(rows.map(supported)).toEqual([true, true]) // A has no CoinGecko price and still counts
     expect(supported({ ...rows[0], barn: 'sell-only' })).toBe(true)
     expect(supported({ ...rows[0], barn: 'no-route' })).toBe(false)
   })
@@ -334,7 +335,7 @@ describe('token coverage sequence', () => {
     traders90d: 1, jupiter: 'verified', organic: 'high', organicScore: 1, liquidity: 1e6, jupVolume24h: 0, coingecko: true,
     program: 'classic', decimals: 6, extensions: [], barn: 'tradable', barnReason: '', lists: [], proposed: false, routed: routed(), ...o,
   })
-  const opts = { appMints: new Set<string>(), longTail: [] as UniverseRow[], longTailSize: 2 }
+  const opts = { appMints: new Set<string>(), topSize: 1, longTail: [] as UniverseRow[], longTailSize: 2 }
 
   it('puts each token in one step only, in step order', () => {
     const app = row({ routed: routed({ jupiter: 9e6 }) })
@@ -342,10 +343,12 @@ describe('token coverage sequence', () => {
     const t22 = row({ program: 'token-2022' })
     const thin = row({ liquidity: 1e3, routed: routed({ jupiter: 9e9 }) })
     const faded = row({ volume90d: 1e9, volume30d: 1e6 })
-    const steps = buildSequence([app, ...others, t22, thin, faded], { ...opts, appMints: new Set([app.mint]) })
-    expect(steps.map((s) => s.id)).toEqual(['test_01_cow-swap', 'test_02_jupiter', 'test_03_long-tail'])
+    const app2 = row({ coingecko: false, routed: routed({ jupiter: 9e9 }) }) // listed, no CoinGecko price: not in the top file
+    const steps = buildSequence([app, app2, ...others, t22, thin, faded], { ...opts, appMints: new Set([app.mint, app2.mint]) })
+    expect(steps.map((s) => s.id)).toEqual(['test_01_cow-swap-top', 'test_02_cow-swap', 'test_03_jupiter', 'test_04_long-tail'])
     expect(steps[0].rows).toEqual([app])
-    expect(steps[1].rows.map((r) => r.mint)).toEqual([others[0], others[2], others[1], t22].map((r) => r.mint)) // by Jupiter volume
+    expect(steps[1].rows).toEqual([app2])
+    expect(steps[2].rows.map((r) => r.mint)).toEqual([others[0], others[2], others[1], t22].map((r) => r.mint)) // by Jupiter volume
     const all = steps.flatMap((s) => s.rows.map((r) => r.mint))
     expect(new Set(all).size).toBe(all.length)
     expect(all).not.toContain(thin.mint) // liquidity under $50k
@@ -386,6 +389,16 @@ describe('retry-session', () => {
     expect(r.rows.map((x) => x.note)).toEqual(['retry of row 1: in', 'retry of row 2'])
     expect(r.rows[0]).toMatchObject({ trader: 1, mode: 'self', time: 5, token: 'SOL', otherToken: 'TOK' })
     expect([r.rpc, r.dependent, r.skipped]).toEqual([1, 1, []])
+  })
+
+  it('never links rows through SOL, and pulls in the failed leg that should have delivered the token', () => {
+    const journal = [
+      start(1, 1, 'sell', 'SOL', 'TOK'), failed(1, 'main expired'),
+      start(2, 1, 'sell', 'TOK', 'SOL'), failed(2, 'acquire TOK error: NoLiquidity'),
+      start(3, 1, 'sell', 'SOL', 'FEE'), failed(3, 'quote failed: UnsupportedToken'), // sells SOL, unrelated
+    ]
+    const r = retryRows(journal, [], (reason) => /NoLiquidity/.test(reason))
+    expect(r.rows.map((x) => x.note)).toEqual(['retry of row 1', 'retry of row 2'])
   })
 
   it('rebuilds rows that failed before logging only from a matching original', () => {
@@ -443,4 +456,12 @@ describe('acquiring the sell token', () => {
     expect((await runRow(ctx, Keypair.generate(), row)).status).toBe('filled')
     expect(placed).toEqual([{ kind: 'sell', amount: 980_000n, buy: 'SOL' }]) // no acquisition for a 2% gap
   }, 20_000)
+})
+
+describe('scenario files', () => {
+  it("keep a '#' inside a note (it starts a comment when unquoted)", () => {
+    const path = `${process.env.TMPDIR ?? '/tmp'}/sim-hash-${process.pid}.csv`
+    writeScenario(path, [{ trader: 1, time: 0, type: 'sell', amount: 1, token: 'SOL', otherToken: 'X', mode: 'sponsored', note: '#memecoin: no route' }])
+    expect(readScenario(path)[0].note).toBe('#memecoin: no route')
+  })
 })

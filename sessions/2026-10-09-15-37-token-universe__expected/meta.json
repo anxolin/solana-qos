@@ -1,0 +1,15 @@
+{
+ "rpc": "solana-mainnet.g.alchemy.com",
+ "name": "2026-10-09-15-37-token-universe__expected trade session",
+ "title": "2026-10-09-15-37-token-universe__expected",
+ "start": "2026-10-09T15:38:03.668Z",
+ "env": "prod",
+ "sim": {
+  "scenario": "/Users/anxo/Bunker/code/cow/solana-qos/scenarios/token-universe/expected.csv",
+  "traders": 30,
+  "rows": 1108,
+  "solFundingPerTrader": 0.1
+ },
+ "trading_end": "2026-10-09T15:49:01.082Z",
+ "end": "2026-10-09T15:51:28.374Z"
+}

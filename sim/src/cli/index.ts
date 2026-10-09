@@ -12,7 +12,7 @@ import { fmtSol, fund, fundingPlan, wallets } from '../wallets.js'
 import { Orders } from '../orders.js'
 import { Session } from '../session.js'
 import { parseScenario, readScenario, sessionSlug, tradersIn, writeScenario, type TradeRow } from '../scenario.js'
-import { retryRows } from '../retry.js'
+import { failureKind, latestOutcomes, retryRows } from '../retry.js'
 import { runRow, type FlowContext, type RowResult } from '../flow.js'
 import { cleanupTrader } from '../cleanup.js'
 import { loadUniverse, resolveToken, splMint, toRaw, fromRaw, usdPrices } from '../tokens.js'
@@ -659,7 +659,8 @@ program
   .option('--routed-volume <source>', `refresh the routed volume in universe.csv first: CSV export or dune:<query id> (done anyway when universe.csv has none; default dune:${DEFAULT_ROUTED_QUERY})`)
   .option('--long-tail <n>', 'tokens in the long-tail sample', (v) => parseInt(v, 10), 50)
   .option('--seed <n>', 'long-tail sample seed', (v) => parseInt(v, 10), 1)
-  .option('--no-buys', 'skip the buy step (test_04_buy-vs-jupiter), which asks Jupiter for an exact-out quote per token')
+  .option('--top <n>', 'tokens in the first, quick file (top CoW Swap tokens)', (v) => parseInt(v, 10), 50)
+  .option('--no-buys', 'skip the buy step (test_05_buy-vs-jupiter), which asks Jupiter for an exact-out quote per token')
   .option('--jupiter-rps <n>', "Jupiter quotes per second for the buy step (its public API is rate-limited)", parseFloat, 1)
   .option('--sol-per-token <sol>', 'SOL sold into each token', parseFloat, 0.005)
   .option('--traders <n>', 'traders per file', (v) => parseInt(v, 10), 30)
@@ -668,7 +669,9 @@ program
   .action(async (opts) => {
     process.env.RPC_URL ||= process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com'
     const csv = resolve(opts.universe, 'universe.csv')
-    const built = statSync(csv).mtime.toISOString().slice(0, 10)
+    // The build date is in summary.md's title; the CSV's timestamp moves with every git checkout.
+    const summary = resolve(opts.universe, 'summary.md')
+    const built = (existsSync(summary) && /\((\d{4}-\d{2}-\d{2})\)/.exec(readFileSync(summary, 'utf8').split('\n')[0])?.[1]) || statSync(csv).mtime.toISOString().slice(0, 10)
     let rows = fromCsv(readFileSync(csv, 'utf8'))
     if (opts.routedVolume || !rows.some((r) => r.routed)) {
       const source = opts.routedVolume ?? `dune:${DEFAULT_ROUTED_QUERY}`
@@ -678,8 +681,18 @@ program
       utimesSync(csv, atime, mtime) // keep the build date: the files carry it
       log(`Routed volume from ${source} written to ${csv}`)
     }
-    // App lists are read live: the frontend changes them more often than the universe is rebuilt.
-    const appMints = new Set((await listMembership(APP_LISTS)).keys())
+    // App lists are read live: the frontend changes them more often than the universe is rebuilt. A list that can't be
+    // fetched falls back to the membership universe.csv recorded when it was built.
+    const appMints = new Set<string>()
+    for (const [name, url] of Object.entries(APP_LISTS)) {
+      try {
+        for (const m of (await listMembership({ [name]: url })).keys()) appMints.add(m)
+      } catch (e) {
+        const recorded = rows.filter((r) => r.lists.includes(name))
+        log(ui.warn(`${name} can't be fetched (${errorDetail(e)}): using its ${recorded.length} tokens recorded in universe.csv (${built})`))
+        for (const r of recorded) appMints.add(r.mint)
+      }
+    }
     // The long tail was never read on chain: read a seeded oversample, keep the real mints.
     const env = loadEnv({ needMnemonic: false, cowEnv: opts.env })
     const candidates = sampleLongTail(rows, opts.longTail * 3, opts.seed)
@@ -688,12 +701,12 @@ program
       const f = facts.get(r.mint)
       return f ? [{ ...r, program: f.program, decimals: f.decimals, extensions: f.extensions }] : []
     })
-    const steps = buildSequence(rows, { appMints, longTail, longTailSize: opts.longTail })
+    const steps = buildSequence(rows, { appMints, topSize: opts.top, longTail, longTailSize: opts.longTail })
     const listDir = resolve(opts.universe, 'sequence')
     mkdirSync(listDir, { recursive: true })
     mkdirSync(opts.out, { recursive: true })
     // Files of steps that no longer exist would read as part of the sequence: remove them.
-    const ids = new Set(steps.map((s) => s.id))
+    const ids = new Set([...steps.map((s) => s.id), 'test_05_buy-vs-jupiter']) // --no-buys keeps the last buy file
     for (const [dir, ext] of [[opts.out, '.csv'], [listDir, '.json']] as const) {
       for (const f of readdirSync(dir)) if (/^test_\d\d_/.test(f) && f.endsWith(ext) && !ids.has(f.slice(0, -ext.length))) rmSync(resolve(dir, f))
     }
@@ -721,55 +734,120 @@ program
       done.push({ step, share, cumulative, result })
     }
     if (opts.buys) {
-      const tokens = steps.filter((s) => s.id !== 'test_03_long-tail').flatMap((s) => s.rows)
+      const tokens = steps.filter((s) => s.id !== 'test_04_long-tail').flatMap((s) => s.rows)
       done.push(await buyStep(rows, tokens, { out: opts.out, listDir, built, solPerToken: opts.solPerToken, traders: opts.traders, rps: opts.jupiterRps }))
     }
+    writeExpected(opts.out, rows, opts.solPerToken)
     writeFileSync(resolve(opts.out, 'README.md'), sequenceReadme(done, built))
     log(`${ui.ok('Sequence')}: ${resolve(opts.out, 'README.md')}`)
     process.exit(0)
   })
 
 /**
- * test_04_buy-vs-jupiter: one BUY per relevant token, worth `solPerToken` SOL, annotated with whether Jupiter can quote
+ * test_05_buy-vs-jupiter: one BUY per relevant token, worth `solPerToken` SOL, annotated with whether Jupiter can quote
  * that exact-out buy. CoW buys need the same exact-out route, so parity is the bar: fill where Jupiter can, fail where it can't.
  */
 async function buyStep(all: UniverseRow[], tokens: UniverseRow[], o: { out: string; listDir: string; built: string; solPerToken: number; traders: number; rps: number }) {
-  const id = 'test_04_buy-vs-jupiter'
+  const id = 'test_05_buy-vs-jupiter'
   const SOL = WSOL_MINT.toBase58()
   const price = new Map<string, number>()
   const mints = [SOL, ...tokens.map((r) => r.mint)]
   for (let i = 0; i < mints.length; i += 50) for (const [k, v] of await usdPrices(mints.slice(i, i + 50))) price.set(k, v)
-  const limiter = new RateLimiter(o.rps)
-  const lines: Omit<TradeRow, 'row'>[] = []
-  let can = 0, cannot = 0, unpriced = 0
-  log(`${id}: asking Jupiter for ${tokens.length} exact-out quotes at ${o.rps}/s…`)
-  for (const [i, r] of tokens.entries()) {
+  const amounts = new Map<string, number>()
+  let unpriced = 0
+  for (const r of tokens) {
     const usd = price.get(r.mint)
-    if (!usd || !price.get(SOL) || r.decimals === null) { unpriced++; continue }
-    const amount = Number(((o.solPerToken * price.get(SOL)!) / usd).toPrecision(3))
-    await limiter.take()
-    const jup = await jupiterExactOut(r.mint, toRaw(amount, r.decimals)).catch((e) => ({ ok: false as const, reason: errorDetail(e) }))
-    jup.ok ? can++ : cannot++
-    lines.push({
-      trader: (i % o.traders) + 1, time: 0, type: 'buy', amount, token: r.mint, otherToken: 'SOL', mode: 'sponsored',
-      note: `${r.symbol} (${r.program}): ${jup.ok ? 'Jupiter can buy exact-out, expected to fill' : `Jupiter can't (${jup.reason}), expected to fail`}`,
-    })
-    if ((i + 1) % 100 === 0) log(c.dim(`  ${i + 1}/${tokens.length}`))
+    if (!usd || !price.get(SOL) || r.decimals === null) unpriced++
+    else amounts.set(r.mint, Number(((o.solPerToken * price.get(SOL)!) / usd).toPrecision(3)))
   }
+  // Jupiter's answer per token: a route or not. HTTP errors (its public API sheds load with 503s) aren't an answer:
+  // those tokens are asked again, slowly, and stay "unknown" if Jupiter still doesn't reply.
+  const answers = new Map<string, { ok: true } | { ok: false; reason: string }>()
+  const ask = async (todo: UniverseRow[], rps: number) => {
+    const limiter = new RateLimiter(rps)
+    for (const [i, r] of todo.entries()) {
+      await limiter.take()
+      answers.set(r.mint, await jupiterExactOut(r.mint, toRaw(amounts.get(r.mint)!, r.decimals!)).catch((e) => ({ ok: false as const, reason: `error: ${errorDetail(e)}` })))
+      if ((i + 1) % 100 === 0) log(c.dim(`  ${i + 1}/${todo.length}`))
+    }
+  }
+  const unanswered = (r: UniverseRow) => { const a = answers.get(r.mint); return !!a && !a.ok && /^error|HTTP/.test(a.reason) }
+  const priced = tokens.filter((r) => amounts.has(r.mint))
+  log(`${id}: asking Jupiter for ${priced.length} exact-out quotes at ${o.rps}/s…`)
+  await ask(priced, o.rps)
+  for (let round = 0; round < 2 && priced.some(unanswered); round++) {
+    const again = priced.filter(unanswered)
+    log(c.dim(`  Jupiter didn't answer for ${again.length} tokens: asking again slowly`))
+    await sleep(15_000)
+    await ask(again, 0.5)
+  }
+  let can = 0, cannot = 0, unknown = 0
+  const lines: Omit<TradeRow, 'row'>[] = priced.map((r, i) => {
+    const a = answers.get(r.mint)!
+    const verdict = a.ok ? (can++, 'Jupiter can buy exact-out, expected to fill')
+      : unanswered(r) ? (unknown++, `Jupiter didn't answer (${a.reason}), unknown`)
+      : (cannot++, `Jupiter can't (${a.reason}), expected to fail`)
+    return { trader: (i % o.traders) + 1, time: 0, type: 'buy', amount: amounts.get(r.mint)!, token: r.mint, otherToken: 'SOL', mode: 'sponsored', note: `${r.symbol} (${r.program}): ${verdict}` }
+  })
   const step: SequenceStep = { id, title: 'Buys, checked against Jupiter',
-    criteria: `the relevant tokens of test_01 and test_02, one BUY each worth ${o.solPerToken} SOL; CoW should match Jupiter's exact-out support`, rows: tokens }
+    criteria: `the relevant tokens of test_01 to test_03, one BUY each worth ${o.solPerToken} SOL; CoW should match Jupiter's exact-out support`, rows: tokens }
   const share = coverage(all, tokens)
   writeFileSync(resolve(o.listDir, `${id}.json`), JSON.stringify(toTokenList(`${id}: ${step.title} (universe of ${o.built})`, tokens, step.criteria, share), null, 2))
   writeScenario(resolve(o.out, `${id}.csv`), lines,
     `${id}: ${step.title} (universe of ${o.built}), quoted on Jupiter on ${new Date().toISOString().slice(0, 10)}.\n` +
       `Token criteria: ${step.criteria}.\n` +
       `${can} tokens Jupiter can buy exact-out (expected to fill), ${cannot} it can't (expected to fail at the quote; a fill there beats Jupiter)` +
-      `${unpriced ? `, ${unpriced} skipped without a price` : ''}.\n` +
-      `Buys only: the sell scenarios (test_01-03) never buy, so they don't depend on this. Fund with --sol-funding-per-trader 0.05.\n` +
+      `${unknown ? `, ${unknown} Jupiter didn't answer for (unknown)` : ''}${unpriced ? `, ${unpriced} skipped without a price` : ''}.\n` +
+      `Buys only: the sell scenarios (test_01-04) never buy, so they don't depend on this. Fund with --sol-funding-per-trader 0.05.\n` +
       'Regenerate: pnpm sim build-token-sequence')
-  log(`${ui.ok(id)}: ${can} buyable on Jupiter, ${cannot} not${unpriced ? `, ${unpriced} without a price` : ''}`)
+  log(`${ui.ok(id)}: ${can} buyable on Jupiter, ${cannot} not${unknown ? `, ${unknown} unknown (Jupiter didn't answer)` : ''}${unpriced ? `, ${unpriced} without a price` : ''}`)
   return { step, share, cumulative: share, result: { tradable: can, unsupported: 0, noRoute: cannot, notMints: 0 } }
 }
+
+/** Notes of rows the sequence writes for tokens expected to fail (see listRows and buyStep). */
+const FAILING_ROW = /expected UnsupportedToken|: no route on |not a token mint|Jupiter can't|Jupiter didn't answer/
+
+/**
+ * expected.csv: what the API should handle today, from the sequence files as built (barn's and Jupiter's answers then):
+ * one SOL -> token sell per token barn quotes (test_01-04; their sell-backs are covered by those files) and the buys
+ * Jupiter can quote exact-out (test_05). A row failing here is a regression.
+ */
+function writeExpected(dir: string, universe: UniverseRow[], solPerToken: number) {
+  const files = readdirSync(dir).filter((f) => /^test_\d\d_.*\.csv$/.test(f)).sort()
+  const rows: Omit<TradeRow, 'row'>[] = []
+  for (const f of files) {
+    const id = f.replace(/\.csv$/, '')
+    for (const r of readScenario(resolve(dir, f))) {
+      const keep = r.type === 'buy' ? /Jupiter can buy/.test(r.note) : r.token === 'SOL' && !FAILING_ROW.test(r.note)
+      if (keep) rows.push({ trader: r.trader, time: 0, type: r.type, amount: r.amount, token: r.token, otherToken: r.otherToken, mode: r.mode, note: `${id}: ${r.note}` })
+    }
+  }
+  const sells = rows.filter((r) => r.type === 'sell')
+  const buys = rows.filter((r) => r.type === 'buy')
+  const mints = new Set(rows.map((r) => (r.type === 'sell' ? r.otherToken : r.token)))
+  const share = coverage(universe, universe.filter((r) => mints.has(r.mint)))
+  // Buys keep their tokens until cleanup, so a trader needs SOL for all of its buys at once.
+  const perTrader = Math.max(0, ...[...new Set(rows.map((r) => r.trader))].map((t) => rows.filter((r) => r.trader === t).length))
+  const funding = Math.ceil((0.03 + solPerToken * 1.1 * perTrader) * 100) / 100
+  writeScenario(resolve(dir, 'expected.csv'), rows,
+    `Expected to work on the API today (${new Date().toISOString().slice(0, 10)}): one SOL -> token sell for each of ${sells.length} tokens barn quotes ` +
+      `(test_01-04) and ${buys.length} buys Jupiter can quote exact-out (test_05). Tokens barn rejects or can't route, and buys Jupiter can't do, aren't here.\n` +
+      `Coverage of the ${mints.size} tokens: ${share}.\n` +
+      'A row failing here is a regression (or a market change: rebuild with build-token-sequence). Notes keep the file each row comes from.\n' +
+      `Fund with --sol-funding-per-trader ${funding}.\nRegenerate: pnpm sim build-expected (from the test files as they are)`)
+  log(`${ui.ok('expected.csv')}: ${sells.length} sells + ${buys.length} buys; ${share}`)
+}
+
+program
+  .command('build-expected')
+  .description('Rewrite scenarios/token-universe/expected.csv from the sequence files as they are (no quoting)')
+  .option('--universe <dir>', 'token universe folder', resolve(QOS_ROOT, 'token-universe'))
+  .option('-o, --out <dir>', 'scenario folder', resolve(QOS_ROOT, 'scenarios', 'token-universe'))
+  .option('--sol-per-token <sol>', 'SOL per row, for the funding hint', parseFloat, 0.005)
+  .action(async (opts) => {
+    writeExpected(opts.out, fromCsv(readFileSync(resolve(opts.universe, 'universe.csv'), 'utf8')), opts.solPerToken)
+    process.exit(0)
+  })
 
 /** scenarios/token-universe/README.md: the steps, what each holds, and how much volume they cover. */
 function sequenceReadme(done: { step: SequenceStep; share: string; cumulative: string; result?: { tradable: number; unsupported: number; noRoute: number; notMints: number } }[], built: string): string {
@@ -786,8 +864,9 @@ function sequenceReadme(done: { step: SequenceStep; share: string; cumulative: s
     'Titan is matched by the `T1TANpT…` program, a label no public source confirmed yet.', '',
     'Why no per-router steps: the relevant tokens in steps 1 and 2 already carry 84-98% of what Jupiter, DFlow and Titan route.',
     'The rest of DFlow and direct DEX volume sits in pools under $50k (pump.fun-style tokens), which a test order cannot trade meaningfully.', '',
-    'test_01-03: sell 0.005 SOL into each token, then 90% of the quote back; they never buy (a short trader acquires with a SOL sell).',
-    'test_04: one buy per token from test_01-02, worth 0.005 SOL; "expected to fail" there means Jupiter has no exact-out route either.',
+    'test_01-04: sell 0.005 SOL into each token, then 90% of the quote back; they never buy (a short trader acquires with a SOL sell).',
+    'test_05: one buy per token from test_01-03, worth 0.005 SOL; "expected to fail" there means Jupiter has no exact-out route either.',
+    '`expected.csv`: every row above that should work on the API today (sells into tradable tokens, buys Jupiter can do). A failure there is a regression.',
     '30 traders per file. Fund with `--sol-funding-per-trader 0.05`.', '',
   ].join('\n')
 }
@@ -828,34 +907,85 @@ const rpcSource = () =>
 
 program
   .command('retry-session')
-  .description("Write a scenario of a session's rows that failed on the sim's own RPC (429s, timeouts), plus the rows that failed because of them")
-  .argument('<session>', 'session folder name under solana-qos/sessions')
-  .option('-o, --out <file>', 'output CSV (default ../scenarios/retries/<session>.csv)')
-  .action(async (name: string, opts: { out?: string }) => {
+  .description("Write a scenario of a session's failed rows to play again: by default the ones the sim's own RPC failed (429s, timeouts)")
+  .argument('<sessions...>', 'the session, then any retries of it already run (each row is judged by its latest attempt)')
+  .option('--match <regex>', "which failures to retry, matched against the row's reason (default: RPC failures)")
+  .option('-o, --out <file>', 'output CSV (default ../scenarios/retries/<session>[-<label>].csv)')
+  .option('--label <name>', 'suffix for the default output name, e.g. no-liquidity')
+  .action(async (names: string[], opts: { match?: string; out?: string; label?: string }) => {
+    const [name] = names
+    const journals = names.map(readJournal)
     const session = new Session(name)
-    const journalPath = resolve(session.dir, 'sim', 'journal.jsonl')
-    if (!existsSync(journalPath)) throw new Error(`no journal at ${journalPath}`)
-    const journal = readFileSync(journalPath, 'utf8').split('\n').filter(Boolean).map((l) => JSON.parse(l))
     const meta = session.readMeta() as { start?: string; sim?: { scenario?: string } }
     const original = meta.sim?.scenario ? scenarioAsRun(meta.sim.scenario, meta.start, resolve(session.dir, 'sim', 'scenario.csv')) : []
-    const { rows, rpc, dependent, skipped, originalMatches } = retryRows(journal, original)
+    const match = opts.match ? (reason: string) => new RegExp(opts.match!, 'i').test(reason) : undefined
+    const { rows, rpc, dependent, skipped, originalMatches } = retryRows(journals, original, match)
     if (original.length && !originalMatches) log(ui.warn("that scenario doesn't match the rows the session logged, so it isn't used"))
+    const what = opts.match ? `matching /${opts.match}/` : "that failed on the sim's RPC (429s, timeouts)"
     if (!rows.length) {
-      console.log(ui.ok(`${name}: no rows failed on RPC errors, nothing to retry`))
+      console.log(ui.ok(`${name}: no rows ${what}, nothing to retry`))
       process.exit(0)
     }
-    const out = opts.out ?? resolve(QOS_ROOT, 'scenarios', 'retries', `${name}.csv`)
+    const out = opts.out ?? resolve(QOS_ROOT, 'scenarios', 'retries', `${name}${opts.label ? `-${opts.label}` : ''}.csv`)
     mkdirSync(resolve(out, '..'), { recursive: true })
+    const cmd = `pnpm sim retry-session ${names.join(' ')}${opts.match ? ` --match '${opts.match}'` : ''}${opts.label ? ` --label ${opts.label}` : ''}`
     writeScenario(out, rows,
-      `Retry of session ${name} (${meta.sim?.scenario ?? 'unknown scenario'}): ${rpc} rows that failed on the sim's RPC ` +
-        `(429s, timeouts) and ${dependent} later rows that failed because of them. Same traders, amounts and modes.\n` +
+      `Retry of session ${name}${names.length > 1 ? ` (after ${names.length - 1} retry run${names.length > 2 ? 's' : ''})` : ''}: ` +
+        `${rpc} rows ${what}, and ${dependent} rows of the same traders that depend on them (the other leg of the same token). ` +
+        'Same traders, amounts and modes.\n' +
         `${skipped.length ? `Not included: rows ${skipped.join(', ')} failed before the journal logged them, and the scenario as it ran is gone.\n` : ''}` +
-        `Regenerate: pnpm sim retry-session ${name}`)
-    console.log(`${ui.ok(`${rows.length} rows`)} (${rpc} RPC failures + ${dependent} dependent${skipped.length ? `, ${skipped.length} not recoverable` : ''}) written to ${c.cyan(out)}`)
+        `Regenerate: ${cmd}\nAfterwards: pnpm sim session-stats ${names.join(' ')} <this run's session>`)
+    console.log(`${ui.ok(`${rows.length} rows`)} (${rpc} matching + ${dependent} dependent${skipped.length ? `, ${skipped.length} not recoverable` : ''}) written to ${c.cyan(out)}`)
     if (skipped.length) console.log(ui.warn(`Rows ${skipped.join(', ')} failed before the journal logged them and the scenario as it ran is gone: not included`))
     console.log(c.dim(`Run: pnpm sim simulate-trade-session ${out} --sol-funding-per-trader 0.05 --report`))
+    console.log(c.dim(`Then: pnpm sim session-stats ${names.join(' ')} <the new session>`))
     process.exit(0)
   })
+
+program
+  .command('session-stats')
+  .description('Combined results of a session and its retries: each original row counted once, by its latest attempt')
+  .argument('<sessions...>', 'the session, then its retries in the order they ran')
+  .action(async (names: string[]) => {
+    const journals = names.map(readJournal)
+    const meta = new Session(names[0]).readMeta() as { sim?: { rows?: number } }
+    const { outcome } = latestOutcomes(journals)
+    const total = meta.sim?.rows ?? outcome.size
+    // After each run: how many original rows had filled so far.
+    for (let i = 0; i < names.length; i++) {
+      const { outcome: o } = latestOutcomes(journals.slice(0, i + 1))
+      const filled = [...o.values()].filter((x) => x.status === 'filled').length
+      console.log(`${i ? `+ ${names[i]}` : names[i]}: ${c.bold(`${filled}/${total}`)} rows filled (${((100 * filled) / total).toFixed(1)}%)`)
+    }
+    const failed = [...outcome.values()].filter((x) => x.status === 'failed')
+    const kinds = new Map<string, number>()
+    for (const f of failed) kinds.set(failureKind(f.reason), (kinds.get(failureKind(f.reason)) ?? 0) + 1)
+    const filled = total - failed.length - (total - outcome.size)
+    console.log(`\nStill failing (${failed.length}${total > outcome.size ? `, plus ${total - outcome.size} never logged` : ''}):`)
+    for (const [k, v] of [...kinds].sort((a, b) => b[1] - a[1])) console.log(`  ${String(v).padStart(4)}  ${k}`)
+    // Fillable: leave out what's expected to fail (UnsupportedToken) and what was never really tested (RPC, never logged).
+    const excluded = (kinds.get('UnsupportedToken') ?? 0) + (kinds.get('RPC (429, timeout)') ?? 0) + (total - outcome.size)
+    console.log(`\nFillable rows (without UnsupportedToken and RPC failures): ${c.bold(`${filled}/${total - excluded}`)} (${((100 * filled) / (total - excluded)).toFixed(1)}%)`)
+    // Orders: every order the runs placed, cleanup left out.
+    let placed = 0, fulfilled = 0
+    for (const n of names) {
+      const ordersPath = resolve(new Session(n).dir, 'orders.json')
+      if (!existsSync(ordersPath)) { log(ui.warn(`${n}: no orders.json (run qos.py fetch); its orders aren't counted`)); continue }
+      const step = new Map(readJournal(n).filter((e) => e.event === 'placed').map((e) => [e.uid, e.step]))
+      const orders = (JSON.parse(readFileSync(ordersPath, 'utf8')) as { uid: string; status: string }[]).filter((o) => step.has(o.uid) && step.get(o.uid) !== 'cleanup')
+      placed += orders.length
+      fulfilled += orders.filter((o) => o.status === 'fulfilled').length
+    }
+    if (placed) console.log(`Orders placed: ${c.bold(`${fulfilled}/${placed}`)} filled (${((100 * fulfilled) / placed).toFixed(1)}%)`)
+    process.exit(0)
+  })
+
+/** A session's sim/journal.jsonl as events. */
+function readJournal(name: string): { event: string; row?: number; uid?: string; step?: string; [k: string]: unknown }[] {
+  const path = resolve(new Session(name).dir, 'sim', 'journal.jsonl')
+  if (!existsSync(path)) throw new Error(`no journal at ${path}`)
+  return readFileSync(path, 'utf8').split('\n').filter(Boolean).map((l) => JSON.parse(l))
+}
 
 /** The scenario as a session ran it: the copy saved in the session, else the file, else git's version at the start. */
 function scenarioAsRun(path: string, start?: string, saved?: string): TradeRow[] {
