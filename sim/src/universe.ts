@@ -6,6 +6,7 @@ import { RateLimiter, retry } from './limiter.js'
 import type { Rpc } from './rpc.js'
 import { NATIVE_SOL, WSOL_MINT } from './rpc.js'
 import { loadTokenList, SOLANA_CHAIN_ID } from './tokenlist.js'
+import { mulberry32 } from './generator.js'
 
 /**
  * The Solana token universe: every mint with real DEX volume, joined with what decides whether CoW can trade it
@@ -14,8 +15,21 @@ import { loadTokenList, SOLANA_CHAIN_ID } from './tokenlist.js'
 
 /** Dune query 8910905: net swap volume per mint over 90 days, each transaction counted once per mint. */
 export const DEFAULT_DUNE_QUERY = 8910905
-/** Jupiter-routed swap volume per mint, last 30 days (dex_solana.trades with trade_source = Jupiter v6, hops deduplicated). */
-export const DEFAULT_JUPITER_QUERY = 8921458
+/** Swap volume per mint over 30 days split by who routed it (dex_solana.trades.trade_source), hops deduplicated. */
+export const DEFAULT_ROUTED_QUERY = 8921585
+
+/** Who routed a swap, as the routed-volume query splits it. */
+export const ROUTES = ['jupiter', 'dflow', 'titan', 'direct', 'other_routed'] as const
+export type Route = (typeof ROUTES)[number]
+export type Routed = Record<Route, number>
+export const ROUTE_LABEL: Record<Route, string> = {
+  jupiter: 'Jupiter-routed',
+  dflow: 'DFlow-routed',
+  // T1TANpT…: Titan's vanity address and volume, but no public source names it yet.
+  titan: 'Titan-routed (label unconfirmed)',
+  direct: 'direct DEX',
+  other_routed: 'other-router',
+}
 
 /** A request that hangs (e.g. a connection left dead by the laptop sleeping) fails after this and is retried. */
 const HTTP_TIMEOUT_MS = 30_000
@@ -42,11 +56,19 @@ export async function loadVolume(source: string): Promise<VolumeRow[]> {
   }))
 }
 
-/** Jupiter-routed USD volume per mint over 30 days, from the Jupiter query's results or a CSV export of them. */
-export async function loadJupiterVolume(source: string): Promise<Map<string, number>> {
+/** Routed USD volume per mint and source over 30 days, from the routed-volume query's results or a CSV export of them. */
+export async function loadRoutedVolume(source: string): Promise<Map<string, Routed>> {
   const records = parse(await readCsvSource(source), { columns: true, skip_empty_lines: true, trim: true }) as Record<string, string>[]
-  return new Map(records.map((r) => [r.mint, Number(r.jupiter_volume_30d)]))
+  // Dune writes an empty sum as `<nil>`: anything that isn't a number means no volume through that source.
+  const usd = (v: string | undefined) => (Number.isFinite(Number(v)) && v !== '' ? Number(v) : 0)
+  return new Map(records.map((r) => [r.mint, Object.fromEntries(ROUTES.map((k) => [k, usd(r[`${k}_volume_30d`])])) as Routed]))
 }
+
+const NO_ROUTES = Object.fromEntries(ROUTES.map((k) => [k, 0])) as Routed
+
+/** The same rows with the routed volume set (zeros for mints absent from `volume`). */
+export const withRoutedVolume = (rows: UniverseRow[], volume: Map<string, Routed>): UniverseRow[] =>
+  rows.map((r) => ({ ...r, routed: volume.get(r.mint) ?? NO_ROUTES }))
 
 /** A CSV file, or a saved Dune query's latest results (`dune:<query id>`, needs DUNE_API_KEY or DUNE_KEY). */
 async function readCsvSource(source: string): Promise<string> {
@@ -289,8 +311,8 @@ export interface UniverseRow {
   organicScore: number | null
   liquidity: number | null
   jupVolume24h: number | null
-  /** Jupiter-routed volume over 30 days (see DEFAULT_JUPITER_QUERY); null when it wasn't loaded. */
-  jupVolume30d: number | null
+  /** 30-day volume by who routed it (see DEFAULT_ROUTED_QUERY); null when it wasn't loaded. */
+  routed: Routed | null
   coingecko: boolean
   program: 'classic' | 'token-2022' | ''
   decimals: number | null
@@ -311,8 +333,8 @@ export interface UniverseInputs {
   facts: Map<string, MintFacts>
   quotes: Map<string, Quotes>
   lists: Map<string, string[]>
-  /** Jupiter-routed 30-day volume per mint; mints absent from it had none. */
-  jupiterVolume?: Map<string, number>
+  /** Routed 30-day volume per mint; mints absent from it had none. */
+  routedVolume?: Map<string, Routed>
 }
 
 const SOL_MINTS = new Set([WSOL_MINT.toBase58(), NATIVE_SOL.toBase58()])
@@ -356,7 +378,7 @@ export function buildRows(inp: UniverseInputs): UniverseRow[] {
       organicScore: j?.organicScore ?? null,
       liquidity: j?.liquidity ?? null,
       jupVolume24h: vol24,
-      jupVolume30d: inp.jupiterVolume ? (inp.jupiterVolume.get(v.mint) ?? 0) : null,
+      routed: inp.routedVolume ? (inp.routedVolume.get(v.mint) ?? NO_ROUTES) : null,
       coingecko: inp.coingecko.has(v.mint) || SOL_MINTS.has(v.mint),
       program: f?.program ?? '',
       decimals: f?.decimals ?? null,
@@ -387,16 +409,6 @@ export const RELEVANCE =
   'liquidity >= $50k and the last 30 days carry >= 5% of the 90-day DEX volume. ' +
   'CoW support is not required: tokens barn rejects or has no route for stay in'
 
-/** Rank by Jupiter-routed 30-day volume (the flow CoW competes for) when loaded, else by 30-day DEX volume. */
-export function rankKey(rows: UniverseRow[]): { by: string; key: (r: UniverseRow) => number } {
-  return rows.some((r) => r.jupVolume30d !== null)
-    ? { by: '30-day Jupiter-routed volume', key: (r) => r.jupVolume30d ?? 0 }
-    : { by: '30-day DEX volume', key: (r) => r.volume30d }
-}
-
-/** The same rows with the Jupiter-routed volume set (0 for mints absent from `volume`). */
-export const withJupiterVolume = (rows: UniverseRow[], volume: Map<string, number>): UniverseRow[] =>
-  rows.map((r) => ({ ...r, jupVolume30d: volume.get(r.mint) ?? 0 }))
 export const relevant = (r: UniverseRow) =>
   r.program !== '' && r.decimals !== null && (r.liquidity ?? 0) >= MIN_LIQUIDITY_USD && r.volume30d >= MIN_RECENT_SHARE * r.volume90d
 
@@ -425,7 +437,7 @@ const CSV_COLUMNS: [string, (r: UniverseRow) => string | number | boolean | null
   ['cow_supported', (r) => supported(r)],
   ['lists', (r) => r.lists.join(' ')],
   ['proposed', (r) => r.proposed],
-  ['jupiter_volume_30d_usd', (r) => (r.jupVolume30d === null ? '' : Math.round(r.jupVolume30d))],
+  ...ROUTES.map((k): [string, (r: UniverseRow) => string | number] => [`${k}_volume_30d_usd`, (r) => (r.routed ? Math.round(r.routed[k]) : '')]),
 ]
 
 const csvCell = (v: string | number | boolean | null) => {
@@ -453,7 +465,10 @@ export function fromCsv(text: string): UniverseRow[] {
     organicScore: num(c.organic_score),
     liquidity: num(c.liquidity_usd),
     jupVolume24h: num(c.jupiter_volume_24h_usd),
-    jupVolume30d: num(c.jupiter_volume_30d_usd ?? ''),
+    // Older files have no routed columns, or only Jupiter's: treat those as not loaded.
+    routed: ROUTES.every((k) => `${k}_volume_30d_usd` in c && c[`${k}_volume_30d_usd`] !== '')
+      ? (Object.fromEntries(ROUTES.map((k) => [k, Number(c[`${k}_volume_30d_usd`])])) as Routed)
+      : null,
     coingecko: c.coingecko === 'true',
     program: c.program as UniverseRow['program'],
     decimals: num(c.decimals),
@@ -470,21 +485,74 @@ export function toCsv(rows: UniverseRow[]): string {
 }
 
 /** A Uniswap-style token list, the format `generate-token-list-session` and the app read. */
-/**
- * How much of the market `picked` carries: its share of the 30-day DEX volume of every token in the universe, and of
- * Jupiter's 24h volume across the tokens that were checked (only those have it). SOL is left out of both totals.
- */
+/** Share of the 30-day volume `picked` carries, per routing source (when loaded) and overall DEX volume. SOL excluded. */
 export function coverage(all: UniverseRow[], picked: UniverseRow[]): string {
-  const sol = new Set([WSOL_MINT.toBase58(), NATIVE_SOL.toBase58()])
-  const sum = (rows: UniverseRow[], f: (r: UniverseRow) => number) => rows.filter((r) => !sol.has(r.mint)).reduce((s, r) => s + f(r), 0)
+  const keep = (rows: UniverseRow[]) => rows.filter((r) => !SOL_MINTS.has(r.mint))
+  const sum = (rows: UniverseRow[], f: (r: UniverseRow) => number) => keep(rows).reduce((s, r) => s + f(r), 0)
   const pct = (a: number, b: number) => `${b ? ((100 * a) / b).toFixed(1) : '0'}%`
+  const usd = (v: number) => (v >= 1e9 ? `$${(v / 1e9).toFixed(1)}B` : v >= 1e6 ? `$${(v / 1e6).toFixed(0)}M` : `$${(v / 1e3).toFixed(0)}k`)
   const dex = (r: UniverseRow) => r.volume30d
-  const has30d = all.some((r) => r.jupVolume30d !== null)
-  const jup = (r: UniverseRow) => (has30d ? (r.jupVolume30d ?? 0) : (r.jupVolume24h ?? 0))
-  const usd = (v: number) => (v >= 1e9 ? `$${(v / 1e9).toFixed(1)}B` : `$${(v / 1e6).toFixed(0)}M`)
-  return `${pct(sum(picked, jup), sum(all, jup))} of the ${has30d ? '30-day' : '24h'} Jupiter-routed volume ` +
-    `(${usd(sum(picked, jup))} of ${usd(sum(all, jup))}), ${pct(sum(picked, dex), sum(all, dex))} of the 30-day DEX volume ` +
-    `(${usd(sum(picked, dex))} of ${usd(sum(all, dex))}); SOL excluded`
+  const parts = all.some((r) => r.routed)
+    ? (['jupiter', 'dflow', 'titan', 'direct'] as Route[]).map((k) => {
+        const f = (r: UniverseRow) => r.routed?.[k] ?? 0
+        return `${pct(sum(picked, f), sum(all, f))} ${ROUTE_LABEL[k]}`
+      })
+    : []
+  return [...parts, `${pct(sum(picked, dex), sum(all, dex))} of all DEX volume (${usd(sum(picked, dex))} of ${usd(sum(all, dex))})`].join(', ') +
+    ' over 30 days; SOL excluded'
+}
+
+/** One file of the coverage sequence: tokens no earlier step used. */
+export interface SequenceStep {
+  id: string
+  title: string
+  criteria: string
+  rows: UniverseRow[]
+}
+
+export interface SequenceOptions {
+  /** Mints in CoW Swap's app lists (SolanaDefault + NearSolana). */
+  appMints: Set<string>
+  /** Long-tail candidates already read on chain, in sampling order (see sampleLongTail). */
+  longTail: UniverseRow[]
+  longTailSize: number
+}
+
+/**
+ * The token coverage sequence: each step takes the tokens no earlier step used, so every token is tested once.
+ * 1: relevant tokens CoW Swap lists. 2: every other relevant token, by Jupiter-routed volume. 3: a long-tail sample.
+ * Per-router steps (DFlow, Titan, direct) were tried and dropped: steps 1-2 already hold 84-98% of each router's
+ * volume, and what's left sits in pools under $50k.
+ */
+export function buildSequence(rows: UniverseRow[], o: SequenceOptions): SequenceStep[] {
+  const used = new Set<string>()
+  const pool = rows.filter((r) => !SOL_MINTS.has(r.mint) && relevant(r))
+  const jupiter = (r: UniverseRow) => r.routed?.jupiter ?? 0
+  const take = (candidates: UniverseRow[], key: (r: UniverseRow) => number) => {
+    const picked = candidates.filter((r) => !used.has(r.mint)).sort((a, b) => key(b) - key(a))
+    for (const r of picked) used.add(r.mint)
+    return picked
+  }
+  return [
+    { id: 'test_01_cow-swap', title: 'CoW Swap app lists',
+      criteria: `${RELEVANCE}; in SolanaDefault or NearSolana; ranked by Jupiter-routed volume`, rows: take(pool.filter((r) => o.appMints.has(r.mint)), jupiter) },
+    { id: 'test_02_jupiter', title: 'Every other relevant token',
+      criteria: `${RELEVANCE}; not in the app lists; ranked by Jupiter-routed volume`, rows: take(pool, jupiter) },
+    { id: 'test_03_long-tail', title: 'Long-tail sample',
+      criteria: `random sample of ${o.longTailSize} tokens outside the ~2,200 the universe checked (>= $100k over 90 days); not relevance-filtered`,
+      rows: o.longTail.filter((r) => !used.has(r.mint) && r.program !== '' && r.decimals !== null).slice(0, o.longTailSize) },
+  ]
+}
+
+/** Seeded candidates for the long-tail step: unchecked tokens (no on-chain facts yet), shuffled. Read them on chain before use. */
+export function sampleLongTail(rows: UniverseRow[], count: number, seed: number): UniverseRow[] {
+  const rand = mulberry32(seed)
+  const pool = rows.filter((r) => r.program === '' && !SOL_MINTS.has(r.mint))
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1))
+    ;[pool[i], pool[j]] = [pool[j], pool[i]]
+  }
+  return pool.slice(0, count)
 }
 
 export function toTokenList(name: string, rows: UniverseRow[], criteria?: string, coverage?: string) {

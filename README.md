@@ -15,7 +15,8 @@ report reads. See [`sim/README.md`](sim/README.md). Scenarios you can replay are
 
 `token-universe/` ranks every Solana token by trading volume and checks whether CoW can trade it, to see how well the
 app's token lists cover real demand. Start with [`token-universe/summary.md`](token-universe/summary.md); the
-per-token data is in `universe.csv`. Rebuild it with `pnpm sim build-token-universe` (see the sim README).
+per-token data is in `universe.csv`. Rebuild it with `pnpm sim build-token-universe`, then `pnpm sim build-token-sequence`
+writes the token coverage scenarios to `scenarios/token-universe/` (see the sim README).
 
 ## Environments
 

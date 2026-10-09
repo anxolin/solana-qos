@@ -140,8 +140,8 @@ In `../scenarios/`. Run `smoke.csv` first.
 | `same-direction-25x1.csv` | 25 traders buy JUP at the same moment. Fund 0.06 |
 | `longtail-25x6.csv` | The Kaffeekränzchen's long-tail tokens |
 | `token-2022/` | One file per Token-2022 extension, plus expected rejections. See its [README](../scenarios/token-2022/README.md) |
-| `token-lists/` | The app's token lists: `solana-default.csv` (every tradable token), `near-solana.csv`, and their `-unsupported` / `-no-route` files of tokens expected to fail (classified on 6 Oct) |
-| `token-universe/` | Built from the token universe (below): `top250.csv`, `unlisted-supported.csv` (supported but in no app list), `volume-weighted-20x10.csv` (traffic weighted by real demand), `liquidity-ladder.csv`, `no-coingecko-price.csv`, `buy-gap-classic.csv` |
+| `token-universe/` | **Token coverage sequence**, run in order, each token in one file only: `test_01_cow-swap` (relevant tokens in the app lists), `test_02_jupiter` (every other relevant token, by Jupiter volume), `test_03_long-tail` (a 50-token sample). See its [README](../scenarios/token-universe/README.md) |
+| `experiments/` | One-off probes from the token universe: `buy-gap-classic.csv`, `liquidity-ladder.csv`, `no-coingecko-price.csv`, `volume-weighted-20x10.csv` |
 | `unsupported.csv` | `SolanaDefault` tokens CoW can't trade. Every row should fail at the quote |
 
 A failure on liquid tokens points at the stack (funding, rate limits). A failure only on long-tail tokens points at token
@@ -159,15 +159,16 @@ The simulator handles both token programs for quotes, accounts, approvals and cl
 
 ## Token lists
 
-`generate-token-list-session` turns any token list into scenarios. For each token it quotes a small sell on barn and
-sorts it into tradable, unsupported or no route:
+`generate-token-list-session` turns any token list (URL or file) into a scenario. For each token it quotes a small
+sell on barn and sorts it into tradable, unsupported or no route:
 
 ```sh
-pnpm sim generate-token-list-session --list https://files.cow.fi/token-lists/SolanaDefault.json -o ../scenarios/token-lists/solana-default
+pnpm sim generate-token-list-session --list https://files.cow.fi/token-lists/SolanaDefault.json -o ../scenarios/experiments/solana-default --include-failing
 ```
 
-It writes `<out>.csv` (buy each tradable token, then sell it back) and, when there are any, `<out>-unsupported.csv` and
-`<out>-no-route.csv` (rows expected to fail). Regenerate when the app's lists change.
+It writes `<out>.csv` (sell 0.005 SOL into each tradable token, then 90% back). With `--include-failing`, tokens that
+fail the quote stay in the same file with one row each, so the report shows them; otherwise they go to
+`<out>-unsupported.csv` and `<out>-no-route.csv`. The coverage sequence below uses the same code.
 
 ## Token universe
 
@@ -189,16 +190,27 @@ pnpm sim build-token-universe --volume file.csv   # or a CSV export of the Dune 
 
 A token is **supported** when barn quotes a sell into it and CoinGecko prices it.
 
+3. **Routed volume** from Dune query [8921585](https://dune.com/queries/8921585): each token's 30-day volume split
+   by who routed it: Jupiter, DFlow, Titan (label unconfirmed), direct DEX trading, other routers.
+
+A token is **supported** when barn quotes a sell into it and CoinGecko prices it. It's **relevant** when it has at least
+$50k of liquidity and the last 30 days carry at least 5% of its 90-day volume (still traded); support isn't required.
+
 Output in `../token-universe/`:
 - `summary.md`: how much volume each list covers, what's missing from the lists, why top tokens can't be traded, and
   the SPL / Token-2022 split by extension
 - `universe.csv`: one row per token, ranked by volume
-- `tokenlist-top250.json`, `tokenlist-missing.json`: token lists for scenarios
+
+### Coverage sequence
 
 ```sh
-pnpm sim generate-token-list-session --list ../token-universe/tokenlist-top250.json -o ../scenarios/token-universe/top250
-pnpm sim generate-token-list-session --list ../token-universe/tokenlist-missing.json -o ../scenarios/token-universe/unlisted-supported
+pnpm sim build-token-sequence                                   # from universe.csv; app lists read live
+pnpm sim build-token-sequence --routed-volume dune:8921585      # refresh the routed volume first
 ```
+
+Writes `../scenarios/token-universe/test_01_cow-swap.csv`, `test_02_jupiter.csv`, `test_03_long-tail.csv` and a README
+with what each file covers, alone and cumulatively (also in each file's header). Each token appears in one file only.
+The token lists behind them are in `../token-universe/sequence/`.
 
 ## Tests
 

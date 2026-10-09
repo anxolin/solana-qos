@@ -13,7 +13,7 @@ import { generate, MIN_GAP_S, mulberry32, roundAmount } from '../src/generator.j
 import { TRADER_RESERVE_SOL } from '../src/config.js'
 import { creationBudget } from '../src/budget.js'
 import { APP_DATA_DOC, APP_DATA_HEX } from '../src/appData.js'
-import { barnStatus, buildRows, describeExtension, supported } from '../src/universe.js'
+import { barnStatus, buildRows, buildSequence, describeExtension, sampleLongTail, supported, type Routed, type UniverseRow } from '../src/universe.js'
 
 const TEST_MNEMONIC = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about'
 
@@ -322,5 +322,41 @@ describe('session names', () => {
   })
   it('uses the file name for scenarios elsewhere', () => {
     expect(sessionSlug('/tmp/my-test.csv', dir)).toBe('my-test')
+  })
+})
+
+describe('token coverage sequence', () => {
+  let n = 0
+  const routed = (o: Partial<Routed> = {}): Routed => ({ jupiter: 0, dflow: 0, titan: 0, direct: 0, other_routed: 0, ...o })
+  const row = (o: Partial<UniverseRow> = {}): UniverseRow => ({
+    rank: ++n, mint: `mint${n}`, symbol: `T${n}`, name: '', volume90d: 3e6, share: 0, cumShare: 0, volume30d: 1e6, txs90d: 1,
+    traders90d: 1, jupiter: 'verified', organic: 'high', organicScore: 1, liquidity: 1e6, jupVolume24h: 0, coingecko: true,
+    program: 'classic', decimals: 6, extensions: [], barn: 'tradable', barnReason: '', lists: [], proposed: false, routed: routed(), ...o,
+  })
+  const opts = { appMints: new Set<string>(), longTail: [] as UniverseRow[], longTailSize: 2 }
+
+  it('puts each token in one step only, in step order', () => {
+    const app = row({ routed: routed({ jupiter: 9e6 }) })
+    const others = [3e6, 1e6, 2e6].map((v) => row({ routed: routed({ jupiter: v }) }))
+    const t22 = row({ program: 'token-2022' })
+    const thin = row({ liquidity: 1e3, routed: routed({ jupiter: 9e9 }) })
+    const faded = row({ volume90d: 1e9, volume30d: 1e6 })
+    const steps = buildSequence([app, ...others, t22, thin, faded], { ...opts, appMints: new Set([app.mint]) })
+    expect(steps.map((s) => s.id)).toEqual(['test_01_cow-swap', 'test_02_jupiter', 'test_03_long-tail'])
+    expect(steps[0].rows).toEqual([app])
+    expect(steps[1].rows.map((r) => r.mint)).toEqual([others[0], others[2], others[1], t22].map((r) => r.mint)) // by Jupiter volume
+    const all = steps.flatMap((s) => s.rows.map((r) => r.mint))
+    expect(new Set(all).size).toBe(all.length)
+    expect(all).not.toContain(thin.mint) // liquidity under $50k
+    expect(all).not.toContain(faded.mint) // last 30 days under 5% of 90
+  })
+
+  it('samples the long tail deterministically and only keeps mints read on chain', () => {
+    const tail = Array.from({ length: 20 }, () => row({ program: '', decimals: null, jupiter: 'unchecked' }))
+    const a = sampleLongTail(tail, 6, 7).map((r) => r.mint)
+    expect(sampleLongTail(tail, 6, 7).map((r) => r.mint)).toEqual(a)
+    expect(sampleLongTail(tail, 6, 8).map((r) => r.mint)).not.toEqual(a)
+    const read = sampleLongTail(tail, 6, 7).map((r, i) => (i === 0 ? r : { ...r, program: 'classic' as const, decimals: 6 }))
+    expect(buildSequence([], { ...opts, longTail: read }).at(-1)!.rows.map((r) => r.mint)).toEqual(a.slice(1, 3))
   })
 })
