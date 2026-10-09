@@ -1,5 +1,5 @@
 {
-  "_doc": "Per-environment endpoints, shared by sim/ (TypeScript) and qos.py. A session's meta.json records which one it used under `env`. Optional `settlementProgram` overrides the SDK's settlement program id (same `settlement v0.4` PDA seeds). Optional `sponsor` pins the account that pays for sponsored creations (fee payer and `createdBy`); without it sim uses the quote's `funder`, and with it sim warns once if a quote names another account.",
+  "_doc": "Per-environment endpoints, shared by sim/ (TypeScript) and qos.py. A session's meta.json records which one it used under `env`. Optional `settlementProgram` overrides the SDK's settlement program id, and `settlementVersion` is the program version it runs (its PDA seed is `settlement v<version>`): sim refuses to trade when the installed SDK builds orders for another version. Optional `sponsor` pins the account that pays for sponsored creations (fee payer and `createdBy`); without it sim uses the quote's `funder`, and with it sim warns once if a quote names another account.",
   "staging": {
     "label": "barn",
     "api": "https://barn.api.cow.fi/solana/api",
@@ -12,15 +12,19 @@
       "jupiter": "solana-jupiter-staging-solve"
     },
     "settlementProgram": "EzHqcdJssenE2R8xogJ8wpL66PRQet9M6ubpsX4QxpPb",
-    "_settlementProgramNote": "Kaze's 0.4.1-alpha deploy (#solana, 6 Oct 2026), which barn uses. The published SDK (0.13.0) still targets C7PXyLpLQBh3Ce7e9DNj3rDVUvwqa5orDwQG5hs1rfNi; sim overrides it with this. Remove once the SDK catches up.",
+    "_settlementProgramNote": "Staging settlement. Upgraded in place to v0.5.1 on 9 Oct 2026 (Kaze, #solana), so v0.4 orders now fail with InvalidInstructionData. Before that: Kaze's 0.4.1-alpha deploy (6 Oct).",
     "sponsor": "By48hFyxZztVDux2RvC33jvXghdP7t1up18WbjLqmM73",
-    "_sponsorNote": "Barn's sponsoring account since 7 Oct 2026 (was 6vFq2dRADQkpDAJK64Vm4JpEBygByRpjicwf4US9f9QW)."
+    "_sponsorNote": "Barn's sponsoring account since 7 Oct 2026 (was 6vFq2dRADQkpDAJK64Vm4JpEBygByRpjicwf4US9f9QW).",
+    "settlementVersion": "0.5"
   },
   "prod": {
     "label": "prod",
     "api": "https://api.cow.fi/solana/api",
     "debug": "https://debug.cow.fi",
     "solscan": "https://solscan.io",
-    "logs": null
+    "logs": null,
+    "settlementProgram": "Moook87DzJ25dELx3LXJ3dnu5a4ERVFwKo1PWWF4p7Y",
+    "settlementVersion": "0.5",
+    "_settlementProgramNote": "Prod soft-launch settlement, v0.5 (Federico, #solana, 7 Oct 2026); a final address comes later. The prod Solana API (api.cow.fi/solana/api) wasn't live yet on 9 Oct."
   }
 }
