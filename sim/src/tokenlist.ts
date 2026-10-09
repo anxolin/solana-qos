@@ -21,7 +21,7 @@ export type Verdict =
   | { kind: 'missing'; reason: string }
 
 /** A Uniswap-style token list from a URL or a file, keeping Solana tokens only (SOL and wSOL excluded). */
-export async function loadTokenList(source: string): Promise<{ name: string; criteria?: string; tokens: ListToken[] }> {
+export async function loadTokenList(source: string): Promise<{ name: string; criteria?: string; coverage?: string; tokens: ListToken[] }> {
   const raw = /^https?:\/\//.test(source)
     ? await retry(async () => {
         const res = await fetch(source, { signal: AbortSignal.timeout(60_000) })
@@ -37,7 +37,7 @@ export async function loadTokenList(source: string): Promise<{ name: string; cri
     seen.add(t.address)
     tokens.push({ symbol: t.symbol, mint: t.address, decimals: t.decimals })
   }
-  return { name: raw.name ?? source, criteria: raw.criteria, tokens }
+  return { name: raw.name ?? source, criteria: raw.criteria, coverage: raw.coverage, tokens }
 }
 
 /**
@@ -141,10 +141,15 @@ export function listRows(tokens: ListToken[], verdicts: Map<string, Verdict>, o:
   const tradable: Omit<TradeRow, 'row'>[] = []
   const unsupported: Omit<TradeRow, 'row'>[] = []
   const noRoute: Omit<TradeRow, 'row'>[] = []
+  const missing: Omit<TradeRow, 'row'>[] = []
   let i = 0
   for (const t of tokens) {
     const v = verdicts.get(t.mint)
-    if (!v || v.kind === 'missing') continue
+    if (!v) continue
+    if (v.kind === 'missing') {
+      missing.push({ trader: 1, time: 0, type: 'sell', amount: o.solPerToken, token: 'SOL', otherToken: t.mint, mode: o.mode, note: `${t.symbol}: not a token mint on chain (${v.reason})` })
+      continue
+    }
     const sym = t.mint // addresses, not symbols: list symbols aren't unique
     if (v.kind === 'tradable') {
       const trader = (i++ % o.traders) + 1
@@ -158,5 +163,5 @@ export function listRows(tokens: ListToken[], verdicts: Map<string, Verdict>, o:
       noRoute.push({ trader: 1, time: 0, type: 'sell', amount: o.solPerToken, token: 'SOL', otherToken: sym, mode: o.mode, note: `${t.symbol} (${v.program}): no route on ${new Date().toISOString().slice(0, 10)} (${v.reason})` })
     }
   }
-  return { tradable, unsupported, noRoute }
+  return { tradable, unsupported, noRoute, missing }
 }

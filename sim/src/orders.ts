@@ -10,15 +10,14 @@ import { SupportedChainId, type CowEnv } from '@cowprotocol/sdk-config'
 import {
   buildCancelOrderInstruction,
   encodeOrderIntent,
-  findSettlementStatePda,
   getSolanaSettlementProgramId,
-  findOrderPda,
   hashOrderIntent,
   SolanaTradingSdk,
   type SolanaQuoteAndPost,
   type SolanaOrderIntent,
 } from '@cowprotocol/sdk-trading-solana'
 import { APP_DATA } from './appData.js'
+import { settlementFor } from './settlement.js'
 import { RateLimiter, retry, sleep } from './limiter.js'
 import { WSOL_MINT, type Rpc } from './rpc.js'
 import { splMint, type Token } from './tokens.js'
@@ -122,8 +121,10 @@ export interface OrdersOptions {
   /** Cancel on-chain when giving up, so a late fill can't happen. Off by default: the order just expires. */
   cancelOnTimeout?: boolean
   slippageBps?: number
-  /** Settlement program to target instead of the SDK's built-in id (same PDA seeds). */
+  /** Settlement program to target instead of the SDK's built-in id. */
   settlementProgram?: string
+  /** Settlement version deployed there; a version the SDK doesn't build goes through settlement.ts. */
+  settlementVersion?: string
   /** Sponsoring account to use instead of the quote's `funder` (fee payer and `createdBy` of sponsored orders). */
   sponsor?: string
   /** Called once if a quote names a different funder than `sponsor`. */
@@ -146,6 +147,7 @@ export class Orders {
   /** The settlement program orders are created on, and its state PDA (the SPL delegate approvals must name). */
   readonly programId: PublicKey
   readonly delegate: PublicKey
+  private readonly settlement: ReturnType<typeof settlementFor>
 
   constructor(
     private readonly rpc: Rpc,
@@ -161,7 +163,8 @@ export class Orders {
     })
     this.sdk = new SolanaTradingSdk({ env: opts.env, orderBookApi })
     this.programId = opts.settlementProgram ? new PublicKey(opts.settlementProgram) : getSolanaSettlementProgramId(opts.env)
-    ;[this.delegate] = findSettlementStatePda(this.programId, opts.env)
+    this.settlement = settlementFor(opts.env, opts.settlementVersion, this.programId)
+    this.delegate = this.settlement.statePda()
     this.api = new RateLimiter(apiRps)
     this.quotes = new RateLimiter(quoteRps)
     this.sponsor = opts.sponsor ? new PublicKey(opts.sponsor) : undefined
@@ -187,12 +190,12 @@ export class Orders {
     const q = await stage('quote', { ...params, ownerAddress: params.ownerAddress.toBase58() }, () => this.sdk.getQuote(params))
     // buildOrder() reuses solanaQuote's uid/PDA when given no overrides, so they must match the new intent.
     const sq = q.solanaQuote
-    sq.intent = { ...sq.intent, appData: APP_DATA }
+    sq.intent = this.settlement.intent({ ...sq.intent, appData: APP_DATA })
     sq.intentBytes = encodeOrderIntent(sq.intent)
     sq.uid = await hashOrderIntent(sq.intentBytes)
     // The CreateOrder instruction and order PDA follow solanaQuote.programId, so pointing it at our program is enough.
     sq.programId = this.programId
-    ;[sq.orderPda] = findOrderPda(sq.programId, sq.uid, this.opts.env)
+    sq.orderPda = this.settlement.orderPda(sq.uid)
     return q
   }
 

@@ -14,6 +14,8 @@ import { loadTokenList, SOLANA_CHAIN_ID } from './tokenlist.js'
 
 /** Dune query 8910905: net swap volume per mint over 90 days, each transaction counted once per mint. */
 export const DEFAULT_DUNE_QUERY = 8910905
+/** Jupiter-routed swap volume per mint, last 30 days (dex_solana.trades with trade_source = Jupiter v6, hops deduplicated). */
+export const DEFAULT_JUPITER_QUERY = 8921458
 
 /** A request that hangs (e.g. a connection left dead by the laptop sleeping) fails after this and is retried. */
 const HTTP_TIMEOUT_MS = 30_000
@@ -29,6 +31,25 @@ export interface VolumeRow {
 
 /** Volume per mint from a CSV export of the Dune query, or straight from the Dune API (`dune:<query id>`, needs DUNE_API_KEY). */
 export async function loadVolume(source: string): Promise<VolumeRow[]> {
+  const records = parse(await readCsvSource(source), { columns: true, skip_empty_lines: true, trim: true }) as Record<string, string>[]
+  return records.map((r) => ({
+    mint: r.mint,
+    symbol: r.symbol ?? '',
+    volume90d: Number(r.volume_90d),
+    volume30d: Number(r.volume_30d),
+    txs90d: Number(r.txs_90d),
+    traders90d: Number(r.traders_90d),
+  }))
+}
+
+/** Jupiter-routed USD volume per mint over 30 days, from the Jupiter query's results or a CSV export of them. */
+export async function loadJupiterVolume(source: string): Promise<Map<string, number>> {
+  const records = parse(await readCsvSource(source), { columns: true, skip_empty_lines: true, trim: true }) as Record<string, string>[]
+  return new Map(records.map((r) => [r.mint, Number(r.jupiter_volume_30d)]))
+}
+
+/** A CSV file, or a saved Dune query's latest results (`dune:<query id>`, needs DUNE_API_KEY or DUNE_KEY). */
+async function readCsvSource(source: string): Promise<string> {
   let text: string
   const dune = /^dune:(\d+)$/.exec(source)
   if (dune) {
@@ -52,15 +73,7 @@ export async function loadVolume(source: string): Promise<VolumeRow[]> {
   } else {
     text = readFileSync(source, 'utf8')
   }
-  const records = parse(text, { columns: true, skip_empty_lines: true, trim: true }) as Record<string, string>[]
-  return records.map((r) => ({
-    mint: r.mint,
-    symbol: r.symbol ?? '',
-    volume90d: Number(r.volume_90d),
-    volume30d: Number(r.volume_30d),
-    txs90d: Number(r.txs_90d),
-    traders90d: Number(r.traders_90d),
-  }))
+  return text
 }
 
 export interface JupiterToken {
@@ -276,6 +289,8 @@ export interface UniverseRow {
   organicScore: number | null
   liquidity: number | null
   jupVolume24h: number | null
+  /** Jupiter-routed volume over 30 days (see DEFAULT_JUPITER_QUERY); null when it wasn't loaded. */
+  jupVolume30d: number | null
   coingecko: boolean
   program: 'classic' | 'token-2022' | ''
   decimals: number | null
@@ -296,6 +311,8 @@ export interface UniverseInputs {
   facts: Map<string, MintFacts>
   quotes: Map<string, Quotes>
   lists: Map<string, string[]>
+  /** Jupiter-routed 30-day volume per mint; mints absent from it had none. */
+  jupiterVolume?: Map<string, number>
 }
 
 const SOL_MINTS = new Set([WSOL_MINT.toBase58(), NATIVE_SOL.toBase58()])
@@ -339,6 +356,7 @@ export function buildRows(inp: UniverseInputs): UniverseRow[] {
       organicScore: j?.organicScore ?? null,
       liquidity: j?.liquidity ?? null,
       jupVolume24h: vol24,
+      jupVolume30d: inp.jupiterVolume ? (inp.jupiterVolume.get(v.mint) ?? 0) : null,
       coingecko: inp.coingecko.has(v.mint) || SOL_MINTS.has(v.mint),
       program: f?.program ?? '',
       decimals: f?.decimals ?? null,
@@ -357,14 +375,30 @@ export function buildRows(inp: UniverseInputs): UniverseRow[] {
  */
 export const supported = (r: UniverseRow) => (r.barn === 'tradable' || r.barn === 'sell-only') && r.coingecko
 
-/** A relevant token can absorb a test trade and is still traded: thin pools and faded launches rank high on 90-day volume. */
+/**
+ * A relevant token matters to traders: enough liquidity to absorb a test trade, and still traded (thin pools and faded
+ * launches rank high on 90-day volume). Deliberately says nothing about CoW: tokens barn can't trade stay in, so the
+ * scenarios built from these lists show where support is missing.
+ */
 export const MIN_LIQUIDITY_USD = 50_000
 /** Share of the 90-day volume the last 30 days must carry (a steady token has ~33%). */
 export const MIN_RECENT_SHARE = 0.05
 export const RELEVANCE =
-  'barn quotes it, CoinGecko lists it, liquidity >= $50k, and the last 30 days carry >= 5% of the 90-day volume; ranked by 30-day volume'
+  'liquidity >= $50k and the last 30 days carry >= 5% of the 90-day DEX volume. ' +
+  'CoW support is not required: tokens barn rejects or has no route for stay in'
+
+/** Rank by Jupiter-routed 30-day volume (the flow CoW competes for) when loaded, else by 30-day DEX volume. */
+export function rankKey(rows: UniverseRow[]): { by: string; key: (r: UniverseRow) => number } {
+  return rows.some((r) => r.jupVolume30d !== null)
+    ? { by: '30-day Jupiter-routed volume', key: (r) => r.jupVolume30d ?? 0 }
+    : { by: '30-day DEX volume', key: (r) => r.volume30d }
+}
+
+/** The same rows with the Jupiter-routed volume set (0 for mints absent from `volume`). */
+export const withJupiterVolume = (rows: UniverseRow[], volume: Map<string, number>): UniverseRow[] =>
+  rows.map((r) => ({ ...r, jupVolume30d: volume.get(r.mint) ?? 0 }))
 export const relevant = (r: UniverseRow) =>
-  supported(r) && (r.liquidity ?? 0) >= MIN_LIQUIDITY_USD && r.volume30d >= MIN_RECENT_SHARE * r.volume90d
+  r.program !== '' && r.decimals !== null && (r.liquidity ?? 0) >= MIN_LIQUIDITY_USD && r.volume30d >= MIN_RECENT_SHARE * r.volume90d
 
 const CSV_COLUMNS: [string, (r: UniverseRow) => string | number | boolean | null][] = [
   ['rank', (r) => r.rank],
@@ -391,6 +425,7 @@ const CSV_COLUMNS: [string, (r: UniverseRow) => string | number | boolean | null
   ['cow_supported', (r) => supported(r)],
   ['lists', (r) => r.lists.join(' ')],
   ['proposed', (r) => r.proposed],
+  ['jupiter_volume_30d_usd', (r) => (r.jupVolume30d === null ? '' : Math.round(r.jupVolume30d))],
 ]
 
 const csvCell = (v: string | number | boolean | null) => {
@@ -418,6 +453,7 @@ export function fromCsv(text: string): UniverseRow[] {
     organicScore: num(c.organic_score),
     liquidity: num(c.liquidity_usd),
     jupVolume24h: num(c.jupiter_volume_24h_usd),
+    jupVolume30d: num(c.jupiter_volume_30d_usd ?? ''),
     coingecko: c.coingecko === 'true',
     program: c.program as UniverseRow['program'],
     decimals: num(c.decimals),
@@ -434,10 +470,28 @@ export function toCsv(rows: UniverseRow[]): string {
 }
 
 /** A Uniswap-style token list, the format `generate-token-list-session` and the app read. */
-export function toTokenList(name: string, rows: UniverseRow[], criteria?: string) {
+/**
+ * How much of the market `picked` carries: its share of the 30-day DEX volume of every token in the universe, and of
+ * Jupiter's 24h volume across the tokens that were checked (only those have it). SOL is left out of both totals.
+ */
+export function coverage(all: UniverseRow[], picked: UniverseRow[]): string {
+  const sol = new Set([WSOL_MINT.toBase58(), NATIVE_SOL.toBase58()])
+  const sum = (rows: UniverseRow[], f: (r: UniverseRow) => number) => rows.filter((r) => !sol.has(r.mint)).reduce((s, r) => s + f(r), 0)
+  const pct = (a: number, b: number) => `${b ? ((100 * a) / b).toFixed(1) : '0'}%`
+  const dex = (r: UniverseRow) => r.volume30d
+  const has30d = all.some((r) => r.jupVolume30d !== null)
+  const jup = (r: UniverseRow) => (has30d ? (r.jupVolume30d ?? 0) : (r.jupVolume24h ?? 0))
+  const usd = (v: number) => (v >= 1e9 ? `$${(v / 1e9).toFixed(1)}B` : `$${(v / 1e6).toFixed(0)}M`)
+  return `${pct(sum(picked, jup), sum(all, jup))} of the ${has30d ? '30-day' : '24h'} Jupiter-routed volume ` +
+    `(${usd(sum(picked, jup))} of ${usd(sum(all, jup))}), ${pct(sum(picked, dex), sum(all, dex))} of the 30-day DEX volume ` +
+    `(${usd(sum(picked, dex))} of ${usd(sum(all, dex))}); SOL excluded`
+}
+
+export function toTokenList(name: string, rows: UniverseRow[], criteria?: string, coverage?: string) {
   return {
     name,
     ...(criteria ? { criteria } : {}),
+    ...(coverage ? { coverage } : {}),
     timestamp: new Date().toISOString(),
     version: { major: 1, minor: 0, patch: 0 },
     tokens: rows

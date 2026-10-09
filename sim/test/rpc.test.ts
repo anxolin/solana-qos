@@ -215,7 +215,8 @@ describe('budget preflight', () => {
       : ['check-budget', scenario]
     const result = await new Promise<{ code: number | null; output: string }>((resolve, reject) => {
       const child = spawn(process.execPath, ['--import', 'tsx', 'src/cli/index.ts', ...args], {
-        env: { ...process.env, MNEMONIC: mnemonic, RPC_URL: rpc.url, RPC_BACKUP_URL: '', COW_SOLANA_API: 'http://unused.invalid' },
+        env: { ...process.env, MNEMONIC: mnemonic, RPC_URL: rpc.url, RPC_BACKUP_URL: '', COW_SOLANA_API: 'http://unused.invalid',
+               SIM_SKIP_SETTLEMENT_CHECK: '1' },  // budget checks only: no program is touched
       })
       let output = ''
       child.stdout.on('data', (chunk) => { output += chunk })

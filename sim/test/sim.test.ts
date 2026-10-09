@@ -4,8 +4,10 @@ import { TOKEN_PROGRAM_ID } from '@solana/spl-token'
 import { RateLimiter } from '../src/limiter.js'
 import { Rpc } from '../src/rpc.js'
 import { runRow, type FlowContext } from '../src/flow.js'
+import { canBuild, sdkVersion, settlementFor } from '../src/settlement.js'
+import { encodeOrderIntent, findSettlementStatePda } from '@cowprotocol/sdk-trading-solana'
 import { deriveKeypair } from '../src/wallets.js'
-import { parseScenario } from '../src/scenario.js'
+import { parseScenario, sessionSlug } from '../src/scenario.js'
 import { fromRaw, loadUniverse, toRaw } from '../src/tokens.js'
 import { generate, MIN_GAP_S, mulberry32, roundAmount } from '../src/generator.js'
 import { TRADER_RESERVE_SOL } from '../src/config.js'
@@ -278,5 +280,47 @@ describe('RPC rate limits', () => {
     expect(res).toMatchObject({ row: 7, trader: 3, status: 'failed', orders: 0 })
     expect(res.reason).toMatch(/^error: .*429/)
     expect(logged.at(-1)).toMatchObject({ event: 'row_failed' })
+  })
+})
+
+describe('settlement v0.5 shim (remove with settlement.ts once the SDK builds v0.5)', () => {
+  const staging = new PublicKey('EzHqcdJssenE2R8xogJ8wpL66PRQet9M6ubpsX4QxpPb')
+  const prod = new PublicKey('Moook87DzJ25dELx3LXJ3dnu5a4ERVFwKo1PWWF4p7Y')
+
+  it('derives the v0.5 state PDAs that exist on chain', () => {
+    // Staging's from `cow authority transfer` (#solana, 9 Oct 2026); both read back on chain, owned by their program.
+    expect(settlementFor('staging', '0.5', staging).statePda().toBase58()).toBe('ARHLCFhT3UkEdXEvBJDZVRjTiWNe3fCy4nSrfCtg36tZ')
+    expect(settlementFor('prod', '0.5', prod).statePda().toBase58()).toBe('943UYo6pSao4ogyeWtj8evhPUu1skvDP3ukp5iS5L4Yo')
+  })
+
+  it('clears the created-on-chain flag bit for v0.5 and keeps the SDK path otherwise', () => {
+    const owner = Keypair.generate().publicKey
+    const intent = {
+      owner, sellTokenAccount: owner, sellMint: owner, buyTokenAccount: owner, buyMint: owner,
+      sellAmount: 1n, buyAmount: 1n, validTo: 1, kind: 'sell', partiallyFillable: false, createdOnChain: true, appData: new Uint8Array(32),
+    } as unknown as Parameters<typeof encodeOrderIntent>[0]
+    const FLAGS = 180
+    expect(encodeOrderIntent(settlementFor('prod', '0.5', prod).intent(intent))[FLAGS] & 1).toBe(0)
+    expect(encodeOrderIntent(settlementFor('prod', undefined, prod).intent(intent))[FLAGS] & 1).toBe(1)
+    expect(settlementFor('staging', sdkVersion('staging'), staging).statePda()).toEqual(findSettlementStatePda(staging, 'staging')[0])
+  })
+
+  it('only builds versions it knows', () => {
+    expect(canBuild('prod', '0.5')).toBe(true)
+    expect(canBuild('prod', sdkVersion('prod'))).toBe(true)
+    expect(canBuild('prod', '0.6')).toBe(false)
+    expect(() => settlementFor('prod', '0.6', prod)).toThrow(/no order builder/)
+  })
+})
+
+describe('session names', () => {
+  const dir = '/repo/scenarios'
+  it('keeps the folders under scenarios/, joined with __', () => {
+    expect(sessionSlug('/repo/scenarios/token-universe/top250.csv', dir)).toBe('token-universe__top250')
+    expect(sessionSlug('/repo/scenarios/token-2022/xstocks.csv', dir)).toBe('token-2022__xstocks')
+    expect(sessionSlug('/repo/scenarios/smoke.csv', dir)).toBe('smoke')
+  })
+  it('uses the file name for scenarios elsewhere', () => {
+    expect(sessionSlug('/tmp/my-test.csv', dir)).toBe('my-test')
   })
 })

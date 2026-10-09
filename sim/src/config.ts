@@ -21,6 +21,8 @@ export interface Endpoints {
   logs: Record<string, string> | null
   /** Overrides the SDK's settlement program id when barn runs a newer deployment than the SDK knows. */
   settlementProgram?: string
+  /** Settlement program version deployed there (`0.5`): orders and PDA seeds differ between versions. */
+  settlementVersion?: string
   /** Pins the account that pays for and signs sponsored creations, instead of trusting the quote's `funder`. */
   sponsor?: string
 }

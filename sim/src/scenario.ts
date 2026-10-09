@@ -1,4 +1,6 @@
 import { readFileSync, writeFileSync } from 'node:fs'
+import { basename, isAbsolute, relative, resolve, sep } from 'node:path'
+import { QOS_ROOT } from './config.js'
 import { parse } from 'csv-parse/sync'
 
 export type Mode = 'sponsored' | 'self'
@@ -70,6 +72,16 @@ export function writeScenario(path: string, rows: Omit<TradeRow, 'row'>[], comme
     ...rows.map((r) => [r.trader, r.time, r.type, r.amount, r.token, r.otherToken, r.mode, r.note].map(esc).join(',')),
   ]
   writeFileSync(path, lines.join('\n') + '\n')
+}
+
+/**
+ * A scenario's name for its session folder: its path under solana-qos/scenarios with `__` for each folder, so files of
+ * the same name stay apart (scenarios/token-universe/top250.csv → token-universe__top250). Elsewhere, the file name.
+ */
+export function sessionSlug(path: string, scenariosDir = resolve(QOS_ROOT, 'scenarios')): string {
+  const rel = relative(scenariosDir, resolve(path))
+  if (!rel || rel.startsWith('..') || isAbsolute(rel)) return basename(path, '.csv')
+  return rel.replace(/\.csv$/, '').split(sep).join('__')
 }
 
 export const tradersIn = (rows: TradeRow[]) => [...new Set(rows.map((r) => r.trader))].sort((a, b) => a - b)
