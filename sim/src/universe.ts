@@ -112,6 +112,21 @@ export interface JupiterToken {
   stats24h?: { buyVolume?: number; sellVolume?: number }
 }
 
+/**
+ * Whether Jupiter can buy exactly `amount` (raw) of `mint` with SOL: an ExactOut quote. A buy order on CoW needs the
+ * same exact-out route, so this is the parity reference for buy tests. Answers `{ ok: false, reason }` on no route.
+ */
+export async function jupiterExactOut(mint: string, amount: bigint): Promise<{ ok: true } | { ok: false; reason: string }> {
+  const url = `https://lite-api.jup.ag/swap/v1/quote?inputMint=${WSOL_MINT.toBase58()}&outputMint=${mint}&amount=${amount}&swapMode=ExactOut&slippageBps=100`
+  const res = await retry(() => fetch(url, { signal: AbortSignal.timeout(HTTP_TIMEOUT_MS) }).then((r) => {
+    if (r.status === 429 || r.status >= 500) throw new Error(`Jupiter quote: HTTP ${r.status}`)
+    return r
+  }))
+  if (res.ok) return { ok: true }
+  const body = (await res.json().catch(() => ({}))) as { errorCode?: string; error?: string }
+  return { ok: false, reason: body.errorCode ?? body.error ?? `HTTP ${res.status}` }
+}
+
 /** Jupiter's token metadata for `mints`, 100 per search call. Mints Jupiter doesn't know are absent. */
 export async function jupiterTokens(mints: string[], onProgress?: (done: number, total: number) => void): Promise<Map<string, JupiterToken>> {
   const out = new Map<string, JupiterToken>()

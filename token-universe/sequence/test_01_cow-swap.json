@@ -1,8 +1,8 @@
 {
-  "name": "test_01_cow-swap: CoW Swap app lists (338 tokens, universe of 2026-10-07)",
+  "name": "test_01_cow-swap: CoW Swap app lists (338 tokens, universe of 2026-10-09)",
   "criteria": "liquidity >= $50k and the last 30 days carry >= 5% of the 90-day DEX volume. CoW support is not required: tokens barn rejects or has no route for stay in; in SolanaDefault or NearSolana; ranked by Jupiter-routed volume",
   "coverage": "86.3% Jupiter-routed, 75.0% DFlow-routed, 93.1% Titan-routed (label unconfirmed), 62.5% direct DEX, 61.2% of all DEX volume ($43.9B of $71.8B) over 30 days; SOL excluded",
-  "timestamp": "2026-10-09T12:10:50.029Z",
+  "timestamp": "2026-10-09T13:27:05.940Z",
   "version": {
     "major": 1,
     "minor": 0,

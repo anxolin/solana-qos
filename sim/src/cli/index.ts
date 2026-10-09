@@ -1,6 +1,7 @@
-import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, utimesSync, writeFileSync } from 'node:fs'
-import { resolve } from 'node:path'
+import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, utimesSync, writeFileSync } from 'node:fs'
+import { relative, resolve } from 'node:path'
 import { spawnSync } from 'node:child_process'
+import { parseEnv } from 'node:util'
 import { createInterface } from 'node:readline/promises'
 import { Command, Option } from 'commander'
 import type { CowEnv } from '@cowprotocol/sdk-config'
@@ -10,14 +11,15 @@ import { NATIVE_SOL, Rpc, WSOL_MINT } from '../rpc.js'
 import { fmtSol, fund, fundingPlan, wallets } from '../wallets.js'
 import { Orders } from '../orders.js'
 import { Session } from '../session.js'
-import { readScenario, sessionSlug, tradersIn, writeScenario, type TradeRow } from '../scenario.js'
+import { parseScenario, readScenario, sessionSlug, tradersIn, writeScenario, type TradeRow } from '../scenario.js'
+import { retryRows } from '../retry.js'
 import { runRow, type FlowContext, type RowResult } from '../flow.js'
 import { cleanupTrader } from '../cleanup.js'
 import { loadUniverse, resolveToken, splMint, toRaw, fromRaw, usdPrices } from '../tokens.js'
 import { generate, MIN_GAP_S, MIXES } from '../generator.js'
 import { classify, listRows, loadTokenList, type ListToken } from '../tokenlist.js'
-import { barnQuotes, buildRows, buildSequence, coingeckoMints, coverage, DEFAULT_DUNE_QUERY, DEFAULT_ROUTED_QUERY, fromCsv, jupiterTokens, listMembership, loadRoutedVolume, loadVolume, mintFacts, RELEVANCE, sampleLongTail, summarize, supported, toCsv, toTokenList, withRoutedVolume, type SequenceStep, type UniverseRow } from '../universe.js'
-import { errorDetail, sleep } from '../limiter.js'
+import { barnQuotes, buildRows, buildSequence, jupiterExactOut, coingeckoMints, coverage, DEFAULT_DUNE_QUERY, DEFAULT_ROUTED_QUERY, fromCsv, jupiterTokens, listMembership, loadRoutedVolume, loadVolume, mintFacts, RELEVANCE, sampleLongTail, summarize, supported, toCsv, toTokenList, withRoutedVolume, type SequenceStep, type UniverseRow } from '../universe.js'
+import { errorDetail, RateLimiter, sleep } from '../limiter.js'
 import { creationBudget, ORDER_CREATION_LAMPORTS } from '../budget.js'
 import * as ui from '../ui.js'
 import { c, tag } from '../ui.js'
@@ -26,6 +28,11 @@ import { c, tag } from '../ui.js'
 const envFile = resolve(SIM_ROOT, '.env')
 const SHELL_RPC_URL = process.env.RPC_URL
 if (existsSync(envFile)) process.loadEnvFile(envFile)
+const PUBLIC_RPC = /api\.mainnet-beta\.solana\.com/
+// Except a public RPC left exported in the shell: it rate-limits a session within minutes. A real one in sim/.env wins.
+const ENV_RPC_URL = existsSync(envFile) ? parseEnv(readFileSync(envFile, 'utf8')).RPC_URL?.trim() : undefined
+const RPC_FROM_ENV_FILE = Boolean(SHELL_RPC_URL && PUBLIC_RPC.test(SHELL_RPC_URL) && ENV_RPC_URL && !PUBLIC_RPC.test(ENV_RPC_URL))
+if (RPC_FROM_ENV_FILE) process.env.RPC_URL = ENV_RPC_URL
 
 const log = (m: string) => console.log(`${c.dim(new Date().toISOString().slice(11, 19))} ${m}`)
 
@@ -278,6 +285,7 @@ program
   .option('--api-rps <n>', 'other orderbook calls per second: posting, polling', parseFloat, 8)
   .option('--rpc-rps <n>', 'Solana RPC calls per second (your RPC plan is the limit)', parseFloat, 10)
   .option('--dry-run', 'quote every row and print the funding plan, without trading')
+  .option('--allow-public-rpc', 'trade on the public mainnet RPC anyway (it rate-limits sessions; set RPC_URL to a paid one)')
   .option('--no-cleanup', 'leave tokens and SOL in the trader wallets')
   .option('--report', 'run qos.py fetch + report on the session afterwards')
   .option('-y, --yes', 'skip the confirmation prompt')
@@ -289,6 +297,10 @@ program
     const session = new Session(opts.session ?? `${stamp}-${sessionSlug(scenarioPath)}`)
     const run = context(opts, session)
     const { env, rpc, orders, ctx, w } = run
+    if (PUBLIC_RPC.test(env.rpcUrl) && !opts.dryRun && !opts.allowPublicRpc) {
+      throw new Error(`RPC_URL is the public mainnet RPC (${rpcSource()}): it rate-limits a session within minutes, so rows fail with 429s. ` +
+        'Put your Alchemy URL in sim/.env as RPC_URL (and `unset RPC_URL` in this shell), or pass --allow-public-rpc.')
+    }
 
     const target = solToLamports(opts.solFundingPerTrader)
     const plan = await fundingPlan(rpc, w, traders, target)
@@ -358,6 +370,8 @@ program
       env: opts.env,
       sim: { scenario: resolve(scenarioPath), traders: traders.length, rows: rows.length, solFundingPerTrader: opts.solFundingPerTrader },
     })
+    // The scenario as played: files get regenerated, and retry-session needs the exact rows.
+    copyFileSync(scenarioPath, resolve(session.dir, 'sim', 'scenario.csv'))
     log(`${c.bold('▶ Playing')} ${rows.length} rows ${c.dim(`→ ${session.dir}`)}`)
 
     // Watch the backend's sponsoring funder: an empty funder silently kills every sponsored creation.
@@ -645,6 +659,8 @@ program
   .option('--routed-volume <source>', `refresh the routed volume in universe.csv first: CSV export or dune:<query id> (done anyway when universe.csv has none; default dune:${DEFAULT_ROUTED_QUERY})`)
   .option('--long-tail <n>', 'tokens in the long-tail sample', (v) => parseInt(v, 10), 50)
   .option('--seed <n>', 'long-tail sample seed', (v) => parseInt(v, 10), 1)
+  .option('--no-buys', 'skip the buy step (test_04_buy-vs-jupiter), which asks Jupiter for an exact-out quote per token')
+  .option('--jupiter-rps <n>', "Jupiter quotes per second for the buy step (its public API is rate-limited)", parseFloat, 1)
   .option('--sol-per-token <sol>', 'SOL sold into each token', parseFloat, 0.005)
   .option('--traders <n>', 'traders per file', (v) => parseInt(v, 10), 30)
   .option('--quote-rps <n>', 'quotes per second while classifying', parseFloat, 5)
@@ -681,7 +697,7 @@ program
     for (const [dir, ext] of [[opts.out, '.csv'], [listDir, '.json']] as const) {
       for (const f of readdirSync(dir)) if (/^test_\d\d_/.test(f) && f.endsWith(ext) && !ids.has(f.slice(0, -ext.length))) rmSync(resolve(dir, f))
     }
-    const done: { step: SequenceStep; share: string; cumulative: string; result?: Awaited<ReturnType<typeof writeListScenario>> }[] = []
+    const done: { step: SequenceStep; share: string; cumulative: string; result?: { tradable: number; unsupported: number; noRoute: number; notMints: number } }[] = []
     const soFar: UniverseRow[] = []
     for (const step of steps) {
       soFar.push(...step.rows)
@@ -704,10 +720,56 @@ program
       )
       done.push({ step, share, cumulative, result })
     }
+    if (opts.buys) {
+      const tokens = steps.filter((s) => s.id !== 'test_03_long-tail').flatMap((s) => s.rows)
+      done.push(await buyStep(rows, tokens, { out: opts.out, listDir, built, solPerToken: opts.solPerToken, traders: opts.traders, rps: opts.jupiterRps }))
+    }
     writeFileSync(resolve(opts.out, 'README.md'), sequenceReadme(done, built))
     log(`${ui.ok('Sequence')}: ${resolve(opts.out, 'README.md')}`)
     process.exit(0)
   })
+
+/**
+ * test_04_buy-vs-jupiter: one BUY per relevant token, worth `solPerToken` SOL, annotated with whether Jupiter can quote
+ * that exact-out buy. CoW buys need the same exact-out route, so parity is the bar: fill where Jupiter can, fail where it can't.
+ */
+async function buyStep(all: UniverseRow[], tokens: UniverseRow[], o: { out: string; listDir: string; built: string; solPerToken: number; traders: number; rps: number }) {
+  const id = 'test_04_buy-vs-jupiter'
+  const SOL = WSOL_MINT.toBase58()
+  const price = new Map<string, number>()
+  const mints = [SOL, ...tokens.map((r) => r.mint)]
+  for (let i = 0; i < mints.length; i += 50) for (const [k, v] of await usdPrices(mints.slice(i, i + 50))) price.set(k, v)
+  const limiter = new RateLimiter(o.rps)
+  const lines: Omit<TradeRow, 'row'>[] = []
+  let can = 0, cannot = 0, unpriced = 0
+  log(`${id}: asking Jupiter for ${tokens.length} exact-out quotes at ${o.rps}/s…`)
+  for (const [i, r] of tokens.entries()) {
+    const usd = price.get(r.mint)
+    if (!usd || !price.get(SOL) || r.decimals === null) { unpriced++; continue }
+    const amount = Number(((o.solPerToken * price.get(SOL)!) / usd).toPrecision(3))
+    await limiter.take()
+    const jup = await jupiterExactOut(r.mint, toRaw(amount, r.decimals)).catch((e) => ({ ok: false as const, reason: errorDetail(e) }))
+    jup.ok ? can++ : cannot++
+    lines.push({
+      trader: (i % o.traders) + 1, time: 0, type: 'buy', amount, token: r.mint, otherToken: 'SOL', mode: 'sponsored',
+      note: `${r.symbol} (${r.program}): ${jup.ok ? 'Jupiter can buy exact-out, expected to fill' : `Jupiter can't (${jup.reason}), expected to fail`}`,
+    })
+    if ((i + 1) % 100 === 0) log(c.dim(`  ${i + 1}/${tokens.length}`))
+  }
+  const step: SequenceStep = { id, title: 'Buys, checked against Jupiter',
+    criteria: `the relevant tokens of test_01 and test_02, one BUY each worth ${o.solPerToken} SOL; CoW should match Jupiter's exact-out support`, rows: tokens }
+  const share = coverage(all, tokens)
+  writeFileSync(resolve(o.listDir, `${id}.json`), JSON.stringify(toTokenList(`${id}: ${step.title} (universe of ${o.built})`, tokens, step.criteria, share), null, 2))
+  writeScenario(resolve(o.out, `${id}.csv`), lines,
+    `${id}: ${step.title} (universe of ${o.built}), quoted on Jupiter on ${new Date().toISOString().slice(0, 10)}.\n` +
+      `Token criteria: ${step.criteria}.\n` +
+      `${can} tokens Jupiter can buy exact-out (expected to fill), ${cannot} it can't (expected to fail at the quote; a fill there beats Jupiter)` +
+      `${unpriced ? `, ${unpriced} skipped without a price` : ''}.\n` +
+      `Buys only: the sell scenarios (test_01-03) never buy, so they don't depend on this. Fund with --sol-funding-per-trader 0.05.\n` +
+      'Regenerate: pnpm sim build-token-sequence')
+  log(`${ui.ok(id)}: ${can} buyable on Jupiter, ${cannot} not${unpriced ? `, ${unpriced} without a price` : ''}`)
+  return { step, share, cumulative: share, result: { tradable: can, unsupported: 0, noRoute: cannot, notMints: 0 } }
+}
 
 /** scenarios/token-universe/README.md: the steps, what each holds, and how much volume they cover. */
 function sequenceReadme(done: { step: SequenceStep; share: string; cumulative: string; result?: { tradable: number; unsupported: number; noRoute: number; notMints: number } }[], built: string): string {
@@ -724,7 +786,9 @@ function sequenceReadme(done: { step: SequenceStep; share: string; cumulative: s
     'Titan is matched by the `T1TANpT…` program, a label no public source confirmed yet.', '',
     'Why no per-router steps: the relevant tokens in steps 1 and 2 already carry 84-98% of what Jupiter, DFlow and Titan route.',
     'The rest of DFlow and direct DEX volume sits in pools under $50k (pump.fun-style tokens), which a test order cannot trade meaningfully.', '',
-    'Each file: sell 0.005 SOL into each token, then 90% of the quote back; 30 traders. Fund with `--sol-funding-per-trader 0.05`.', '',
+    'test_01-03: sell 0.005 SOL into each token, then 90% of the quote back; they never buy (a short trader acquires with a SOL sell).',
+    'test_04: one buy per token from test_01-02, worth 0.005 SOL; "expected to fail" there means Jupiter has no exact-out route either.',
+    '30 traders per file. Fund with `--sol-funding-per-trader 0.05`.', '',
   ].join('\n')
 }
 
@@ -758,7 +822,56 @@ const rpcHost = (url: string) => {
 }
 
 /** Where RPC_URL came from: a shell export beats sim/.env, which surprises when both are set. */
-const rpcSource = () => (SHELL_RPC_URL ? 'your shell, overriding sim/.env' : existsSync(envFile) ? 'sim/.env' : 'environment')
+const rpcSource = () =>
+  RPC_FROM_ENV_FILE ? "sim/.env; your shell's public RPC_URL ignored"
+    : SHELL_RPC_URL ? 'your shell, overriding sim/.env' : existsSync(envFile) ? 'sim/.env' : 'environment'
+
+program
+  .command('retry-session')
+  .description("Write a scenario of a session's rows that failed on the sim's own RPC (429s, timeouts), plus the rows that failed because of them")
+  .argument('<session>', 'session folder name under solana-qos/sessions')
+  .option('-o, --out <file>', 'output CSV (default ../scenarios/retries/<session>.csv)')
+  .action(async (name: string, opts: { out?: string }) => {
+    const session = new Session(name)
+    const journalPath = resolve(session.dir, 'sim', 'journal.jsonl')
+    if (!existsSync(journalPath)) throw new Error(`no journal at ${journalPath}`)
+    const journal = readFileSync(journalPath, 'utf8').split('\n').filter(Boolean).map((l) => JSON.parse(l))
+    const meta = session.readMeta() as { start?: string; sim?: { scenario?: string } }
+    const original = meta.sim?.scenario ? scenarioAsRun(meta.sim.scenario, meta.start, resolve(session.dir, 'sim', 'scenario.csv')) : []
+    const { rows, rpc, dependent, skipped, originalMatches } = retryRows(journal, original)
+    if (original.length && !originalMatches) log(ui.warn("that scenario doesn't match the rows the session logged, so it isn't used"))
+    if (!rows.length) {
+      console.log(ui.ok(`${name}: no rows failed on RPC errors, nothing to retry`))
+      process.exit(0)
+    }
+    const out = opts.out ?? resolve(QOS_ROOT, 'scenarios', 'retries', `${name}.csv`)
+    mkdirSync(resolve(out, '..'), { recursive: true })
+    writeScenario(out, rows,
+      `Retry of session ${name} (${meta.sim?.scenario ?? 'unknown scenario'}): ${rpc} rows that failed on the sim's RPC ` +
+        `(429s, timeouts) and ${dependent} later rows that failed because of them. Same traders, amounts and modes.\n` +
+        `${skipped.length ? `Not included: rows ${skipped.join(', ')} failed before the journal logged them, and the scenario as it ran is gone.\n` : ''}` +
+        `Regenerate: pnpm sim retry-session ${name}`)
+    console.log(`${ui.ok(`${rows.length} rows`)} (${rpc} RPC failures + ${dependent} dependent${skipped.length ? `, ${skipped.length} not recoverable` : ''}) written to ${c.cyan(out)}`)
+    if (skipped.length) console.log(ui.warn(`Rows ${skipped.join(', ')} failed before the journal logged them and the scenario as it ran is gone: not included`))
+    console.log(c.dim(`Run: pnpm sim simulate-trade-session ${out} --sol-funding-per-trader 0.05 --report`))
+    process.exit(0)
+  })
+
+/** The scenario as a session ran it: the copy saved in the session, else the file, else git's version at the start. */
+function scenarioAsRun(path: string, start?: string, saved?: string): TradeRow[] {
+  if (saved && existsSync(saved)) return readScenario(saved)
+  if (existsSync(path)) return readScenario(path)
+  const rel = relative(QOS_ROOT, path)
+  const git = (args: string[]) => spawnSync('git', args, { cwd: QOS_ROOT, encoding: 'utf8' })
+  const commit = git(['log', '-1', '--format=%H', ...(start ? [`--before=${start}`] : []), '--all', '--', rel]).stdout.trim()
+  const text = commit ? git(['show', `${commit}:${rel}`]) : undefined
+  if (!text || text.status !== 0) {
+    log(ui.warn(`${rel} is gone and not in git: retried rows default to sponsored mode and time 0`))
+    return []
+  }
+  log(c.dim(`${rel} is gone: trying the version from commit ${commit.slice(0, 7)}`))
+  return parseScenario(text.stdout)
+}
 
 program
   .command('new-wallet')

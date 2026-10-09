@@ -1,0 +1,16 @@
+{
+ "rpc": "solana-mainnet.g.alchemy.com",
+ "name": "2026-10-09-12-36-retries__2026-10-09-11-30-token-universe__top250 trade session",
+ "title": "2026-10-09-12-36-retries__2026-10-09-11-30-token-universe__top250",
+ "start": "2026-10-09T12:36:55.741Z",
+ "env": "staging",
+ "sim": {
+  "scenario": "/Users/anxo/Bunker/code/cow/solana-qos/scenarios/retries/2026-10-09-11-30-token-universe__top250.csv",
+  "traders": 21,
+  "rows": 57,
+  "solFundingPerTrader": 0.05
+ },
+ "trading_end": "2026-10-09T12:38:54.682Z",
+ "end": "2026-10-09T12:40:10.535Z",
+ "fetched_at": "2026-10-09T12:41:20+00:00"
+}

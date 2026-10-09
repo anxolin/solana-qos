@@ -29,6 +29,12 @@ export interface RowResult {
   orders: number
 }
 
+/** Balance re-reads before deciding a trader is short: the RPC can lag the orderbook's "fulfilled" by seconds. */
+const BALANCE_RECHECKS = 3
+const BALANCE_RECHECK_MS = 2_000
+/** A sell row this close to its amount sells what the trader holds instead of failing. */
+const SHORT_TOLERANCE_PCT = 5
+
 const fmt = (raw: bigint, t: Token) => `${fromRaw(raw, t.decimals).toPrecision(6)} ${t.symbol}`
 
 /** Place an order and wait; on expiry/timeout re-quote (new uid) up to `maxRetries` times. */
@@ -133,7 +139,7 @@ async function playRow(ctx: FlowContext, owner: Keypair, row: TradeRow): Promise
   }
   const amount = toRaw(row.amount, row.type === 'sell' ? sell.decimals : buy.decimals)
   const main: PlaceParams = { owner, sell, buy, kind: row.type, amount, mode: row.mode }
-  ctx.session.log({ ...base, step: 'main', event: 'row_start', type: row.type, amount: row.amount, token: row.token, other: row.otherToken })
+  ctx.session.log({ ...base, step: 'main', event: 'row_start', type: row.type, amount: row.amount, token: row.token, other: row.otherToken, mode: row.mode, time: row.time, note: row.note })
 
   // How much of the sell token the main order needs.
   let need = amount
@@ -152,18 +158,40 @@ async function playRow(ctx: FlowContext, owner: Keypair, row: TradeRow): Promise
       ctx.log(`  ${tag(row.row, row.trader)}: ${ui.warn(`low SOL (${fmt(lamports, sell)} for ${fmt(need, sell)}), trying anyway`)}`)
     }
   } else {
-    const balance = await ctx.rpc.tokenBalance(owner.publicKey, splMint(sell), sell.programId)
-    const available = balance - ctx.orders.ledger.reserved(owner.publicKey, splMint(sell))
-    const short = need - (available > 0n ? available : 0n)
-    if (short > 0n) {
+    const available = async () => {
+      const left = (await ctx.rpc.tokenBalance(owner.publicKey, splMint(sell), sell.programId)) - ctx.orders.ledger.reserved(owner.publicKey, splMint(sell))
+      return left > 0n ? left : 0n
+    }
+    // A fill the orderbook already reports can take seconds to show in the RPC's balance: re-read before acquiring.
+    const settle = async () => {
+      let have = await available()
+      for (let i = 0; i < BALANCE_RECHECKS && have < need; i++) {
+        await sleep(BALANCE_RECHECK_MS)
+        have = await available()
+      }
+      return have
+    }
+    let have = await settle()
+    const nearlyThere = () => row.type === 'sell' && have * 100n >= need * BigInt(100 - SHORT_TOLERANCE_PCT)
+    if (have < need && !nearlyThere()) {
+      // Acquire with a SELL of SOL: a buy needs an exact-out route, which many tokens lack (Token-2022 especially), so
+      // buying here would test that gap instead of the trade. Buys are tested on their own (test_04_buy-vs-jupiter).
       const sol = await resolveToken(ctx.rpc, 'SOL')
-      const acq = await placeAndWait(
-        ctx,
-        { owner, sell: sol, buy: sell, kind: 'buy', amount: short, mode: row.mode },
-        { ...base, step: 'acquire' },
-      )
+      let solIn: bigint
+      try {
+        solIn = await ctx.orders.solFor(owner, sol, sell, need - have, ctx.acquireBufferBps)
+      } catch (e) {
+        return fail(`acquire ${sell.symbol} quote failed: ${errorDetail(e)}`)
+      }
+      const acq = await placeAndWait(ctx, { owner, sell: sol, buy: sell, kind: 'sell', amount: solIn, mode: row.mode }, { ...base, step: 'acquire' })
       orders += acq.attempts
       if (acq.status !== 'fulfilled') return fail(`acquire ${sell.symbol} ${acq.status}${acq.error ? `: ${acq.error}` : ''}`)
+      have = await settle()
+    }
+    // Slightly short (a fill under the estimate, rounding): sell what's there rather than fail the row.
+    if (have < need && nearlyThere()) {
+      ctx.session.log({ ...base, step: 'main', event: 'amount_capped', wanted: need, available: have })
+      main.amount = have
     }
   }
 

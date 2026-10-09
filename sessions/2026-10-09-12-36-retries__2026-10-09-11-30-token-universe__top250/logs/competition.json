@@ -1,0 +1,25 @@
+{
+ "_source": "VictoriaLogs via Grafana, container solana-autopilot-staging",
+ "drivers": {
+  "jupiter-solve": {
+   "submitted": 55,
+   "wins": 58,
+   "solver": "Grr6SWYUFi1eCagwEifXVD83rUQ4W5rJWYq1Lj7cx1jS",
+   "observed_on_chain": 55,
+   "proposed": 82,
+   "rejected_before_submission": {
+    "SimulationFailed": 1,
+    "PriorityFeeTooHigh": 2
+   }
+  }
+ },
+ "autopilot": {
+  "winner_skipped_creation_blockhash_expired": 0,
+  "sponsored_creation_expired_orders": 4,
+  "filtered": {
+   "unfunded_sell_token_account": 33,
+   "unreceivable_buy_token_account": 33,
+   "in_flight": 2
+  }
+ }
+}

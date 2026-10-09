@@ -8,6 +8,7 @@ import { canBuild, sdkVersion, settlementFor } from '../src/settlement.js'
 import { encodeOrderIntent, findSettlementStatePda } from '@cowprotocol/sdk-trading-solana'
 import { deriveKeypair } from '../src/wallets.js'
 import { parseScenario, sessionSlug } from '../src/scenario.js'
+import { isRpcFailure, retryRows } from '../src/retry.js'
 import { fromRaw, loadUniverse, toRaw } from '../src/tokens.js'
 import { generate, MIN_GAP_S, mulberry32, roundAmount } from '../src/generator.js'
 import { TRADER_RESERVE_SOL } from '../src/config.js'
@@ -359,4 +360,87 @@ describe('token coverage sequence', () => {
     const read = sampleLongTail(tail, 6, 7).map((r, i) => (i === 0 ? r : { ...r, program: 'classic' as const, decimals: 6 }))
     expect(buildSequence([], { ...opts, longTail: read }).at(-1)!.rows.map((r) => r.mint)).toEqual(a.slice(1, 3))
   })
+})
+
+describe('retry-session', () => {
+  const start = (row: number, trader: number, type: 'sell' | 'buy', token: string, other: string, extra = {}) =>
+    ({ event: 'row_start', row, trader, type, amount: 1, token, other, ...extra })
+  const failed = (row: number, reason: string) => ({ event: 'row_failed', row, reason })
+  const RPC = 'main error: failed to get recent blockhash: Error: 429 Too Many Requests'
+
+  it('tells RPC failures from CoW and market ones', () => {
+    expect(isRpcFailure(RPC)).toBe(true)
+    expect(isRpcFailure('error: failed to get balance of account X: fetch failed')).toBe(true)
+    expect(isRpcFailure('acquire X error: 404 Not Found: NoLiquidity: no route found')).toBe(false)
+    expect(isRpcFailure('main expired')).toBe(false)
+  })
+
+  it('takes RPC-failed rows and the later rows that needed their token', () => {
+    const journal = [
+      start(1, 1, 'sell', 'SOL', 'TOK', { mode: 'self', time: 5, note: 'in' }), failed(1, RPC),
+      start(2, 1, 'sell', 'TOK', 'SOL'), failed(2, 'acquire TOK error: NoLiquidity'), // needed row 1's token
+      start(3, 2, 'sell', 'TOK', 'SOL'), failed(3, 'acquire TOK error: NoLiquidity'), // other trader: unrelated
+      start(4, 1, 'sell', 'SOL', 'OTHER'), failed(4, 'main expired'),
+    ]
+    const r = retryRows(journal)
+    expect(r.rows.map((x) => x.note)).toEqual(['retry of row 1: in', 'retry of row 2'])
+    expect(r.rows[0]).toMatchObject({ trader: 1, mode: 'self', time: 5, token: 'SOL', otherToken: 'TOK' })
+    expect([r.rpc, r.dependent, r.skipped]).toEqual([1, 1, []])
+  })
+
+  it('rebuilds rows that failed before logging only from a matching original', () => {
+    const original = parseScenario('trader,time,type,amount,token,other_token,mode,note\n1,0,sell,1,SOL,TOK,sponsored,a\n1,0,sell,1,TOK,SOL,sponsored,b\n')
+    const journal = [start(2, 1, 'sell', 'TOK', 'SOL'), failed(1, '429 Too Many Requests'), failed(2, RPC)]
+    expect(retryRows(journal, original).rows.map((x) => x.note)).toEqual(['retry of row 1: a', 'retry of row 2: b'])
+    const other = parseScenario('trader,time,type,amount,token,other_token,mode,note\n9,0,sell,1,SOL,X,sponsored,a\n9,0,sell,7,X,SOL,sponsored,b\n')
+    expect(retryRows(journal, other)).toMatchObject({ skipped: [1] })
+  })
+})
+
+describe('acquiring the sell token', () => {
+  const USDC = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'
+  const setup = (balances: bigint[]) => {
+    const placed: { kind: string; amount: bigint; buy: string }[] = []
+    let reads = 0
+    const ctx = {
+      rpc: {
+        mintInfo: () => Promise.resolve({ decimals: 6, programId: TOKEN_PROGRAM_ID }),
+        tokenBalance: () => Promise.resolve(balances[Math.min(reads++, balances.length - 1)]),
+        lamports: () => Promise.resolve(10n ** 9n),
+      },
+      orders: {
+        ledger: { reserved: () => 0n },
+        solFor: () => Promise.resolve(7_000_000n),
+        place: (p: { kind: string; amount: bigint; buy: { symbol: string } }) => {
+          placed.push({ kind: p.kind, amount: p.amount, buy: p.buy.symbol })
+          return Promise.resolve({ uid: `0x${placed.length}`, mode: 'sponsored', sellAmount: p.amount, buyAmount: 1n, validTo: 0, placedAt: Date.now() })
+        },
+        waitFinal: () => Promise.resolve({ status: 'fulfilled', order: null }),
+      },
+      session: { log: () => {}, addOrder: () => {} },
+      link: { order: () => '', tx: () => '' },
+      maxRetries: 0, acquireBufferBps: 300, log: () => {},
+    } as unknown as FlowContext
+    const row = { row: 1, trader: 1, time: 0, type: 'sell' as const, amount: 1, token: USDC, otherToken: 'SOL', mode: 'sponsored' as const, note: '' }
+    return { ctx, row, placed, reads: () => reads }
+  }
+
+  it('waits out a balance that lags the fill instead of acquiring', async () => {
+    const { ctx, row, placed } = setup([0n, 0n, 1_000_000n])
+    expect((await runRow(ctx, Keypair.generate(), row)).status).toBe('filled')
+    expect(placed).toEqual([{ kind: 'sell', amount: 1_000_000n, buy: 'SOL' }]) // the main sell only
+  }, 15_000)
+
+  it('acquires a real shortfall with a SOL sell, never a buy', async () => {
+    const { ctx, row, placed } = setup([0n, 0n, 0n, 0n, 1_000_000n])
+    expect((await runRow(ctx, Keypair.generate(), row)).status).toBe('filled')
+    expect(placed[0]).toMatchObject({ kind: 'sell', amount: 7_000_000n }) // SOL in, priced by solFor
+    expect(placed.every((p) => p.kind === 'sell')).toBe(true)
+  }, 20_000)
+
+  it('sells what is there when only slightly short', async () => {
+    const { ctx, row, placed } = setup([980_000n])
+    expect((await runRow(ctx, Keypair.generate(), row)).status).toBe('filled')
+    expect(placed).toEqual([{ kind: 'sell', amount: 980_000n, buy: 'SOL' }]) // no acquisition for a 2% gap
+  }, 20_000)
 })

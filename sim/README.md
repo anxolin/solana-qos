@@ -12,7 +12,8 @@ cd ~/code/cow/solana-qos/sim && pnpm install
 pnpm sim new-wallet        # a new 12-word mnemonic, with the funder and first trader addresses
 ```
 
-Put it in `sim/.env` (git-ignored, loaded automatically; exported variables win):
+Put it in `sim/.env` (git-ignored, loaded automatically; exported variables win, except a public `RPC_URL` left in the
+shell, which `sim/.env`'s own `RPC_URL` replaces). Live runs refuse the public RPC unless you pass `--allow-public-rpc`:
 
 ```sh
 MNEMONIC="word1 word2 … word12"
@@ -88,7 +89,9 @@ trader,time,type,amount,token,other_token,mode,note
 
 ## What happens per row
 
-1. **Acquire.** If the trader doesn't hold enough of the sell token, it first buys it with SOL and waits for the fill.
+1. **Acquire.** If the trader doesn't hold enough of the sell token (after re-reading the balance, which can lag a fill),
+   it first sells SOL for it and waits for the fill. It never buys: many tokens have no exact-out route. Within 5% of
+   the amount, it sells what the trader holds instead.
 2. **Trade.** Places the order and waits up to `--fill-timeout`. No retry unless `--max-retries`.
 
 A trader's rows run one after another. Different traders run in parallel.
@@ -210,6 +213,8 @@ pnpm sim build-token-sequence --routed-volume dune:8921585      # refresh the ro
 
 Writes `../scenarios/token-universe/test_01_cow-swap.csv`, `test_02_jupiter.csv`, `test_03_long-tail.csv` and a README
 with what each file covers, alone and cumulatively (also in each file's header). Each token appears in one file only.
+`test_04_buy-vs-jupiter.csv` tests buys on their own: one per token of test_01-02, each annotated with whether Jupiter
+can quote that exact-out buy (CoW should fill where Jupiter can). `--no-buys` skips it.
 The token lists behind them are in `../token-universe/sequence/`.
 
 ## Tests

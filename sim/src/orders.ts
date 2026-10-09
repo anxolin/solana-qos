@@ -200,6 +200,17 @@ export class Orders {
   }
 
   /**
+   * SOL to sell for at least `amount` of `buy`, plus `bufferBps`, priced from a small sell quote. Sells only need an
+   * exact-in route, which far more tokens have than the exact-out route a buy needs.
+   */
+  async solFor(owner: Keypair, sol: Token, buy: Token, amount: bigint, bufferBps: number, probe = 5_000_000n): Promise<bigint> {
+    const q = await this.quote({ owner, sell: sol, buy, kind: 'sell', amount: probe })
+    const out = q.solanaQuote.intent.buyAmount // the signed minimum: a conservative price
+    if (out <= 0n) throw new Error(`quote for ${buy.symbol} returned nothing`)
+    return (amount * probe * BigInt(10_000 + bufferBps)) / (out * 10_000n) + 1n
+  }
+
+  /**
    * Quote, build and submit one order. Sponsored orders follow the orderbook's template:
    * [create wSOL ATA, transfer, sync-native] (selling SOL) → approve → create buy ATA → CreateOrder,
    * with the backend's funder as fee payer. Self-paid orders send the same bundle with the owner paying.
