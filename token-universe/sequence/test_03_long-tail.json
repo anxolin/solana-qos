@@ -1,0 +1,363 @@
+{
+  "name": "test_03_long-tail: Long-tail sample (50 tokens, universe of 2026-10-07)",
+  "criteria": "random sample of 50 tokens outside the ~2,200 the universe checked (>= $100k over 90 days); not relevance-filtered",
+  "coverage": "0.0% Jupiter-routed, 0.0% DFlow-routed, 0.0% Titan-routed (label unconfirmed), 0.0% direct DEX, 0.0% of all DEX volume ($11M of $71.8B) over 30 days; SOL excluded",
+  "timestamp": "2026-10-09T12:12:24.383Z",
+  "version": {
+    "major": 1,
+    "minor": 0,
+    "patch": 0
+  },
+  "tokens": [
+    {
+      "chainId": 1000000001,
+      "address": "7TyrdKJC458BxCLWzzYCt1QDahuGV3bUyxQYUtuF27nz",
+      "symbol": "AATF",
+      "name": "AATF",
+      "decimals": 6
+    },
+    {
+      "chainId": 1000000001,
+      "address": "GTWaP7vQGsUcsua9sJkS6JHhvxwReQeETvuEby6RW8nv",
+      "symbol": "NTFS",
+      "name": "NTFS",
+      "decimals": 6
+    },
+    {
+      "chainId": 1000000001,
+      "address": "Gv48znCBmgN9wFixuKw4ABgSjnPPQUPypTBBvdmepump",
+      "symbol": "ACORN",
+      "name": "ACORN",
+      "decimals": 6
+    },
+    {
+      "chainId": 1000000001,
+      "address": "ExKyiA5JsDayXJoaZGf2UoNT1oEciGvzN6MDgoV6yobd",
+      "symbol": "SHARK",
+      "name": "SHARK",
+      "decimals": 6
+    },
+    {
+      "chainId": 1000000001,
+      "address": "Ats6QjTg5ZLU4qqYq9S79cskRXQq4bM3krVo4fx1cwnn",
+      "symbol": "9/11",
+      "name": "9/11",
+      "decimals": 6
+    },
+    {
+      "chainId": 1000000001,
+      "address": "GuZ8cfT9133ecAEFh8mw3xgvikrxRcgbJYqtauKFEsXm",
+      "symbol": "CMI6900",
+      "name": "CMI6900",
+      "decimals": 6
+    },
+    {
+      "chainId": 1000000001,
+      "address": "9HNEutCZLoo6GZWQTmAgVvbtmLGV1mdeR8X3HWTooYXt",
+      "symbol": "BABYANSEM",
+      "name": "BABYANSEM",
+      "decimals": 6
+    },
+    {
+      "chainId": 1000000001,
+      "address": "AbRrcddzqTeCNokts2thcRsZR8PxTmakQV7G7VVJXzg6",
+      "symbol": "90°",
+      "name": "90°",
+      "decimals": 6
+    },
+    {
+      "chainId": 1000000001,
+      "address": "Dg352jrh4RMAEXSyQE75Jfh4pFYanhQzeVoVqXxzpump",
+      "symbol": "/spacecat",
+      "name": "/spacecat",
+      "decimals": 6
+    },
+    {
+      "chainId": 1000000001,
+      "address": "8mEPbxHfY25jXhTU4FaaJTr5E9Wun73Z9dUyHtf2pump",
+      "symbol": "QUAKE",
+      "name": "QUAKE",
+      "decimals": 6
+    },
+    {
+      "chainId": 1000000001,
+      "address": "98S3A9sgLHhdUHUdpviZQrbEGsXFMf4ZXfNRBpeMpump",
+      "symbol": "SOLMAS",
+      "name": "SOLMAS",
+      "decimals": 6
+    },
+    {
+      "chainId": 1000000001,
+      "address": "Dr688Z5wwVzU7N9xV4aU6B1gnPZQsKCmZY5LrFuZPUMP",
+      "symbol": "TBB",
+      "name": "TBB",
+      "decimals": 6
+    },
+    {
+      "chainId": 1000000001,
+      "address": "EKJww4FffyNH9hxbm5fHAfWJpUthjZvcMDNdkg2brbJR",
+      "symbol": "KINSEM",
+      "name": "KINSEM",
+      "decimals": 6
+    },
+    {
+      "chainId": 1000000001,
+      "address": "JsNcHrUYR6owERL5u3DGG6EZJjA9XRXTh1prAtXpump",
+      "symbol": "USWS",
+      "name": "USWS",
+      "decimals": 6
+    },
+    {
+      "chainId": 1000000001,
+      "address": "HFsC98RB5jb2AsouJEt3Pv7baC2szbg8PQhD2Xwjpump",
+      "symbol": "Lobster",
+      "name": "Lobster",
+      "decimals": 6
+    },
+    {
+      "chainId": 1000000001,
+      "address": "Hsxpkj48dSfHcwTwqBt1yu8jVRQgnW41eCn2557ETfqL",
+      "symbol": "ROBINHACKE",
+      "name": "ROBINHACKE",
+      "decimals": 6
+    },
+    {
+      "chainId": 1000000001,
+      "address": "EY4EgNo1LHatzyeXLohq9CCuicR9SDSK1hbPwkBapump",
+      "symbol": "CYBERLEEK",
+      "name": "CYBERLEEK",
+      "decimals": 6
+    },
+    {
+      "chainId": 1000000001,
+      "address": "B2JBQ98ZARAABHvDmhjrkviz1XzoQrXr75G7RTFQpump",
+      "symbol": "LASTDITCH",
+      "name": "LASTDITCH",
+      "decimals": 6
+    },
+    {
+      "chainId": 1000000001,
+      "address": "WZ9xx4xvHUPzqKkdRLksHMMbjGKwkFVtz56ozpJpump",
+      "symbol": "MAGACOIN",
+      "name": "MAGACOIN",
+      "decimals": 6
+    },
+    {
+      "chainId": 1000000001,
+      "address": "5L6gmL9taw581Y5zCy48itkVR68p3RmJNeGqkKZMG3yq",
+      "symbol": "GOPHER",
+      "name": "GOPHER",
+      "decimals": 6
+    },
+    {
+      "chainId": 1000000001,
+      "address": "139WGR9ah9Nfd3iDCaD2QiTjeC4TeUy3BuswM3ehpump",
+      "symbol": "PEPEBOT",
+      "name": "PEPEBOT",
+      "decimals": 6
+    },
+    {
+      "chainId": 1000000001,
+      "address": "7bTauhXJQr2W138ZgPW6AWYvp1RKDdZCvQR8Vj2DbS2U",
+      "symbol": "KEK",
+      "name": "KEK",
+      "decimals": 6
+    },
+    {
+      "chainId": 1000000001,
+      "address": "6V4rTJ9M4ZNUjvRMvBPiGia5Ju3TutG2nNatRdq1pump",
+      "symbol": "SPERP",
+      "name": "SPERP",
+      "decimals": 6
+    },
+    {
+      "chainId": 1000000001,
+      "address": "MeLatHJFcYiHg1Skvbfwkks5gMLYVdirDwDMUUbdRan",
+      "symbol": "BRUCE",
+      "name": "BRUCE",
+      "decimals": 6
+    },
+    {
+      "chainId": 1000000001,
+      "address": "8ZSayX4jHiUHRFXmypVG4MCVGHtcc24B3V3bvCoZpump",
+      "symbol": "SOLAMA",
+      "name": "SOLAMA",
+      "decimals": 6
+    },
+    {
+      "chainId": 1000000001,
+      "address": "62YE1d4sRArBQzR5bdbxsx2k9LV3MdPV4xMC4Di2pump",
+      "symbol": "BIF",
+      "name": "BIF",
+      "decimals": 6
+    },
+    {
+      "chainId": 1000000001,
+      "address": "Bmh5wA3YGKfC54e4jSgy8QmkMoz7oQyEPTZbfRw4q99j",
+      "symbol": "Cat",
+      "name": "Cat",
+      "decimals": 6
+    },
+    {
+      "chainId": 1000000001,
+      "address": "Xp65eCwEsrvKHowF4cJZtU9BPJetHtbJ8t9fhpgum5E",
+      "symbol": "1.79",
+      "name": "1.79",
+      "decimals": 6
+    },
+    {
+      "chainId": 1000000001,
+      "address": "EKBA2KrSya8FGd89jNhNh7wg3mZmADVVJu4YHCF4uAfQ",
+      "symbol": "SOLANALIFE",
+      "name": "SOLANALIFE",
+      "decimals": 6
+    },
+    {
+      "chainId": 1000000001,
+      "address": "5VzNRaD7kSjfbQwP7nvujDC9NxxfeAuXmh34h6CK3dJS",
+      "symbol": "USOH",
+      "name": "USOH",
+      "decimals": 6
+    },
+    {
+      "chainId": 1000000001,
+      "address": "68Z6fpmPM7R6T4uGWrFqg82v1iryBfSN4vcoyzZ4pump",
+      "symbol": "Arjun",
+      "name": "Arjun",
+      "decimals": 6
+    },
+    {
+      "chainId": 1000000001,
+      "address": "FcDaXw299t52UtsJgqmMbQq7KHJgpLYw7xfc3k7sCG8f",
+      "symbol": "inu",
+      "name": "inu",
+      "decimals": 6
+    },
+    {
+      "chainId": 1000000001,
+      "address": "5kGyEV1sKBhoMHi6F4uL85rHJTpMDQXVMuJW4RWBpump",
+      "symbol": "RICK",
+      "name": "RICK",
+      "decimals": 6
+    },
+    {
+      "chainId": 1000000001,
+      "address": "HWoC5s8MJJQvXhFKLCgsQhEACNGK77HcMRXedx16pump",
+      "symbol": "SaRCAsm",
+      "name": "SaRCAsm",
+      "decimals": 6
+    },
+    {
+      "chainId": 1000000001,
+      "address": "CdRQEPbAsxjrBdvvn9x3eGQciFtxHpdmMwCEvbmvTw31",
+      "symbol": "CXMT",
+      "name": "CXMT",
+      "decimals": 6
+    },
+    {
+      "chainId": 1000000001,
+      "address": "AFxzCCu7C3j3aHvB8Q46xU6tVTgKNCQhLEsW7Syrpump",
+      "symbol": "Scarecrow",
+      "name": "Scarecrow",
+      "decimals": 6
+    },
+    {
+      "chainId": 1000000001,
+      "address": "Hgf3QHzMWfMiyscbyqPD79kuQLca4RQ2QpnnZKv7t6uN",
+      "symbol": "茅台",
+      "name": "茅台",
+      "decimals": 6
+    },
+    {
+      "chainId": 1000000001,
+      "address": "FJQbVF1WAMV4f9gjb9fCRPzBTgk5gumxqStcyebKfpQu",
+      "symbol": "TIPPED",
+      "name": "TIPPED",
+      "decimals": 6
+    },
+    {
+      "chainId": 1000000001,
+      "address": "7Eynxig6LabMAYXbtKTqpMv7c9MFySDP9r262ZcHU2SG",
+      "symbol": "CASHCAT",
+      "name": "CASHCAT",
+      "decimals": 6
+    },
+    {
+      "chainId": 1000000001,
+      "address": "Cm35AonJQD8nw1j7hm674Wua7GvibkfEgKtq4XSfpump",
+      "symbol": "UNEMPLOYED",
+      "name": "UNEMPLOYED",
+      "decimals": 6
+    },
+    {
+      "chainId": 1000000001,
+      "address": "CjvBXge6CJPXDrGDT5TmXyxXvCjLTQPXKCHET28Bpump",
+      "symbol": "COPCAT",
+      "name": "COPCAT",
+      "decimals": 6
+    },
+    {
+      "chainId": 1000000001,
+      "address": "B2ftSHvgp8avTD1Ybt1dkFHBVj6EttRkn4nDcSGgfQgw",
+      "symbol": "CALLCAT",
+      "name": "CALLCAT",
+      "decimals": 6
+    },
+    {
+      "chainId": 1000000001,
+      "address": "BWmbnbt4GgrWcdPMH5c1bMmUBeWRYmDsFTBpjgdTgLaR",
+      "symbol": "ANSEM'D",
+      "name": "ANSEM'D",
+      "decimals": 6
+    },
+    {
+      "chainId": 1000000001,
+      "address": "CXM4ZFpSWyAPTqwAoKz3shKPnRVxTYtpG7EpARTTLwC",
+      "symbol": "CASHCAT",
+      "name": "CASHCAT",
+      "decimals": 6
+    },
+    {
+      "chainId": 1000000001,
+      "address": "82b8da6PLSbKeMj6YyiV4GKPBqeEXq6ud1iHGLtBPfs7",
+      "symbol": "USWR",
+      "name": "USWR",
+      "decimals": 6
+    },
+    {
+      "chainId": 1000000001,
+      "address": "cetCZkNdyV6LDwm7WeLmgCUg6ocMxs79aeYx9Ztpump",
+      "symbol": "OnlyMarms",
+      "name": "OnlyMarms",
+      "decimals": 6
+    },
+    {
+      "chainId": 1000000001,
+      "address": "9shma1ut5DwsGHg1CG1R3UdvcR61XyWMN99eBeFNpump",
+      "symbol": "Neuralnauts",
+      "name": "Neuralnauts",
+      "decimals": 6
+    },
+    {
+      "chainId": 1000000001,
+      "address": "ED92dgDp91SuGaXJ1UTyxy8NwTENwyAq9mER4e8gbonk",
+      "symbol": "Milho",
+      "name": "Milho",
+      "decimals": 6
+    },
+    {
+      "chainId": 1000000001,
+      "address": "53yTzME2jSnRBe6FNgPS6jBcX1WP2R37kmdDTd2WNoVv",
+      "symbol": "#memecoin",
+      "name": "#memecoin",
+      "decimals": 6
+    },
+    {
+      "chainId": 1000000001,
+      "address": "6txhg5LTax9Hq1Cf3pqSN5pKsEP5TuiuEh3F4eWBAcVu",
+      "symbol": "W26",
+      "name": "W26",
+      "decimals": 6
+    }
+  ]
+}

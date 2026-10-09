@@ -1,8 +1,8 @@
 {
-  "name": "Relevant Solana tokens in no app list (2026-10-07)",
-  "criteria": "liquidity >= $50k and the last 30 days carry >= 5% of the 90-day DEX volume. CoW support is not required: tokens barn rejects or has no route for stay in; ranked by 30-day Jupiter-routed volume",
-  "coverage": "6.1% of the 30-day Jupiter-routed volume ($986M of $16.3B), 4.3% of the 30-day DEX volume ($3.1B of $71.8B); SOL excluded",
-  "timestamp": "2026-10-09T11:18:52.875Z",
+  "name": "test_02_jupiter: Every other relevant token (130 tokens, universe of 2026-10-07)",
+  "criteria": "liquidity >= $50k and the last 30 days carry >= 5% of the 90-day DEX volume. CoW support is not required: tokens barn rejects or has no route for stay in; not in the app lists; ranked by Jupiter-routed volume",
+  "coverage": "6.0% Jupiter-routed, 9.0% DFlow-routed, 5.2% Titan-routed (label unconfirmed), 1.4% direct DEX, 4.3% of all DEX volume ($3.1B of $71.8B) over 30 days; SOL excluded",
+  "timestamp": "2026-10-09T12:11:58.086Z",
   "version": {
     "major": 1,
     "minor": 0,
