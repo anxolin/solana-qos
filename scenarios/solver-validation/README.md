@@ -68,3 +68,11 @@ The default 120-second validity could expire orders before a 32-order burst clea
 The creation allowance includes fees and rent before refunds. Cleanup sells worthwhile balances, unwraps wSOL, closes token accounts to recover rent, reclaims finished order rent to its creator, and sweeps remaining trader SOL to the test funder. Sponsored order rent can return to the sponsor. Network and priority fees, trading fees, price changes and burned dust reduce the return; unsold balances or unsuccessful reclaims remain outstanding. Include funder and sponsor balances when measuring actual net cost.
 
 The broader top250 scenario is outside this first round. Its earlier version had 500 scheduled orders, plus 250 possible acquisitions and 250 cleanup sells: 1000 total, not 1000 cleanup orders. Actual acquisitions and cleanup sales can be fewer. Its remote version has since changed; recount before planning that campaign.
+
+## Optional buy burst
+
+[solver-burst-buy.csv](solver-burst-buy.csv) adds the same bursts of 4, 8, 16, 24 and 32 orders at 0, 240, 480, 720 and 960 seconds. Both burst files spend SOL and receive USDC: sells fix the SOL input; buys fix the USDC output. The buy file uses self paid creation and unequal output amounts of 0.25–0.40 USDC. Buy batching is outside the solver's stated promise, so use it as an optional comparison of order types.
+
+It allows 84 main orders, no acquisitions and 32 cleanup orders: 116 estimated orders and 0.348 SOL before refunds. Adding it to the five first-round runs gives 429 estimated orders and a 1.287 SOL creation allowance. Use the run settings above with 0.06 SOL per trader, a maximum of 1.92 funded SOL and a 0.348 SOL creation allowance. Dry-run first to check the fixed USDC amounts against current quotes.
+
+CSV timestamps start each trade flow; inspect actual placement times and auction membership before judging missed batching opportunities. A wallet waits for its earlier flow to finish, so check actual starts if a burst overruns its four-minute gap. Retain individual bids from the same auction when checking the single-order price guard.
