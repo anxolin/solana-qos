@@ -1,0 +1,36 @@
+{
+ "_source": "container solana-jupiter-staging-solve, per 5m",
+ "bucket_min": 5,
+ "rows": [
+  {
+   "t": "2026-10-09T11:30:00Z",
+   "solved": 182,
+   "no_match": 8,
+   "rate_limited": 0
+  },
+  {
+   "t": "2026-10-09T11:35:00Z",
+   "solved": 227,
+   "no_match": 7,
+   "rate_limited": 0
+  },
+  {
+   "t": "2026-10-09T11:40:00Z",
+   "solved": 216,
+   "no_match": 0,
+   "rate_limited": 0
+  },
+  {
+   "t": "2026-10-09T11:45:00Z",
+   "solved": 41,
+   "no_match": 0,
+   "rate_limited": 0
+  },
+  {
+   "t": "2026-10-09T11:50:00Z",
+   "solved": 35,
+   "no_match": 0,
+   "rate_limited": 0
+  }
+ ]
+}

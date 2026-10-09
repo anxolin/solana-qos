@@ -1,0 +1,16 @@
+{
+ "rpc": "api.mainnet-beta.solana.com",
+ "name": "2026-10-09-11-22-smoke trade session",
+ "title": "2026-10-09-11-22-smoke",
+ "start": "2026-10-09T11:22:46.030Z",
+ "env": "staging",
+ "sim": {
+  "scenario": "/Users/anxo/Bunker/code/cow/solana-qos/scenarios/smoke.csv",
+  "traders": 2,
+  "rows": 6,
+  "solFundingPerTrader": 0.05
+ },
+ "trading_end": "2026-10-09T11:23:11.070Z",
+ "end": "2026-10-09T11:24:00.651Z",
+ "fetched_at": "2026-10-09T11:23:46+00:00"
+}
