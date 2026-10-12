@@ -1,0 +1,16 @@
+{
+ "rpc": "solana-mainnet.g.alchemy.com",
+ "name": "grafiks-2026-10-09-213017-25-sells trade session",
+ "title": "grafiks-2026-10-09-213017-25-sells",
+ "start": "2026-10-09T19:30:35.068Z",
+ "env": "staging",
+ "sim": {
+  "scenario": "/Users/igor/work/cowprotocol/solana-qos/scenarios/solver-validation/solver-same-direction-25.csv",
+  "traders": 25,
+  "rows": 25,
+  "solFundingPerTrader": 0.06
+ },
+ "trading_end": "2026-10-09T19:32:37.966Z",
+ "end": "2026-10-09T19:35:40.403Z",
+ "fetched_at": "2026-10-09T19:36:51+00:00"
+}

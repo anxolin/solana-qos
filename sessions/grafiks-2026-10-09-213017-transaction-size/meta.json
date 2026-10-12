@@ -1,0 +1,16 @@
+{
+ "rpc": "solana-mainnet.g.alchemy.com",
+ "name": "grafiks-2026-10-09-213017-transaction-size trade session",
+ "title": "grafiks-2026-10-09-213017-transaction-size",
+ "start": "2026-10-09T20:19:56.049Z",
+ "env": "staging",
+ "sim": {
+  "scenario": "/Users/igor/work/cowprotocol/solana-qos/scenarios/solver-validation/solver-transaction-size.csv",
+  "traders": 8,
+  "rows": 10,
+  "solFundingPerTrader": 0.06
+ },
+ "trading_end": "2026-10-09T20:32:08.456Z",
+ "end": "2026-10-09T20:35:53.956Z",
+ "fetched_at": "2026-10-09T20:35:50+00:00"
+}

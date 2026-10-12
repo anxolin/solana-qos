@@ -11,6 +11,16 @@ Quality-of-service report for CoW Protocol Solana test sessions on barn. It cove
 report reads. See [`sim/README.md`](sim/README.md). Scenarios you can replay are in `scenarios/` (start with
 `smoke.csv`).
 
+## Combined scenario reports
+
+In Codex, use the repo’s [solver-test-report skill](.agents/skills/solver-test-report/SKILL.md) to combine existing scenario reports:
+
+```text
+$solver-test-report Combine completed scenarios for <run prefix>; use <timestamp> and <solverName> for the report filenames.
+```
+
+Creates `<timestamp>_<solverName>_solver_test_report.md` for solver results and `<timestamp>_<solverName>_solver_test_report_for_cow.md` for the complete results, including service errors. Both have outcomes, next checks and order tables within each scenario. Unknown error ownership stays marked as unknown. Edits are left unstaged for review.
+
 ## Token universe
 
 `token-universe/` ranks every Solana token by trading volume and checks whether CoW can trade it, to see how well the

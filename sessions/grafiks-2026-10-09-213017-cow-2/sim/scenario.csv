@@ -1,0 +1,21 @@
+# Coincidence of wants: perfect and imperfect CoWs (prices sized at SOL ≈ $118.6 on 3 Oct 2026).
+# Phase 1 (t=0): traders acquire what they'll sell, so phase 2 needs no acquisition.
+# Phase 2 (t=150): both sides of each CoW are placed in the same second, so they can land in the same auction.
+# Check the report: orders settled in the same transaction were batched together (a CoW, if no AMM leg).
+# Fund with --sol-funding-per-trader 0.07.
+trader,time,type,amount,token,other_token,mode,note
+2,0,buy,2.6,USDC,SOL,sponsored,setup for perfect SOL/USDC CoW
+4,0,buy,1.3,USDC,SOL,sponsored,setup for imperfect SOL/USDC CoW
+5,0,buy,3.1,USDC,SOL,sponsored,setup for perfect USDC/USDT CoW
+6,0,buy,3.1,USDT,SOL,sponsored,setup for perfect USDC/USDT CoW
+7,0,buy,1.1,USDT,SOL,sponsored,setup for imperfect USDC/USDT CoW
+8,0,buy,3.2,USDC,SOL,sponsored,setup for imperfect USDC/USDT CoW
+1,150,sell,0.02,SOL,USDC,sponsored,perfect CoW A: sells 0.02 SOL
+2,150,buy,0.02,SOL,USDC,sponsored,perfect CoW A: buys exactly 0.02 SOL
+3,150,sell,0.03,SOL,USDC,sponsored,imperfect CoW B: sells 0.03 SOL (~3.56 USDC)
+4,150,sell,1.2,USDC,SOL,sponsored,imperfect CoW B: sells 1.2 USDC (~1/3 of the other side)
+5,150,sell,3,USDC,USDT,sponsored,perfect CoW C: 3 USDC for USDT
+6,150,sell,3,USDT,USDC,sponsored,perfect CoW C: 3 USDT for USDC
+7,150,sell,1,USDT,USDC,sponsored,imperfect CoW D: 1 USDT vs 3 USDC
+8,150,sell,3,USDC,USDT,sponsored,imperfect CoW D: 3 USDC vs 1 USDT
+9,150,sell,0.02,SOL,JUP,sponsored,control: same moment, no counterparty

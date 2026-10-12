@@ -1,6 +1,7 @@
 # 25 wallets sell 0.005 SOL into JUP together. Self paid creation isolates solver sell batching from sponsored creation expiry.
 # Six batches of four plus one remainder. Inspect actual auction membership, swaps and payouts.
 # No main-order retries: 25 main + 0 acquisitions + 25 cleanup = 50 estimated orders (0.150 SOL before refunds).
+# Suggested fill timeout: 150 seconds with cancellation; keep order validity at 300 seconds. All 25 rows already start immediately.
 trader,time,type,amount,token,other_token,mode,note
 1,0,sell,0.005,SOL,JUP,self,25 same-direction sell orders; four-order batching plus remainder
 2,0,sell,0.005,SOL,JUP,self,25 same-direction sell orders; four-order batching plus remainder

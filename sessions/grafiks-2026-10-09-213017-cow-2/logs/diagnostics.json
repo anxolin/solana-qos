@@ -1,0 +1,48 @@
+{
+ "version": 1,
+ "window": {
+  "start": "2026-10-09T20:08:45.187Z",
+  "end": "2026-10-09T20:13:12.302Z",
+  "partial": false
+ },
+ "possiblyTruncated": false,
+ "quoteFailures": [
+  {
+   "row": 8,
+   "trader": 2,
+   "step": "main",
+   "attempt": 0,
+   "requestId": null,
+   "time": "2026-10-09T20:11:17.186Z",
+   "apiError": "404 Not Found: NoLiquidity: no route found",
+   "cause": "Unknown",
+   "match": "time window (approximate)",
+   "backend": [
+    {
+     "time": "2026-10-09T20:11:17.211705612Z",
+     "requestId": "e73a8f61846f760a0d63f8d51eab1392",
+     "solver": "grafiks",
+     "response": {
+      "kind": "QuotingFailed",
+      "description": "No valid quote found"
+     }
+    }
+   ]
+  }
+ ],
+ "settlementRejections": [
+  {
+   "time": "2026-10-09T20:11:40.328334622Z",
+   "auction": "173771",
+   "solver": "grafiks",
+   "solution": "3",
+   "error": "SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(6001))), program_error: None }",
+   "orders": [
+    "0x0a47c39748de2c46df1882692e692068284c5e637cca40c4c173090d60cc6fb0",
+    "0x4ffd37e45f903f6cd778763ecc0989fc24829c38e8c40f9fa694a06caabc0044",
+    "0xbe656cec461003e0a2697b81d36e28e4ce74fbe6e983cc67fdd98b3ec67e61d3"
+   ],
+   "match": "shared auction; order-specific cause unconfirmed"
+  }
+ ]
+}

@@ -1,0 +1,16 @@
+{
+ "rpc": "solana-mainnet.g.alchemy.com",
+ "name": "grafiks-2026-10-09-213017-token-coverage trade session",
+ "title": "grafiks-2026-10-09-213017-token-coverage",
+ "start": "2026-10-09T20:13:34.876Z",
+ "env": "staging",
+ "sim": {
+  "scenario": "/Users/igor/work/cowprotocol/solana-qos/scenarios/solver-validation/solver-token-coverage.csv",
+  "traders": 40,
+  "rows": 55,
+  "solFundingPerTrader": 0.05
+ },
+ "trading_end": "2026-10-09T20:14:52.441Z",
+ "end": "2026-10-09T20:17:36.664Z",
+ "fetched_at": "2026-10-09T20:19:08+00:00"
+}

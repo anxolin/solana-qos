@@ -1,0 +1,16 @@
+# Transaction size candidates: SOL to EURC and JLP. One baseline, then four sell orders together per pair.
+# Real Jupiter swap builds measured 1109 bytes (EURC) and 1104 bytes (JLP) at 0.005 SOL on 2026-10-09.
+# These are swap sizes, not final CoW settlement sizes. Routes change. Measure every final candidate before classifying it as a boundary test.
+# No main-order retries: 10 main + 0 acquisitions + 8 cleanup = 18 estimated orders (0.054 SOL allowance).
+# Use fresh recipient wallets and self paid creation. See README.md for deterministic memo padding in solver replay.
+trader,time,type,amount,token,other_token,mode,note
+1,0,sell,0.005,SOL,EURC,self,EURC: one-order baseline; measure final settlement bytes
+1,240,sell,0.005,SOL,EURC,self,EURC: four orders together; measure final settlement bytes and route
+2,240,sell,0.005,SOL,EURC,self,EURC: four orders together; measure final settlement bytes and route
+3,240,sell,0.005,SOL,EURC,self,EURC: four orders together; measure final settlement bytes and route
+4,240,sell,0.005,SOL,EURC,self,EURC: four orders together; measure final settlement bytes and route
+5,480,sell,0.005,SOL,JLP,self,JLP: one-order baseline; measure final settlement bytes
+5,720,sell,0.005,SOL,JLP,self,JLP: four orders together; measure final settlement bytes and route
+6,720,sell,0.005,SOL,JLP,self,JLP: four orders together; measure final settlement bytes and route
+7,720,sell,0.005,SOL,JLP,self,JLP: four orders together; measure final settlement bytes and route
+8,720,sell,0.005,SOL,JLP,self,JLP: four orders together; measure final settlement bytes and route

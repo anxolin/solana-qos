@@ -1,0 +1,34 @@
+{
+ "version": 1,
+ "window": {
+  "start": "2026-10-09T20:01:07.436Z",
+  "end": "2026-10-09T20:04:26.882Z",
+  "partial": false
+ },
+ "possiblyTruncated": false,
+ "quoteFailures": [
+  {
+   "row": 4,
+   "trader": 6,
+   "step": "main",
+   "attempt": 0,
+   "requestId": null,
+   "time": "2026-10-09T20:01:09.544Z",
+   "apiError": "404 Not Found: NoLiquidity: no route found",
+   "cause": "Unknown",
+   "match": "time window (approximate)",
+   "backend": [
+    {
+     "time": "2026-10-09T20:01:09.55169641Z",
+     "requestId": "d30f2e4b951e28d0e729a8c7e258409e",
+     "solver": "grafiks",
+     "response": {
+      "kind": "QuotingFailed",
+      "description": "No valid quote found"
+     }
+    }
+   ]
+  }
+ ],
+ "settlementRejections": []
+}

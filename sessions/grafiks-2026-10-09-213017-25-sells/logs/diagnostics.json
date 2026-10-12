@@ -1,0 +1,211 @@
+{
+ "version": 1,
+ "window": {
+  "start": "2026-10-09T19:30:35.068Z",
+  "end": "2026-10-09T19:35:40.403Z",
+  "partial": false
+ },
+ "possiblyTruncated": false,
+ "quoteFailures": [],
+ "settlementRejections": [
+  {
+   "time": "2026-10-09T19:30:50.593826949Z",
+   "auction": "173287",
+   "solver": "grafiks",
+   "solution": "0",
+   "error": "SimulationFailed { err: UiTransactionError(InstructionError(3, Custom(6008))), program_error: None }",
+   "orders": [
+    "0x018a9b2f2e460a07a573387491cf0dad2c2755c1a03ed2a2b5b76ef92a42dbcc",
+    "0x0400a163c70360f934bf12c57eeeb23adfc7615cf15d5c7434c69e017ea61193",
+    "0x137f41fd6d84576998640c1e9d12e4a65cf3d9e5355f20def0e0b8f8e8f99cfa",
+    "0x22045a182d5c3a842bf840861272f798241bf7b06ca69f7946bbcd28bef455d8",
+    "0x6390c62db4c479f5cf055078d306246af91901671b4939c30ef10fdf41deacdb",
+    "0x7a828061b493d8f5a82be5c1c992ebed3c11822744c9b6c6bf08b7135bbceab3",
+    "0x8447bb3932b489241536fd5f8eeab7cbf7a6f207c1d8e472137ed94973b76030",
+    "0x87164ff113c7656b5ff0685fc5b7eac680658818a72086f6c10a7320cad21bdb",
+    "0x880112a58bfa9c0cfd97a5458be6ed28b6dff2d4656ed80a74d6a583dcb8d918",
+    "0x89d562a6fb1715dbb9b91d68a7abfbc8320774649e3ab7d6e00e3081d1e6c5d9",
+    "0x9583b69187113660dce1d58f32ab84c409e76db654f7e43c462652cf31e5b48a",
+    "0xa20d9ca396611276ed1ed11ed5ec85e4a0b0f152682ddf3e865422aeb8b448da",
+    "0xa55327fd4a0709c70bd59485e9e84dcfc65dfa0b52ce87733cd6b2fad7b67901",
+    "0xb2bc12498c4866989686b9094cf27c549538807ee520bc41127d3b2316679443",
+    "0xbec18c6b3876881ba5a425b9477445257c0e6cc46002b770b85ff80975758868",
+    "0xc6d7b549432323b7b1003ac4b939bb023213e5926f6eed65ce815f6ece9feebe",
+    "0xd27b1a24a1ffecd378e6f1bcae16e06f3def45aeba7dcdd5a1e0ecd94f7a67a2",
+    "0xe3531d77f6853be8963bf8e66fdc92d6a88e15599ac1803137b5cdeff1892e90",
+    "0xe4e78b42c5ca9a205651380f687df63ea552b426d56245d0e2fdb5a719de2902",
+    "0xeecfd29654723d6d6d8be0423573f3af5c6745783fae24b47d883c85f59ceb02",
+    "0xf570aad832988fcd651fa043301ba11245be1be44e51a6f13b5d155328f32acc"
+   ],
+   "match": "shared auction; order-specific cause unconfirmed"
+  },
+  {
+   "time": "2026-10-09T19:30:50.593898929Z",
+   "auction": "173287",
+   "solver": "grafiks",
+   "solution": "7",
+   "error": "SimulationFailed { err: UiTransactionError(InstructionError(3, Custom(6008))), program_error: None }",
+   "orders": [
+    "0x018a9b2f2e460a07a573387491cf0dad2c2755c1a03ed2a2b5b76ef92a42dbcc",
+    "0x0400a163c70360f934bf12c57eeeb23adfc7615cf15d5c7434c69e017ea61193",
+    "0x137f41fd6d84576998640c1e9d12e4a65cf3d9e5355f20def0e0b8f8e8f99cfa",
+    "0x22045a182d5c3a842bf840861272f798241bf7b06ca69f7946bbcd28bef455d8",
+    "0x6390c62db4c479f5cf055078d306246af91901671b4939c30ef10fdf41deacdb",
+    "0x7a828061b493d8f5a82be5c1c992ebed3c11822744c9b6c6bf08b7135bbceab3",
+    "0x8447bb3932b489241536fd5f8eeab7cbf7a6f207c1d8e472137ed94973b76030",
+    "0x87164ff113c7656b5ff0685fc5b7eac680658818a72086f6c10a7320cad21bdb",
+    "0x880112a58bfa9c0cfd97a5458be6ed28b6dff2d4656ed80a74d6a583dcb8d918",
+    "0x89d562a6fb1715dbb9b91d68a7abfbc8320774649e3ab7d6e00e3081d1e6c5d9",
+    "0x9583b69187113660dce1d58f32ab84c409e76db654f7e43c462652cf31e5b48a",
+    "0xa20d9ca396611276ed1ed11ed5ec85e4a0b0f152682ddf3e865422aeb8b448da",
+    "0xa55327fd4a0709c70bd59485e9e84dcfc65dfa0b52ce87733cd6b2fad7b67901",
+    "0xb2bc12498c4866989686b9094cf27c549538807ee520bc41127d3b2316679443",
+    "0xbec18c6b3876881ba5a425b9477445257c0e6cc46002b770b85ff80975758868",
+    "0xc6d7b549432323b7b1003ac4b939bb023213e5926f6eed65ce815f6ece9feebe",
+    "0xd27b1a24a1ffecd378e6f1bcae16e06f3def45aeba7dcdd5a1e0ecd94f7a67a2",
+    "0xe3531d77f6853be8963bf8e66fdc92d6a88e15599ac1803137b5cdeff1892e90",
+    "0xe4e78b42c5ca9a205651380f687df63ea552b426d56245d0e2fdb5a719de2902",
+    "0xeecfd29654723d6d6d8be0423573f3af5c6745783fae24b47d883c85f59ceb02",
+    "0xf570aad832988fcd651fa043301ba11245be1be44e51a6f13b5d155328f32acc"
+   ],
+   "match": "shared auction; order-specific cause unconfirmed"
+  },
+  {
+   "time": "2026-10-09T19:32:42.745274721Z",
+   "auction": "173310",
+   "solver": "grafiks",
+   "solution": "0",
+   "error": "SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(6001))), program_error: None }",
+   "orders": [
+    "0x01de3e2ea2f5f14f1fb483397e5d697cfea3dc2cff76a9c46d22601836827293",
+    "0x675a8e07c7faf790d4795e7a577a5a4bee46e97eb7718460d0c8dc0fb34cc41e"
+   ],
+   "match": "shared auction; order-specific cause unconfirmed"
+  },
+  {
+   "time": "2026-10-09T19:32:42.745289951Z",
+   "auction": "173310",
+   "solver": "grafiks",
+   "solution": "2",
+   "error": "SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(6001))), program_error: None }",
+   "orders": [
+    "0x01de3e2ea2f5f14f1fb483397e5d697cfea3dc2cff76a9c46d22601836827293",
+    "0x675a8e07c7faf790d4795e7a577a5a4bee46e97eb7718460d0c8dc0fb34cc41e"
+   ],
+   "match": "shared auction; order-specific cause unconfirmed"
+  },
+  {
+   "time": "2026-10-09T19:32:54.09849404Z",
+   "auction": "173312",
+   "solver": "grafiks",
+   "solution": "9",
+   "error": "SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(6001))), program_error: None }",
+   "orders": [
+    "0x0451936c45eadd3ef99f6e8def3cfb743ff29b8016439b9c3d43dd332587cee9",
+    "0xd6e5fc844e49f41fd81a27d0894050db1d166635be3fe6b75499b237800ffa2b",
+    "0xf18a53cd8010b96a3213cf09580faa87916df58fe38694bf151bedeb91b59cb6"
+   ],
+   "match": "shared auction; order-specific cause unconfirmed"
+  },
+  {
+   "time": "2026-10-09T19:32:54.09850879Z",
+   "auction": "173312",
+   "solver": "grafiks",
+   "solution": "74",
+   "error": "SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(6001))), program_error: None }",
+   "orders": [
+    "0x0451936c45eadd3ef99f6e8def3cfb743ff29b8016439b9c3d43dd332587cee9",
+    "0xd6e5fc844e49f41fd81a27d0894050db1d166635be3fe6b75499b237800ffa2b",
+    "0xf18a53cd8010b96a3213cf09580faa87916df58fe38694bf151bedeb91b59cb6"
+   ],
+   "match": "shared auction; order-specific cause unconfirmed"
+  },
+  {
+   "time": "2026-10-09T19:33:02.962592254Z",
+   "auction": "173314",
+   "solver": "grafiks",
+   "solution": "5",
+   "error": "SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(6001))), program_error: None }",
+   "orders": [
+    "0x27d4ffcc461038575c2c8c6d0b1c936ffe9b5a6c24c0a0a6ed866bf157b7b1a6"
+   ],
+   "match": "shared auction; order-specific cause unconfirmed"
+  },
+  {
+   "time": "2026-10-09T19:33:02.962603474Z",
+   "auction": "173314",
+   "solver": "grafiks",
+   "solution": "6",
+   "error": "SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(6001))), program_error: None }",
+   "orders": [
+    "0x27d4ffcc461038575c2c8c6d0b1c936ffe9b5a6c24c0a0a6ed866bf157b7b1a6"
+   ],
+   "match": "shared auction; order-specific cause unconfirmed"
+  },
+  {
+   "time": "2026-10-09T19:33:13.313136131Z",
+   "auction": "173316",
+   "solver": "grafiks",
+   "solution": "7",
+   "error": "SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(6001))), program_error: None }",
+   "orders": [
+    "0x94a2718fff13e7fb412b35930012e12a004afd24fec978dcde07f853eb1f17f2",
+    "0xadeaa1f81321884a324e35e21f43cb050e33ab59547b4e08452e9113f6ba30a7"
+   ],
+   "match": "shared auction; order-specific cause unconfirmed"
+  },
+  {
+   "time": "2026-10-09T19:33:13.313147071Z",
+   "auction": "173316",
+   "solver": "grafiks",
+   "solution": "8",
+   "error": "SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(6001))), program_error: None }",
+   "orders": [
+    "0x94a2718fff13e7fb412b35930012e12a004afd24fec978dcde07f853eb1f17f2",
+    "0xadeaa1f81321884a324e35e21f43cb050e33ab59547b4e08452e9113f6ba30a7"
+   ],
+   "match": "shared auction; order-specific cause unconfirmed"
+  },
+  {
+   "time": "2026-10-09T19:34:08.481017762Z",
+   "auction": "173327",
+   "solver": "grafiks",
+   "solution": "2",
+   "error": "SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(6001))), program_error: None }",
+   "orders": [
+    "0x1880db62be6c8d8e9689e68243bee987152b7ac2be4802ed068810dc770a2d95",
+    "0x48dd429031e7d75ef5948f04d2e703867d25059d8f4a121012b6137a86fe904f",
+    "0x7ede12ae401109b456fc5eb4ffb269cb5229ab5c61cf5ed6e7dccae983dceac0",
+    "0xe66942790f166c8e4c6ed762161902410e67d2995b3528d7f4bb742dfb89c171"
+   ],
+   "match": "shared auction; order-specific cause unconfirmed"
+  },
+  {
+   "time": "2026-10-09T19:34:08.481037512Z",
+   "auction": "173327",
+   "solver": "grafiks",
+   "solution": "4",
+   "error": "SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(6001))), program_error: None }",
+   "orders": [
+    "0x1880db62be6c8d8e9689e68243bee987152b7ac2be4802ed068810dc770a2d95",
+    "0x48dd429031e7d75ef5948f04d2e703867d25059d8f4a121012b6137a86fe904f",
+    "0x7ede12ae401109b456fc5eb4ffb269cb5229ab5c61cf5ed6e7dccae983dceac0",
+    "0xe66942790f166c8e4c6ed762161902410e67d2995b3528d7f4bb742dfb89c171"
+   ],
+   "match": "shared auction; order-specific cause unconfirmed"
+  },
+  {
+   "time": "2026-10-09T19:34:52.928548571Z",
+   "auction": "173336",
+   "solver": "grafiks",
+   "solution": "3",
+   "error": "SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(6001))), program_error: None }",
+   "orders": [
+    "0x1880db62be6c8d8e9689e68243bee987152b7ac2be4802ed068810dc770a2d95",
+    "0xe514247aad34b33435251c18e4bf00f3e6d1ae84197160764a8509d33059b517",
+    "0xe66942790f166c8e4c6ed762161902410e67d2995b3528d7f4bb742dfb89c171"
+   ],
+   "match": "shared auction; order-specific cause unconfirmed"
+  }
+ ]
+}

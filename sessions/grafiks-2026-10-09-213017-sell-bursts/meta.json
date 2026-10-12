@@ -1,0 +1,16 @@
+{
+ "rpc": "solana-mainnet.g.alchemy.com",
+ "name": "grafiks-2026-10-09-213017-sell-bursts trade session",
+ "title": "grafiks-2026-10-09-213017-sell-bursts",
+ "start": "2026-10-09T19:37:51.602Z",
+ "env": "staging",
+ "sim": {
+  "scenario": "/Users/igor/work/cowprotocol/solana-qos/scenarios/solver-validation/solver-burst-sell.csv",
+  "traders": 32,
+  "rows": 84,
+  "solFundingPerTrader": 0.06
+ },
+ "trading_end": "2026-10-09T19:55:05.904Z",
+ "end": "2026-10-09T19:57:55.979Z",
+ "fetched_at": "2026-10-09T19:59:21+00:00"
+}

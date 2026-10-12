@@ -1,0 +1,15 @@
+{
+ "rpc": "solana-mainnet.g.alchemy.com",
+ "name": "grafiks-2026-10-09-213017-cow trade session",
+ "title": "grafiks-2026-10-09-213017-cow",
+ "start": "2026-10-09T20:01:07.436Z",
+ "env": "staging",
+ "sim": {
+  "scenario": "/Users/igor/work/cowprotocol/solana-qos/scenarios/cow-simple.csv",
+  "traders": 9,
+  "rows": 15,
+  "solFundingPerTrader": 0.07
+ },
+ "trading_end": "2026-10-09T20:03:46.499Z",
+ "end": "2026-10-09T20:04:26.882Z"
+}
