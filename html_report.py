@@ -247,9 +247,13 @@ def bar_path(x: float, y: float, w: float, h: float, r: float = 3) -> str:
 
 def timeline(orders: list[dict], meta: dict, bucket_min: int = 5) -> str:
     times = [ts(o["creationDate"]) for o in orders]
-    first = min(times).replace(second=0, microsecond=0)
+    scenarios = meta.get("composite", {}).get("scenarios", [])
+    windows = times + [ts(s[k]) for s in scenarios for k in ("start", "end") if s.get(k)]
+    if not windows:
+        windows = [ts(meta["start"]), ts(meta["end"])]
+    first = min(windows).replace(second=0, microsecond=0)
     first -= timedelta(minutes=first.minute % bucket_min)
-    last = max(times)
+    last = max(windows)
     buckets = []
     t = first
     while t <= last:
@@ -268,6 +272,17 @@ def timeline(orders: list[dict], meta: dict, bucket_min: int = 5) -> str:
     xt = lambda d: L + (d - first).total_seconds() / (bucket_min * 60) * bw  # noqa: E731
     out = [f'<svg viewBox="0 0 {W} {H}" width="100%" role="img" aria-labelledby="tl-title">',
            '<title id="tl-title">Orders placed per 5 minutes, executed vs not executed</title>']
+    for s in scenarios:
+        if not s.get("start") or not s.get("end"):
+            continue
+        x0, x1 = xt(ts(s["start"])), xt(ts(s["end"]))
+        out += [f'<rect x="{x0:.1f}" y="{T}" width="{x1 - x0:.1f}" height="{ph}" fill="var(--accent)" opacity="0.08"/>',
+                f'<text class="band-label" x="{x0 + 4:.1f}" y="{T - 26}" style="fill:var(--accent)">{escape(s["name"])}</text>']
+    for previous, following in zip(scenarios, scenarios[1:]):
+        if previous.get("end") and following.get("start"):
+            gap = (ts(following["start"]) - ts(previous["end"])).total_seconds()
+            x = (xt(ts(previous["end"])) + xt(ts(following["start"]))) / 2
+            out.append(f'<text class="band-label" x="{x:.1f}" y="{T - 8}" text-anchor="middle"><title>Time between scenarios, including cleanup, pause, and funding</title>Gap: {gap:.0f}s</text>')
     for inc in meta.get("incidents", []):
         x0, x1 = xt(ts(inc["start"])), xt(ts(inc["end"]))
         out += [f'<rect class="band" x="{x0:.1f}" y="{T}" width="{x1 - x0:.1f}" height="{ph}"/>',
@@ -537,7 +552,7 @@ def scenario_section(journal: dict, orders: list[dict], cleanup: list[dict]) -> 
 
 
 def render(*, session, meta, orders, by_solver, drivers, autopilot, sol, comparisons=(), rate_limits=None,
-           journal=None, logs_note=None, cleanup_orders=()) -> str:
+           journal=None, logs_note=None, cleanup_orders=(), scenarios=()) -> str:
     incidents = meta.get("incidents", [])
     inc_labels = {i["label"] for i in incidents}
     n = len(orders)
@@ -563,6 +578,8 @@ def render(*, session, meta, orders, by_solver, drivers, autopilot, sol, compari
 
     if logs_note:
         h.append(f'<div class="callout"><span class="badge">Basic report</span><p>{escape(logs_note)}</p></div>')
+    if meta.get("resumes"):
+        h.append('<p>This run was interrupted and resumed at ' + ', '.join(escape(r["at"]) for r in meta["resumes"]) + '.</p>')
 
     rows_ = (journal or {}).get("rows") or []
     done = sum(r["status"] == "filled" for r in rows_)
@@ -577,6 +594,15 @@ def render(*, session, meta, orders, by_solver, drivers, autopilot, sol, compari
     h += ['<section aria-label="Summary"><div class="tiles">'] + [
         f'<div class="tile"><span class="k">{k}</span><span class="v">{v}</span><span class="s">{s}</span></div>'
         for k, v, s in tiles] + ["</div></section>"]
+
+    if scenarios:
+        h += ['<section><h2>Scenario results</h2>',
+              f'<p>Target solver: {escape(meta["composite"]["solver"])}. Pauses: {meta["composite"]["breakSeconds"]}s after outstanding orders and any cleanup finish.</p>',
+              '<p>Trade completion counts planned trades whose full flow finished successfully. Order execution includes acquisitions, retries, and late fills separately.</p>',
+              '<div class="panel">' + table(["Scenario", "Start (UTC)", "End (UTC)", "Rows completed", "Rows failed", "Orders", "Executed", "Trade completion"], [
+                  [escape(s["name"]), escape(s.get("start", "Not started")), escape(s.get("end", "")),
+                   f'{s["completed"]}/{s["planned"]}', s["failed"], s["placed"], s["executed"], pct(s["completed"], s["planned"])]
+                  for s in scenarios], {4, 5, 6, 7}) + '</div></section>']
 
     if journal and journal["rows"]:
         h += scenario_section(journal, orders, list(cleanup_orders))

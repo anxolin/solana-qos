@@ -1,0 +1,14 @@
+{
+  "name": "sample-burst-and-cow",
+  "solver": "solver-a",
+  "breakSeconds": 60,
+  "scenarios": ["burst.csv", "cow.csv"],
+  "options": {
+    "solFundingPerTrader": 0.07,
+    "maxTotalSol": 0.15,
+    "orderValidity": 300,
+    "fillTimeout": 210,
+    "cancelOnTimeout": true,
+    "report": true
+  }
+}

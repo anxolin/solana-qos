@@ -363,13 +363,15 @@ def read_journal(session: Path) -> dict | None:
     path = session / "sim" / "journal.jsonl"
     if not path.exists():
         return None
-    orders, rows = {}, {}
+    orders, rows, outcomes = {}, {}, {}
     place_errors = retries = 0
     timeouts: set[str] = set()  # orders sim cancelled after its fill timeout
     last_error: dict = {}  # row -> its last place_error event
     for line in path.read_text().splitlines():
         e = json.loads(line)
         ev, row = e.get("event"), e.get("row")
+        if ev in ("row_done", "row_failed"):
+            outcomes[row] = "filled" if ev == "row_done" else "failed"
         if ev == "final" and e.get("cancelTx") and e.get("status") == "timeout":
             timeouts.add(e.get("uid"))
         if ev == "placed":
@@ -394,7 +396,7 @@ def read_journal(session: Path) -> dict | None:
         if info["row"] in rows:
             rows[info["row"]]["orders"] += 1
     return {"orders": orders, "rows": [rows[k] for k in sorted(rows)], "place_errors": place_errors, "retries": retries,
-            "timeouts": timeouts}
+            "timeouts": timeouts, "outcomes": outcomes}
 
 
 # A failed row whose order existed and just didn't fill: already counted with the orders.
@@ -455,6 +457,21 @@ LOGS_MISSING = ("Log data wasn't fetched for this session, so failure causes are
                 "(or create solana-qos/.env.<env>) and run ./qos.py logs.")
 
 
+def scenario_summaries(meta: dict, orders: list[dict], journal: dict | None) -> list[dict]:
+    """Group by saved row membership, including acquisitions and retries, excluding cleanup."""
+    summaries = []
+    outcomes = (journal or {}).get("outcomes", {r["row"]: r["status"] for r in (journal or {}).get("rows", [])})
+    for scenario in meta.get("composite", {}).get("scenarios", []):
+        ids = {r["row"] for r in scenario["sourceRows"]}
+        placed = [o for o in orders if o.get("row") in ids and o.get("step") != "cleanup"]
+        summaries.append({
+            **scenario, "planned": len(ids), "completed": sum(outcomes.get(row) == "filled" for row in ids),
+            "failed": sum(outcomes.get(row) == "failed" for row in ids), "placed": len(placed),
+            "executed": sum(o["outcome"] == "executed" for o in placed),
+        })
+    return summaries
+
+
 def cmd_report(a):
     session = ROOT / "sessions" / a.session
     meta = json.loads((session / "meta.json").read_text())
@@ -471,6 +488,7 @@ def cmd_report(a):
     tokens, names = load_map("tokens.json"), load_map("solvers.json")
     tok = lambda m: tokens.get(m) or universe_symbols().get(m) or short(m)  # noqa: E731
     sol = lambda s: names.get(s, short(s))  # noqa: E731
+    scenario_by_row = {r["row"]: s["name"] for s in meta.get("composite", {}).get("scenarios", []) for r in s["sourceRows"]}
 
     orders.sort(key=lambda o: o["creationDate"])
     for o in orders:
@@ -478,6 +496,7 @@ def cmd_report(a):
         o["cause"] = cause(o, failures, incidents, quotes)
         info = (journal or {}).get("orders", {}).get(o["uid"], {})
         o["step"], o["row"], o["sim_trader"] = info.get("step", ""), info.get("row", ""), info.get("trader")
+        o["scenario"] = scenario_by_row.get(o["row"], "") if o["step"] != "cleanup" else ""
         if o["uid"] in (journal or {}).get("timeouts", set()) and o["outcome"] != "executed":
             o["cause"] = "Not filled within fill timeout (cancelled by sim)"
         o["pair"] = f"{tok(o['sellToken'])} → {tok(o['buyToken'])}"
@@ -507,6 +526,7 @@ def cmd_report(a):
     cleanup_orders = [o for o in orders if o["step"] == "cleanup"]
     all_orders = orders
     orders = [o for o in orders if o["step"] != "cleanup"]
+    scenarios = scenario_summaries(meta, orders, journal)
 
     n = len(orders)
     executed = [o for o in orders if o["outcome"] == "executed"]
@@ -516,6 +536,8 @@ def cmd_report(a):
     md = [f"# Solana QoS report: {a.session}", ""]
     md += [f"{env['label'].capitalize()}, orders created between `{meta['start']}` and `{meta['end']}`. "
            f"Data fetched {meta.get('fetched_at', '?')}.", ""]
+    if meta.get("resumes"):
+        md += ["This run was interrupted and resumed at " + ", ".join(f"`{r['at']}`" for r in meta["resumes"]) + ".", ""]
 
     if not logs_available:
         md += [f"> ⚠ {LOGS_MISSING}", ""]
@@ -527,6 +549,14 @@ def cmd_report(a):
         ["Traders", len(owners)],
         ["Settlement txs", len({t['txSignature'] for o in executed for t in o['trades']})],
     ]), ""]
+
+    if scenarios:
+        md += ["## Scenario results", "",
+               f"Target solver: `{meta['composite']['solver']}`. Pauses: {meta['composite']['breakSeconds']}s after outstanding orders and any cleanup finish.", ""]
+        md += ["Trade completion counts planned trades whose full flow finished successfully. Order execution includes acquisitions, retries, and late fills separately.", ""]
+        md += [table(["Scenario", "Start (UTC)", "End (UTC)", "Rows completed", "Rows failed", "Orders", "Executed", "Trade completion"], [
+            [s["name"], s.get("start", "Not started"), s.get("end", ""), f"{s['completed']}/{s['planned']}",
+             s["failed"], s["placed"], s["executed"], pct(s["completed"], s["planned"])] for s in scenarios]), ""]
 
     if journal and journal["rows"]:
         rows_ = journal["rows"]
@@ -688,14 +718,14 @@ def cmd_report(a):
         w = csv.writer(fh)
         w.writerow(["created_utc", "uid", "owner", "sell_token", "buy_token", "sell_symbol", "buy_symbol",
                     "kind", "sell_amount", "buy_amount", "executed_sell", "executed_buy", "api_status",
-                    "cause", "solver", "seconds_to_execution", "tx_signature", "sim_row", "sim_step"])
+                    "cause", "solver", "seconds_to_execution", "tx_signature", "sim_row", "sim_step", "sim_scenario"])
         for o in all_orders:
             w.writerow([o["creationDate"], o["uid"], o["owner"], o["sellToken"], o["buyToken"],
                         tok(o["sellToken"]), tok(o["buyToken"]), o["kind"], o["sellAmount"], o["buyAmount"],
                         o["executedSellAmount"], o["executedBuyAmount"], o["status"], o["cause"],
                         sol(o["solver"]) if o["solver"] else "",
                         f"{o['latency']:.0f}" if o["latency"] is not None else "",
-                        o["trades"][0]["txSignature"] if o["trades"] else "", o["row"], o["step"]])
+                        o["trades"][0]["txSignature"] if o["trades"] else "", o["row"], o["step"], o["scenario"]])
     print(f"wrote {out}")
 
     import html_report
@@ -708,7 +738,7 @@ def cmd_report(a):
     out.write_text(html_report.render(
         session=a.session, meta=meta, orders=orders, by_solver=by_solver,
         drivers=drivers, autopilot=comp.get("autopilot", {}), sol=sol, comparisons=comparisons, rate_limits=rl,
-        journal=journal, logs_note=None if logs_available else LOGS_MISSING, cleanup_orders=cleanup_orders,
+        journal=journal, logs_note=None if logs_available else LOGS_MISSING, cleanup_orders=cleanup_orders, scenarios=scenarios,
     ))
     print(f"wrote {out}")
 

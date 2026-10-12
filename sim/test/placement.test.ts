@@ -2,12 +2,15 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Keypair, Transaction } from '@solana/web3.js'
 import { OrderKind } from '@cowprotocol/sdk-order-book'
 import type { SolanaQuoteAndPost } from '@cowprotocol/sdk-trading-solana'
-import { runRow, type FlowContext } from '../src/flow.js'
+import { placeAndWait, runRow, type FlowContext } from '../src/flow.js'
 import { RateLimiter } from '../src/limiter.js'
 import { Orders, type Placed } from '../src/orders.js'
 import { Rpc } from '../src/rpc.js'
 import { parseScenario } from '../src/scenario.js'
-import type { Session } from '../src/session.js'
+import { Session } from '../src/session.js'
+import { randomUUID } from 'node:crypto'
+import { rmSync } from 'node:fs'
+import { waitForOutstandingOrders } from '../src/runner.js'
 import { resolveToken, splMint } from '../src/tokens.js'
 
 afterEach(() => {
@@ -36,6 +39,32 @@ async function fixture() {
 }
 
 describe('placement reliability', () => {
+  it('waits before cleanup when an accepted submission loses its response', async () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(0)
+    const { rpc, orders, owner, sell, buy, built } = await fixture()
+    const session = new Session(`placement-test-${randomUUID()}`)
+    try {
+      vi.spyOn(orders, 'quote').mockResolvedValue({ solanaQuote: { funder: Keypair.generate().publicKey },
+        buildOrder: vi.fn().mockResolvedValue(built), postSponsoredOrder: vi.fn().mockRejectedValue(new Error('Response lost after acceptance')) } as unknown as SolanaQuoteAndPost)
+      vi.spyOn(rpc, 'call').mockResolvedValue({ blockhash: Keypair.generate().publicKey.toBase58(), lastValidBlockHeight: 1000 })
+      const ctx: FlowContext = { rpc, orders, session, maxRetries: 0, acquireBufferBps: 100,
+        log: vi.fn(), link: { order: uid => uid, tx: sig => sig } }
+      const result = await placeAndWait(ctx, { owner, sell, buy, kind: 'sell', amount: 1_000_000n, mode: 'sponsored' }, { row: 1, trader: 1, step: 'main' })
+      expect(result.status).toBe('error')
+      expect(session.outstandingOrders()).toEqual([{ uid: built.orderId, validTo: built.intent.validTo }])
+      const getOrder = vi.fn().mockResolvedValueOnce({ status: 'open' }).mockResolvedValue({ status: 'fulfilled' })
+      const cleanup = vi.fn()
+      const barrier = waitForOutstandingOrders(session.outstandingOrders(), getOrder).then(cleanup)
+      await vi.advanceTimersByTimeAsync(2999)
+      expect(cleanup).not.toHaveBeenCalled()
+      await vi.advanceTimersByTimeAsync(1)
+      await barrier
+      expect(cleanup).toHaveBeenCalledOnce()
+      session.log({ trader: 1, step: 'main', event: 'rejected', uid: built.orderId })
+      expect(session.outstandingOrders()).toEqual([])
+    } finally { rmSync(session.dir, { recursive: true, force: true }) }
+  })
   it.each(['SOL', 'USDC'])('records a failed %s balance read and runs the next row', async (token) => {
     const { rpc, owner, orders, placed } = await fixture()
     const lamports = vi.spyOn(rpc, 'lamports').mockResolvedValue(1_000_000_000n)
@@ -78,6 +107,38 @@ describe('placement reliability', () => {
     expect((await results).every((r) => r.status === 'rejected')).toBe(true)
   })
 
+  it.each(['sponsored', 'self'] as const)('does not submit a %s order when its journal entry cannot be saved', async mode => {
+    const { rpc, orders, owner, sell, buy, built } = await fixture()
+    const funder = Keypair.generate().publicKey
+    const post = vi.fn()
+    vi.spyOn(orders, 'quote').mockResolvedValue({ solanaQuote: { funder },
+      buildOrder: vi.fn().mockResolvedValue(built), postSponsoredOrder: post } as unknown as SolanaQuoteAndPost)
+    vi.spyOn(rpc, 'call').mockResolvedValue({ blockhash: Keypair.generate().publicKey.toBase58(), lastValidBlockHeight: 1000 })
+    const send = vi.spyOn(rpc, 'sendAndConfirm')
+    await expect(orders.place({ owner, sell, buy, kind: 'sell', amount: 1_000_000n, mode }, () => {
+      throw new Error('Journal unavailable')
+    })).rejects.toThrow('Journal unavailable')
+    expect(post).not.toHaveBeenCalled()
+    expect(send).not.toHaveBeenCalled()
+  })
+
+  it.each([
+    { message: 'InsufficientValidTo', retried: true },
+    { message: 'Network timeout posting native SOL', retried: false },
+  ])('records only definite rejections: $message', async ({ message, retried }) => {
+    const { rpc, orders, owner, sell, buy, built } = await fixture()
+    const funder = Keypair.generate().publicKey
+    const post = vi.fn().mockRejectedValueOnce(new Error(message)).mockResolvedValue(built.orderId)
+    vi.spyOn(orders, 'quote').mockResolvedValue({ solanaQuote: { funder },
+      buildOrder: vi.fn().mockResolvedValue(built), postSponsoredOrder: post } as unknown as SolanaQuoteAndPost)
+    vi.spyOn(rpc, 'call').mockResolvedValue({ blockhash: Keypair.generate().publicKey.toBase58(), lastValidBlockHeight: 1000 })
+    const record = vi.fn()
+    const placing = orders.place({ owner, sell, buy, kind: 'sell', amount: 1_000_000n, mode: 'sponsored' }, record)
+    if (retried) await expect(placing).resolves.toMatchObject({ uid: built.orderId })
+    else await expect(placing).rejects.toThrow(message)
+    expect(record.mock.calls.map(call => call[1])).toEqual(retried ? ['prepared', 'rejected', 'prepared'] : ['prepared'])
+  })
+
   it('waits for the API slot before quoting or fetching the sponsored blockhash', async () => {
     const { rpc, orders, owner, sell, buy, built } = await fixture()
     const funder = Keypair.generate().publicKey
@@ -89,12 +150,15 @@ describe('placement reliability', () => {
       solanaQuote: { funder }, buildOrder: vi.fn().mockResolvedValue(built), postSponsoredOrder: post,
     } as unknown as SolanaQuoteAndPost)
     const call = vi.spyOn(rpc, 'call').mockResolvedValue({ blockhash, lastValidBlockHeight: 1000 })
-    const pending = orders.place({ owner, sell, buy, kind: 'sell', amount: 1_000_000n, mode: 'sponsored' })
+    const prepared = vi.fn()
+    const pending = orders.place({ owner, sell, buy, kind: 'sell', amount: 1_000_000n, mode: 'sponsored' }, prepared)
     expect(quote).not.toHaveBeenCalled()
     expect(call).not.toHaveBeenCalled()
     release()
     expect((await pending).uid).toBe(built.orderId)
     expect(post).toHaveBeenCalledTimes(1)
+    expect(prepared).toHaveBeenCalledWith({ uid: built.orderId, validTo: built.intent.validTo, mode: 'sponsored' }, 'prepared')
+    expect(prepared.mock.invocationCallOrder[0]).toBeLessThan(post.mock.invocationCallOrder[0])
     const tx = Transaction.from(Buffer.from(post.mock.calls[0][0], 'base64'))
     expect(tx.recentBlockhash).toBe(blockhash)
     expect(tx.feePayer?.equals(funder)).toBe(true)

@@ -39,29 +39,23 @@ For an exact CoW boundary test, use a solver test hook or isolated replay to add
 
 ## Run settings
 
-From `sim/`, dry-run the selected file first:
+A composite runs several scenario CSVs in order as one session. Create a JSON config with a name, solver label, CSV filenames, and shared run options. Paths are relative to the JSON file, so a CSV beside it needs only its filename. See the [config format](../../sim/README.md#make-your-own-config).
+
+For example, [grafiks-composite.json](grafiks-composite.json) lists the five scenarios previously run for Grafiks. From `sim/`:
 
 ```sh
-pnpm sim simulate-trade-session ../scenarios/solver-validation/solver-same-direction-25.csv --env staging --dry-run --sol-funding-per-trader 0.06
+# Preview the scenario table and budget without credentials or network calls.
+pnpm sim simulate-composite-scenario ../scenarios/solver-validation/grafiks-composite.json --preview
+
+# Run the composite; asks for confirmation before funding or trading.
+pnpm sim simulate-composite-scenario ../scenarios/solver-validation/grafiks-composite.json
 ```
 
-Then run it with no retries and explicit deadlines:
+The runner funds one scenario, runs its trades, waits for outstanding orders, and cleans up its wallets. It pauses for 60 seconds by default before funding the next scenario. Remaining SOL returns to the funder for reuse. Allow extra SOL for fees and trading losses; balances are checked before each funding pass. `maxTotalSol` caps funding per scenario, while `maxCreationSol` covers the whole composite's estimated creation fees/rent before refunds.
 
-```sh
-pnpm sim simulate-trade-session ../scenarios/solver-validation/solver-same-direction-25.csv --env staging --max-retries 0 --order-validity 300 --fill-timeout 210 --cancel-on-timeout --sol-funding-per-trader 0.06 --max-total-sol 1.5 --max-creation-sol 0.150 --report
-```
+All scenarios share the config's `options`; explicit CLI flags override them. Use `--dry-run` to check quotes without trading. The solver name is a label: enable the target solver in the chosen environment before an isolated test. Each scenario keeps its own CSV timings and gets separate wallets. The session has prefixed trade logs, a results table, and one combined report when enabled.
 
-Use the same environment, retry, validity and timeout settings with each file's funding limits:
-
-| CSV | SOL per trader | Maximum funded SOL | Creation allowance |
-|---|---:|---:|---:|
-| `solver-same-direction-25.csv` | 0.06 | 1.5 | 0.150 |
-| `solver-burst-sell.csv` | 0.06 | 1.92 | 0.348 |
-| `solver-cow.csv` | 0.07 | 0.63 | 0.102 |
-| `solver-token-coverage.csv` | 0.05 | 2.0 | 0.285 |
-| `solver-transaction-size.csv` | 0.06 | 0.48 | 0.054 |
-
-The default 120-second validity could expire orders before a 32-order burst clears; 300 seconds avoids that artificial bottleneck. Keep timeout and cancellation outcomes in the report. Review fixed preparation and buy amounts against current quotes.
+Continue an interrupted run with `pnpm sim resume-session <session-name>`. It uses the saved settings and skips finished rows. See [interrupted runs](../../sim/README.md#interrupted-runs) for order checks and recovery details.
 
 ## SOL returned by cleanup
 

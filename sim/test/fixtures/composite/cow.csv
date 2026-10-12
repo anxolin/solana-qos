@@ -1,0 +1,4 @@
+trader,time,type,amount,token,other_token,mode,note
+2,0,buy,0.25,USDC,SOL,sponsored,prepare opposing order
+1,5,sell,0.001,SOL,USDC,sponsored,
+2,5,sell,0.25,USDC,SOL,sponsored,

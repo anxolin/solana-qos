@@ -48,7 +48,7 @@ export async function placeAndWait(
   for (let attempt = 0; attempt <= ctx.maxRetries; attempt++) {
     attempts++
     try {
-      last = await ctx.orders.place(p)
+      last = await ctx.orders.place(p, (order, event) => ctx.session.log({ ...meta, ...order, event, attempt }))
     } catch (e) {
       const error = errorDetail(e)
       const info = errorInfo(e)

@@ -1,0 +1,5 @@
+trader,time,type,amount,token,other_token,mode,note
+1,0,sell,0.001,SOL,USDC,sponsored,
+2,0,sell,0.001,SOL,USDC,sponsored,
+1,2,sell,0.001,SOL,USDC,sponsored,
+2,2,sell,0.001,SOL,USDC,sponsored,

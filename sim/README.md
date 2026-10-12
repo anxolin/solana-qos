@@ -60,7 +60,7 @@ Main flags of `simulate-trade-session`:
 | Flag | Default | |
 |---|---|---|
 | `--sol-funding-per-trader` | 0.1 | Tops each trader up to this |
-| `--max-total-sol` | 3 | Refuses to fund more than this in total |
+| `--max-total-sol` | 3 | Refuses to fund more than this per scenario |
 | `--fill-timeout` | 90 | Seconds to wait for a fill, then move on (the order expires on its own) |
 | `--cancel-on-timeout` | off | Cancel on chain when giving up, so it can't fill late |
 | `--max-retries` | 0 | Retry an order that didn't fill, with a new quote |
@@ -70,6 +70,142 @@ Main flags of `simulate-trade-session`:
 | `--dry-run`, `--no-cleanup`, `-y` | | Quote only; keep the funds in the traders; skip the prompt |
 | `--max-creation-sol` | off | Refuses a run whose estimated creation cost (acquisitions, retries, cleanup) is above this |
 | `--env` | staging | `prod` must be passed explicitly |
+
+## Composite scenarios
+
+A composite scenario combines existing CSV scenarios into one solver validation session. Add the CSV paths to a JSON config in the order you want to run them:
+
+```text
+Fund Burst → run → wait for outstanding orders → cleanup → 60s pause
+Fund CoW → run → wait for outstanding orders → cleanup → one report
+```
+
+The command is `simulate-composite-scenario`. It uses the same trading flow and flags as `simulate-trade-session`.
+
+### Try the small sample offline
+
+From `sim/`, run:
+
+```sh
+pnpm sim simulate-composite-scenario test/fixtures/composite/composite.json --preview
+```
+
+The [sample config](test/fixtures/composite/composite.json) combines [Burst](test/fixtures/composite/burst.csv) (4 trades) and [CoW](test/fixtures/composite/cow.csv) (3 trades). Preview needs no credentials, makes no network calls, creates no session files, and places no trades. It shows the exact CSV paths from the config, the run order, a 60-second pause in the `Pause after running` column, and a 0.15 SOL funding cap per scenario. Results stay pending because preview does not execute anything.
+
+Funding is money moved to trader wallets, with leftovers returned during cleanup. The separate order creation estimate covers fees/rent before refunds, including possible token acquisitions and cleanup orders; it is not the total cost of trading.
+
+### Make your own config
+
+For the five scenarios previously run for Grafiks, use [grafiks-composite.json](../scenarios/solver-validation/grafiks-composite.json). It runs 189 trades with a 3 SOL funding cap per scenario (at most 2.8 SOL in trader top-ups at a time).
+
+Save this JSON beside the two CSV files:
+
+```json
+{
+  "name": "solver-a-burst-and-cow",
+  "solver": "solver-a",
+  "env": "staging",
+  "breakSeconds": 60,
+  "scenarios": ["burst.csv", "cow.csv"],
+  "options": {
+    "solFundingPerTrader": 0.07,
+    "maxTotalSol": 0.15,
+    "orderValidity": 300,
+    "fillTimeout": 210,
+    "cancelOnTimeout": true,
+    "report": true
+  }
+}
+```
+
+| Field | Meaning |
+|---|---|
+| `name` | Required composite label, shown in settings and saved in metadata. |
+| `solver` | Required report label. It does not select, enable, or route orders to a solver; enable the target solver in staging before testing. |
+| `scenarios` | Required non-empty list of CSV paths. Paths are relative to the JSON file. Each entry runs in order. |
+| `env` | `staging` by default. Set `prod` explicitly to use production. |
+| `breakSeconds` | Full pause after trades, outstanding orders, and cleanup finish; defaults to `60`. Set `0` to skip the pause. |
+| `options` | Optional existing run settings in camelCase. Explicit CLI flags override the config. |
+
+Supported `options`: `solFundingPerTrader`, `maxTotalSol`, `maxCreationSol`, `maxRetries`, `orderValidity`, `fillTimeout`, `cancelOnTimeout`, `slippageBps`, `quoteRps`, `apiRps`, `rpcRps`, `cleanup`, and `report`. Omitted settings use the existing run defaults. Unknown fields and invalid settings are rejected before funding. Confirmation can only be skipped with the CLI's `--yes` flag. `maxTotalSol` caps each scenario's funding pass; `maxCreationSol` caps the whole composite's estimated creation fees/rent before refunds.
+
+### Timing and wallets
+
+CSV times stay relative to each scenario's own start. Rows for the same trader run in order, while different traders can run in parallel. Each scenario gets separate trader wallets, so trader `1` in Burst and trader `1` in CoW are different wallets. The runner gives every row a unique ID and records the original CSV row and trader IDs.
+
+A scenario finishes after its row flows and outstanding orders finish, cancel, or expire. If an order times out without a confirmed cancellation, the runner waits for its final status or its validity deadline plus a 30-second margin. The runner then cleans up that scenario's wallets and takes the full pause. No pause is added after the last scenario. Funding happens before each scenario, using current balances; cleanup returns remaining SOL for the next funding pass. The creation budget is checked for the whole composite, and the report is generated once. With `--no-cleanup`, funds stay in separate wallets, so more SOL is needed upfront.
+
+The next scenario's CSV clock starts after its funding finishes. Cleanup and funding take extra time beyond the pause. The saved CSV and report use the actual scenario offsets. Keep extra SOL for fees, trading losses, or unfinished cleanup; if a later funding check fails, the run stops before funding or playing that scenario.
+
+### Quote or run it
+
+```sh
+# Quote and check funding; no trades. Requires the usual wallet/RPC settings.
+pnpm sim simulate-composite-scenario test/fixtures/composite/composite.json --dry-run
+
+# Live: asks for confirmation before funding and trading.
+pnpm sim simulate-composite-scenario test/fixtures/composite/composite.json
+```
+
+`--preview` is the fully offline check. `--dry-run` uses RPC and quotes to check the rows but does not fund or trade. A live run uses the usual wallet/RPC settings described above.
+
+### Interrupted runs
+
+Resume an individual or composite run in the same session:
+
+```sh
+pnpm sim resume-session <session-name>
+```
+
+Resume uses the saved scenarios, effective settings, and wallet IDs; the original CSVs and config are no longer needed. It asks for confirmation and checks that the funder, settlement program, and orderbook match the original run. Two runners cannot use the same session at once. Starting a fresh run with an existing session name is rejected.
+
+| Interrupted during | Resume behavior |
+|---|---|
+| Trading | Skip completed and failed rows. Check submitted orders before continuing unfinished rows. |
+| Token acquisition | If it filled, continue the row using the current wallet balance. |
+| Cleanup | Top up unfinished cleanup wallets using the original funding target and cap, then clean only those wallets. |
+| Pause | Wait for the remaining pause; time while stopped counts toward it. |
+| After completion | Print that the session is finished; replay nothing. |
+
+The active scenario clock is saved every second and on row outcomes. Ctrl-C saves it immediately during playback. Resume freezes that clock while stopped, preserving future timing gaps instead of sending every overdue row together. A hard stop may lose up to one second of clock progress. The original session start stays unchanged, remaining scheduled CSV times are updated, and the report lists resume times.
+
+After a hard kill, a stale `sim/run.lock` may remain in the session folder. Resume prints its full path. Confirm the previous runner has stopped, remove that lock file, and run `resume-session` again. Stale locks are never removed automatically, so two resume commands cannot both take over the session.
+
+Order IDs are recorded before submission. Resume checks their final status, waits for open orders, and stops if a status is missing or unavailable. It never guesses that an uncertain order can be placed again. An interrupted main order that filled is recorded as completed; one that expired or was cancelled is recorded as failed. A failure already recorded stays failed even if its order filled later. Funding uses current balances for unfinished rows, with cleanup after each scenario.
+
+Only sessions started with this version have a resume checkpoint. Older sessions cannot be resumed safely. Use `cleanup-trade-session` to recover their wallets. `retry-session <session>` remains separate: it generates a CSV for recorded RPC failures and dependent failures, rather than continuing the saved schedule.
+
+### Results and logs
+
+A composite uses the same trade logs as an individual run: timestamps, `#row t<trader>` tags, acquisition/main steps, statuses, and transaction links. It only adds the scenario prefix (`[burst]` or `[cow]`). It ends with a table of per-scenario trade counts, completed trades, failed trades, and completion percentages, followed by failure reasons. Preview uses a table too, with completion shown as `Not run`. Completion means the entire planned trade flow succeeded, including any required token acquisition. A timed-out trade remains failed even if its order fills later; the report counts that order execution separately. Retries and cleanup orders do not increase the number of planned trades.
+
+The runner prints the path to `sim/journal.jsonl` for detailed trade events and `report.html` for the combined results when reporting is enabled. The report's scenario table shows trade completion percentages, counts, and order executions. Local trade logs work without Grafana; backend solver logs require the existing Grafana settings.
+
+### Saved files and report
+
+Each composite creates one normal session folder with:
+
+The default folder name is `<UTC timestamp>-composite-<solver>-run`, for example `2026-10-10-14-42-composite-solver-a-run`. Use `--session <name>` to choose a different folder name. The config's `name` describes the composite rather than naming its folder.
+
+| File | What it contains |
+|---|---|
+| `sim/composite.json` | A copy of the input config. |
+| `sim/run.json` | Atomic resume checkpoint: saved rows, effective settings, public wallet identity, scenario stages, clock progress, and results. No mnemonic or RPC credentials. |
+| `sim/scenario.csv` | Combined rows with global trader IDs and actual offsets as scenarios start. Scenarios that have not started still have estimated offsets. |
+| `meta.json` | `composite` name, solver label, break length, actual scenario windows, and source row/trader mappings. |
+| `report.md` / `report.html` | Whole-session analysis, per-scenario totals, and scenario windows and breaks on the HTML timeline. Generated when `report` is enabled. |
+| `orders.csv` | Order data with `sim_scenario` linking each order to its source scenario. |
+
+Acquisitions and retries belong to their source scenario. Cleanup orders stay separate from scenario results. Existing single-CSV commands keep working.
+
+### Local tests
+
+```sh
+pnpm test
+pnpm typecheck
+```
+
+The TypeScript tests cover config validation, wallet/row mapping, CLI overrides, and outstanding orders. CLI tests run real commands with a fake clock and mocked external calls. They check per-scenario funding and cleanup, resumed individual and composite runs, partial cleanup and pauses, missing source CSVs, saved results, and one report pass. Recovery tests cover submitted orders, partial journal writes, uncertain statuses, and concurrent runners. All tests run without live trades.
 
 ## Scenario CSV
 
@@ -104,7 +240,8 @@ simulated orders are easy to tell apart from real users. Changing the string cha
 
 ## Cleanup
 
-Runs after every session, for up to `max(10, --rpc-rps)` traders at once:
+Runs after each composite scenario or at the end of an individual session, for up to `max(10, --rpc-rps)` traders at once:
+
 1. **Sell** every token worth more than its account's rent back to SOL. Dust and tokens with no route are burned.
 2. **Close** the empty token accounts (rent returns to the trader).
 3. **Reclaim** the rent of finished orders.

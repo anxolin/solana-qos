@@ -14,6 +14,9 @@ import { Session } from '../session.js'
 import { parseScenario, readScenario, sessionSlug, tradersIn, writeScenario, type TradeRow } from '../scenario.js'
 import { failureKind, latestOutcomes, retryRows } from '../retry.js'
 import { runRow, type FlowContext, type RowResult } from '../flow.js'
+import { playScenarios, waitForOutstandingOrders } from '../runner.js'
+import { combinedRows, readComposite, type CompositeScenario } from '../composite.js'
+import { journal, readRun, recoverRun, saveRun, type SavedRun } from '../resume.js'
 import { cleanupTrader } from '../cleanup.js'
 import { loadUniverse, resolveToken, splMint, toRaw, fromRaw, usdPrices } from '../tokens.js'
 import { generate, MIN_GAP_S, MIXES } from '../generator.js'
@@ -22,7 +25,7 @@ import { barnQuotes, buildRows, buildSequence, jupiterExactOut, coingeckoMints, 
 import { errorDetail, RateLimiter, sleep } from '../limiter.js'
 import { creationBudget, ORDER_CREATION_LAMPORTS } from '../budget.js'
 import * as ui from '../ui.js'
-import { c, tag } from '../ui.js'
+import { c, stepLabel, tag } from '../ui.js'
 
 // Optional sim/.env; exported variables win because loadEnvFile never overwrites them.
 const envFile = resolve(SIM_ROOT, '.env')
@@ -74,7 +77,7 @@ async function cleanupAll(ctx: FlowContext, w: ReturnType<typeof wallets>, trade
   let todo = traders
   for (let pass = 1; pass <= 2 && todo.length; pass++) {
     if (pass > 1) {
-      log(ui.warn(`Cleanup didn't finish for ${todo.length} traders, retrying in 20s: ${todo.map((n) => `t${n}`).join(', ')}`))
+      ctx.log(ui.warn(`Cleanup didn't finish for ${todo.length} traders, retrying in 20s: ${todo.map((n) => `t${n}`).join(', ')}`))
       await sleep(20_000)
     }
     const failed: number[] = []
@@ -83,14 +86,14 @@ async function cleanupAll(ctx: FlowContext, w: ReturnType<typeof wallets>, trade
         done.set(n, await cleanupTrader(ctx, w, n, env))
       } catch (e) {
         failed.push(n)
-        log(`  ${c.blue(`t${n}`)} ${c.blue('cleanup')}: ${ui.error(errorDetail(e).slice(0, 200))}`)
+        ctx.log(`  ${c.blue(`t${n}`)} ${c.blue('cleanup')}: ${ui.error(errorDetail(e).slice(0, 200))}`)
         ctx.session.log({ trader: n, step: 'cleanup', event: 'cleanup_failed', pass, error: errorDetail(e) })
       }
     })
     todo = failed.sort((a, b) => a - b)
   }
   if (todo.length) {
-    console.log(ui.warn(`Cleanup still unfinished for ${todo.length} traders. Re-run: pnpm sim cleanup-trade-session --traders ${todo.join(',')}`))
+    ctx.log(ui.warn(`Cleanup still unfinished for ${todo.length} traders. Re-run: pnpm sim cleanup-trade-session --traders ${todo.join(',')}`))
   }
   return [...done.values()]
 }
@@ -265,52 +268,87 @@ program
     if (budget.issues.length) throw new Error(budget.issues.join('; '))
   })
 
-program
-  .command('simulate-trade-session')
-  .argument('<scenario>', 'CSV: trader,time,type,amount,token,other_token[,mode,note]')
-  .option('--session <name>', 'session folder name under solana-qos/sessions')
-  .option('--sol-funding-per-trader <sol>', 'SOL each trader is topped up to', parseFloat, 0.1)
-  .option('--max-total-sol <sol>', 'refuse to fund more than this in total', parseFloat, 3)
-  .option('--max-creation-sol <sol>', 'refuse a run whose estimated creation costs exceed this amount', Number)
-  .option('--max-retries <n>', 're-quote and retry an order that expires or times out (0 = move on)', (v) => parseInt(v, 10), 0)
-  .option('--order-validity <s>', 'seconds an order has left when placed (orderbook minimum 120)', (v) => {
-    const n = parseInt(v, 10)
-    if (!(n >= 120)) throw new Error('--order-validity must be at least 120 seconds (the orderbook rejects shorter orders)')
-    return n
-  }, 120)
-  .option('--fill-timeout <s>', 'seconds to wait for a fill before giving up on the order (it then expires on its own)', (v) => parseInt(v, 10), 90)
-  .option('--cancel-on-timeout', 'cancel the order on-chain when giving up, so it cannot fill late')
-  .option('--slippage-bps <bps>', 'override the quoted slippage', (v) => parseInt(v, 10))
-  .option('--quote-rps <n>', 'quotes per second (raise for stress tests)', parseFloat, 5)
-  .option('--api-rps <n>', 'other orderbook calls per second: posting, polling', parseFloat, 8)
-  .option('--rpc-rps <n>', 'Solana RPC calls per second (your RPC plan is the limit)', parseFloat, 10)
-  .option('--dry-run', 'quote every row and print the funding plan, without trading')
-  .option('--allow-public-rpc', 'trade on the public mainnet RPC anyway (it rate-limits sessions; set RPC_URL to a paid one)')
-  .option('--no-cleanup', 'leave tokens and SOL in the trader wallets')
-  .option('--report', 'run qos.py fetch + report on the session afterwards')
-  .option('-y, --yes', 'skip the confirmation prompt')
-  .addOption(envOption)
-  .action(async (scenarioPath: string, opts) => {
-    const rows = readScenario(scenarioPath)
-    const traders = tradersIn(rows)
-    const stamp = new Date().toISOString().slice(0, 16).replace(/[T:]/g, '-')
-    const session = new Session(opts.session ?? `${stamp}-${sessionSlug(scenarioPath)}`)
-    const run = context(opts, session)
-    const { env, rpc, orders, ctx, w } = run
-    if (PUBLIC_RPC.test(env.rpcUrl) && !opts.dryRun && !opts.allowPublicRpc) {
-      throw new Error(`RPC_URL is the public mainnet RPC (${rpcSource()}): it rate-limits a session within minutes, so rows fail with 429s. ` +
-        'Put your Alchemy URL in sim/.env as RPC_URL (and `unset RPC_URL` in this shell), or pass --allow-public-rpc.')
-    }
+function sessionCommand(name: string) {
+  return program.command(name)
+    .option('--session <name>', 'session folder name under solana-qos/sessions')
+    .option('--sol-funding-per-trader <sol>', 'SOL each trader is topped up to', parseFloat, 0.1)
+    .option('--max-total-sol <sol>', 'refuse to fund more than this per scenario', parseFloat, 3)
+    .option('--max-creation-sol <sol>', 'refuse a run whose estimated creation costs exceed this amount', Number)
+    .option('--max-retries <n>', 're-quote and retry an order that expires or times out (0 = move on)', (v) => parseInt(v, 10), 0)
+    .option('--order-validity <s>', 'seconds an order has left when placed (orderbook minimum 120)', (v) => {
+      const n = parseInt(v, 10)
+      if (!(n >= 120)) throw new Error('--order-validity must be at least 120 seconds (the orderbook rejects shorter orders)')
+      return n
+    }, 120)
+    .option('--fill-timeout <s>', 'seconds to wait for a fill before giving up on the order (it then expires on its own)', (v) => parseInt(v, 10), 90)
+    .option('--cancel-on-timeout', 'cancel the order on-chain when giving up, so it cannot fill late')
+    .option('--slippage-bps <bps>', 'override the quoted slippage', (v) => parseInt(v, 10))
+    .option('--quote-rps <n>', 'quotes per second (raise for stress tests)', parseFloat, 5)
+    .option('--api-rps <n>', 'other orderbook calls per second: posting, polling', parseFloat, 8)
+    .option('--rpc-rps <n>', 'Solana RPC calls per second (your RPC plan is the limit)', parseFloat, 10)
+    .option('--dry-run', 'quote every row and print the funding plan, without trading')
+    .option('--allow-public-rpc', 'trade on the public mainnet RPC anyway (it rate-limits sessions; set RPC_URL to a paid one)')
+    .option('--no-cleanup', 'leave tokens and SOL in the trader wallets')
+    .option('--report', 'run qos.py fetch + report on the session afterwards')
+    .option('-y, --yes', 'skip the confirmation prompt')
+    .addOption(envOption)
+}
 
+async function runSession(scenarioPath: string, opts: any, composite?: ReturnType<typeof readComposite>, resume?: SavedRun) {
+  const scenarios: CompositeScenario[] = resume?.scenarios ?? composite?.scenarios ?? [{
+    id: 1, name: sessionSlug(scenarioPath), path: scenarioPath, rows: readScenario(scenarioPath), sourceRows: [],
+  }]
+  const rows = composite ? combinedRows(scenarios, composite.breakSeconds) : scenarios[0].rows
+  const traders = tradersIn(rows)
+  const stamp = new Date().toISOString().slice(0, 16).replace(/[T:]/g, '-')
+  const slug = composite ? `composite-${composite.solver.replace(/[^a-zA-Z0-9_-]+/g, '-')}-run` : sessionSlug(scenarioPath)
+  const session = new Session(opts.session ?? `${stamp}-${slug}`)
+  if (!resume && !opts.dryRun && existsSync(resolve(session.dir, 'sim', 'journal.jsonl'))) {
+    throw new Error(`Session ${session.name} already exists. Use resume-session ${session.name}, or choose a new --session.`)
+  }
+  const run = context(opts, session)
+  const { env, rpc, orders, ctx, w } = run
+  if (resume && (resume.funder !== w.funder.publicKey.toBase58() || resume.program !== orders.programId.toBase58() || resume.api !== env.apiBase)) {
+    throw new Error('Resume requires the original funder, settlement program, and orderbook. Check MNEMONIC and environment settings.')
+  }
+  if (PUBLIC_RPC.test(env.rpcUrl) && !opts.dryRun && !opts.allowPublicRpc) {
+    throw new Error(`RPC_URL is the public mainnet RPC (${rpcSource()}): it rate-limits a session within minutes, so rows fail with 429s. ` +
+      'Put your Alchemy URL in sim/.env as RPC_URL (and `unset RPC_URL` in this shell), or pass --allow-public-rpc.')
+  }
+  let release: (() => void) | undefined
+  try {
+    if (resume) {
+      await confirm(`Resume ${session.name} on ${opts.env}, checking outstanding orders before continuing?`, opts.yes)
+      release = session.lock()
+      if (JSON.stringify(readRun(session)) !== JSON.stringify(resume)) throw new Error('Session changed while confirming. Run resume-session again.')
+      log('Checking previously submitted orders before continuing…')
+      await recoverRun(session, resume, uid => orders.getOrder(uid), recovered => {
+        const scenario = composite && scenarios.find(s => s.rows.some(row => row.trader === recovered.trader))
+        log(`${scenario ? `[${scenario.name}] ` : ''}${tag(recovered.row, recovered.trader)} ${stepLabel(recovered.step)}: ${ui.status(recovered.status)} ${c.dim('(recovered)')}`)
+        log(`      ${c.dim('🐞')} ${c.cyan(ctx.link.order(recovered.uid))}`)
+      })
+      session.log({ step: 'setup', event: 'resumed', completedRows: resume.results.length })
+      session.writeMeta({ resumes: [...(session.readMeta().resumes as unknown[] ?? []), {
+        at: new Date().toISOString(), checkpoint: resume.scenarios.find(s => s.phase === 'running')?.checkpointAt,
+      }] })
+    }
     const target = solToLamports(opts.solFundingPerTrader)
-    const plan = await fundingPlan(rpc, w, traders, target)
-    const total = plan.reduce((s, l) => s + l.topUp, 0n)
+    const unfinished = (scenario: CompositeScenario) => scenario.rows.filter(row => !resume?.results.some(result => result.row === row.row))
+    const plan = await fundingPlan(rpc, w, resume ? tradersIn(scenarios.flatMap(unfinished)) : traders, target)
+    const scenarioPlans = scenarios.map(scenario => {
+      const ids = new Set(tradersIn(scenario.rows))
+      return plan.filter(line => ids.has(line.trader))
+    })
+    const totals = scenarioPlans.map(lines => lines.reduce((sum, line) => sum + line.topUp, 0n))
+    const total = totals.reduce((peak, amount) => amount > peak ? amount : peak, 0n)
     const funderBalance = await rpc.lamports(w.funder.publicKey)
     const est = estimateDuration(rows, traders.length, opts.rpcRps)
     const hasLogs = logsConfigured(opts.env)
     const onOff = (b: boolean) => (b ? c.green('on') : c.dim('off'))
-    printSettings(opts.dryRun ? 'Trade session (dry run)' : 'Trade session', [
+    const title = composite ? `Composite scenario: ${composite.name}` : 'Trade session'
+    printSettings(opts.dryRun ? `${title} (dry run)` : title, [
       ['Scenario', c.cyan(scenarioPath)],
+      ...(composite ? [['Solver', composite.solver], ['Break', `${composite.breakSeconds}s after each scenario finishes`]] as [string, string][] : []),
       ['Trades', `${c.bold(rows.length)} rows, ${c.bold(traders.length)} traders`],
       ['Duration', `about ${c.bold(`${est.total} min`)} ${c.dim(`(~${est.trading} min trading, plus funding and cleanup)`)}`],
       ['Environment', `${opts.env === 'prod' ? c.red('prod') : c.green(opts.env)} ${c.dim(`(${env.urls.label})`)}`],
@@ -325,8 +363,8 @@ program
       ['Session', opts.dryRun ? c.dim('none (dry run)') : c.cyan(session.name)],
       ['Funder', `${w.funder.publicKey.toBase58()}  ${c.green(fmtSol(funderBalance))}`],
       ['Per trader', `${opts.solFundingPerTrader} SOL`],
-      ['Top-ups', `${c.bold(fmtSol(total))} ${c.dim(`to ${plan.filter((l) => l.topUp > 0n).length} of ${traders.length} traders`)}`],
-      ['Max total', `${opts.maxTotalSol} SOL`],
+      ['Top-ups', `${c.bold(fmtSol(total))} ${c.dim(composite ? 'at most per scenario; fund before each run' : `to ${plan.filter((l) => l.topUp > 0n).length} of ${traders.length} traders`)}`],
+      ['Max total', `${opts.maxTotalSol} SOL${composite ? ' per scenario' : ''}`],
       ['Retries', String(opts.maxRetries)],
       ['Order validity', `${opts.orderValidity}s, the orderbook minimum`],
       ['Fill timeout', `${opts.fillTimeout}s, then ${opts.cancelOnTimeout ? 'cancel on-chain and move on' : 'move on and let the order expire'}`],
@@ -340,38 +378,65 @@ program
           : ui.warn(`not configured, the report will be basic. Set ${LOG_ENV_HINT}`),
       ],
     ])
-    const budget = await checkCreationBudget(run, [{ name: scenarioPath, rows }], opts)
+    const budget = await checkCreationBudget(run, scenarios.map(scenario => ({ name: scenario.path, rows: unfinished(scenario) })), opts)
+    const fundingIssues = (lines: typeof plan, balance: bigint, sponsored: bigint, checkBalance = true) => {
+      const amount = lines.reduce((sum, line) => sum + line.topUp, 0n)
+      return [
+        ...(amount > solToLamports(opts.maxTotalSol) ? [`Funding ${fmtSol(amount)} is over --max-total-sol ${opts.maxTotalSol}`] : []),
+        ...(checkBalance && amount + 100_000n > balance ? [`The funder can't cover ${fmtSol(amount)}`] : []),
+        ...(checkBalance && budget.sponsor?.equals(w.funder.publicKey) && amount + sponsored + 100_000n > balance
+          ? ['The shared funder cannot cover both trader top-ups and sponsored creations'] : []),
+        ...lines.filter(line => budget.estimates.some(estimate => (estimate.selfCosts.get(line.trader) ?? 0n) > line.balance + line.topUp))
+          .map((line) => `Trader ${line.trader} cannot cover its estimated self-paid creation costs after funding`),
+      ]
+    }
     const issues = [
       ...budget.issues,
-      ...(total > solToLamports(opts.maxTotalSol) ? [`Funding ${fmtSol(total)} is over --max-total-sol ${opts.maxTotalSol}`] : []),
-      ...(total + 100_000n > funderBalance ? [`The funder can't cover ${fmtSol(total)}`] : []),
-      ...(budget.sponsor?.equals(w.funder.publicKey) && total + budget.sponsored + 100_000n > funderBalance
-        ? ['The shared funder cannot cover both trader top-ups and sponsored creations'] : []),
-      ...plan.filter((line) => (budget.estimates[0].selfCosts.get(line.trader) ?? 0n) > line.balance + line.topUp)
-        .map((line) => `Trader ${line.trader} cannot cover its estimated self-paid creation costs after funding`),
+      ...scenarioPlans.flatMap(lines => fundingIssues(lines, funderBalance, budget.sponsored, !resume)),
     ]
     if (issues.length && !opts.dryRun) throw new Error(issues.join('; '))
     for (const i of issues) console.log(ui.warn(i))
 
     if (opts.dryRun) {
-      await dryRun(ctx, w, rows, opts.solFundingPerTrader)
+      for (const scenario of scenarios) {
+        if (composite) log(c.bold(`▶ Scenario ${scenario.id}/${scenarios.length}: ${scenario.name}`))
+        await dryRun(ctx, w, scenario.rows, opts.solFundingPerTrader)
+      }
       return
     }
-    await confirm(`Fund ${fmtSol(total)} and play ${rows.length} trades on ${opts.env}?`, opts.yes)
-    await fund(rpc, w, plan, log, ctx.link.tx)
-    session.log({ step: 'setup', event: 'funded', total: total.toString(), traders })
-
-    const start = Date.now() + 5000
-    session.writeMeta({
-      rpc: rpcHost(env.rpcUrl),
-      name: `${session.name} trade session`,
-      title: session.name,
-      start: new Date(start).toISOString(),
-      env: opts.env,
-      sim: { scenario: resolve(scenarioPath), traders: traders.length, rows: rows.length, solFundingPerTrader: opts.solFundingPerTrader },
-    })
+    if (!resume) await confirm(`Fund up to ${fmtSol(total)}${composite ? ' per scenario' : ''} on ${opts.env}?`, opts.yes)
+    release ??= session.lock()
+    if (!resume && existsSync(resolve(session.dir, 'sim', 'run.json'))) throw new Error('Session already exists. Use resume-session.')
+    const { yes: _yes, session: _session, dryRun: _dryRun, ...settings } = opts
+    const saved: SavedRun = resume ?? {
+      version: 1, scenarioPath, options: settings, funder: w.funder.publicKey.toBase58(),
+      program: orders.programId.toBase58(), api: env.apiBase,
+      ...(composite ? { composite: { name: composite.name, solver: composite.solver, breakSeconds: composite.breakSeconds } } : {}),
+      scenarios: scenarios.map(scenario => ({ ...scenario, phase: 'pending', elapsed: 0 })), results: [], times: {},
+    }
+    if (!resume) {
+      session.writeMeta({ rpc: rpcHost(env.rpcUrl), name: `${session.name} trade session`, title: session.name, env: opts.env,
+        sim: { scenario: resolve(scenarioPath), traders: traders.length, rows: rows.length, solFundingPerTrader: opts.solFundingPerTrader } })
+      copyFileSync(scenarioPath, resolve(session.dir, 'sim', composite ? 'composite.json' : 'scenario.csv'))
+    }
+    saveRun(session, saved)
+    const fundScenario = async (scenario: CompositeScenario, lines: typeof plan) => {
+      const scenarioLog = composite ? (message: string) => log(`[${scenario.name}] ${message}`) : log
+      if (lines.length) await fund(rpc, w, lines, scenarioLog, ctx.link.tx)
+      session.log({ step: 'setup', event: 'funded', total: lines.reduce((sum, line) => sum + line.topUp, 0n).toString(),
+        traders: lines.map(line => line.trader), ...(composite ? { scenario: scenario.id } : {}) })
+    }
     // The scenario as played: files get regenerated, and retry-session needs the exact rows.
-    copyFileSync(scenarioPath, resolve(session.dir, 'sim', 'scenario.csv'))
+    const saveComposite = () => {
+      if (composite) session.writeMeta({ composite: {
+        name: composite.name, solver: composite.solver, breakSeconds: composite.breakSeconds,
+        scenarios: saved.scenarios.map(({ rows, ...scenario }) => scenario),
+      } })
+      const combined = composite ? combinedRows(saved.scenarios, composite.breakSeconds) : saved.scenarios[0].rows
+      writeScenario(resolve(session.dir, 'sim', 'scenario.csv'), combined.map(row => ({ ...row, time: saved.times[row.row] ?? row.time })).sort((a, b) => a.row - b.row))
+      saveRun(session, saved)
+    }
+    saveComposite()
     log(`${c.bold('▶ Playing')} ${rows.length} rows ${c.dim(`→ ${session.dir}`)}`)
 
     // Watch the backend's sponsoring funder: an empty funder silently kills every sponsored creation.
@@ -386,41 +451,204 @@ program
       }
     })()
 
-    // Rows for one trader run in order (a row waits for the previous one); traders run in parallel.
-    const chains = new Map<number, Promise<unknown>>()
-    const results: RowResult[] = []
-    await Promise.all(
-      rows.map((row) => {
-        const prev = chains.get(row.trader) ?? Promise.resolve()
-        const p = prev.then(async () => {
-          const wait = start + row.time * 1000 - Date.now()
-          if (wait > 0) await sleep(wait)
-          log(`${tag(row.row, row.trader)} ${ui.kind(row.type)} ${c.bold(`${row.amount} ${row.token}`)} ${row.type === 'sell' ? '→' : '←'} ${c.bold(row.otherToken)} ${c.dim('[')}${ui.mode(row.mode)}${c.dim(']')}${row.note ? ' ' + c.dim(row.note) : ''}`)
-          results.push(await runRow(ctx, w.trader(row.trader), row))
-        })
-        chains.set(row.trader, p)
-        return p
-      }),
-    )
-    watching = false
+    const scenarioSummary: { Scenario: string; Trades: number; Completed: number; Failed: number; Completion: string }[] = []
+    const results = saved.results
+    const priorOrders = new Map<number, Set<string>>()
+    if (resume) for (const event of journal(session)) {
+      if (event.event !== 'placed' || event.row === undefined || !event.uid) continue
+      const uids = priorOrders.get(event.row) ?? new Set<string>()
+      uids.add(event.uid)
+      priorOrders.set(event.row, uids)
+    }
+    try {
+      for (const scenario of saved.scenarios) {
+        const resumingCleanup = Boolean(resume && scenario.phase === 'cleanup')
+        if (scenario.phase === 'finished') continue
+        const scenarioLog = composite ? (message: string) => log(`[${scenario.name}] ${message}`) : log
+        if (['pending', 'running'].includes(scenario.phase)) {
+          const pendingRows = scenario.rows.filter(row => !results.some(result => result.row === row.row))
+          const lines = await fundingPlan(rpc, w, tradersIn(pendingRows), target)
+          const balance = await rpc.lamports(w.funder.publicKey)
+          const estimate = budget.estimates[scenario.id - 1]
+          const issues = pendingRows.length ? fundingIssues(lines, balance, estimate.sponsoredCost) : []
+          if (pendingRows.length && budget.sponsor && estimate.sponsoredCost > await rpc.lamports(budget.sponsor)) {
+            issues.push(`Sponsor cannot cover ${fmtSol(estimate.sponsoredCost)} for ${scenario.path}`)
+          }
+          if (issues.length) throw new Error(issues.join('; '))
+          await fundScenario(scenario, lines)
+          const start = Date.now() + (saved.start === undefined ? 5000 : 0)
+          const elapsed = scenario.elapsed
+          let timer: ReturnType<typeof setInterval> | undefined
+          const checkpoint = () => {
+            scenario.elapsed = elapsed + Math.max(0, Date.now() - start) / 1000
+            scenario.checkpointAt = Date.now()
+            saveRun(session, saved)
+          }
+          const stop = () => { checkpoint(); process.exit(130) }
+          try {
+            await playScenarios([{ rows: pendingRows.map(row => ({ ...row, time: Math.max(0, row.time - elapsed) })) }], {
+              start,
+              onStart: (_scenario, at) => {
+                saved.start ??= at
+                session.writeMeta({ start: new Date(saved.start).toISOString() })
+                scenario.phase = 'running'
+                scenario.start ??= new Date(at).toISOString()
+                scenario.offset ??= (at - saved.start) / 1000
+                for (const row of pendingRows) saved.times[row.row] = (at - saved.start) / 1000 + Math.max(0, row.time - elapsed)
+                saveComposite()
+                console.log('')
+                if (composite) log(c.bold(`▶ Scenario ${scenario.id}/${scenarios.length}: ${scenario.name}`))
+                if (resume) scenarioLog(`Resuming: ${scenario.rows.length - pendingRows.length}/${scenario.rows.length} rows already finished`)
+                console.log('')
+                timer = setInterval(checkpoint, 1000)
+                process.once('SIGINT', stop)
+                process.once('SIGTERM', stop)
+              },
+              playRow: async row => {
+                const played = { ...row, time: saved.times[row.row] }
+                scenarioLog(`${tag(row.row, row.trader)} ${ui.kind(row.type)} ${c.bold(`${row.amount} ${row.token}`)} ${row.type === 'sell' ? '→' : '←'} ${c.bold(row.otherToken)} ${c.dim('[')}${ui.mode(row.mode)}${c.dim(']')}${row.note ? ' ' + c.dim(row.note) : ''}`)
+                const result = await runRow({ ...ctx, log: scenarioLog }, w.trader(row.trader), played)
+                result.orders += priorOrders.get(row.row)?.size ?? 0
+                results.push(result)
+                checkpoint()
+                return result
+              },
+            })
+          } finally {
+            clearInterval(timer)
+            process.off('SIGINT', stop)
+            process.off('SIGTERM', stop)
+          }
+          const pending = session.outstandingOrders()
+          if (pending.length) scenarioLog(c.dim(`Waiting for ${pending.length} outstanding orders`))
+          await waitForOutstandingOrders(pending, uid => orders.getOrder(uid))
+          scenario.end = new Date().toISOString()
+          scenario.phase = 'cleanup'
+          saveComposite()
+          console.log('')
+          scenarioLog('Finished')
+        }
+        if (scenario.phase === 'cleanup') {
+          if (opts.cleanup) {
+            scenarioLog(c.bold('🧹 Cleaning up'))
+            const cleaned = new Set(journal(session).filter(e => e.event === 'cleanup_done' && !e.leftover?.length).map(e => e.trader))
+            const todo = tradersIn(scenario.rows).filter(trader => !cleaned.has(trader))
+            if (resumingCleanup && todo.length) {
+              const lines = await fundingPlan(rpc, w, todo, target)
+              const issues = fundingIssues(lines, await rpc.lamports(w.funder.publicKey), 0n)
+              if (issues.length) throw new Error(issues.join('; '))
+              await fundScenario(scenario, lines)
+            }
+            const cleanedUp = await cleanupAll({ ...ctx, log: scenarioLog }, w, todo, opts.env, opts.rpcRps)
+            if (cleanedUp.length !== todo.length || cleanedUp.some(result => result.leftover.length)) {
+              throw new Error(`Cleanup is unfinished for ${scenario.name}. Use resume-session ${session.name} to continue cleanup.`)
+            }
+          }
+          scenario.phase = 'pause'
+          scenario.pauseUntil = Date.now() + (scenario.id < scenarios.length ? (composite?.breakSeconds ?? 0) * 1000 : 0)
+          saveComposite()
+        }
+        if (scenario.phase === 'pause') {
+          const remaining = Math.max(0, scenario.pauseUntil! - Date.now())
+          if (remaining) scenarioLog(c.dim(`Pause: ${remaining / 1000}s before the next scenario`))
+          await sleep(remaining)
+          scenario.phase = 'finished'
+          saveComposite()
+        }
+      }
+    } finally { watching = false }
+    for (const scenario of saved.scenarios) {
+      const completed = results.filter(result => result.status === 'filled' && scenario.rows.some(row => row.row === result.row)).length
+      scenarioSummary.push({ Scenario: scenario.path, Trades: scenario.rows.length, Completed: completed,
+        Failed: scenario.rows.length - completed, Completion: `${(100 * completed / scenario.rows.length).toFixed(1)}%` })
+    }
     session.writeMeta({ trading_end: new Date().toISOString(), end: new Date(Date.now() + 60_000).toISOString() })
 
     const filled = results.filter((r) => r.status === 'filled').length
     console.log(`\n${(filled === results.length ? c.green : c.yellow)(c.bold(`${filled}/${results.length} rows filled`))}, ${results.reduce((s, r) => s + r.orders, 0)} orders placed.`)
-    for (const r of results.filter((r) => r.status === 'failed').sort((a, b) => a.row - b.row)) console.log(`  ${tag(r.row, r.trader)}: ${c.red(r.reason ?? 'failed')}`)
-
-    if (opts.cleanup) {
-      log(c.bold('🧹 Cleaning up'))
-      await cleanupAll(ctx, w, traders, opts.env, opts.rpcRps)
-      // The session window covers cleanup too, so log queries see its orders.
-      session.writeMeta({ end: new Date(Date.now() + 30_000).toISOString() })
+    if (composite) {
+      console.log('\nScenario results (completion = full trade flow succeeded):')
+      console.table(scenarioSummary)
+      console.log('')
     }
+    for (const r of results.filter((r) => r.status === 'failed').sort((a, b) => a.row - b.row)) {
+      const scenario = composite?.scenarios.find(s => s.rows.some(row => row.row === r.row))
+      console.log(`  ${scenario ? `[${scenario.name}] ` : ''}${tag(r.row, r.trader)}: ${c.red(r.reason ?? 'failed')}`)
+    }
+
     if (opts.report) {
       for (const cmd of [...(logsConfigured(opts.env) ? ['logs'] : []), 'fetch', 'report']) spawnSync('python3', [resolve(QOS_ROOT, 'qos.py'), cmd, '--session', session.name], { stdio: 'inherit' })
     }
+    saved.finished = true
+    saveRun(session, saved)
     log(`${ui.ok('Done.')} Session: ${c.cyan(session.dir)}`)
+    if (composite) {
+      log(`Trade logs: ${resolve(session.dir, 'sim', 'journal.jsonl')}`)
+      if (opts.report) log(`Scenario results: ${resolve(session.dir, 'report.html')}`)
+    }
     await Promise.race([watch, sleep(0)])
     process.exit(0)
+  } finally { release?.() }
+}
+
+program.command('resume-session')
+  .description('Continue an interrupted individual or composite run in the same session')
+  .argument('<session>', 'existing session folder name')
+  .option('--allow-public-rpc', 'resume using a public RPC')
+  .option('-y, --yes', 'skip the confirmation prompt')
+  .action(async (name: string, flags) => {
+    const saved = readRun(new Session(name))
+    if (saved.finished) { console.log(ui.ok(`${name}: already finished; no trades replayed`)); return }
+    const opts: any = { ...saved.options, session: name, yes: flags.yes, allowPublicRpc: flags.allowPublicRpc || saved.options.allowPublicRpc }
+    const composite = saved.composite ? { ...saved.composite, env: opts.env as 'staging' | 'prod', options: {}, scenarios: saved.scenarios } : undefined
+    await runSession(saved.scenarioPath, opts, composite, saved)
+  })
+
+sessionCommand('simulate-trade-session')
+  .argument('<scenario>', 'CSV: trader,time,type,amount,token,other_token[,mode,note]')
+  .action((path: string, opts) => runSession(path, opts))
+
+sessionCommand('simulate-composite-scenario')
+  .description('Play CSV scenarios in order as one session, with breaks between them')
+  .argument('<config>', 'composite scenario JSON; CSV paths are relative to this file')
+  .option('--preview', 'show the combined schedule and budget offline; no wallet or RPC needed')
+  .action(async (path: string, opts, command: Command) => {
+    const composite = readComposite(path)
+    const settings = { ...opts }
+    for (const [key, value] of Object.entries({ ...composite.options, env: composite.env })) {
+      if (command.getOptionValueSource(key) !== 'cli') settings[key] = value
+    }
+    if (opts.preview) {
+      const rows = combinedRows(composite.scenarios, composite.breakSeconds)
+      const budget = creationBudget(rows, settings.maxRetries, settings.cleanup)
+      const duration = (seconds: number) => {
+        const minutes = Math.floor(seconds / 60)
+        const rest = Number((seconds % 60).toFixed(3))
+        return minutes ? `${minutes}m${rest ? ` ${rest}s` : ''}` : `${rest}s`
+      }
+      const peakWallets = Math.max(...composite.scenarios.map(scenario => tradersIn(scenario.rows).length))
+      const wallets = settings.cleanup ? peakWallets : tradersIn(rows).length
+      console.log(`\nComposite scenario: ${composite.name}`)
+      console.log('Preview only: no network calls, funding, or trades.')
+      console.log('Results: not available — use the command without --preview to run the scenarios.')
+      console.log(`Environment: ${settings.env}`)
+      console.log(`Solver label: ${composite.solver} (does not select the active solver)`)
+      console.log(`\nRun order (${rows.length} trades):`)
+      console.table(composite.scenarios.map((scenario, index) => ({
+        Scenario: scenario.path, Trades: scenario.rows.length, Completion: 'Not run',
+        'Pause after running': index < composite.scenarios.length - 1 ? duration(composite.breakSeconds) : 'None',
+      })))
+      console.log('')
+      console.log('Breaks start after all trades, outstanding orders, and cleanup finish.')
+      console.log('During a run: each scenario logs trade outcomes, failure reasons, and its trade completion rate.')
+      console.log(settings.cleanup ? '\nCleanup: after each scenario; return remaining funds before funding the next.' : '\nCleanup: disabled; funds stay in the trader wallets.')
+      console.log(settings.report ? 'Report: one combined report with results for each scenario.' : 'Report: disabled.')
+      console.log(`\nFunding: up to ${fmtSol(solToLamports(settings.solFundingPerTrader) * BigInt(wallets))}${settings.cleanup ? ' at a time' : ' across all scenarios'}; cap ${settings.maxTotalSol} SOL per scenario. Existing balances reduce top-ups.`)
+      console.log('Keep extra SOL for fees and trading losses; balances are checked before funding each scenario.')
+      console.log(`Estimated order creation fees/rent: ${fmtSol(budget.total)} before refunds; excludes trade amounts and other fees.`)
+      return
+    }
+    await runSession(path, settings, composite)
   })
 
 program

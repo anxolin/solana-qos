@@ -53,6 +53,8 @@ export interface Placed {
   intent: SolanaOrderIntent
 }
 
+type RecordPlacement = (order: Pick<Placed, 'uid' | 'validTo' | 'mode'>, event: 'prepared' | 'rejected') => void
+
 export interface OrderDto {
   uid: string
   status: string
@@ -215,23 +217,23 @@ export class Orders {
    * [create wSOL ATA, transfer, sync-native] (selling SOL) → approve → create buy ATA → CreateOrder,
    * with the backend's funder as fee payer. Self-paid orders send the same bundle with the owner paying.
    */
-  async place(p: PlaceParams): Promise<Placed> {
+  async place(p: PlaceParams, record?: RecordPlacement): Promise<Placed> {
     try {
-      return await this.placeAs(p, p.mode, false).catch((e) => {
+      return await this.placeAs(p, p.mode, false, record).catch((e) => {
         // The quote's validTo ran short before the post landed: a fresh quote resets it.
-        if (/InsufficientValidTo/.test(errorText(e))) return this.placeAs(p, p.mode, false)
+        if (/InsufficientValidTo/.test(errorText(e))) return this.placeAs(p, p.mode, false, record)
         throw e
       })
     } catch (e) {
       // Deployments without services#4990 reject sponsored native-SOL buys; the contracts support them.
       if (p.mode === 'sponsored' && p.buy.isNative && /native SOL/i.test(errorText(e))) {
-        return this.placeAs(p, 'self', true)
+        return this.placeAs(p, 'self', true, record)
       }
       throw e
     }
   }
 
-  private async placeAs(p: PlaceParams, mode: Mode, forcedSelf: boolean): Promise<Placed> {
+  private async placeAs(p: PlaceParams, mode: Mode, forcedSelf: boolean, record?: RecordPlacement): Promise<Placed> {
     // Wait before quoting/signing, so our API queue does not age the quote or blockhash.
     if (mode === 'sponsored') await this.api.take()
     const q = await this.quote(p)
@@ -274,14 +276,24 @@ export class Orders {
     ixs.push(order.instruction)
 
     let signature: string | undefined
+    const prepared = { uid: order.orderId, validTo: intent.validTo, mode }
+    const submit = async <T>(fn: () => Promise<T>): Promise<T> => {
+      record?.(prepared, 'prepared')
+      try { return await fn() }
+      catch (e) {
+        // These explicit rejections trigger the existing fresh-quote/native-SOL fallback, and created no order.
+        if (/InsufficientValidTo|native SOL.*(?:not supported|unsupported)|(?:unsupported|not supported).*native SOL/i.test(errorText(e))) record?.(prepared, 'rejected')
+        throw e
+      }
+    }
     if (mode === 'sponsored') {
       const { blockhash, lastValidBlockHeight } = await this.rpc.call((c) => c.getLatestBlockhash('confirmed'))
       const tx = new Transaction({ feePayer: funder!, blockhash, lastValidBlockHeight }).add(...ixs)
       tx.partialSign(p.owner)
       const b64 = tx.serialize({ requireAllSignatures: false, verifySignatures: false }).toString('base64')
-      await stage('post', { uid: order.orderId, intent, transaction: b64 }, () => q.postSponsoredOrder(b64))
+      await submit(() => stage('post', { uid: order.orderId, intent, transaction: b64 }, () => q.postSponsoredOrder(b64)))
     } else {
-      signature = await stage('send', { uid: order.orderId, intent }, () => this.rpc.sendAndConfirm(ixs, [p.owner]))
+      signature = await submit(() => stage('send', { uid: order.orderId, intent }, () => this.rpc.sendAndConfirm(ixs, [p.owner])))
     }
     this.ledger.add(owner, sellMint, order.orderId, intent.sellAmount)
     return {
