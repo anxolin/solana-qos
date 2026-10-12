@@ -20,6 +20,7 @@ it.each([
   { override: ['--session', 'interrupt'], name: 'interrupt', cleanup: true, mode: 'interrupt' },
   { override: ['--session', 'unsorted', '--sol-funding-per-trader', '0.07', '--report'], name: 'unsorted', cleanup: true, mode: 'unsorted' },
   ...['running', 'single', 'cleanup', 'pause', 'unknown', 'identity', 'finished'].map(mode => ({ override: [], name: mode, cleanup: true, mode })),
+  ...['defer', 'defer-running', 'defer-unknown', 'defer-shared'].map(mode => ({ override: ['--defer-cleanup'], name: mode, cleanup: true, mode })),
 ])('runs the real command offline: $name', async ({ override, name, cleanup, mode }) => {
   vi.resetModules()
   const root = mkdtempSync(join(tmpdir(), 'composite-cli-'))
@@ -101,7 +102,7 @@ it.each([
     const { Orders } = await import('../src/orders.js')
     vi.spyOn(Rpc.prototype, 'lamports').mockImplementation(async address =>
       address.equals(funder) ? funderBalance : address.toBase58() === '11111111111111111111111111111111' ? 10_000_000_000n : balances.get(address.toBase58()) ?? 0n)
-    vi.spyOn(Orders.prototype, 'getOrder').mockImplementation(async uid => mode === 'unknown' ? null : ({
+    vi.spyOn(Orders.prototype, 'getOrder').mockImplementation(async uid => mode === 'unknown' || mode === 'defer-unknown' ? null : ({
       uid, status: Date.now() >= 20_000 ? 'fulfilled' : 'open', validTo: 300,
       executedSellAmount: '0', executedBuyAmount: '0', orderPda: '',
     }))
@@ -113,7 +114,7 @@ it.each([
         amount: 1_000_000n, decimals: 6, lamports: 2_000_000, programId: TOKEN_PROGRAM_ID,
       }] : [])
       vi.spyOn(Orders.prototype, 'quote').mockImplementation(async () => {
-        if (quoteOutage) throw new Error('Transient quote outage')
+        if (quoteOutage) throw new Error('404 Not Found: NoLiquidity: no route found')
         return { solanaQuote: { intent: { buyAmount: 3_000_000n } } } as never
       })
       vi.spyOn(Orders.prototype, 'place').mockImplementation(async (params, record) => {
@@ -174,6 +175,8 @@ it.each([
       const first = saved.scenarios[0]
       Object.assign(first, { phase: mode === 'single' ? 'running' : mode === 'cleanup' || mode === 'pause' ? mode : 'finished',
         start: new Date(5000).toISOString(), end: new Date(22_000).toISOString(), offset: 0, elapsed: mode === 'single' ? 1 : 17 })
+      if (mode.startsWith('defer')) first.phase = mode === 'defer-running' ? 'running' : 'cleanup'
+      if (mode === 'defer-shared') saved.scenarios[1].rows[0].trader = first.rows[0].trader
       first.pauseUntil = 120_000
       if (mode === 'single') {
         session.log({ step: 'main', event: 'prepared', row: 1, trader: 1, uid: 'interrupted-main', validTo: 300 })
@@ -201,6 +204,11 @@ it.each([
           quoteOutage = false
         }
       }
+      if (mode.startsWith('defer')) {
+        session.log({ step: 'cleanup', event: 'cleanup_done', trader: 1, leftover: [] })
+        session.log({ step: 'cleanup', event: 'cleanup_done', trader: 2, leftover: ['0.806183 USDC'] })
+        if (mode === 'defer-unknown') session.log({ step: 'cleanup', event: 'placed', trader: 2, uid: 'uncertain-cleanup', validTo: 300 })
+      }
       saveRun(session, saved)
       vi.setSystemTime(100_000)
     }
@@ -223,10 +231,19 @@ it.each([
       await import('../src/cli/index.js')
       await vi.runAllTimersAsync()
     }
-    if (mode === 'unknown' || mode === 'identity') {
-      await expect(completion).rejects.toThrow(mode === 'unknown' ? 'Cannot verify order interrupted-main' : 'original funder')
+    if (mode === 'unknown' || mode === 'identity' || ['defer-running', 'defer-unknown', 'defer-shared'].includes(mode)) {
+      const error = {
+        unknown: 'Cannot verify order interrupted-main', identity: 'original funder',
+        'defer-running': 'only when a composite scenario is waiting for cleanup',
+        'defer-unknown': 'Cannot verify order uncertain-cleanup', 'defer-shared': 'reuse its trader wallets',
+      }[mode]!
+      await expect(completion).rejects.toThrow(error)
       expect(starts).toEqual([])
       expect(lifecycle).toEqual([])
+      if (mode.startsWith('defer')) {
+        const saved = JSON.parse(readFileSync(join(root, 'sessions', name, 'sim', 'run.json'), 'utf8'))
+        expect(saved.scenarios[0].cleanupDeferred).toBeUndefined()
+      }
       return
     }
     await completion
@@ -260,12 +277,24 @@ it.each([
       const expected = {
         running: [[6, 105], [7, 105]], single: [[3, 101], [4, 101]],
         cleanup: [[5, 165], [6, 170], [7, 170]], pause: [[5, 122], [6, 127], [7, 127]],
+        defer: [[5, 162], [6, 167], [7, 167]],
         interrupt: [[1, 5], [2, 5], [4, 7], [3, 100], [5, 166], [6, 171], [7, 171]],
       }[mode]
       expect(starts).toEqual(expected)
       if (mode === 'running') expect(checkpoint.results.find(result => result.row === 7)?.orders).toBe(2)
       if (mode === 'cleanup') expect(lifecycle.slice(0, 2)).toEqual([['fund', [2], 100], ['cleanup', [2], 100]])
       if (mode === 'pause' || mode === 'running') expect(lifecycle.filter(event => event[0] === 'cleanup').map(event => event[1][0])).toEqual([3, 4])
+      if (mode === 'defer') {
+        expect(lifecycle).toEqual([['fund', [3, 4], 160], ['cleanup', [3], 168], ['cleanup', [4], 168]])
+        expect(checkpoint.options.cleanup).toBe(true)
+        expect(checkpoint.scenarios[0].cleanupDeferred).toBe(true)
+        expect(checkpoint.scenarios[1].cleanupDeferred).toBeUndefined()
+        const events = readFileSync(join(directory, 'sim', 'journal.jsonl'), 'utf8').trim().split('\n').map(line => JSON.parse(line))
+        expect(events.filter(event => event.event === 'cleanup_deferred')).toEqual([
+          expect.objectContaining({ scenario: 1, traders: [2] }),
+        ])
+        expect(events).toContainEqual(expect.objectContaining({ trader: 2, event: 'cleanup_done', leftover: ['0.806183 USDC'] }))
+      }
       expect(checkpoint.results.find(result => result.row === (mode === 'single' ? 2 : 1))?.status).toBe(mode === 'interrupt' ? 'filled' : 'failed')
       const meta = JSON.parse(readFileSync(join(directory, 'meta.json'), 'utf8'))
       expect(meta.resumes).toHaveLength(1)

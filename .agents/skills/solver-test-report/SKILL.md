@@ -42,6 +42,10 @@ Check solver participation in competition records, not DEX names. Decode custom 
 
 Identify the failing stage and owner from evidence, not where an error was logged. Self paid creation sent directly by the simulator to RPC happens before autopilot handles the order. Quote API errors may come from a solver or another provider. If ownership is unclear, say so.
 
+Before calling an error unknown, investigate the original failure record. Join settling orders and errors by auction and solution, not just a shared auction or nearby timestamp. If submission records include a transaction signature, inspect the failed transaction and the first failing program in its logs; a later successful transaction does not identify the earlier failure. Use named program errors where available. A submission error wrapper does not mean the network or autopilot caused the failure.
+
+Separate the confirmed failure from its underlying cause and repair owner. Titan LessThanMinimumAmountOut and Jupiter SlippageToleranceExceeded confirm that a swap failed its minimum output check when the program is verified. State that clearly, even if quote freshness, minimum output settings or changes between simulation and execution still need investigation. Do not label these confirmed swap failures ownership unknown or automatically call them solver defects. Keep genuine quote or connectivity uncertainty separate. Link failed transactions beside the affected orders and show when driver simulation passed before execution failed.
+
 Always produce 2 reports:
 
 - `{timestamp}_{solverName}_solver_test_report.md`: solver performance, feature results, confirmed solver issues, accepted solver limitations and errors of unknown ownership. Keep unknown ownership errors in both reports with the same order evidence; label them **Ownership unknown**, not solver defects. Exclude errors confirmed to be unrelated to the solver. Keep brief test limitations needed to interpret the results, without unrelated service troubleshooting.

@@ -1,6 +1,6 @@
 # Grafiks solver test report for CoW — staging, 9 October 2026
 
-**167/189 scheduled trades filled; all placed orders eventually filled.** There were 19 unexpected failures before placement and 3 expected autopilot transfer fee rejections. This report includes solver results and service evidence; the [solver report](20260910_grafiks_solver_test_report.md) includes solver findings and errors of unknown ownership.
+**157/179 scheduled trades filled; all placed orders eventually filled.** There were 19 unexpected failures before placement and 3 expected autopilot transfer fee rejections. This report includes solver results and service evidence; the [solver report](20260910_grafiks_solver_test_report.md) includes solver findings and unresolved quote and connectivity errors.
 
 Counts include 6 CoW setup trades and exclude cleanup. Times are UTC. Quote failures are rows without a submitted main order; no placed scenario order remained unfilled.
 
@@ -10,7 +10,6 @@ Counts include 6 CoW setup trades and exclude cleanup. Times are UTC. Quote fail
 | Sell bursts | 84 | 77 | 0 | 0 | 7 | 91.7% |
 | Opposing orders / CoW | 15 | 14 | 1 | 0 | 0 | 93.3% |
 | Token coverage | 55 | 41 | 14 | 0 | 0 | 74.5% |
-| Transaction size | 10 | 10 | 0 | 0 | 0 | 100.0% |
 
 Token coverage's 14 quote-stage failures include 11 generic `NoLiquidity` responses and 3 expected autopilot `UnsupportedToken` transfer-fee rejections. The table counts failed trades, not retries or cleanup attempts.
 
@@ -22,7 +21,6 @@ Fill times run from placement until the simulator sees a fill, including polling
 | 2. Sell bursts | Batches of 4 achieved; throughput ceiling inconclusive; 77/84 filled | Investigate self paid RPC preflight, then retest throughput. |
 | 3. Opposing orders / CoW | No CoW; 14/15 filled through DEX routes; 1 quote failure | Check stablecoin matching and exact output SOL quoting. |
 | 4. Token coverage | 37 sells filled; 4/15 exact buys filled; 11 quote failures | Investigate Grafiks quote responses and retry fresh exact buy quotes; timing attribution is approximate. |
-| 5. Transaction size | 10/10 filled; limit test inconclusive; cleanup retries | Test team: reach the size target and rerun. |
 
 ## 1. 25 same direction sells
 
@@ -31,9 +29,9 @@ Fill times run from placement until the simulator sees a fill, including polling
 <details>
 <summary>Order evidence and metrics</summary>
 
-Across the selected runs, 11 main and 12 cleanup orders needed settlement retries; 18 deadline warnings followed failed submissions. Check route freshness and submission timing; cause remains unknown. There were 12 `NoLiquidity` responses before placement: 1 in scenario 3 and 11 in scenario 4.
+Across the selected runs, 11 main and 9 cleanup orders hit confirmed Titan or Jupiter minimum output checks, then filled. There were 7 failed simulation attempts and 12 transactions that passed driver simulation but failed on chain; the 12 deadline warnings followed failed submissions. Check quote freshness, minimum output settings and changes between simulation and execution. There were 12 `NoLiquidity` responses before placement: 1 in scenario 3 and 11 in scenario 4.
 
-Tables include all 22 recorded failures before placement and all 23 orders with failed settlement attempts, grouped by order, plus successful examples.
+Tables include all 22 recorded failures before placement and all 20 orders with failed settlement attempts, grouped by order, plus successful examples.
 
 Stage shows where a failure surfaced, not who caused it. No confirmed autopilot defect is established by these results. Error rows use the first failed-attempt timestamp; successful examples use placement time. Sells show input amounts; buys show exact output. Cleanup uses `— / trader`; intended creation UIDs may have no debug record, and quote failures have no order ID.
 
@@ -56,14 +54,14 @@ Successful examples below use placement timestamps.
 
 **Service and shared execution evidence**
 
-3 main orders and 3 cleanup orders had failed settlement attempts, then filled. Slippage and submission errors require shared investigation; ownership is unknown.
+3 main orders and 3 cleanup orders hit Titan or Jupiter minimum output checks, then filled. These are confirmed swap failures in Grafiks routes; check route freshness and time from quote to execution.
 
 **Main settlement attempts (orders filled later):**
 
 | Scenario row / trader | UTC timestamp | Trade | Error(s) | Debug tool URL |
 | --- | --- | --- | --- | --- |
-| 14 / 14 | 19:30:56.101 | Sell 0.005 SOL → JUP | Filled later. `FailedToSubmit`: `InstructionError(3, Custom(6008))` | [Debug](https://debug.barn.cow.fi/order/0x22045a182d5c3a842bf840861272f798241bf7b06ca69f7946bbcd28bef455d8) |
-| 19 / 19 | 19:31:49.164 | Sell 0.005 SOL → JUP | Filled later. `FailedToSubmit`: `InstructionError(3, Custom(6001))` | [Debug](https://debug.barn.cow.fi/order/0x89d562a6fb1715dbb9b91d68a7abfbc8320774649e3ab7d6e00e3081d1e6c5d9) |
+| 14 / 14 | 19:30:56.101 | Sell 0.005 SOL → JUP | Filled later. `FailedToSubmit`: Titan `6008 LessThanMinimumAmountOut` (instruction 3; confirmed on chain). [Failed tx](https://solscan.io/tx/4ShF6RX8aNkwc5JVdpooMiSTDiL2zXmtHAgBH8DAaXQWCGj9YmGg67vFQPAoLkY74WV3gPnmD5JmuQf9iQuEasKy) | [Debug](https://debug.barn.cow.fi/order/0x22045a182d5c3a842bf840861272f798241bf7b06ca69f7946bbcd28bef455d8) |
+| 19 / 19 | 19:31:49.164 | Sell 0.005 SOL → JUP | Filled later. `FailedToSubmit`: Jupiter `6001 SlippageToleranceExceeded` (instruction 3; confirmed on chain). [Failed tx](https://solscan.io/tx/3zkiQdeyv3RGyfayxRHuQT6kMqpQErnFzbGpicXTPQBA4kaZFLgkY7gGa3ke26ksRtNmeB1iYecvRsStFZG5br22) | [Debug](https://debug.barn.cow.fi/order/0x89d562a6fb1715dbb9b91d68a7abfbc8320774649e3ab7d6e00e3081d1e6c5d9) |
 | 22 / 22 | 19:31:28.895 | Sell 0.005 SOL → JUP | Filled later. Jupiter `6001 SlippageToleranceExceeded` (instruction 3) | [Debug](https://debug.barn.cow.fi/order/0x9b0c6610049e87d27c23a61487591cc7ecf0e38cdf5c50dfec09f0ff5833cb55) |
 
 ### Cleanup failures (although orders were filled at later attempts)
@@ -72,9 +70,9 @@ Trader 21 filled after 2 failed attempts. [Successful settlement](https://solsca
 
 | Scenario row / trader | UTC timestamp | Trade | Error(s) | Debug tool URL |
 | --- | --- | --- | --- | --- |
-| — / 21 | 19:33:57.865 | Sell 1.462829 JUP → SOL | 2 failed settlement attempts; filled later. Jupiter `6001 SlippageToleranceExceeded` (instruction 4); `FailedToSubmit`: `InstructionError(4, Custom(6001))` | [Debug](https://debug.barn.cow.fi/order/0xe514247aad34b33435251c18e4bf00f3e6d1ae84197160764a8509d33059b517) |
-| — / 22 | 19:34:14.322 | Sell 1.462639 JUP → SOL | 1 failed settlement attempt; filled later. `FailedToSubmit`: `InstructionError(4, Custom(6001))` | [Debug](https://debug.barn.cow.fi/order/0x1880db62be6c8d8e9689e68243bee987152b7ac2be4802ed068810dc770a2d95) |
-| — / 23 | 19:34:14.322 | Sell 1.462732 JUP → SOL | 1 failed settlement attempt; filled later. `FailedToSubmit`: `InstructionError(4, Custom(6001))` | [Debug](https://debug.barn.cow.fi/order/0xe66942790f166c8e4c6ed762161902410e67d2995b3528d7f4bb742dfb89c171) |
+| — / 21 | 19:33:57.865 | Sell 1.462829 JUP → SOL | 2 failed settlement attempts; filled later. Jupiter `6001 SlippageToleranceExceeded` (instruction 4); `FailedToSubmit`: Jupiter `6001 SlippageToleranceExceeded` (instruction 4; confirmed on chain). [Failed tx](https://solscan.io/tx/4tJGQx18dgXNi6jVgciZdMJwuKWx6DUNeabZoSeMeGkf8ZXdky2smFLTQUW7rciE6r7HfmExp3UpTXWjMAZrn3iQ) | [Debug](https://debug.barn.cow.fi/order/0xe514247aad34b33435251c18e4bf00f3e6d1ae84197160764a8509d33059b517) |
+| — / 22 | 19:34:14.322 | Sell 1.462639 JUP → SOL | 1 failed settlement attempt; filled later. `FailedToSubmit`: Jupiter `6001 SlippageToleranceExceeded` (instruction 4; confirmed on chain). [Failed tx](https://solscan.io/tx/4tJGQx18dgXNi6jVgciZdMJwuKWx6DUNeabZoSeMeGkf8ZXdky2smFLTQUW7rciE6r7HfmExp3UpTXWjMAZrn3iQ) | [Debug](https://debug.barn.cow.fi/order/0x1880db62be6c8d8e9689e68243bee987152b7ac2be4802ed068810dc770a2d95) |
+| — / 23 | 19:34:14.322 | Sell 1.462732 JUP → SOL | 1 failed settlement attempt; filled later. `FailedToSubmit`: Jupiter `6001 SlippageToleranceExceeded` (instruction 4; confirmed on chain). [Failed tx](https://solscan.io/tx/4tJGQx18dgXNi6jVgciZdMJwuKWx6DUNeabZoSeMeGkf8ZXdky2smFLTQUW7rciE6r7HfmExp3UpTXWjMAZrn3iQ) | [Debug](https://debug.barn.cow.fi/order/0xe66942790f166c8e4c6ed762161902410e67d2995b3528d7f4bb742dfb89c171) |
 
 </details>
 
@@ -118,11 +116,13 @@ All 7 returned `Simulation failed. Message: Transaction simulation failed.` with
 | 68 / 16 | 19:54:26.802 | Sell 0.004 SOL → USDC | Self paid creation / RPC preflight: `Simulation failed`; `logs: []`. Cause unknown; not placed. | [Intended UID; may have no record](https://debug.barn.cow.fi/order/0x990778467f87707898ef46d66bed4e1c44c85df13134e13a7ca09820957f8dcf) |
 | 74 / 22 | 19:54:28.021 | Sell 0.003 SOL → USDC | Self paid creation / RPC preflight: `Simulation failed`; `logs: []`. Cause unknown; not placed. | [Intended UID; may have no record](https://debug.barn.cow.fi/order/0xa1c38fd594a08ab6eb80b6eeb5bdacd78def6b81cd680c6c7e2a45a23a214573) |
 
-**Shared settlement retry; order filled later:**
+**Confirmed swap failures; order filled later:**
+
+Row 27 failed simulation twice: Titan at 19:46:44.782 UTC, then Jupiter at 19:46:49.548 UTC. Both swaps fell below their required minimum output.
 
 | Scenario row / trader | UTC timestamp | Trade | Error(s) | Debug tool URL |
 | --- | --- | --- | --- | --- |
-| 27 / 15 | 19:46:44.782 | Sell 0.0035 SOL → USDC | Filled later. Titan `6008 LessThanMinimumAmountOut` (instruction 3); Jupiter `6001 SlippageToleranceExceeded` (instruction 4) | [Debug](https://debug.barn.cow.fi/order/0xa4e1d8fe6439c0e39edd2a9295369016a585d39df1d2ed9e64a05609d486fc53) |
+| 27 / 15 | 19:46:44.782 | Sell 0.0035 SOL → USDC | 2 failed simulation attempts; filled later. Titan `6008 LessThanMinimumAmountOut` (instruction 3); Jupiter `6001 SlippageToleranceExceeded` (instruction 4) | [Debug](https://debug.barn.cow.fi/order/0xa4e1d8fe6439c0e39edd2a9295369016a585d39df1d2ed9e64a05609d486fc53) |
 
 At 19:39:34.341 UTC, 1 auction request failed with `ConnectionRefused`. The records do not distinguish solver downtime from a service connectivity problem. Check solver availability and service connectivity.
 
@@ -158,7 +158,9 @@ The simulator requested a quote through its SDK before placement. The response w
 | --- | --- | --- | --- | --- |
 | 8 / 2 | 20:11:17.186 | Buy USDC → exactly 0.02 SOL | `404 Not Found: NoLiquidity: no route found`. Not placed. | — (no order ID) |
 
-**Shared settlement retries (orders filled later):**
+**Confirmed swap failures (orders filled later):**
+
+Jupiter rejected these swaps because output fell below the required minimum. Check route freshness, minimum output settings and time from quote to execution; these records do not establish which factor caused the shortfall.
 
 | Scenario row / trader | UTC timestamp | Trade | Error(s) | Debug tool URL |
 | --- | --- | --- | --- | --- |
@@ -170,9 +172,9 @@ The simulator requested a quote through its SDK before placement. The response w
 
 | Scenario row / trader | UTC timestamp | Trade | Error(s) | Debug tool URL |
 | --- | --- | --- | --- | --- |
-| — / 6 | 20:11:54.213 | Sell 2.995272 USDC → SOL | 1 failed settlement attempt; filled later. `FailedToSubmit`: `InstructionError(4, Custom(6001))` | [Debug](https://debug.barn.cow.fi/order/0xe510c168d362ecd3c2e90e884128367103f193824017fba0b9a262a7ee22886b) |
-| — / 8 | 20:11:53.191 | Sell 2.99982 USDT → SOL | 1 failed settlement attempt; filled later. `FailedToSubmit`: `InstructionError(4, Custom(6001))` | [Debug](https://debug.barn.cow.fi/order/0x51ccdb150d6b3297240b8bafc378e2ddc3cd68a218ce7ace2e9be8d331599c6f) |
-| — / 9 | 20:11:54.224 | Sell 5.895613 JUP → SOL | 1 failed settlement attempt; filled later. `FailedToSubmit`: `InstructionError(4, Custom(6001))` | [Debug](https://debug.barn.cow.fi/order/0x86aae26fe3893a9f00cb94a303a41b667b75dbea83cdb527830903be55c827fb) |
+| — / 6 | 20:11:54.213 | Sell 2.995272 USDC → SOL | 1 failed settlement attempt; filled later. `FailedToSubmit`: Jupiter `6001 SlippageToleranceExceeded` (instruction 4; confirmed on chain). [Failed tx](https://solscan.io/tx/5bgktx6dV2SG68qJxzDwLkoPLaM225m9PT3CxdB88DTDi9uWxV6XWjAzko1GFUa27JDZfwmzuMZxtUP7C6iT3jyg) | [Debug](https://debug.barn.cow.fi/order/0xe510c168d362ecd3c2e90e884128367103f193824017fba0b9a262a7ee22886b) |
+| — / 8 | 20:11:53.191 | Sell 2.99982 USDT → SOL | 1 failed settlement attempt; filled later. `FailedToSubmit`: Jupiter `6001 SlippageToleranceExceeded` (instruction 4; confirmed on chain). [Failed tx](https://solscan.io/tx/2NVxcAi4ZSwgPb4f2PiNHvNFBMG5tGVxRJs92KwEKmBcJ2XGiPvE4cRQh9b4z6V2Ye8hHdBDBFrGcLUVWxpomxJF) | [Debug](https://debug.barn.cow.fi/order/0x51ccdb150d6b3297240b8bafc378e2ddc3cd68a218ce7ace2e9be8d331599c6f) |
+| — / 9 | 20:11:54.224 | Sell 5.895613 JUP → SOL | 1 failed settlement attempt; filled later. `FailedToSubmit`: Jupiter `6001 SlippageToleranceExceeded` (instruction 4; confirmed on chain). [Failed tx](https://solscan.io/tx/4aicrtZKQ8XMNHZk6U6wDGHUpfeQysa9UDWm8o2iv8PSTy9hZukbBkj4Vc76FxdkAdhpwZX77otVCrGn232QN4FL) | [Debug](https://debug.barn.cow.fi/order/0x86aae26fe3893a9f00cb94a303a41b667b75dbea83cdb527830903be55c827fb) |
 
 The failed exact buy left the perfect SOL pair incomplete; the stablecoin pair remained testable.
 
@@ -233,67 +235,25 @@ Nearby backend responses identify the Grafiks driver and say `QuotingFailed: No 
 | 24 / 12 | 20:13:57.471 | Buy SOL → exactly 0.000427 MU | `404 Not Found: NoLiquidity: no route found`. Not placed. | [Successful sell for context](https://debug.barn.cow.fi/order/0x2ecc9bde7e9cd4dc4fde5a5a60c46d2d989706b6f8e353820616c9d41d7e22ec) |
 | 26 / 13 | 20:13:48.093 | Buy SOL → exactly 0.00276 SPCX | `404 Not Found: NoLiquidity: no route found`. Not placed. | [Successful sell for context](https://debug.barn.cow.fi/order/0x249e03c8e3f7a8e8c1bb50c5d3727f830d0e572c0370d5c8ff44051bbdaf1903) |
 
-**Shared settlement retries (orders filled later):**
+**Confirmed swap failures (orders filled later):**
+
+Jupiter rejected these swaps because output fell below the required minimum. Check route freshness, minimum output settings and time from quote to execution; these records do not establish which factor caused the shortfall.
 
 | Scenario row / trader | UTC timestamp | Trade | Error(s) | Debug tool URL |
 | --- | --- | --- | --- | --- |
-| 13 / 7 | 20:13:47.325 | Sell 0.01 SOL → CRCLx | Filled later. `FailedToSubmit`: `InstructionError(6, Custom(6001))` | [Debug](https://debug.barn.cow.fi/order/0x5e5d56e3f437c8b09d89252a02820b6bcab7994d1841734c3d8fd396e54f8699) |
-| 19 / 10 | 20:13:47.334 | Sell 0.01 SOL → SKHY | Filled later. `FailedToSubmit`: `InstructionError(5, Custom(6001))` | [Debug](https://debug.barn.cow.fi/order/0x03b75404448c9eac34cae2b74a0e504c297db4d81c8da376a6870e36d2f1ee17) |
-| 27 / 14 | 20:13:47.388 | Sell 0.01 SOL → SPCXx | Filled later. `FailedToSubmit`: `InstructionError(6, Custom(6001))` | [Debug](https://debug.barn.cow.fi/order/0xa19ffa722d5e60ca325e1aeaa6d7b43a24eb034715ad474a2c1f23aa205dd176) |
-| 29 / 15 | 20:13:47.932 | Sell 0.01 SOL → TSLAx | Filled later. `FailedToSubmit`: `InstructionError(6, Custom(6001))` | [Debug](https://debug.barn.cow.fi/order/0x82ac722bf27cf74bb234111714a2df2058f7eb9a1b928b561f196ab128d55300) |
+| 13 / 7 | 20:13:47.325 | Sell 0.01 SOL → CRCLx | Filled later. `FailedToSubmit`: Jupiter `6001 SlippageToleranceExceeded` (instruction 6; confirmed on chain). [Failed tx](https://solscan.io/tx/4u9UUh9qxR8VbRBybqhrumnWGZQ5Wx3cdz5GRE79PukX1EHv9xeuP4gjEPsVXuGP4TqYCtnS1fQ4LySdkW4DVQPB) | [Debug](https://debug.barn.cow.fi/order/0x5e5d56e3f437c8b09d89252a02820b6bcab7994d1841734c3d8fd396e54f8699) |
+| 19 / 10 | 20:13:47.334 | Sell 0.01 SOL → SKHY | Filled later. `FailedToSubmit`: Jupiter `6001 SlippageToleranceExceeded` (instruction 5; confirmed on chain). [Failed tx](https://solscan.io/tx/3krQ2RB3igFVEQmSWEVNHP41enVUjT3LfSj7XZDN5rHB64PsvhDMG4ArnPmK58nAdox8bLHTD8eUSPXVJuku4m4R) | [Debug](https://debug.barn.cow.fi/order/0x03b75404448c9eac34cae2b74a0e504c297db4d81c8da376a6870e36d2f1ee17) |
+| 27 / 14 | 20:13:47.388 | Sell 0.01 SOL → SPCXx | Filled later. `FailedToSubmit`: Jupiter `6001 SlippageToleranceExceeded` (instruction 6; confirmed on chain). [Failed tx](https://solscan.io/tx/2LrpJ6DKAYGvP7inzr88p3V1ZzUrKipDkv9ywM5KWXUhe8q3SWWvamBYpQuiNMUuaqZV4XNXFtSpbB3wDXd5TXa3) | [Debug](https://debug.barn.cow.fi/order/0xa19ffa722d5e60ca325e1aeaa6d7b43a24eb034715ad474a2c1f23aa205dd176) |
+| 29 / 15 | 20:13:47.932 | Sell 0.01 SOL → TSLAx | Filled later. `FailedToSubmit`: Jupiter `6001 SlippageToleranceExceeded` (instruction 6; confirmed on chain). [Failed tx](https://solscan.io/tx/51KMTj4TSswGV5MaFJmpD3BsWFuzmhJJ7BVzquBV1itxJinHJZbvbq5Q13RKjtH96KgaSCmUxmJQxFwJRG4gfEF7) | [Debug](https://debug.barn.cow.fi/order/0x82ac722bf27cf74bb234111714a2df2058f7eb9a1b928b561f196ab128d55300) |
 
 ### Cleanup failures (although orders were filled at later attempts)
 
 | Scenario row / trader | UTC timestamp | Trade | Error(s) | Debug tool URL |
 | --- | --- | --- | --- | --- |
-| — / 10 | 20:15:10.692 | Sell 0.009006 SKHY → SOL | 1 failed settlement attempt; filled later. `FailedToSubmit`: `InstructionError(6, Custom(6001))` | [Debug](https://debug.barn.cow.fi/order/0x308d78ce8e990c2bcc4b2bf11fed5189890e8d9a351752f146e9ba2e2f1b574d) |
+| — / 10 | 20:15:10.692 | Sell 0.009006 SKHY → SOL | 1 failed settlement attempt; filled later. `FailedToSubmit`: Jupiter `6001 SlippageToleranceExceeded` (instruction 6; confirmed on chain). [Failed tx](https://solscan.io/tx/2HZGx9FUyU1Pgcd3L3fDkViVszGe5PpUQ655UjC3vXteyFSMjvWegkJqerK2krpv5eXoS3pUr14XJZtToN1Zv4Tw) | [Debug](https://debug.barn.cow.fi/order/0x308d78ce8e990c2bcc4b2bf11fed5189890e8d9a351752f146e9ba2e2f1b574d) |
 | — / 29 | 20:16:05.537 | Sell 0.117527 JLP → SOL | 1 failed settlement attempt; filled later. Jupiter `6001 SlippageToleranceExceeded` (instruction 4) | [Debug](https://debug.barn.cow.fi/order/0xb4dc8bdd0781a64732c494417f2659730e020d8b4dafecc67ce1b2fd5688f5d7) |
-| — / 31 | 20:16:12.118 | Sell 0.00021953 ETH → SOL | 1 failed settlement attempt; filled later. `FailedToSubmit`: `InstructionError(5, Custom(6001))` | [Debug](https://debug.barn.cow.fi/order/0x154f6bc127f6a6cd7b3f237ac78252c96756235f4a079921a7d169090fe2bbcf) |
+| — / 31 | 20:16:12.118 | Sell 0.00021953 ETH → SOL | 1 failed settlement attempt; filled later. `FailedToSubmit`: Jupiter `6001 SlippageToleranceExceeded` (instruction 5; confirmed on chain). [Failed tx](https://solscan.io/tx/3wkvu1rUWcrN8Je8HXJFqMDXek7zDoAHeq7qb5hDLkBMGe9QhYBDvuvLrewYY1nZiq2fiPm4xaJJjirsGCVkmK1s) | [Debug](https://debug.barn.cow.fi/order/0x154f6bc127f6a6cd7b3f237ac78252c96756235f4a079921a7d169090fe2bbcf) |
 
 The 11 exact buy failures happened before auction participation; the solver quote provider has not been identified.
-
-</details>
-
-## 5. Transaction size
-
-**Size limit test inconclusive.** Our largest settlement was 1088 bytes, below the 1232-byte target.
-
-<details>
-<summary>Order evidence and metrics</summary>
-
-**Total transactions:** 8. **Median / longest fill:** 8 / 19 seconds. Each token pair had 1 baseline, then 4 sells together. EURC settled separately; 3 JLP orders were batched.
-
-Setup: 10 self paid 0.005 SOL → EURC/JLP sells, targeting large routes and batches.
-
-Complete transactions measured 762–1088 bytes. The [largest](https://solscan.io/tx/4NKx7AyWCo5MgH5CFEH1K1zbaAuKBy1V5smZXZgvTi8CEkZuKVLasy19WJidA2RPbXwkMpRoX7VsJHZE1kfaopS8) was 1088 bytes; the [JLP triple](https://solscan.io/tx/eETvsHPC6qA47zF2PgqXiNnXKDX2YddZRoGFFiidxEdZZswKia95nsSbSGdKiW55ExJmZMo2aGqDb2X3FpQ63xj) was 1004 bytes. Scenario 1’s 4-order batch was larger (1124 bytes). Routes differed from earlier large Jupiter samples, so this run did not reach the intended size target.
-
-No main settlement failures were recorded. Successful-order timestamps below are placement times.
-
-| Scenario row / trader | UTC timestamp | Trade | Error(s) | Debug tool URL |
-| --- | --- | --- | --- | --- |
-| 1 / 1 | 20:19:58.267 | Sell 0.005 SOL → EURC (866-byte settlement) | None; filled. | [Debug](https://debug.barn.cow.fi/order/0x8a5d2d9b5267980d51a3686b77ac3272c7801d06df87cb94ccd5ebfbdfbb13e1) |
-| 2 / 1 | 20:23:58.429 | Sell 0.005 SOL → EURC (1063-byte settlement) | None; filled. | [Debug](https://debug.barn.cow.fi/order/0x5a76a60750bef79f04d6653b7dc1209bf1215a28e0e6d01041024e8ec68e53c5) |
-| 3 / 2 | 20:23:58.612 | Sell 0.005 SOL → EURC (1042-byte settlement) | None; filled. | [Debug](https://debug.barn.cow.fi/order/0x184dfc1b9c98819c8b628e473fbd80e03238c82b8bfd79e28ec956df1d37aefe) |
-| 4 / 3 | 20:23:58.816 | Sell 0.005 SOL → EURC (819-byte settlement) | None; filled. | [Debug](https://debug.barn.cow.fi/order/0xdb9b43a26b25b2367ba15809a7aa71e93263293efc55c315440a23c645359049) |
-| 5 / 4 | 20:23:58.914 | Sell 0.005 SOL → EURC (764-byte settlement) | None; filled. | [Debug](https://debug.barn.cow.fi/order/0xfe64af356ce5167e5e876f498e02e1e679293efb4a73bd55e974ed8f66638043) |
-| 6 / 5 | 20:27:58.431 | Sell 0.005 SOL → JLP (1088-byte settlement) | None; filled. | [Debug](https://debug.barn.cow.fi/order/0xcb7723b3b565a01b4835e89a7346ba1ded4e68c807f752a685cf5ebe242a3300) |
-| 7 / 5 | 20:31:58.334 | Sell 0.005 SOL → JLP (1004-byte settlement; shared batch) | None; filled. | [Debug](https://debug.barn.cow.fi/order/0x915c6ff1379c2df4b8d6f7cf9f69202baed50684f3426af32e464bfab22eb493) |
-| 8 / 6 | 20:31:58.629 | Sell 0.005 SOL → JLP (1004-byte settlement; shared batch) | None; filled. | [Debug](https://debug.barn.cow.fi/order/0xd961e93fbbfa4efc87a20365eea3cb52361902160abf5f0a5e5b40e4c77f1568) |
-| 9 / 7 | 20:31:58.825 | Sell 0.005 SOL → JLP (1004-byte settlement; shared batch) | None; filled. | [Debug](https://debug.barn.cow.fi/order/0xae6acf80f44e3a635ae33df0bb75cde91a22a67c562dac456a4f8bd2c2fa8fff) |
-| 10 / 8 | 20:31:58.929 | Sell 0.005 SOL → JLP (762-byte settlement) | None; filled. | [Debug](https://debug.barn.cow.fi/order/0x7f3580be1aea20376e562cb839dbe815466ef7761bbd11942e352ec91c2b9dc7) |
-
-**Service and shared execution evidence**
-
-No main settlement failures were recorded. 3 JLP cleanup orders had failed attempts and later filled; the errors did not indicate a transaction size problem.
-
-### Cleanup failures (although orders were filled at later attempts)
-
-| Scenario row / trader | UTC timestamp | Trade | Error(s) | Debug tool URL |
-| --- | --- | --- | --- | --- |
-| — / 5 | 20:32:30.894 | Sell 0.235093 JLP → SOL | 5 failed settlement attempts; filled later. Jupiter `6001 SlippageToleranceExceeded` (instruction 4); `FailedToSubmit`: `InstructionError(4, Custom(6001))` | [Debug](https://debug.barn.cow.fi/order/0xa054cfe32b33d87e16134ed009135cff01b2ebf41a622d3934f93213b8864820) |
-| — / 6 | 20:32:43.797 | Sell 0.117446 JLP → SOL | 1 failed settlement attempt; filled later. `FailedToSubmit`: `InstructionError(4, Custom(6001))` | [Debug](https://debug.barn.cow.fi/order/0xa4a36b9ca2ca3fa789edce822b10fdbc3007918f78168c88b8f6bc1ed46c9eb3) |
-| — / 8 | 20:32:51.324 | Sell 0.117436 JLP → SOL | 1 failed settlement attempt; filled later. `FailedToSubmit`: `InstructionError(4, Custom(6001))` | [Debug](https://debug.barn.cow.fi/order/0x540e8fdad11fad9f8d89b990e1fe61374e8e1a41f6d732ea8cf93f41f8001cde) |
-
-Across the 5 selected session windows, competition records show no sponsored creation expiries or winners skipped because creation blockhashes expired. The 18 deadline warnings followed failed submissions; they do not demonstrate late solver responses. Numeric custom error codes alone cannot identify the failing program.
 
 </details>

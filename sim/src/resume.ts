@@ -11,6 +11,7 @@ export type RunScenario = CompositeScenario & {
   elapsed: number
   checkpointAt?: number
   pauseUntil?: number
+  cleanupDeferred?: boolean
 }
 
 /** Only public identity and effective CLI settings are saved; never the mnemonic or RPC credentials. */

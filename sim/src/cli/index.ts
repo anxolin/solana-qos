@@ -318,7 +318,7 @@ async function runSession(scenarioPath: string, opts: any, composite?: ReturnTyp
   let release: (() => void) | undefined
   try {
     if (resume) {
-      await confirm(`Resume ${session.name} on ${opts.env}, checking outstanding orders before continuing?`, opts.yes)
+      await confirm(`Resume ${session.name} on ${opts.env}, checking outstanding orders before continuing${opts.deferCleanupScenario === undefined ? '' : ' and leaving the current scenario cleanup for later'}?`, opts.yes)
       release = session.lock()
       if (JSON.stringify(readRun(session)) !== JSON.stringify(resume)) throw new Error('Session changed while confirming. Run resume-session again.')
       log('Checking previously submitted orders before continuing…')
@@ -407,7 +407,7 @@ async function runSession(scenarioPath: string, opts: any, composite?: ReturnTyp
     if (!resume) await confirm(`Fund up to ${fmtSol(total)}${composite ? ' per scenario' : ''} on ${opts.env}?`, opts.yes)
     release ??= session.lock()
     if (!resume && existsSync(resolve(session.dir, 'sim', 'run.json'))) throw new Error('Session already exists. Use resume-session.')
-    const { yes: _yes, session: _session, dryRun: _dryRun, ...settings } = opts
+    const { yes: _yes, session: _session, dryRun: _dryRun, deferCleanupScenario: _deferCleanupScenario, ...settings } = opts
     const saved: SavedRun = resume ?? {
       version: 1, scenarioPath, options: settings, funder: w.funder.publicKey.toBase58(),
       program: orders.programId.toBase58(), api: env.apiBase,
@@ -529,7 +529,13 @@ async function runSession(scenarioPath: string, opts: any, composite?: ReturnTyp
           scenarioLog('Finished')
         }
         if (scenario.phase === 'cleanup') {
-          if (opts.cleanup) {
+          if (scenario.id === opts.deferCleanupScenario) {
+            const cleaned = new Set(journal(session).filter(e => e.event === 'cleanup_done' && !e.leftover?.length).map(e => e.trader))
+            const traders = tradersIn(scenario.rows).filter(trader => !cleaned.has(trader))
+            scenario.cleanupDeferred = true
+            session.log({ step: 'cleanup', event: 'cleanup_deferred', scenario: scenario.id, traders })
+            scenarioLog(ui.warn(`Cleanup deferred for traders ${traders.join(', ')}; their remaining tokens and SOL stay in their wallets.`))
+          } else if (opts.cleanup) {
             scenarioLog(c.bold('🧹 Cleaning up'))
             const cleaned = new Set(journal(session).filter(e => e.event === 'cleanup_done' && !e.leftover?.length).map(e => e.trader))
             const todo = tradersIn(scenario.rows).filter(trader => !cleaned.has(trader))
@@ -575,6 +581,9 @@ async function runSession(scenarioPath: string, opts: any, composite?: ReturnTyp
       const scenario = composite?.scenarios.find(s => s.rows.some(row => row.row === r.row))
       console.log(`  ${scenario ? `[${scenario.name}] ` : ''}${tag(r.row, r.trader)}: ${c.red(r.reason ?? 'failed')}`)
     }
+    for (const scenario of saved.scenarios.filter(s => s.cleanupDeferred)) {
+      log(ui.warn(`Cleanup still deferred for ${scenario.name}. Its wallets need separate cleanup.`))
+    }
 
     if (opts.report) {
       for (const cmd of [...(logsConfigured(opts.env) ? ['logs'] : []), 'fetch', 'report']) spawnSync('python3', [resolve(QOS_ROOT, 'qos.py'), cmd, '--session', session.name], { stdio: 'inherit' })
@@ -595,11 +604,23 @@ program.command('resume-session')
   .description('Continue an interrupted individual or composite run in the same session')
   .argument('<session>', 'existing session folder name')
   .option('--allow-public-rpc', 'resume using a public RPC')
+  .option('--defer-cleanup', 'leave the current composite scenario cleanup for later; keep cleanup enabled for later scenarios')
   .option('-y, --yes', 'skip the confirmation prompt')
   .action(async (name: string, flags) => {
     const saved = readRun(new Session(name))
     if (saved.finished) { console.log(ui.ok(`${name}: already finished; no trades replayed`)); return }
-    const opts: any = { ...saved.options, session: name, yes: flags.yes, allowPublicRpc: flags.allowPublicRpc || saved.options.allowPublicRpc }
+    const deferred = flags.deferCleanup ? saved.scenarios.find(s => s.phase !== 'finished') : undefined
+    if (flags.deferCleanup) {
+      if (!saved.composite || deferred?.phase !== 'cleanup') {
+        throw new Error('--defer-cleanup is allowed only when a composite scenario is waiting for cleanup.')
+      }
+      const traders = new Set(tradersIn(deferred.rows))
+      if (saved.scenarios.some(s => s.id > deferred.id && s.phase !== 'finished' && s.rows.some(row => traders.has(row.trader)))) {
+        throw new Error('Cannot defer cleanup: later scenarios reuse its trader wallets.')
+      }
+    }
+    const opts: any = { ...saved.options, session: name, yes: flags.yes, allowPublicRpc: flags.allowPublicRpc || saved.options.allowPublicRpc,
+      deferCleanupScenario: deferred?.id }
     const composite = saved.composite ? { ...saved.composite, env: opts.env as 'staging' | 'prod', options: {}, scenarios: saved.scenarios } : undefined
     await runSession(saved.scenarioPath, opts, composite, saved)
   })

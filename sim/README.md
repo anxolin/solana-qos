@@ -159,6 +159,8 @@ pnpm sim resume-session <session-name>
 
 Resume uses the saved scenarios, effective settings, and wallet IDs; the original CSVs and config are no longer needed. It asks for confirmation and checks that the funder, settlement program, and orderbook match the original run. Two runners cannot use the same session at once. Starting a fresh run with an existing session name is rejected.
 
+If a composite is blocked in cleanup, use `pnpm sim resume-session <session-name> --defer-cleanup` to leave that scenario's wallets for later and continue the remaining tests. This checks outstanding orders first, records cleanup as deferred, and keeps cleanup enabled for later scenarios. It refuses to defer if later scenarios reuse those wallets. Clean the deferred wallets separately; `cleanup-trade-session` still uses the configured CoW solver, so it does not bypass a solver problem.
+
 | Interrupted during | Resume behavior |
 |---|---|
 | Trading | Skip completed and failed rows. Check submitted orders before continuing unfinished rows. |
@@ -242,12 +244,12 @@ simulated orders are easy to tell apart from real users. Changing the string cha
 
 Runs after each composite scenario or at the end of an individual session, for up to `max(10, --rpc-rps)` traders at once:
 
-1. **Sell** every token worth more than its account's rent back to SOL. Dust and tokens with no route are burned.
+1. **Sell** every token worth more than its account's rent back to SOL. Dust is burned only when a successful quote values it below the account's rent.
 2. **Close** the empty token accounts (rent returns to the trader).
 3. **Reclaim** the rent of finished orders.
 4. **Sweep** all SOL back to the funder.
 
-Safe to re-run. If a quote fails for a passing reason (rate limit, network), the tokens are left alone and reported.
+Every failed quote, including `NoLiquidity` or "no route", leaves the tokens untouched and logs the reason. Unfilled cleanup orders also leave tokens for another attempt. Remaining SOL is still swept back to the funder. If tokens remain, the run stays in cleanup; `resume-session <session-name>` tops up only unfinished wallets and retries cleanup without replaying completed or failed test rows. Use the same mnemonic so those wallets remain accessible. Wait for the quote or settlement problem to be fixed before retrying; resuming cannot recover tokens already burned.
 
 ## Output
 

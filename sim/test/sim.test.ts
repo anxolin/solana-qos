@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { Keypair, PublicKey } from '@solana/web3.js'
 import { TOKEN_PROGRAM_ID } from '@solana/spl-token'
 import { RateLimiter } from '../src/limiter.js'
@@ -6,7 +6,8 @@ import { Rpc } from '../src/rpc.js'
 import { runRow, type FlowContext } from '../src/flow.js'
 import { canBuild, sdkVersion, settlementFor } from '../src/settlement.js'
 import { encodeOrderIntent, findSettlementStatePda } from '@cowprotocol/sdk-trading-solana'
-import { deriveKeypair } from '../src/wallets.js'
+import { deriveKeypair, wallets } from '../src/wallets.js'
+import { cleanupTrader } from '../src/cleanup.js'
 import { parseScenario, readScenario, sessionSlug, writeScenario } from '../src/scenario.js'
 import { isRpcFailure, retryRows } from '../src/retry.js'
 import { fromRaw, loadUniverse, toRaw } from '../src/tokens.js'
@@ -172,13 +173,27 @@ describe('retry', () => {
   })
 })
 
-describe('cleanup dust burning', () => {
-  it('treats only "cannot be sold" answers as burnable, never transient failures', async () => {
-    const { NO_ROUTE } = await import('../src/cleanup.js')
-    for (const sellable of ['NoLiquidity: no route found', 'Not Found', 'UnsupportedToken: Token-2022 transfer hook extension'])
-      expect(NO_ROUTE.test(sellable)).toBe(true)
-    for (const transient of ['429 Too Many Requests', 'fetch failed (ECONNRESET)', 'Bad Request', 'Internal Server Error'])
-      expect(NO_ROUTE.test(transient)).toBe(false)
+describe('cleanup quote failures', () => {
+  it.each(['404 Not Found: NoLiquidity: no route found', 'UnsupportedToken', '429 Too Many Requests', 'fetch failed'])('keeps tokens after %s', async error => {
+    const w = wallets(TEST_MNEMONIC)
+    const account = { address: Keypair.generate().publicKey, mint: Keypair.generate().publicKey,
+      amount: 1_562_074n, decimals: 6, lamports: 2_039_280, programId: TOKEN_PROGRAM_ID }
+    const sendAndConfirm = vi.fn()
+    const journal = vi.fn()
+    const log = vi.fn()
+    const ctx = {
+      rpc: { tokenAccounts: async () => [account], lamports: async () => 0n, sendAndConfirm },
+      orders: { quote: async () => { throw new Error(error) }, ownerOrders: async () => [] },
+      session: { log: journal }, log, link: { tx: (sig: string) => sig },
+    } as unknown as FlowContext
+
+    const result = await cleanupTrader(ctx, w, 1, 'staging')
+
+    expect(result.burned).toEqual([])
+    expect(result.leftover).toEqual([expect.stringContaining(`quote failed: ${error}`)])
+    expect(sendAndConfirm).not.toHaveBeenCalled()
+    expect(log).toHaveBeenCalledWith(expect.stringContaining(`quote failed: ${error}`))
+    expect(journal).toHaveBeenCalledWith(expect.objectContaining({ event: 'cleanup_done', leftover: result.leftover }))
   })
 })
 

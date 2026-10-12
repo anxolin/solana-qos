@@ -26,7 +26,7 @@ const createdByOf = (data: Buffer) => new PublicKey(data.subarray(19, 51))
 export interface CleanupResult {
   trader: number
   sold: string[]
-  /** Dust burned because selling it would return less than its account's rent (or it has no route). */
+  /** Dust burned because a successful quote returns less than its account's rent. */
   burned: string[]
   leftover: string[]
   closedAccounts: number
@@ -76,16 +76,13 @@ async function sendBatches(ctx: FlowContext, items: Item[], signer: Keypair, siz
   return ok
 }
 
-/** Orderbook answers meaning "this can't be sold", as opposed to a transient failure. */
-export const NO_ROUTE = /NoLiquidity|no route|Not Found|UnsupportedToken|SameBuyAndSellToken/i
-
 /** Seconds after `validTo` before an expired order counts as reclaimable (clock skew between us and the chain). */
 const EXPIRY_MARGIN_S = 10
 
 /**
  * Return a trader to zero, safe to re-run:
  * 1. sell every token worth more than its account's rent to native SOL, all at once (self-paid);
- *    burn the rest (dust, or no route) so its account can be closed;
+ *    burn quoted dust so its account can be closed; keep tokens when quoting fails;
  * 2. unwrap wSOL and close every empty token account;
  * 3. reclaim the rent of finished orders (looked up in one batched call);
  * 4. sweep all SOL to the funder.
@@ -115,9 +112,10 @@ export async function cleanupTrader(ctx: FlowContext, w: Wallets, n: number, env
         const q = await ctx.orders.quote({ owner: kp, sell: tokenOf(a), buy: sol, kind: 'sell', amount: a.amount })
         return { a, burn: q.solanaQuote.intent.buyAmount < BigInt(a.lamports) }
       } catch (e) {
-        // Burn only when the orderbook says it can't be sold. A rate limit or network error leaves the tokens alone.
-        if (NO_ROUTE.test(errorText(e))) return { a, burn: true }
-        result.leftover.push(`${labelOf(a)} (quote failed: ${errorText(e).slice(0, 60)})`)
+        // Even "no route" can be temporary. A failed quote never proves the tokens are dust.
+        const error = errorText(e)
+        result.leftover.push(`${labelOf(a)} (quote failed: ${error.slice(0, 60)})`)
+        ctx.log(`  ${c.blue(`t${n}`)} ${c.blue('cleanup')}: ${c.yellow(`keeping ${labelOf(a)}`)}; quote failed: ${error}`)
         return null
       }
     }),
