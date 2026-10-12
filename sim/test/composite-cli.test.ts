@@ -277,7 +277,7 @@ it.each([
       const expected = {
         running: [[6, 105], [7, 105]], single: [[3, 101], [4, 101]],
         cleanup: [[5, 165], [6, 170], [7, 170]], pause: [[5, 122], [6, 127], [7, 127]],
-        defer: [[5, 162], [6, 167], [7, 167]],
+        defer: [[5, 122], [6, 127], [7, 127]],
         interrupt: [[1, 5], [2, 5], [4, 7], [3, 100], [5, 166], [6, 171], [7, 171]],
       }[mode]
       expect(starts).toEqual(expected)
@@ -285,7 +285,7 @@ it.each([
       if (mode === 'cleanup') expect(lifecycle.slice(0, 2)).toEqual([['fund', [2], 100], ['cleanup', [2], 100]])
       if (mode === 'pause' || mode === 'running') expect(lifecycle.filter(event => event[0] === 'cleanup').map(event => event[1][0])).toEqual([3, 4])
       if (mode === 'defer') {
-        expect(lifecycle).toEqual([['fund', [3, 4], 160], ['cleanup', [3], 168], ['cleanup', [4], 168]])
+        expect(lifecycle).toEqual([['fund', [3, 4], 120], ['cleanup', [3], 128], ['cleanup', [4], 128]])
         expect(checkpoint.options.cleanup).toBe(true)
         expect(checkpoint.scenarios[0].cleanupDeferred).toBe(true)
         expect(checkpoint.scenarios[1].cleanupDeferred).toBeUndefined()

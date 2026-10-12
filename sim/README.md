@@ -159,7 +159,7 @@ pnpm sim resume-session <session-name>
 
 Resume uses the saved scenarios, effective settings, and wallet IDs; the original CSVs and config are no longer needed. It asks for confirmation and checks that the funder, settlement program, and orderbook match the original run. Two runners cannot use the same session at once. Starting a fresh run with an existing session name is rejected.
 
-If a composite is blocked in cleanup, use `pnpm sim resume-session <session-name> --defer-cleanup` to leave that scenario's wallets for later and continue the remaining tests. This checks outstanding orders first, records cleanup as deferred, and keeps cleanup enabled for later scenarios. It refuses to defer if later scenarios reuse those wallets. Clean the deferred wallets separately; `cleanup-trade-session` still uses the configured CoW solver, so it does not bypass a solver problem.
+If a composite is blocked in cleanup, use `pnpm sim resume-session <session-name> --defer-cleanup` to leave that scenario's wallets for later and continue the remaining tests. This checks outstanding orders first, records cleanup as deferred, and keeps cleanup enabled for later scenarios. The pause before the next scenario is reduced to 1/3 of the configured pause; normal cleanup keeps the full pause. It refuses to defer if later scenarios reuse those wallets. Clean the deferred wallets separately; `cleanup-trade-session` still uses the configured CoW solver, so it does not bypass a solver problem.
 
 | Interrupted during | Resume behavior |
 |---|---|

@@ -1,0 +1,11 @@
+# Standard pairs: SOL/USDC, SOL/USDT and JUP/USDC before load and exotic tokens.
+# 1 self paid sell and 1 sponsored exact-output buy per pair; starts spaced by 30 seconds.
+# JUP sellers acquire JUP automatically if needed. Rows on each wallet wait for the previous flow.
+# No main-order retries: 6 main + 2 possible acquisitions + 4 cleanup = 12 estimated orders (0.036 SOL before refunds).
+trader,time,type,amount,token,other_token,mode,note
+1,0,sell,0.005,SOL,USDC,self,standard SOL/USDC: fixed SOL input
+2,30,sell,0.005,SOL,USDT,self,standard SOL/USDT: fixed SOL input
+3,60,sell,0.5,JUP,USDC,self,standard JUP/USDC: fixed JUP input; automatic acquisition if needed
+1,90,buy,0.25,USDC,SOL,sponsored,standard SOL/USDC: exact USDC output
+2,120,buy,0.25,USDT,SOL,sponsored,standard SOL/USDT: exact USDT output
+3,150,buy,0.25,USDC,JUP,sponsored,standard JUP/USDC: exact USDC output; automatic acquisition if needed

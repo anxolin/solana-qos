@@ -1,0 +1,171 @@
+trader,time,type,amount,token,other_token,mode,note
+1,0,sell,0.005,SOL,USDC,self,standard SOL/USDC: fixed SOL input
+2,30,sell,0.005,SOL,USDT,self,standard SOL/USDT: fixed SOL input
+3,60,sell,0.5,JUP,USDC,self,standard JUP/USDC: fixed JUP input; automatic acquisition if needed
+1,90,buy,0.25,USDC,SOL,sponsored,standard SOL/USDC: exact USDC output
+2,120,buy,0.25,USDT,SOL,sponsored,standard SOL/USDT: exact USDT output
+3,150,buy,0.25,USDC,JUP,sponsored,standard JUP/USDC: exact USDC output; automatic acquisition if needed
+4,2681.144,sell,0.005,SOL,JUP,self,25 same-direction sell orders; four-order batching plus remainder
+5,2681.144,sell,0.005,SOL,JUP,self,25 same-direction sell orders; four-order batching plus remainder
+6,2681.144,sell,0.005,SOL,JUP,self,25 same-direction sell orders; four-order batching plus remainder
+7,2681.144,sell,0.005,SOL,JUP,self,25 same-direction sell orders; four-order batching plus remainder
+8,2681.144,sell,0.005,SOL,JUP,self,25 same-direction sell orders; four-order batching plus remainder
+9,2681.144,sell,0.005,SOL,JUP,self,25 same-direction sell orders; four-order batching plus remainder
+10,2681.144,sell,0.005,SOL,JUP,self,25 same-direction sell orders; four-order batching plus remainder
+11,2681.144,sell,0.005,SOL,JUP,self,25 same-direction sell orders; four-order batching plus remainder
+12,2681.144,sell,0.005,SOL,JUP,self,25 same-direction sell orders; four-order batching plus remainder
+13,2681.144,sell,0.005,SOL,JUP,self,25 same-direction sell orders; four-order batching plus remainder
+14,2681.144,sell,0.005,SOL,JUP,self,25 same-direction sell orders; four-order batching plus remainder
+15,2681.144,sell,0.005,SOL,JUP,self,25 same-direction sell orders; four-order batching plus remainder
+16,2681.144,sell,0.005,SOL,JUP,self,25 same-direction sell orders; four-order batching plus remainder
+17,2681.144,sell,0.005,SOL,JUP,self,25 same-direction sell orders; four-order batching plus remainder
+18,2681.144,sell,0.005,SOL,JUP,self,25 same-direction sell orders; four-order batching plus remainder
+19,2681.144,sell,0.005,SOL,JUP,self,25 same-direction sell orders; four-order batching plus remainder
+20,2681.144,sell,0.005,SOL,JUP,self,25 same-direction sell orders; four-order batching plus remainder
+21,2681.144,sell,0.005,SOL,JUP,self,25 same-direction sell orders; four-order batching plus remainder
+22,2681.144,sell,0.005,SOL,JUP,self,25 same-direction sell orders; four-order batching plus remainder
+23,2681.144,sell,0.005,SOL,JUP,self,25 same-direction sell orders; four-order batching plus remainder
+24,2681.144,sell,0.005,SOL,JUP,self,25 same-direction sell orders; four-order batching plus remainder
+25,2681.144,sell,0.005,SOL,JUP,self,25 same-direction sell orders; four-order batching plus remainder
+26,2681.144,sell,0.005,SOL,JUP,self,25 same-direction sell orders; four-order batching plus remainder
+27,2681.144,sell,0.005,SOL,JUP,self,25 same-direction sell orders; four-order batching plus remainder
+28,2681.144,sell,0.005,SOL,JUP,self,25 same-direction sell orders; four-order batching plus remainder
+29,3493.079,sell,0.0025,SOL,USDC,self,burst 4; amount group 1
+30,3493.079,sell,0.003,SOL,USDC,self,burst 4; amount group 2
+31,3493.079,sell,0.0035,SOL,USDC,self,burst 4; amount group 3
+32,3493.079,sell,0.004,SOL,USDC,self,burst 4; amount group 4
+29,3643.079,sell,0.0025,SOL,USDC,self,burst 8; amount group 1
+30,3643.079,sell,0.003,SOL,USDC,self,burst 8; amount group 2
+31,3643.079,sell,0.0035,SOL,USDC,self,burst 8; amount group 3
+32,3643.079,sell,0.004,SOL,USDC,self,burst 8; amount group 4
+33,3643.079,sell,0.0025,SOL,USDC,self,burst 8; amount group 1
+34,3643.079,sell,0.003,SOL,USDC,self,burst 8; amount group 2
+35,3643.079,sell,0.0035,SOL,USDC,self,burst 8; amount group 3
+36,3643.079,sell,0.004,SOL,USDC,self,burst 8; amount group 4
+29,3793.079,sell,0.0025,SOL,USDC,self,burst 16; amount group 1
+30,3793.079,sell,0.003,SOL,USDC,self,burst 16; amount group 2
+31,3793.079,sell,0.0035,SOL,USDC,self,burst 16; amount group 3
+32,3793.079,sell,0.004,SOL,USDC,self,burst 16; amount group 4
+33,3793.079,sell,0.0025,SOL,USDC,self,burst 16; amount group 1
+34,3793.079,sell,0.003,SOL,USDC,self,burst 16; amount group 2
+35,3793.079,sell,0.0035,SOL,USDC,self,burst 16; amount group 3
+36,3793.079,sell,0.004,SOL,USDC,self,burst 16; amount group 4
+37,3793.079,sell,0.0025,SOL,USDC,self,burst 16; amount group 1
+38,3793.079,sell,0.003,SOL,USDC,self,burst 16; amount group 2
+39,3793.079,sell,0.0035,SOL,USDC,self,burst 16; amount group 3
+40,3793.079,sell,0.004,SOL,USDC,self,burst 16; amount group 4
+41,3793.079,sell,0.0025,SOL,USDC,self,burst 16; amount group 1
+42,3793.079,sell,0.003,SOL,USDC,self,burst 16; amount group 2
+43,3793.079,sell,0.0035,SOL,USDC,self,burst 16; amount group 3
+44,3793.079,sell,0.004,SOL,USDC,self,burst 16; amount group 4
+29,3943.079,sell,0.0025,SOL,USDC,self,burst 24; amount group 1
+30,3943.079,sell,0.003,SOL,USDC,self,burst 24; amount group 2
+31,3943.079,sell,0.0035,SOL,USDC,self,burst 24; amount group 3
+32,3943.079,sell,0.004,SOL,USDC,self,burst 24; amount group 4
+33,3943.079,sell,0.0025,SOL,USDC,self,burst 24; amount group 1
+34,3943.079,sell,0.003,SOL,USDC,self,burst 24; amount group 2
+35,3943.079,sell,0.0035,SOL,USDC,self,burst 24; amount group 3
+36,3943.079,sell,0.004,SOL,USDC,self,burst 24; amount group 4
+37,3943.079,sell,0.0025,SOL,USDC,self,burst 24; amount group 1
+38,3943.079,sell,0.003,SOL,USDC,self,burst 24; amount group 2
+39,3943.079,sell,0.0035,SOL,USDC,self,burst 24; amount group 3
+40,3943.079,sell,0.004,SOL,USDC,self,burst 24; amount group 4
+41,3943.079,sell,0.0025,SOL,USDC,self,burst 24; amount group 1
+42,3943.079,sell,0.003,SOL,USDC,self,burst 24; amount group 2
+43,3943.079,sell,0.0035,SOL,USDC,self,burst 24; amount group 3
+44,3943.079,sell,0.004,SOL,USDC,self,burst 24; amount group 4
+45,3943.079,sell,0.0025,SOL,USDC,self,burst 24; amount group 1
+46,3943.079,sell,0.003,SOL,USDC,self,burst 24; amount group 2
+47,3943.079,sell,0.0035,SOL,USDC,self,burst 24; amount group 3
+48,3943.079,sell,0.004,SOL,USDC,self,burst 24; amount group 4
+49,3943.079,sell,0.0025,SOL,USDC,self,burst 24; amount group 1
+50,3943.079,sell,0.003,SOL,USDC,self,burst 24; amount group 2
+51,3943.079,sell,0.0035,SOL,USDC,self,burst 24; amount group 3
+52,3943.079,sell,0.004,SOL,USDC,self,burst 24; amount group 4
+29,4093.079,sell,0.0025,SOL,USDC,self,burst 32; amount group 1
+30,4093.079,sell,0.003,SOL,USDC,self,burst 32; amount group 2
+31,4093.079,sell,0.0035,SOL,USDC,self,burst 32; amount group 3
+32,4093.079,sell,0.004,SOL,USDC,self,burst 32; amount group 4
+33,4093.079,sell,0.0025,SOL,USDC,self,burst 32; amount group 1
+34,4093.079,sell,0.003,SOL,USDC,self,burst 32; amount group 2
+35,4093.079,sell,0.0035,SOL,USDC,self,burst 32; amount group 3
+36,4093.079,sell,0.004,SOL,USDC,self,burst 32; amount group 4
+37,4093.079,sell,0.0025,SOL,USDC,self,burst 32; amount group 1
+38,4093.079,sell,0.003,SOL,USDC,self,burst 32; amount group 2
+39,4093.079,sell,0.0035,SOL,USDC,self,burst 32; amount group 3
+40,4093.079,sell,0.004,SOL,USDC,self,burst 32; amount group 4
+41,4093.079,sell,0.0025,SOL,USDC,self,burst 32; amount group 1
+42,4093.079,sell,0.003,SOL,USDC,self,burst 32; amount group 2
+43,4093.079,sell,0.0035,SOL,USDC,self,burst 32; amount group 3
+44,4093.079,sell,0.004,SOL,USDC,self,burst 32; amount group 4
+45,4093.079,sell,0.0025,SOL,USDC,self,burst 32; amount group 1
+46,4093.079,sell,0.003,SOL,USDC,self,burst 32; amount group 2
+47,4093.079,sell,0.0035,SOL,USDC,self,burst 32; amount group 3
+48,4093.079,sell,0.004,SOL,USDC,self,burst 32; amount group 4
+49,4093.079,sell,0.0025,SOL,USDC,self,burst 32; amount group 1
+50,4093.079,sell,0.003,SOL,USDC,self,burst 32; amount group 2
+51,4093.079,sell,0.0035,SOL,USDC,self,burst 32; amount group 3
+52,4093.079,sell,0.004,SOL,USDC,self,burst 32; amount group 4
+53,4093.079,sell,0.0025,SOL,USDC,self,burst 32; amount group 1
+54,4093.079,sell,0.003,SOL,USDC,self,burst 32; amount group 2
+55,4093.079,sell,0.0035,SOL,USDC,self,burst 32; amount group 3
+56,4093.079,sell,0.004,SOL,USDC,self,burst 32; amount group 4
+57,4093.079,sell,0.0025,SOL,USDC,self,burst 32; amount group 1
+58,4093.079,sell,0.003,SOL,USDC,self,burst 32; amount group 2
+59,4093.079,sell,0.0035,SOL,USDC,self,burst 32; amount group 3
+60,4093.079,sell,0.004,SOL,USDC,self,burst 32; amount group 4
+61,4567.954,sell,0.01,SOL,9cRCn9rGT8V2imeM2BaKs13yhMEais3ruM3rPvTGpump,sponsored,metadata-only: ANSEM rank 10 $984.4M/90d: SOL to token [metadata only]
+62,4567.954,sell,0.01,SOL,98kfF7rmsg1QDUEoCqNE7g7M1FdrTt92TEp2CLzypump,sponsored,metadata-only: PAID rank 25 $396.9M/90d: SOL to token [metadata only]
+63,4567.954,sell,0.01,SOL,2u1tszSeqZ3qBWF3uNGPFc8TzMk2tdiwknnRMWGWjGWH,sponsored,transfer-hook-unset: USDG rank 4 $2.9B/90d: SOL to token [mintCloseAuthority permanentDelegate(set) transferFeeConfig(0bps) confidentialTransferMint confidentialTransferFeeConfig transferHook(none)]
+64,4567.954,sell,0.01,SOL,pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn,self,transfer-hook-unset: PUMP rank 6 $2.3B/90d: SOL to token [transferHook(none)]
+65,4567.954,sell,0.01,SOL,2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo,sponsored,permanent-delegate: PYUSD rank 7 $1.4B/90d: SOL to token [mintCloseAuthority permanentDelegate(set) transferFeeConfig(0bps) confidentialTransferMint confidentialTransferFeeConfig transferHook(none)]
+66,4567.954,sell,0.01,SOL,CASHx9KJUStyftLFWGvEVf59SGeG9sh5FfcnZMVPCASH,sponsored,permanent-delegate: CASH rank 15 $815.6M/90d: SOL to token [mintCloseAuthority permanentDelegate(set) defaultAccountState(initialized) confidentialTransferMint transferHook(none)]
+67,4567.954,sell,0.01,SOL,XsueG8BtpquVJX9LVLLEGuViXUungE6WmK5YZ3p3bd1,sponsored,confidential-transfer: CRCLx rank 24 $398.8M/90d: SOL to token [permanentDelegate(set) defaultAccountState(initialized) scaledUiAmountConfig pausableConfig(running) confidentialTransferMint transferHook(none)]
+68,4567.954,sell,0.01,SOL,XsoCS1TfEyfFhfvj8EtZ528L3CaKBDBRqRapnBbDF2W,self,confidential-transfer: SPYx rank 29 $330.0M/90d: SOL to token [permanentDelegate(set) defaultAccountState(initialized) scaledUiAmountConfig pausableConfig(running) confidentialTransferMint transferHook(none)]
+69,4567.954,sell,0.01,SOL,USDvUSpnhCr9yBgj3UyVrD239HRUv4RsHwH2FxsWuMk,sponsored,mint-close-authority: USDv rank 4759 $2.2M/90d: SOL to token [transferHook(none) confidentialTransferMint permanentDelegate(set) pausableConfig(running) mintCloseAuthority defaultAccountState(initialized)]
+70,4567.954,sell,0.01,SOL,SKHYhSjuRWHgikq8eRKbtBbpABgJSkd7ytQV14i9EQ3,sponsored,default-account-state: SKHY rank 33 $282.2M/90d: SOL to token [permanentDelegate(set) defaultAccountState(initialized) pausableConfig(running) confidentialTransferMint transferHook(none) scaledUiAmountConfig]
+71,4567.954,sell,0.01,SOL,Xsc9qvGR1efVDFGLrVsmkzv3qi45LTBjeUKSPmx9qEh,sponsored,default-account-state: NVDAx rank 38 $234.1M/90d: SOL to token [permanentDelegate(set) defaultAccountState(initialized) scaledUiAmountConfig pausableConfig(running) confidentialTransferMint transferHook(none)]
+72,4567.954,sell,0.01,SOL,MUxEsUKSMACyw5fZf68wxf5FLnZVhtU9CwH8uNNGay1,self,pausable: MU rank 42 $212.5M/90d: SOL to token [permanentDelegate(set) defaultAccountState(initialized) pausableConfig(running) confidentialTransferMint transferHook(none) scaledUiAmountConfig]
+73,4567.954,sell,0.01,SOL,SPCXxcqXj6e5dJDVNovHN8744zkbhM2bYudU45BimGb,sponsored,pausable: SPCX rank 45 $194.8M/90d: SOL to token [permanentDelegate(set) defaultAccountState(initialized) pausableConfig(running) confidentialTransferMint transferHook(none) scaledUiAmountConfig]
+74,4567.954,sell,0.01,SOL,Xs3oZwbHvqis4NYcf4YKWmEia2eC84wSiVrcYcTqpH8,sponsored,scaled-ui-amount: SPCXx rank 50 $162.8M/90d: SOL to token [permanentDelegate(set) defaultAccountState(initialized) scaledUiAmountConfig pausableConfig(running) confidentialTransferMint transferHook(none)]
+75,4567.954,sell,0.01,SOL,XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB,sponsored,scaled-ui-amount: TSLAx rank 60 $113.4M/90d: SOL to token [permanentDelegate(set) defaultAccountState(initialized) scaledUiAmountConfig pausableConfig(running) confidentialTransferMint transferHook(none)]
+76,4567.954,sell,0.005,SOL,DEW9dSN6QpWyNthphCpMmAbZP1Q4cEKR9xQXAri98WDP,sponsored,transfer-fee-rejected: SI [transferFeeConfig(100bps)]: expected UnsupportedToken
+77,4567.954,sell,0.005,SOL,HcRLc9VDgjLeK154xDawfb1dmVJ98DoSqcwTHGqiDeJR,sponsored,transfer-fee-rejected: ZCAT [transferFeeConfig(300bps)]: expected UnsupportedToken
+78,4567.954,sell,0.005,SOL,Pren1FvFX6J3E4kXhJuCiAD5aDmGEb7qJRncwA8Lkhw,sponsored,transfer-fee-rejected: ANTHROPIC [permanentDelegate(set) defaultAccountState(initialized) transferFeeConfig(100bps) confidentialTransferMint confidentialTransferFeeConfig transferHook(none) scaledUiAmountConfig pausableConfig(running)]: expected UnsupportedToken
+79,4567.954,sell,0.005,SOL,DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263,self,memecoin: BONK; classic control; cleanup sells back
+80,4567.954,sell,0.005,SOL,EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm,self,memecoin: WIF; classic control; cleanup sells back
+81,4567.954,sell,0.005,SOL,7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr,self,memecoin: POPCAT; classic control; cleanup sells back
+82,4567.954,sell,0.005,SOL,J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn,self,LST: JitoSOL; classic control; cleanup sells back
+83,4567.954,sell,0.005,SOL,mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So,self,LST: mSOL; classic control; cleanup sells back
+84,4567.954,sell,0.005,SOL,jupSoLaHXQiZZTSfEWMTRRgpnyFm8f6sZdosWBjx93v,self,LST: JupSOL; classic control; cleanup sells back
+85,4567.954,sell,0.005,SOL,cbbtcf3aa214zXHbiAZQwf4122FBYbraNdFqgw4iMij,self,Bitcoin: Coinbase wrapped BTC; frontend SolanaDefault and staging sell quote confirmed 2026-10-09; cleanup sells back
+86,4567.954,sell,0.005,SOL,DEkqHyPN7GMRJ5cArtQFAWefqbZb33Hyf6s5iCwjEonT,self,synthetic dollar: Ethena USDe; frontend SolanaDefault and staging sell quote confirmed 2026-10-09; cleanup sells back
+87,4567.954,sell,0.005,SOL,HzwqbKZw8HxMN6bF2yFZNrht3c2iXXzpKcFu7uBEDKtr,self,euro stablecoin: Circle EURC; frontend SolanaDefault and staging sell quote confirmed 2026-10-09; cleanup sells back
+88,4567.954,sell,0.005,SOL,A1KLoBrKBde8Ty9qtNQUtq3C2ortoC3u7twggz7sEto6,self,treasury token: Ondo USDY; frontend SolanaDefault and staging sell quote confirmed 2026-10-09; cleanup sells back
+89,4567.954,sell,0.005,SOL,27G8MtK7VtTcCHkpASjSDdkWWYfoqT6ggEuKidVJidD4,self,liquidity pool token: Jupiter JLP; frontend SolanaDefault and staging sell quote confirmed 2026-10-09; cleanup sells back
+90,4567.954,sell,0.005,SOL,5oVNBeEEQvYi1cX3ir8Dx5n1P7pdxydbGF2X4TxVusJm,self,LST pool token: Sanctum Infinity; frontend SolanaDefault and staging sell quote confirmed 2026-10-09; cleanup sells back
+91,4567.954,sell,0.005,SOL,7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs,self,bridged asset: Ether Portal; frontend SolanaDefault and staging sell quote confirmed 2026-10-09; cleanup sells back
+92,4567.954,sell,0.005,SOL,9gP2kCy3wA1ctvYWQk75guqXuHfrEomqydHLtcTCqiLa,self,bridged asset: BNB Portal; frontend SolanaDefault and staging sell quote confirmed 2026-10-09; cleanup sells back
+93,4567.954,sell,0.005,SOL,AymATz4TCL9sWNEEV9Kvyz45CHVhDZ6kUgjTJPzLpU9P,self,gold token: Tether Gold; frontend SolanaDefault and staging sell quote confirmed 2026-10-09; cleanup sells back
+94,4567.954,sell,0.005,SOL,Xsv9hRk1z5ystj9MhnA7Lq4vjSsLwzL2nxrwmwtD3re,self,tokenized gold fund: Gold xStock; frontend SolanaDefault and staging sell quote confirmed 2026-10-09; cleanup sells back
+95,4567.954,sell,0.005,SOL,euro5sNHrZC2wu2RoLvy6xxoVMc3Qnd1vjxoWf4MftA,self,Token-2022 euro stablecoin: EUROPs zero transfer fee; frontend SolanaDefault and staging sell quote confirmed 2026-10-09; cleanup sells back
+96,4567.954,sell,0.005,SOL,9BB6NFEcjBCtnNLFko2FqVQBq8HHM13kCyYcdQbgpump,self,memecoin: Fartcoin; frontend SolanaDefault and staging sell quote confirmed 2026-10-09; cleanup sells back
+97,4567.954,sell,0.005,SOL,MEW1gQWJ3nEXg2qgERiKu7FAFj79PHvQVREQUzScPP5,self,memecoin: MEW; frontend SolanaDefault and staging sell quote confirmed 2026-10-09; cleanup sells back
+98,4567.954,sell,0.005,SOL,ukHH6c7mMyiWCf1b9pnWe25TSpkDDt3H5pQZgZ74J82,self,memecoin: BOME; frontend SolanaDefault and staging sell quote confirmed 2026-10-09; cleanup sells back
+99,4567.954,sell,0.005,SOL,hy1oXYgrBW6PVcJ4s6s2FKavRdwgWTXdfE69AxT7kPT,self,LST: Hylo Staked SOL; frontend SolanaDefault and staging sell quote confirmed 2026-10-09; cleanup sells back
+100,4567.954,sell,0.005,SOL,pSo1f9nQXWgXibFtKf7NWYxb5enAM4qfP6UJSiXRQfL,self,LST: Phantom Staked SOL; frontend SolanaDefault and staging sell quote confirmed 2026-10-09; cleanup sells back
+61,4569.954,buy,3.26,9cRCn9rGT8V2imeM2BaKs13yhMEais3ruM3rPvTGpump,SOL,sponsored,metadata-only: ANSEM rank 10 $984.4M/90d: BUY (exact-out) paying SOL
+62,4569.954,buy,88.1,98kfF7rmsg1QDUEoCqNE7g7M1FdrTt92TEp2CLzypump,SOL,sponsored,metadata-only: PAID rank 25 $396.9M/90d: BUY (exact-out) paying SOL
+63,4569.954,buy,0.464,2u1tszSeqZ3qBWF3uNGPFc8TzMk2tdiwknnRMWGWjGWH,SOL,sponsored,transfer-hook-unset: USDG rank 4 $2.9B/90d: BUY (exact-out) paying SOL
+64,4569.954,buy,71.6,pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn,SOL,self,transfer-hook-unset: PUMP rank 6 $2.3B/90d: BUY (exact-out) paying SOL
+65,4569.954,buy,0.464,2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo,SOL,sponsored,permanent-delegate: PYUSD rank 7 $1.4B/90d: BUY (exact-out) paying SOL
+66,4569.954,buy,0.464,CASHx9KJUStyftLFWGvEVf59SGeG9sh5FfcnZMVPCASH,SOL,sponsored,permanent-delegate: CASH rank 15 $815.6M/90d: BUY (exact-out) paying SOL
+67,4569.954,buy,0.00574,XsueG8BtpquVJX9LVLLEGuViXUungE6WmK5YZ3p3bd1,SOL,sponsored,confidential-transfer: CRCLx rank 24 $398.8M/90d: BUY (exact-out) paying SOL
+68,4569.954,buy,0.000597,XsoCS1TfEyfFhfvj8EtZ528L3CaKBDBRqRapnBbDF2W,SOL,self,confidential-transfer: SPYx rank 29 $330.0M/90d: BUY (exact-out) paying SOL
+69,4569.954,buy,0.464,USDvUSpnhCr9yBgj3UyVrD239HRUv4RsHwH2FxsWuMk,SOL,sponsored,mint-close-authority: USDv rank 4759 $2.2M/90d: BUY (exact-out) paying SOL
+70,4569.954,buy,0.0026,SKHYhSjuRWHgikq8eRKbtBbpABgJSkd7ytQV14i9EQ3,SOL,sponsored,default-account-state: SKHY rank 33 $282.2M/90d: BUY (exact-out) paying SOL
+71,4569.954,buy,0.00196,Xsc9qvGR1efVDFGLrVsmkzv3qi45LTBjeUKSPmx9qEh,SOL,sponsored,default-account-state: NVDAx rank 38 $234.1M/90d: BUY (exact-out) paying SOL
+72,4569.954,buy,0.000427,MUxEsUKSMACyw5fZf68wxf5FLnZVhtU9CwH8uNNGay1,SOL,self,pausable: MU rank 42 $212.5M/90d: BUY (exact-out) paying SOL
+73,4569.954,buy,0.00276,SPCXxcqXj6e5dJDVNovHN8744zkbhM2bYudU45BimGb,SOL,sponsored,pausable: SPCX rank 45 $194.8M/90d: BUY (exact-out) paying SOL
+74,4569.954,buy,0.00277,Xs3oZwbHvqis4NYcf4YKWmEia2eC84wSiVrcYcTqpH8,SOL,sponsored,scaled-ui-amount: SPCXx rank 50 $162.8M/90d: BUY (exact-out) paying SOL
+75,4569.954,buy,0.00123,XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB,SOL,sponsored,scaled-ui-amount: TSLAx rank 60 $113.4M/90d: BUY (exact-out) paying SOL

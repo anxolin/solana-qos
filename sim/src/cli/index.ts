@@ -551,7 +551,8 @@ async function runSession(scenarioPath: string, opts: any, composite?: ReturnTyp
             }
           }
           scenario.phase = 'pause'
-          scenario.pauseUntil = Date.now() + (scenario.id < scenarios.length ? (composite?.breakSeconds ?? 0) * 1000 : 0)
+          const pauseSeconds = (composite?.breakSeconds ?? 0) / (scenario.cleanupDeferred ? 3 : 1)
+          scenario.pauseUntil = Date.now() + (scenario.id < scenarios.length ? pauseSeconds * 1000 : 0)
           saveComposite()
         }
         if (scenario.phase === 'pause') {
