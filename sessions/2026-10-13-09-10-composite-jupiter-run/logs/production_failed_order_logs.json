@@ -1,0 +1,1276 @@
+{
+ "paxg": [
+  {
+   "timestamp": "2026-10-13T09:45:47.495419134Z",
+   "container": "solana-indexer-prod",
+   "message": "indexed order",
+   "fields": {
+    "message": "indexed order",
+    "order_uid": "0x4d6049c8f8d9bc5fab1d3e8dae675d41e59915f028a0532dad48c1708b6f4498"
+   },
+   "spans": {}
+  },
+  {
+   "timestamp": "2026-10-13T09:45:48.851034664Z",
+   "container": "solana-autopilot-prod",
+   "message": "new orders in auction",
+   "fields": {
+    "message": "new orders in auction",
+    "auction_id": 462,
+    "added": "[\"0x4d299f3d898f700ff7d814b5ab49ce535eb124b800294f5532ff840d8a1be022\", \"0x4d6049c8f8d9bc5fab1d3e8dae675d41e59915f028a0532dad48c1708b6f4498\"]"
+   },
+   "spans": {
+    "auction": {
+     "auction_id": "462"
+    }
+   }
+  },
+  {
+   "timestamp": "2026-10-13T09:45:48.913297373Z",
+   "container": "solana-jupiter-prod-solve",
+   "message": "swap does not satisfy order",
+   "fields": {
+    "message": "swap does not satisfy order",
+    "in_amount": 2500000,
+    "out_amount": 63,
+    "limit_sell": 2500000,
+    "limit_buy": 64,
+    "shortfall": "1"
+   },
+   "spans": {
+    "solve": {
+     "auction_id": "some(462)",
+     "order": "0x4d6049c8f8d9bc5fab1d3e8dae675d41e59915f028a0532dad48c1708b6f4498"
+    }
+   }
+  },
+  {
+   "timestamp": "2026-10-13T09:45:53.679248599Z",
+   "container": "solana-jupiter-prod-solve",
+   "message": "swap does not satisfy order",
+   "fields": {
+    "message": "swap does not satisfy order",
+    "in_amount": 2500000,
+    "out_amount": 63,
+    "limit_sell": 2500000,
+    "limit_buy": 64,
+    "shortfall": "1"
+   },
+   "spans": {
+    "solve": {
+     "auction_id": "some(463)",
+     "order": "0x4d6049c8f8d9bc5fab1d3e8dae675d41e59915f028a0532dad48c1708b6f4498"
+    }
+   }
+  },
+  {
+   "timestamp": "2026-10-13T09:45:58.855026582Z",
+   "container": "solana-jupiter-prod-solve",
+   "message": "swap does not satisfy order",
+   "fields": {
+    "message": "swap does not satisfy order",
+    "in_amount": 2500000,
+    "out_amount": 63,
+    "limit_sell": 2500000,
+    "limit_buy": 64,
+    "shortfall": "1"
+   },
+   "spans": {
+    "solve": {
+     "auction_id": "some(464)",
+     "order": "0x4d6049c8f8d9bc5fab1d3e8dae675d41e59915f028a0532dad48c1708b6f4498"
+    }
+   }
+  },
+  {
+   "timestamp": "2026-10-13T09:46:03.687486596Z",
+   "container": "solana-jupiter-prod-solve",
+   "message": "solved",
+   "fields": {
+    "message": "solved"
+   },
+   "spans": {
+    "solve": {
+     "auction_id": "some(465)",
+     "order": "0x4d6049c8f8d9bc5fab1d3e8dae675d41e59915f028a0532dad48c1708b6f4498"
+    }
+   }
+  },
+  {
+   "timestamp": "2026-10-13T09:46:08.850286761Z",
+   "container": "solana-jupiter-prod-solve",
+   "message": "solved",
+   "fields": {
+    "message": "solved"
+   },
+   "spans": {
+    "solve": {
+     "auction_id": "some(466)",
+     "order": "0x4d6049c8f8d9bc5fab1d3e8dae675d41e59915f028a0532dad48c1708b6f4498"
+    }
+   }
+  },
+  {
+   "timestamp": "2026-10-13T09:46:13.842537827Z",
+   "container": "solana-jupiter-prod-solve",
+   "message": "swap does not satisfy order",
+   "fields": {
+    "message": "swap does not satisfy order",
+    "in_amount": 2500000,
+    "out_amount": 63,
+    "limit_sell": 2500000,
+    "limit_buy": 64,
+    "shortfall": "1"
+   },
+   "spans": {
+    "solve": {
+     "auction_id": "some(467)",
+     "order": "0x4d6049c8f8d9bc5fab1d3e8dae675d41e59915f028a0532dad48c1708b6f4498"
+    }
+   }
+  },
+  {
+   "timestamp": "2026-10-13T09:46:18.90231414Z",
+   "container": "solana-jupiter-prod-solve",
+   "message": "solved",
+   "fields": {
+    "message": "solved"
+   },
+   "spans": {
+    "solve": {
+     "auction_id": "some(468)",
+     "order": "0x4d6049c8f8d9bc5fab1d3e8dae675d41e59915f028a0532dad48c1708b6f4498"
+    }
+   }
+  },
+  {
+   "timestamp": "2026-10-13T09:46:23.6832176Z",
+   "container": "solana-jupiter-prod-solve",
+   "message": "swap does not satisfy order",
+   "fields": {
+    "message": "swap does not satisfy order",
+    "in_amount": 2500000,
+    "out_amount": 63,
+    "limit_sell": 2500000,
+    "limit_buy": 64,
+    "shortfall": "1"
+   },
+   "spans": {
+    "solve": {
+     "auction_id": "some(469)",
+     "order": "0x4d6049c8f8d9bc5fab1d3e8dae675d41e59915f028a0532dad48c1708b6f4498"
+    }
+   }
+  },
+  {
+   "timestamp": "2026-10-13T09:46:28.868272698Z",
+   "container": "solana-jupiter-prod-solve",
+   "message": "swap does not satisfy order",
+   "fields": {
+    "message": "swap does not satisfy order",
+    "in_amount": 2500000,
+    "out_amount": 63,
+    "limit_sell": 2500000,
+    "limit_buy": 64,
+    "shortfall": "1"
+   },
+   "spans": {
+    "solve": {
+     "auction_id": "some(470)",
+     "order": "0x4d6049c8f8d9bc5fab1d3e8dae675d41e59915f028a0532dad48c1708b6f4498"
+    }
+   }
+  },
+  {
+   "timestamp": "2026-10-13T09:46:33.683336673Z",
+   "container": "solana-jupiter-prod-solve",
+   "message": "swap does not satisfy order",
+   "fields": {
+    "message": "swap does not satisfy order",
+    "in_amount": 2500000,
+    "out_amount": 63,
+    "limit_sell": 2500000,
+    "limit_buy": 64,
+    "shortfall": "1"
+   },
+   "spans": {
+    "solve": {
+     "auction_id": "some(471)",
+     "order": "0x4d6049c8f8d9bc5fab1d3e8dae675d41e59915f028a0532dad48c1708b6f4498"
+    }
+   }
+  },
+  {
+   "timestamp": "2026-10-13T09:46:38.886845065Z",
+   "container": "solana-jupiter-prod-solve",
+   "message": "swap does not satisfy order",
+   "fields": {
+    "message": "swap does not satisfy order",
+    "in_amount": 2500000,
+    "out_amount": 63,
+    "limit_sell": 2500000,
+    "limit_buy": 64,
+    "shortfall": "1"
+   },
+   "spans": {
+    "solve": {
+     "auction_id": "some(472)",
+     "order": "0x4d6049c8f8d9bc5fab1d3e8dae675d41e59915f028a0532dad48c1708b6f4498"
+    }
+   }
+  },
+  {
+   "timestamp": "2026-10-13T09:46:43.685601174Z",
+   "container": "solana-jupiter-prod-solve",
+   "message": "swap does not satisfy order",
+   "fields": {
+    "message": "swap does not satisfy order",
+    "in_amount": 2500000,
+    "out_amount": 63,
+    "limit_sell": 2500000,
+    "limit_buy": 64,
+    "shortfall": "1"
+   },
+   "spans": {
+    "solve": {
+     "auction_id": "some(473)",
+     "order": "0x4d6049c8f8d9bc5fab1d3e8dae675d41e59915f028a0532dad48c1708b6f4498"
+    }
+   }
+  },
+  {
+   "timestamp": "2026-10-13T09:46:48.883724749Z",
+   "container": "solana-jupiter-prod-solve",
+   "message": "swap does not satisfy order",
+   "fields": {
+    "message": "swap does not satisfy order",
+    "in_amount": 2500000,
+    "out_amount": 63,
+    "limit_sell": 2500000,
+    "limit_buy": 64,
+    "shortfall": "1"
+   },
+   "spans": {
+    "solve": {
+     "auction_id": "some(474)",
+     "order": "0x4d6049c8f8d9bc5fab1d3e8dae675d41e59915f028a0532dad48c1708b6f4498"
+    }
+   }
+  },
+  {
+   "timestamp": "2026-10-13T09:46:53.691174545Z",
+   "container": "solana-jupiter-prod-solve",
+   "message": "swap does not satisfy order",
+   "fields": {
+    "message": "swap does not satisfy order",
+    "in_amount": 2500000,
+    "out_amount": 63,
+    "limit_sell": 2500000,
+    "limit_buy": 64,
+    "shortfall": "1"
+   },
+   "spans": {
+    "solve": {
+     "auction_id": "some(475)",
+     "order": "0x4d6049c8f8d9bc5fab1d3e8dae675d41e59915f028a0532dad48c1708b6f4498"
+    }
+   }
+  },
+  {
+   "timestamp": "2026-10-13T09:46:58.880638093Z",
+   "container": "solana-jupiter-prod-solve",
+   "message": "swap does not satisfy order",
+   "fields": {
+    "message": "swap does not satisfy order",
+    "in_amount": 2500000,
+    "out_amount": 63,
+    "limit_sell": 2500000,
+    "limit_buy": 64,
+    "shortfall": "1"
+   },
+   "spans": {
+    "solve": {
+     "auction_id": "some(476)",
+     "order": "0x4d6049c8f8d9bc5fab1d3e8dae675d41e59915f028a0532dad48c1708b6f4498"
+    }
+   }
+  },
+  {
+   "timestamp": "2026-10-13T09:47:03.695193569Z",
+   "container": "solana-jupiter-prod-solve",
+   "message": "swap does not satisfy order",
+   "fields": {
+    "message": "swap does not satisfy order",
+    "in_amount": 2500000,
+    "out_amount": 63,
+    "limit_sell": 2500000,
+    "limit_buy": 64,
+    "shortfall": "1"
+   },
+   "spans": {
+    "solve": {
+     "auction_id": "some(477)",
+     "order": "0x4d6049c8f8d9bc5fab1d3e8dae675d41e59915f028a0532dad48c1708b6f4498"
+    }
+   }
+  },
+  {
+   "timestamp": "2026-10-13T09:47:08.693156283Z",
+   "container": "solana-jupiter-prod-solve",
+   "message": "swap does not satisfy order",
+   "fields": {
+    "message": "swap does not satisfy order",
+    "in_amount": 2500000,
+    "out_amount": 63,
+    "limit_sell": 2500000,
+    "limit_buy": 64,
+    "shortfall": "1"
+   },
+   "spans": {
+    "solve": {
+     "auction_id": "some(478)",
+     "order": "0x4d6049c8f8d9bc5fab1d3e8dae675d41e59915f028a0532dad48c1708b6f4498"
+    }
+   }
+  },
+  {
+   "timestamp": "2026-10-13T09:47:13.696226494Z",
+   "container": "solana-jupiter-prod-solve",
+   "message": "swap does not satisfy order",
+   "fields": {
+    "message": "swap does not satisfy order",
+    "in_amount": 2500000,
+    "out_amount": 63,
+    "limit_sell": 2500000,
+    "limit_buy": 64,
+    "shortfall": "1"
+   },
+   "spans": {
+    "solve": {
+     "auction_id": "some(479)",
+     "order": "0x4d6049c8f8d9bc5fab1d3e8dae675d41e59915f028a0532dad48c1708b6f4498"
+    }
+   }
+  },
+  {
+   "timestamp": "2026-10-13T09:47:18.95331647Z",
+   "container": "solana-jupiter-prod-solve",
+   "message": "swap does not satisfy order",
+   "fields": {
+    "message": "swap does not satisfy order",
+    "in_amount": 2500000,
+    "out_amount": 63,
+    "limit_sell": 2500000,
+    "limit_buy": 64,
+    "shortfall": "1"
+   },
+   "spans": {
+    "solve": {
+     "auction_id": "some(480)",
+     "order": "0x4d6049c8f8d9bc5fab1d3e8dae675d41e59915f028a0532dad48c1708b6f4498"
+    }
+   }
+  },
+  {
+   "timestamp": "2026-10-13T09:47:23.860823933Z",
+   "container": "solana-jupiter-prod-solve",
+   "message": "swap does not satisfy order",
+   "fields": {
+    "message": "swap does not satisfy order",
+    "in_amount": 2500000,
+    "out_amount": 63,
+    "limit_sell": 2500000,
+    "limit_buy": 64,
+    "shortfall": "1"
+   },
+   "spans": {
+    "solve": {
+     "auction_id": "some(481)",
+     "order": "0x4d6049c8f8d9bc5fab1d3e8dae675d41e59915f028a0532dad48c1708b6f4498"
+    }
+   }
+  },
+  {
+   "timestamp": "2026-10-13T09:47:28.898112061Z",
+   "container": "solana-jupiter-prod-solve",
+   "message": "swap does not satisfy order",
+   "fields": {
+    "message": "swap does not satisfy order",
+    "in_amount": 2500000,
+    "out_amount": 63,
+    "limit_sell": 2500000,
+    "limit_buy": 64,
+    "shortfall": "1"
+   },
+   "spans": {
+    "solve": {
+     "auction_id": "some(482)",
+     "order": "0x4d6049c8f8d9bc5fab1d3e8dae675d41e59915f028a0532dad48c1708b6f4498"
+    }
+   }
+  },
+  {
+   "timestamp": "2026-10-13T09:47:33.707332107Z",
+   "container": "solana-jupiter-prod-solve",
+   "message": "swap does not satisfy order",
+   "fields": {
+    "message": "swap does not satisfy order",
+    "in_amount": 2500000,
+    "out_amount": 63,
+    "limit_sell": 2500000,
+    "limit_buy": 64,
+    "shortfall": "1"
+   },
+   "spans": {
+    "solve": {
+     "auction_id": "some(483)",
+     "order": "0x4d6049c8f8d9bc5fab1d3e8dae675d41e59915f028a0532dad48c1708b6f4498"
+    }
+   }
+  },
+  {
+   "timestamp": "2026-10-13T09:47:38.879313088Z",
+   "container": "solana-jupiter-prod-solve",
+   "message": "swap does not satisfy order",
+   "fields": {
+    "message": "swap does not satisfy order",
+    "in_amount": 2500000,
+    "out_amount": 63,
+    "limit_sell": 2500000,
+    "limit_buy": 64,
+    "shortfall": "1"
+   },
+   "spans": {
+    "solve": {
+     "auction_id": "some(484)",
+     "order": "0x4d6049c8f8d9bc5fab1d3e8dae675d41e59915f028a0532dad48c1708b6f4498"
+    }
+   }
+  },
+  {
+   "timestamp": "2026-10-13T09:47:43.708866382Z",
+   "container": "solana-jupiter-prod-solve",
+   "message": "swap does not satisfy order",
+   "fields": {
+    "message": "swap does not satisfy order",
+    "in_amount": 2500000,
+    "out_amount": 63,
+    "limit_sell": 2500000,
+    "limit_buy": 64,
+    "shortfall": "1"
+   },
+   "spans": {
+    "solve": {
+     "auction_id": "some(485)",
+     "order": "0x4d6049c8f8d9bc5fab1d3e8dae675d41e59915f028a0532dad48c1708b6f4498"
+    }
+   }
+  },
+  {
+   "timestamp": "2026-10-13T09:47:48.901342834Z",
+   "container": "solana-jupiter-prod-solve",
+   "message": "swap does not satisfy order",
+   "fields": {
+    "message": "swap does not satisfy order",
+    "in_amount": 2500000,
+    "out_amount": 63,
+    "limit_sell": 2500000,
+    "limit_buy": 64,
+    "shortfall": "1"
+   },
+   "spans": {
+    "solve": {
+     "auction_id": "some(486)",
+     "order": "0x4d6049c8f8d9bc5fab1d3e8dae675d41e59915f028a0532dad48c1708b6f4498"
+    }
+   }
+  },
+  {
+   "timestamp": "2026-10-13T09:47:53.708366384Z",
+   "container": "solana-jupiter-prod-solve",
+   "message": "swap does not satisfy order",
+   "fields": {
+    "message": "swap does not satisfy order",
+    "in_amount": 2500000,
+    "out_amount": 63,
+    "limit_sell": 2500000,
+    "limit_buy": 64,
+    "shortfall": "1"
+   },
+   "spans": {
+    "solve": {
+     "auction_id": "some(487)",
+     "order": "0x4d6049c8f8d9bc5fab1d3e8dae675d41e59915f028a0532dad48c1708b6f4498"
+    }
+   }
+  },
+  {
+   "timestamp": "2026-10-13T09:47:58.890173695Z",
+   "container": "solana-jupiter-prod-solve",
+   "message": "swap does not satisfy order",
+   "fields": {
+    "message": "swap does not satisfy order",
+    "in_amount": 2500000,
+    "out_amount": 63,
+    "limit_sell": 2500000,
+    "limit_buy": 64,
+    "shortfall": "1"
+   },
+   "spans": {
+    "solve": {
+     "auction_id": "some(488)",
+     "order": "0x4d6049c8f8d9bc5fab1d3e8dae675d41e59915f028a0532dad48c1708b6f4498"
+    }
+   }
+  },
+  {
+   "timestamp": "2026-10-13T09:48:03.709405157Z",
+   "container": "solana-jupiter-prod-solve",
+   "message": "swap does not satisfy order",
+   "fields": {
+    "message": "swap does not satisfy order",
+    "in_amount": 2500000,
+    "out_amount": 63,
+    "limit_sell": 2500000,
+    "limit_buy": 64,
+    "shortfall": "1"
+   },
+   "spans": {
+    "solve": {
+     "auction_id": "some(489)",
+     "order": "0x4d6049c8f8d9bc5fab1d3e8dae675d41e59915f028a0532dad48c1708b6f4498"
+    }
+   }
+  },
+  {
+   "timestamp": "2026-10-13T09:48:08.708711127Z",
+   "container": "solana-jupiter-prod-solve",
+   "message": "swap does not satisfy order",
+   "fields": {
+    "message": "swap does not satisfy order",
+    "in_amount": 2500000,
+    "out_amount": 63,
+    "limit_sell": 2500000,
+    "limit_buy": 64,
+    "shortfall": "1"
+   },
+   "spans": {
+    "solve": {
+     "auction_id": "some(490)",
+     "order": "0x4d6049c8f8d9bc5fab1d3e8dae675d41e59915f028a0532dad48c1708b6f4498"
+    }
+   }
+  },
+  {
+   "timestamp": "2026-10-13T09:48:13.717468885Z",
+   "container": "solana-jupiter-prod-solve",
+   "message": "swap does not satisfy order",
+   "fields": {
+    "message": "swap does not satisfy order",
+    "in_amount": 2500000,
+    "out_amount": 63,
+    "limit_sell": 2500000,
+    "limit_buy": 64,
+    "shortfall": "1"
+   },
+   "spans": {
+    "solve": {
+     "auction_id": "some(491)",
+     "order": "0x4d6049c8f8d9bc5fab1d3e8dae675d41e59915f028a0532dad48c1708b6f4498"
+    }
+   }
+  },
+  {
+   "timestamp": "2026-10-13T09:48:18.713357316Z",
+   "container": "solana-jupiter-prod-solve",
+   "message": "swap does not satisfy order",
+   "fields": {
+    "message": "swap does not satisfy order",
+    "in_amount": 2500000,
+    "out_amount": 63,
+    "limit_sell": 2500000,
+    "limit_buy": 64,
+    "shortfall": "1"
+   },
+   "spans": {
+    "solve": {
+     "auction_id": "some(492)",
+     "order": "0x4d6049c8f8d9bc5fab1d3e8dae675d41e59915f028a0532dad48c1708b6f4498"
+    }
+   }
+  },
+  {
+   "timestamp": "2026-10-13T09:48:23.71495238Z",
+   "container": "solana-jupiter-prod-solve",
+   "message": "swap does not satisfy order",
+   "fields": {
+    "message": "swap does not satisfy order",
+    "in_amount": 2500000,
+    "out_amount": 63,
+    "limit_sell": 2500000,
+    "limit_buy": 64,
+    "shortfall": "1"
+   },
+   "spans": {
+    "solve": {
+     "auction_id": "some(493)",
+     "order": "0x4d6049c8f8d9bc5fab1d3e8dae675d41e59915f028a0532dad48c1708b6f4498"
+    }
+   }
+  },
+  {
+   "timestamp": "2026-10-13T09:48:28.70827496Z",
+   "container": "solana-jupiter-prod-solve",
+   "message": "swap does not satisfy order",
+   "fields": {
+    "message": "swap does not satisfy order",
+    "in_amount": 2500000,
+    "out_amount": 63,
+    "limit_sell": 2500000,
+    "limit_buy": 64,
+    "shortfall": "1"
+   },
+   "spans": {
+    "solve": {
+     "auction_id": "some(494)",
+     "order": "0x4d6049c8f8d9bc5fab1d3e8dae675d41e59915f028a0532dad48c1708b6f4498"
+    }
+   }
+  },
+  {
+   "timestamp": "2026-10-13T09:48:33.713930167Z",
+   "container": "solana-jupiter-prod-solve",
+   "message": "swap does not satisfy order",
+   "fields": {
+    "message": "swap does not satisfy order",
+    "in_amount": 2500000,
+    "out_amount": 63,
+    "limit_sell": 2500000,
+    "limit_buy": 64,
+    "shortfall": "1"
+   },
+   "spans": {
+    "solve": {
+     "auction_id": "some(495)",
+     "order": "0x4d6049c8f8d9bc5fab1d3e8dae675d41e59915f028a0532dad48c1708b6f4498"
+    }
+   }
+  },
+  {
+   "timestamp": "2026-10-13T09:48:38.73387837Z",
+   "container": "solana-jupiter-prod-solve",
+   "message": "swap does not satisfy order",
+   "fields": {
+    "message": "swap does not satisfy order",
+    "in_amount": 2500000,
+    "out_amount": 63,
+    "limit_sell": 2500000,
+    "limit_buy": 64,
+    "shortfall": "1"
+   },
+   "spans": {
+    "solve": {
+     "auction_id": "some(496)",
+     "order": "0x4d6049c8f8d9bc5fab1d3e8dae675d41e59915f028a0532dad48c1708b6f4498"
+    }
+   }
+  },
+  {
+   "timestamp": "2026-10-13T09:48:43.714465014Z",
+   "container": "solana-jupiter-prod-solve",
+   "message": "swap does not satisfy order",
+   "fields": {
+    "message": "swap does not satisfy order",
+    "in_amount": 2500000,
+    "out_amount": 63,
+    "limit_sell": 2500000,
+    "limit_buy": 64,
+    "shortfall": "1"
+   },
+   "spans": {
+    "solve": {
+     "auction_id": "some(497)",
+     "order": "0x4d6049c8f8d9bc5fab1d3e8dae675d41e59915f028a0532dad48c1708b6f4498"
+    }
+   }
+  },
+  {
+   "timestamp": "2026-10-13T09:48:48.718045441Z",
+   "container": "solana-jupiter-prod-solve",
+   "message": "swap does not satisfy order",
+   "fields": {
+    "message": "swap does not satisfy order",
+    "in_amount": 2500000,
+    "out_amount": 63,
+    "limit_sell": 2500000,
+    "limit_buy": 64,
+    "shortfall": "1"
+   },
+   "spans": {
+    "solve": {
+     "auction_id": "some(498)",
+     "order": "0x4d6049c8f8d9bc5fab1d3e8dae675d41e59915f028a0532dad48c1708b6f4498"
+    }
+   }
+  },
+  {
+   "timestamp": "2026-10-13T09:48:53.720778008Z",
+   "container": "solana-jupiter-prod-solve",
+   "message": "swap does not satisfy order",
+   "fields": {
+    "message": "swap does not satisfy order",
+    "in_amount": 2500000,
+    "out_amount": 63,
+    "limit_sell": 2500000,
+    "limit_buy": 64,
+    "shortfall": "1"
+   },
+   "spans": {
+    "solve": {
+     "auction_id": "some(499)",
+     "order": "0x4d6049c8f8d9bc5fab1d3e8dae675d41e59915f028a0532dad48c1708b6f4498"
+    }
+   }
+  },
+  {
+   "timestamp": "2026-10-13T09:48:58.719863455Z",
+   "container": "solana-jupiter-prod-solve",
+   "message": "swap does not satisfy order",
+   "fields": {
+    "message": "swap does not satisfy order",
+    "in_amount": 2500000,
+    "out_amount": 63,
+    "limit_sell": 2500000,
+    "limit_buy": 64,
+    "shortfall": "1"
+   },
+   "spans": {
+    "solve": {
+     "auction_id": "some(500)",
+     "order": "0x4d6049c8f8d9bc5fab1d3e8dae675d41e59915f028a0532dad48c1708b6f4498"
+    }
+   }
+  },
+  {
+   "timestamp": "2026-10-13T09:49:03.894909449Z",
+   "container": "solana-jupiter-prod-solve",
+   "message": "swap does not satisfy order",
+   "fields": {
+    "message": "swap does not satisfy order",
+    "in_amount": 2500000,
+    "out_amount": 63,
+    "limit_sell": 2500000,
+    "limit_buy": 64,
+    "shortfall": "1"
+   },
+   "spans": {
+    "solve": {
+     "auction_id": "some(501)",
+     "order": "0x4d6049c8f8d9bc5fab1d3e8dae675d41e59915f028a0532dad48c1708b6f4498"
+    }
+   }
+  },
+  {
+   "timestamp": "2026-10-13T09:49:08.717127605Z",
+   "container": "solana-jupiter-prod-solve",
+   "message": "swap does not satisfy order",
+   "fields": {
+    "message": "swap does not satisfy order",
+    "in_amount": 2500000,
+    "out_amount": 63,
+    "limit_sell": 2500000,
+    "limit_buy": 64,
+    "shortfall": "1"
+   },
+   "spans": {
+    "solve": {
+     "auction_id": "some(502)",
+     "order": "0x4d6049c8f8d9bc5fab1d3e8dae675d41e59915f028a0532dad48c1708b6f4498"
+    }
+   }
+  },
+  {
+   "timestamp": "2026-10-13T09:49:13.728935067Z",
+   "container": "solana-jupiter-prod-solve",
+   "message": "swap does not satisfy order",
+   "fields": {
+    "message": "swap does not satisfy order",
+    "in_amount": 2500000,
+    "out_amount": 63,
+    "limit_sell": 2500000,
+    "limit_buy": 64,
+    "shortfall": "1"
+   },
+   "spans": {
+    "solve": {
+     "auction_id": "some(503)",
+     "order": "0x4d6049c8f8d9bc5fab1d3e8dae675d41e59915f028a0532dad48c1708b6f4498"
+    }
+   }
+  },
+  {
+   "timestamp": "2026-10-13T09:49:18.725956667Z",
+   "container": "solana-jupiter-prod-solve",
+   "message": "swap does not satisfy order",
+   "fields": {
+    "message": "swap does not satisfy order",
+    "in_amount": 2500000,
+    "out_amount": 63,
+    "limit_sell": 2500000,
+    "limit_buy": 64,
+    "shortfall": "1"
+   },
+   "spans": {
+    "solve": {
+     "auction_id": "some(504)",
+     "order": "0x4d6049c8f8d9bc5fab1d3e8dae675d41e59915f028a0532dad48c1708b6f4498"
+    }
+   }
+  },
+  {
+   "timestamp": "2026-10-13T09:49:33.834169719Z",
+   "container": "solana-autopilot-prod",
+   "message": "orders no longer in auction",
+   "fields": {
+    "message": "orders no longer in auction",
+    "auction_id": 505,
+    "removed": "[\"0x4d6049c8f8d9bc5fab1d3e8dae675d41e59915f028a0532dad48c1708b6f4498\"]"
+   },
+   "spans": {
+    "auction": {
+     "auction_id": "505"
+    }
+   }
+  }
+ ],
+ "spyx": [
+  {
+   "timestamp": "2026-10-13T09:40:08.103868599Z",
+   "container": "solana-api-prod",
+   "message": "order created",
+   "fields": {
+    "message": "order created",
+    "order_uid": "0xc6f82275f5cf373b483a467718f1842f37286da57f1bfadd611073cd7ed6e619"
+   },
+   "spans": {
+    "http_request": {
+     "request_id": "815eeb2a350ae6487443ba36e3684603",
+     "trace_id": "00000000000000000000000000000000"
+    }
+   }
+  },
+  {
+   "timestamp": "2026-10-13T09:40:08.774255165Z",
+   "container": "solana-autopilot-prod",
+   "message": "new orders in auction",
+   "fields": {
+    "message": "new orders in auction",
+    "auction_id": 426,
+    "added": "[\"0x6839a026508f992f3d1476af7f9495f0870ad2bd53ced6dfc59aea6f3f5233f7\", \"0x1a742002ec5aa4cd8a5bfea881e18568c58eeed6ec5a4aecccbe73a9ec98e4fe\", \"0xe3e8b1a7fae305d95e85826802232e42be91f96b12f92b23d652d46c58cb30e7\", \"0xc6f82275f5cf373b483a467718f1842f37286da57f1bfadd611073cd7ed6e619\"]"
+   },
+   "spans": {
+    "auction": {
+     "auction_id": "426"
+    }
+   }
+  },
+  {
+   "timestamp": "2026-10-13T09:40:08.841583239Z",
+   "container": "solana-jupiter-prod-solve",
+   "message": "solved",
+   "fields": {
+    "message": "solved"
+   },
+   "spans": {
+    "solve": {
+     "auction_id": "some(426)",
+     "order": "0xc6f82275f5cf373b483a467718f1842f37286da57f1bfadd611073cd7ed6e619"
+    }
+   }
+  },
+  {
+   "timestamp": "2026-10-13T09:40:13.810548599Z",
+   "container": "solana-jupiter-prod-solve",
+   "message": "solved",
+   "fields": {
+    "message": "solved"
+   },
+   "spans": {
+    "solve": {
+     "auction_id": "some(427)",
+     "order": "0xc6f82275f5cf373b483a467718f1842f37286da57f1bfadd611073cd7ed6e619"
+    }
+   }
+  },
+  {
+   "timestamp": "2026-10-13T09:40:18.609876504Z",
+   "container": "solana-jupiter-prod-solve",
+   "message": "solved",
+   "fields": {
+    "message": "solved"
+   },
+   "spans": {
+    "solve": {
+     "auction_id": "some(428)",
+     "order": "0xc6f82275f5cf373b483a467718f1842f37286da57f1bfadd611073cd7ed6e619"
+    }
+   }
+  },
+  {
+   "timestamp": "2026-10-13T09:40:23.606793955Z",
+   "container": "solana-jupiter-prod-solve",
+   "message": "solved",
+   "fields": {
+    "message": "solved"
+   },
+   "spans": {
+    "solve": {
+     "auction_id": "some(429)",
+     "order": "0xc6f82275f5cf373b483a467718f1842f37286da57f1bfadd611073cd7ed6e619"
+    }
+   }
+  },
+  {
+   "timestamp": "2026-10-13T09:40:28.606340861Z",
+   "container": "solana-jupiter-prod-solve",
+   "message": "solved",
+   "fields": {
+    "message": "solved"
+   },
+   "spans": {
+    "solve": {
+     "auction_id": "some(430)",
+     "order": "0xc6f82275f5cf373b483a467718f1842f37286da57f1bfadd611073cd7ed6e619"
+    }
+   }
+  },
+  {
+   "timestamp": "2026-10-13T09:40:33.620655873Z",
+   "container": "solana-jupiter-prod-solve",
+   "message": "solved",
+   "fields": {
+    "message": "solved"
+   },
+   "spans": {
+    "solve": {
+     "auction_id": "some(431)",
+     "order": "0xc6f82275f5cf373b483a467718f1842f37286da57f1bfadd611073cd7ed6e619"
+    }
+   }
+  },
+  {
+   "timestamp": "2026-10-13T09:40:38.614254152Z",
+   "container": "solana-jupiter-prod-solve",
+   "message": "solved",
+   "fields": {
+    "message": "solved"
+   },
+   "spans": {
+    "solve": {
+     "auction_id": "some(432)",
+     "order": "0xc6f82275f5cf373b483a467718f1842f37286da57f1bfadd611073cd7ed6e619"
+    }
+   }
+  },
+  {
+   "timestamp": "2026-10-13T09:40:43.535123679Z",
+   "container": "solana-autopilot-prod",
+   "message": "sponsored creation expired, dropping the order",
+   "fields": {
+    "message": "sponsored creation expired, dropping the order",
+    "order_uid": "0xc6f82275f5cf373b483a467718f1842f37286da57f1bfadd611073cd7ed6e619"
+   },
+   "spans": {}
+  },
+  {
+   "timestamp": "2026-10-13T09:40:48.740614614Z",
+   "container": "solana-autopilot-prod",
+   "message": "orders no longer in auction",
+   "fields": {
+    "message": "orders no longer in auction",
+    "auction_id": 433,
+    "removed": "[\"0xc6f82275f5cf373b483a467718f1842f37286da57f1bfadd611073cd7ed6e619\"]"
+   },
+   "spans": {
+    "auction": {
+     "auction_id": "433"
+    }
+   }
+  }
+ ],
+ "_source": {
+  "grafana": "https://victorialogs.dev.cow.fi",
+  "datasource": "vm-auth-prod",
+  "environment": "prod"
+ },
+ "paxg_solver_fields": [
+  {
+   "container": "solana-jupiter-prod-solve",
+   "message": "swap does not satisfy order",
+   "parsed.fields.in_amount": "2500000",
+   "parsed.fields.limit_buy": "64",
+   "parsed.fields.limit_sell": "2500000",
+   "parsed.fields.out_amount": "63",
+   "parsed.fields.shortfall": "1",
+   "parsed.spans.solve.auction_id": "Some(462)",
+   "parsed.spans.solve.order": "0x4d6049c8f8d9bc5fab1d3e8dae675d41e59915f028a0532dad48c1708b6f4498",
+   "parsed.target": "solana_solvers::domain::solver",
+   "timestamp": "2026-10-13T09:45:48.913297373Z"
+  },
+  {
+   "container": "solana-jupiter-prod-solve",
+   "message": "swap does not satisfy order",
+   "parsed.fields.in_amount": "2500000",
+   "parsed.fields.limit_buy": "64",
+   "parsed.fields.limit_sell": "2500000",
+   "parsed.fields.out_amount": "63",
+   "parsed.fields.shortfall": "1",
+   "parsed.spans.solve.auction_id": "Some(463)",
+   "parsed.spans.solve.order": "0x4d6049c8f8d9bc5fab1d3e8dae675d41e59915f028a0532dad48c1708b6f4498",
+   "parsed.target": "solana_solvers::domain::solver",
+   "timestamp": "2026-10-13T09:45:53.679248599Z"
+  },
+  {
+   "container": "solana-jupiter-prod-solve",
+   "message": "swap does not satisfy order",
+   "parsed.fields.in_amount": "2500000",
+   "parsed.fields.limit_buy": "64",
+   "parsed.fields.limit_sell": "2500000",
+   "parsed.fields.out_amount": "63",
+   "parsed.fields.shortfall": "1",
+   "parsed.spans.solve.auction_id": "Some(464)",
+   "parsed.spans.solve.order": "0x4d6049c8f8d9bc5fab1d3e8dae675d41e59915f028a0532dad48c1708b6f4498",
+   "parsed.target": "solana_solvers::domain::solver",
+   "timestamp": "2026-10-13T09:45:58.855026582Z"
+  },
+  {
+   "container": "solana-jupiter-prod-solve",
+   "message": "solved",
+   "parsed.spans.solve.auction_id": "Some(465)",
+   "parsed.spans.solve.order": "0x4d6049c8f8d9bc5fab1d3e8dae675d41e59915f028a0532dad48c1708b6f4498",
+   "parsed.target": "solana_solvers::domain::solver",
+   "timestamp": "2026-10-13T09:46:03.687486596Z"
+  },
+  {
+   "container": "solana-jupiter-prod-solve",
+   "message": "solved",
+   "parsed.spans.solve.auction_id": "Some(466)",
+   "parsed.spans.solve.order": "0x4d6049c8f8d9bc5fab1d3e8dae675d41e59915f028a0532dad48c1708b6f4498",
+   "parsed.target": "solana_solvers::domain::solver",
+   "timestamp": "2026-10-13T09:46:08.850286761Z"
+  },
+  {
+   "container": "solana-jupiter-prod-solve",
+   "message": "swap does not satisfy order",
+   "parsed.fields.in_amount": "2500000",
+   "parsed.fields.limit_buy": "64",
+   "parsed.fields.limit_sell": "2500000",
+   "parsed.fields.out_amount": "63",
+   "parsed.fields.shortfall": "1",
+   "parsed.spans.solve.auction_id": "Some(467)",
+   "parsed.spans.solve.order": "0x4d6049c8f8d9bc5fab1d3e8dae675d41e59915f028a0532dad48c1708b6f4498",
+   "parsed.target": "solana_solvers::domain::solver",
+   "timestamp": "2026-10-13T09:46:13.842537827Z"
+  },
+  {
+   "container": "solana-jupiter-prod-solve",
+   "message": "solved",
+   "parsed.spans.solve.auction_id": "Some(468)",
+   "parsed.spans.solve.order": "0x4d6049c8f8d9bc5fab1d3e8dae675d41e59915f028a0532dad48c1708b6f4498",
+   "parsed.target": "solana_solvers::domain::solver",
+   "timestamp": "2026-10-13T09:46:18.90231414Z"
+  },
+  {
+   "container": "solana-jupiter-prod-solve",
+   "message": "swap does not satisfy order",
+   "parsed.fields.in_amount": "2500000",
+   "parsed.fields.limit_buy": "64",
+   "parsed.fields.limit_sell": "2500000",
+   "parsed.fields.out_amount": "63",
+   "parsed.fields.shortfall": "1",
+   "parsed.spans.solve.auction_id": "Some(469)",
+   "parsed.spans.solve.order": "0x4d6049c8f8d9bc5fab1d3e8dae675d41e59915f028a0532dad48c1708b6f4498",
+   "parsed.target": "solana_solvers::domain::solver",
+   "timestamp": "2026-10-13T09:46:23.6832176Z"
+  }
+ ],
+ "paxg_driver_attempts": [
+  {
+   "container": "solana-driver-prod",
+   "message": "simulating settlement bundle",
+   "parsed.fields.bytes": "1008",
+   "parsed.fields.creations": "[]",
+   "parsed.fields.solution_id": "0",
+   "parsed.spans./solve.auction_id": "465",
+   "parsed.spans./solve.solver": "jupiter-solve",
+   "parsed.spans.http_request.request_id": "75314",
+   "parsed.spans.http_request.trace_id": "00000000000000000000000000000000",
+   "parsed.target": "solana_driver::domain::competition",
+   "timestamp": "2026-10-13T09:46:03.708727203Z"
+  },
+  {
+   "container": "solana-driver-prod",
+   "message": "bundle simulation failed",
+   "parsed.fields.creation": "None",
+   "parsed.fields.leg": "0",
+   "parsed.fields.logs": "Some([])",
+   "parsed.fields.program": "Some(\"JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4\")",
+   "parsed.fields.slot": "456397590",
+   "parsed.fields.solution_id": "0",
+   "parsed.fields.solver": "jupiter-solve",
+   "parsed.spans./solve.auction_id": "465",
+   "parsed.spans./solve.solver": "jupiter-solve",
+   "parsed.spans.http_request.request_id": "75314",
+   "parsed.spans.http_request.trace_id": "00000000000000000000000000000000",
+   "parsed.target": "solana_driver::domain::competition",
+   "timestamp": "2026-10-13T09:46:03.723630907Z"
+  },
+  {
+   "container": "solana-driver-prod",
+   "message": "dropping solution, its settlement fails in simulation",
+   "parsed.fields.elapsed_ms": "35",
+   "parsed.fields.error": "SimulationFailed { err: UiTransactionError(InstructionError(7, InvalidAccountOwner)), program_error: None }",
+   "parsed.fields.solution_id": "0",
+   "parsed.fields.solver": "jupiter-solve",
+   "parsed.fields.window_ms": "5445",
+   "parsed.spans./solve.auction_id": "465",
+   "parsed.spans./solve.solver": "jupiter-solve",
+   "parsed.spans.http_request.request_id": "75314",
+   "parsed.spans.http_request.trace_id": "00000000000000000000000000000000",
+   "parsed.target": "solana_driver::domain::competition",
+   "timestamp": "2026-10-13T09:46:03.723679153Z"
+  },
+  {
+   "container": "solana-driver-prod",
+   "message": "simulating settlement bundle",
+   "parsed.fields.bytes": "1008",
+   "parsed.fields.creations": "[]",
+   "parsed.fields.solution_id": "0",
+   "parsed.spans./solve.auction_id": "466",
+   "parsed.spans./solve.solver": "jupiter-solve",
+   "parsed.spans.http_request.request_id": "75320",
+   "parsed.spans.http_request.trace_id": "00000000000000000000000000000000",
+   "parsed.target": "solana_driver::domain::competition",
+   "timestamp": "2026-10-13T09:46:08.869973627Z"
+  },
+  {
+   "container": "solana-driver-prod",
+   "message": "bundle simulation failed",
+   "parsed.fields.creation": "None",
+   "parsed.fields.leg": "0",
+   "parsed.fields.logs": "Some([])",
+   "parsed.fields.program": "Some(\"JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4\")",
+   "parsed.fields.slot": "456397611",
+   "parsed.fields.solution_id": "0",
+   "parsed.fields.solver": "jupiter-solve",
+   "parsed.spans./solve.auction_id": "466",
+   "parsed.spans./solve.solver": "jupiter-solve",
+   "parsed.spans.http_request.request_id": "75320",
+   "parsed.spans.http_request.trace_id": "00000000000000000000000000000000",
+   "parsed.target": "solana_driver::domain::competition",
+   "timestamp": "2026-10-13T09:46:08.886481849Z"
+  },
+  {
+   "container": "solana-driver-prod",
+   "message": "dropping solution, its settlement fails in simulation",
+   "parsed.fields.elapsed_ms": "34",
+   "parsed.fields.error": "SimulationFailed { err: UiTransactionError(InstructionError(7, InvalidAccountOwner)), program_error: None }",
+   "parsed.fields.solution_id": "0",
+   "parsed.fields.solver": "jupiter-solve",
+   "parsed.fields.window_ms": "5452",
+   "parsed.spans./solve.auction_id": "466",
+   "parsed.spans./solve.solver": "jupiter-solve",
+   "parsed.spans.http_request.request_id": "75320",
+   "parsed.spans.http_request.trace_id": "00000000000000000000000000000000",
+   "parsed.target": "solana_driver::domain::competition",
+   "timestamp": "2026-10-13T09:46:08.896514959Z"
+  },
+  {
+   "container": "solana-driver-prod",
+   "message": "simulating settlement bundle",
+   "parsed.fields.bytes": "1008",
+   "parsed.fields.creations": "[]",
+   "parsed.fields.solution_id": "0",
+   "parsed.spans./solve.auction_id": "468",
+   "parsed.spans./solve.solver": "jupiter-solve",
+   "parsed.spans.http_request.request_id": "75332",
+   "parsed.spans.http_request.trace_id": "00000000000000000000000000000000",
+   "parsed.target": "solana_driver::domain::competition",
+   "timestamp": "2026-10-13T09:46:18.920629912Z"
+  },
+  {
+   "container": "solana-driver-prod",
+   "message": "bundle simulation failed",
+   "parsed.fields.creation": "None",
+   "parsed.fields.leg": "0",
+   "parsed.fields.logs": "Some([])",
+   "parsed.fields.program": "Some(\"JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4\")",
+   "parsed.fields.slot": "456397663",
+   "parsed.fields.solution_id": "0",
+   "parsed.fields.solver": "jupiter-solve",
+   "parsed.spans./solve.auction_id": "468",
+   "parsed.spans./solve.solver": "jupiter-solve",
+   "parsed.spans.http_request.request_id": "75332",
+   "parsed.spans.http_request.trace_id": "00000000000000000000000000000000",
+   "parsed.target": "solana_driver::domain::competition",
+   "timestamp": "2026-10-13T09:46:18.943974568Z"
+  },
+  {
+   "container": "solana-driver-prod",
+   "message": "dropping solution, its settlement fails in simulation",
+   "parsed.fields.elapsed_ms": "40",
+   "parsed.fields.error": "SimulationFailed { err: UiTransactionError(InstructionError(7, InvalidAccountOwner)), program_error: None }",
+   "parsed.fields.solution_id": "0",
+   "parsed.fields.solver": "jupiter-solve",
+   "parsed.fields.window_ms": "5452",
+   "parsed.spans./solve.auction_id": "468",
+   "parsed.spans./solve.solver": "jupiter-solve",
+   "parsed.spans.http_request.request_id": "75332",
+   "parsed.spans.http_request.trace_id": "00000000000000000000000000000000",
+   "parsed.target": "solana_driver::domain::competition",
+   "timestamp": "2026-10-13T09:46:18.944046884Z"
+  }
+ ],
+ "solved_orders_in_matching_auctions": [
+  {
+   "container": "solana-jupiter-prod-solve",
+   "message": "solved",
+   "parsed.spans.solve.auction_id": "Some(465)",
+   "parsed.spans.solve.order": "0x4d6049c8f8d9bc5fab1d3e8dae675d41e59915f028a0532dad48c1708b6f4498",
+   "parsed.target": "solana_solvers::domain::solver",
+   "timestamp": "2026-10-13T09:46:03.687486596Z"
+  },
+  {
+   "container": "solana-jupiter-prod-solve",
+   "message": "solved",
+   "parsed.spans.solve.auction_id": "Some(466)",
+   "parsed.spans.solve.order": "0x4d6049c8f8d9bc5fab1d3e8dae675d41e59915f028a0532dad48c1708b6f4498",
+   "parsed.target": "solana_solvers::domain::solver",
+   "timestamp": "2026-10-13T09:46:08.850286761Z"
+  },
+  {
+   "container": "solana-jupiter-prod-solve",
+   "message": "solved",
+   "parsed.spans.solve.auction_id": "Some(466)",
+   "parsed.spans.solve.order": "0x6fdd1472635b1bb02c80be58b83dbf5e122c22a6d6793d1fad4d2dbd762ef7a2",
+   "parsed.target": "solana_solvers::domain::solver",
+   "timestamp": "2026-10-13T09:46:08.851160063Z"
+  },
+  {
+   "container": "solana-jupiter-prod-solve",
+   "message": "solved",
+   "parsed.spans.solve.auction_id": "Some(468)",
+   "parsed.spans.solve.order": "0xc5a0154a9d309aaaa2f1486f740f4082e4721f738c28644b4d61361a6bcff7ed",
+   "parsed.target": "solana_solvers::domain::solver",
+   "timestamp": "2026-10-13T09:46:18.901948156Z"
+  },
+  {
+   "container": "solana-jupiter-prod-solve",
+   "message": "solved",
+   "parsed.spans.solve.auction_id": "Some(468)",
+   "parsed.spans.solve.order": "0x4d6049c8f8d9bc5fab1d3e8dae675d41e59915f028a0532dad48c1708b6f4498",
+   "parsed.target": "solana_solvers::domain::solver",
+   "timestamp": "2026-10-13T09:46:18.90231414Z"
+  }
+ ]
+}

@@ -11,12 +11,18 @@ Explain what each scenario tested, what happened, and what needs attention. Writ
 
 For Jupiter, always produce only `{timestamp}_jupiter_solver_test_report_for_cow.md`. Keep it brief and include only errors: quote rejections, failed orders or attempts, cleanup failures and missing evidence needed to investigate them. Do not create a separate solver report or include successful scenarios, performance metrics or coverage summaries. Group repeated errors with counts and affected tokens or row numbers; keep exact errors, final outcomes and useful order links. State unknown ownership clearly. Aim for about 200 words, with compact error evidence if needed. This rule overrides the two-report, per-scenario, successful-example and comparison formats below for Jupiter; evidence checks still apply.
 
+Always keep a Debug tool URL column for Jupiter errors. Link every failed order or cleanup action that has an order ID, even when shortening or grouping the report. For quote failures without an order ID, say "No order ID: quote failed before placement"; never invent a debug link or use a successful order as the failed request's link.
+
+For requests that received no usable quote or failed before placement, include representative tokens, trade direction, order kind and requested amount. Use verified symbols and token links; keep a mint or scenario label when the symbol is uncertain. Give a short possible reason based on the saved error and available evidence, clearly labelled "Possible reason (unconfirmed)" unless verified. For repeated failures, group them but keep examples and affected row numbers. Separate the observed failure stage from its possible cause: `NoLiquidity` means the quote API returned no usable route for that request, not proof that Jupiter returned no quote, that the token has no liquidity, or that support is permanently absent. Explain missing order links and unknown ownership. If evidence doesn't support a specific cause, say "Cause unknown" rather than inventing one. Apply the same rule to other failures before placement, such as creation or validation errors, using their actual stage and message.
+
 ## Check the runs
 
 1. Confirm the solver, environment, selected sessions and filename timestamp. Sessions are in `sessions/` at the repo root (`../sessions/` from `sim/`). Check metadata; a shared prefix alone does not confirm which runs belong.
 2. Read `meta.json`, `report.md` or `report.html`, and `sim/scenario.csv` for the setup and test goal.
 3. Check `sim/journal.jsonl` for placement, retries and cleanup; `orders.json` or `orders.csv` for final outcomes; and `txs.json` for settlement signatures. Check field names before querying.
 4. Resolve uncertain counts or errors using selected records from `logs/settle_failures.txt`, `logs/creation_expired.txt` and `logs/competition.json`. Use compact queries, not full log dumps. Quote exact errors rather than generic report labels.
+
+When reading Grafana, verify the data source matches the run's environment before querying containers. A `prod` simulator flag does not select a production Grafana data source. If queries return no records, inspect available data sources and check the order against the matching one before reporting missing logs. In this workspace, production VictoriaLogs uses `vm-auth-prod` and staging uses `vm-auth-staging`; verify these names still exist. Keep supplemental evidence when correcting an earlier query. Read the exact swap input, output, limits and shortfall before explaining "swap does not satisfy order"; check separate solved attempts and join driver failures by auction, solver and solution, rather than assuming all attempts had the same outcome.
 
 Use the selected completed reruns. Exclude superseded setup or configuration runs, but keep failures from selected runs. Ask if selection is unclear. Use the requested timestamp prefix when supplied, otherwise the test date as `YYYYMMDD`. Use metadata for the date inside the reports.
 
@@ -41,6 +47,8 @@ Lead with a direct answer to the test goal: **achieved**, **not achieved**, or *
 - **Size:** measure the full serialized transaction, including signatures, against the 1232-byte limit and test target. Do not infer size from order count or earlier routes. Below-target transactions leave the limit test inconclusive.
 
 Check solver participation in competition records, not DEX names. Decode custom numeric errors only when their program is known. Separate confirmed causes from possible explanations; missing evidence proves neither success nor failure.
+
+Keep quoting, placing an order, accepting a solver solution and settling the trade separate. A quote or placed order does not prove the solver produced an accepted solution. A "swap does not satisfy order" message describes a rejected candidate swap; report its actual failed condition when available, without counting it as solved or inferring that every attempt failed for the same reason. If the user supplies a debug message that you cannot independently read, label it as user-reported evidence.
 
 ## Assign ownership
 
