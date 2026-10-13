@@ -1,6 +1,6 @@
-# Grafiks solver test report for CoW — staging, 9 October 2026
+# Grafiks solver test report — staging, 9 October 2026
 
-**157/179 scheduled trades filled; all placed orders eventually filled.** There were 19 unexpected failures before placement and 3 expected autopilot transfer fee rejections. This report includes solver results and service evidence; the [solver report](20260910_grafiks_solver_test_report.md) includes solver findings and unresolved quote and connectivity errors.
+**TLDR:** 157/179 planned trades filled, and every placed order eventually filled. Batches of 4 worked, but opposite orders didn't match directly; 12 trades couldn't get a quote, 7 failed during creation and 3 hit the known transfer fee restriction. Next, check the quote failures, creation failures and swap retries before testing how much load Grafiks can handle.
 
 Counts include 6 CoW setup trades and exclude cleanup. Times are UTC. Quote failures are rows without a submitted main order; no placed scenario order remained unfilled.
 

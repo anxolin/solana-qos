@@ -1,6 +1,6 @@
 ---
 name: solver-test-report
-description: Combine completed Solana solver scenarios into a short Markdown report with checked evidence. Use for composite test reports or updates to an existing report.
+description: Combine completed Solana solver scenarios into a short Markdown report with checked evidence and changes since the previous report. Use for composite test reports or updates to an existing report.
 ---
 
 # Solver test report
@@ -49,7 +49,7 @@ Separate the confirmed failure from its underlying cause and repair owner. Titan
 Always produce 2 reports:
 
 - `{timestamp}_{solverName}_solver_test_report.md`: solver performance, feature results, confirmed solver issues, accepted solver limitations and errors of unknown ownership. Keep unknown ownership errors in both reports with the same order evidence; label them **Ownership unknown**, not solver defects. Exclude errors confirmed to be unrelated to the solver. Keep brief test limitations needed to interpret the results, without unrelated service troubleshooting.
-- `{timestamp}_{solverName}_solver_test_report_for_cow.md`: the complete report for the CoW team. Include solver results plus creation, quoting, services, RPC, settlement retries, cleanup and uncertain errors from the selected runs. Preserve all evidence and explanations, including those in the solver report. Link to the solver report.
+- `{timestamp}_{solverName}_solver_test_report_for_cow.md`: the complete report for the CoW team. Include solver results plus creation, quoting, services, RPC, settlement retries, cleanup and uncertain errors from the selected runs. Preserve all evidence and explanations, including those in the solver report.
 
 Label the solver report’s placed-order denominator. Include planned counts and failures before placement in the CoW report so missing orders cannot make an incomplete test look fully successful. Do not claim an autopilot defect without evidence of ownership.
 
@@ -61,13 +61,15 @@ Both reports must have an order table within every scenario, with a few successf
 
 ## Format
 
-Open with the date, environment and 1 sentence on the overall result. Follow with:
+Use a neutral title such as "{Solver name} solver test report" for both reports. Do not state that a report is for the solver or the CoW team, and do not link the reports to each other. Keep their filenames and distinct content scopes.
 
-| Scenario | Outcome | Next check |
-| --- | --- | --- |
+Open with the date and environment, then **TLDR:** and 2-3 short sentences in simple, slightly informal English, like a quick message to a teammate. Use everyday words and natural contractions. Explain technical terms when needed: "opposite orders did not match directly" is clearer than "CoW was not achieved". State the overall result, the main issue and the next action without losing facts or uncertainty. Use clear counts and distinguish planned trades from placed orders when the difference matters. Keep the TLDR relevant to its reader: solver issues in the solver report; service issues and unfinished cleanup may also appear in the CoW report. Follow with:
+
+| Scenario         | Outcome                                                      | Next check                               |
+| ---------------- | ------------------------------------------------------------ | ---------------------------------------- |
 | 1. Scenario name | Goal achieved, not achieved or inconclusive; then fill count | 1 specific check, with owner where known |
 
-Use a numbered section per scenario. Keep visible text to 2 short sentences: whether the goal was achieved, then the reason or impact. Keep setup details in the evidence block when they add length. Aim for 200–350 visible words for 5 scenarios, including the summary table. Keep full CoW detail inside evidence blocks. Do not repeat the table or add separate Expected, Result and Impact paragraphs.
+Use a numbered section per scenario. Keep visible text to 2 short sentences: whether the goal was achieved, then the reason or impact. Keep setup details in the evidence block when they add length. Aim for 200-350 visible words for 5 scenarios, including the TLDR and summary table. Keep full CoW detail inside evidence blocks. Do not repeat the table or add separate Expected, Result and Impact paragraphs.
 
 Put metrics, explanations, order evidence, transaction links and cleanup in 1 closed block per scenario:
 
@@ -77,9 +79,9 @@ Put metrics, explanations, order evidence, transaction links and cleanup in 1 cl
 
 Total transactions: N. Median / longest fill: N / N seconds.
 
-| Scenario row / trader | UTC timestamp | Trade | Error(s) | Debug tool URL |
-| --- | --- | --- | --- | --- |
-| row / trader | first failed attempt | Sell input amount SRC → DEST, or Buy SRC → exactly output amount DEST | exact error; final outcome | order link or why none exists |
+| Scenario row / trader | UTC timestamp        | Trade                                                                 | Error(s)                   | Debug tool URL                |
+| --------------------- | -------------------- | --------------------------------------------------------------------- | -------------------------- | ----------------------------- |
+| row / trader          | first failed attempt | Sell input amount SRC → DEST, or Buy SRC → exactly output amount DEST | exact error; final outcome | order link or why none exists |
 
 </details>
 ```
@@ -94,6 +96,20 @@ Keep blank lines around Markdown inside the block. Do not use `open`. If the ren
 - Use plain English and numerals for counts, durations, sizes and amounts. Keep confirmed causes separate from assumptions. Explain shared evidence gaps once; mark unavailable data as unavailable.
 - Omit repeated prose, internal endpoints, long timelines, superseded configuration mistakes and instructions to search inaccessible logs. Include infrastructure or fee payer details only if needed to explain a finding.
 
+## Compare with previous reports
+
+When a previous report exists, add a short comparison to both new reports. Use the baseline named by the user, otherwise the latest earlier report for the same solver and environment. Match the solver and CoW report scopes separately. Use report dates and session metadata, not filenames alone; if no matching baseline exists, say so briefly. Ask only when the baseline choice is unclear.
+
+Compare matching scenarios, planned and placed counts, fills, token sell and exact buy coverage, and meaningful changes in failures or timing. Keep denominators, expected-rejection exclusions, acquisition and cleanup exclusions, and timing endpoints consistent. If setup or evidence differs, explain the limit instead of calling the result an improvement or regression. Do not treat fewer placed orders or a different token mix as better solver performance.
+
+After the scenario summary table, add `## Changes since {previous report date}` with 1 short numerical sentence and a closed `<details>` block titled `Comparison with the previous run`. Name the baseline briefly, then show only meaningful numerical changes in a compact before/after table. Summarize unchanged results in 1 line; avoid repeating the scenario explanations or adding a long comparison narrative.
+
+Show newly recorded error types and newly affected orders separately, with counts, exact saved errors, final outcomes and order links where available. Check previous failure records before calling an error new: an existing error on a different order is a newly affected order, not a new error type. Keep aggregate counters separate from distinct orders; say when missing records prevent a comparison. Include 2-4 unique successful fills that were missing or failed in the previous run, choosing new token coverage or recovered trades, with exact amounts, row numbers and debug links. If none exist, say so. Keep full order evidence in its existing scenario blocks.
+
+The comparison must follow each report’s ownership and content scope; repeat shared comparison evidence in the CoW report so it stands alone. Aim for about 150-200 words including table text, allowing extra rows only for distinct actionable new errors. Keep old error explanations out of the diff except for a short evidence caveat.
+
+Check comparison claims against the selected current artifacts and the previous report; inspect previous artifacts when needed and available. State when a claim relies only on the previous report. Missing error details in the new run do not prove an earlier issue was fixed. Carry forward known and accepted limitations and user-confirmed ownership without treating old failures as new-run evidence.
+
 ## Before delivery
 
-Check totals, timing, cleanup exclusions, error ownership and whether each test achieved its goal. Match all recorded failed orders and attempts to evidence rows in the correct report; confirm every scenario also has successful examples. Verify token lists, table rows and links against sources. Review each report for its intended reader: clear goal result, useful next check and enough evidence to investigate. Keep evidence blocks closed and readable. Preserve unrelated work and leave edits unstaged for review.
+Check totals, timing, cleanup exclusions, error ownership and whether each test achieved its goal. Match all recorded failed orders and attempts to evidence rows in the correct report; confirm every scenario also has successful examples. Verify token lists, table rows and links against sources. Check that the previous-report comparison uses matching scopes and denominators and does not claim fixes from missing evidence. Review each report for its intended reader: clear goal result, useful next check and enough evidence to investigate. Keep evidence blocks closed and readable. Preserve unrelated work and leave edits unstaged for review.

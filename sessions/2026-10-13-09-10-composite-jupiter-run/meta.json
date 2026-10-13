@@ -1,0 +1,1120 @@
+{
+ "rpc": "solana-mainnet.g.alchemy.com",
+ "name": "2026-10-13-09-10-composite-jupiter-run trade session",
+ "title": "2026-10-13-09-10-composite-jupiter-run",
+ "env": "prod",
+ "sim": {
+  "scenario": "/Users/igor/work/cowprotocol/solana-qos/scenarios/solver-validation/jupiter-composite.json",
+  "traders": 70,
+  "rows": 197,
+  "solFundingPerTrader": 0.08
+ },
+ "composite": {
+  "name": "jupiter-core-token-coverage-xstocks-and-token-2022-pairs",
+  "solver": "jupiter",
+  "breakSeconds": 60,
+  "scenarios": [
+   {
+    "id": 1,
+    "name": "solver-standard-pairs",
+    "path": "solver-standard-pairs.csv",
+    "sourceRows": [
+     {
+      "row": 1,
+      "sourceRow": 1,
+      "sourceTrader": 1
+     },
+     {
+      "row": 2,
+      "sourceRow": 2,
+      "sourceTrader": 2
+     },
+     {
+      "row": 3,
+      "sourceRow": 3,
+      "sourceTrader": 3
+     },
+     {
+      "row": 4,
+      "sourceRow": 4,
+      "sourceTrader": 1
+     },
+     {
+      "row": 5,
+      "sourceRow": 5,
+      "sourceTrader": 2
+     },
+     {
+      "row": 6,
+      "sourceRow": 6,
+      "sourceTrader": 3
+     }
+    ],
+    "phase": "finished",
+    "elapsed": 170.799,
+    "start": "2026-10-13T09:10:25.254Z",
+    "offset": 0,
+    "checkpointAt": 1791882796053,
+    "end": "2026-10-13T09:13:16.055Z",
+    "pauseUntil": 1791882874717
+   },
+   {
+    "id": 2,
+    "name": "receiving-account-costs",
+    "path": "../jupiter/receiving-account-costs.csv",
+    "sourceRows": [
+     {
+      "row": 7,
+      "sourceRow": 1,
+      "sourceTrader": 1
+     },
+     {
+      "row": 8,
+      "sourceRow": 2,
+      "sourceTrader": 2
+     },
+     {
+      "row": 9,
+      "sourceRow": 3,
+      "sourceTrader": 3
+     },
+     {
+      "row": 10,
+      "sourceRow": 4,
+      "sourceTrader": 4
+     },
+     {
+      "row": 11,
+      "sourceRow": 5,
+      "sourceTrader": 5
+     },
+     {
+      "row": 12,
+      "sourceRow": 6,
+      "sourceTrader": 6
+     },
+     {
+      "row": 13,
+      "sourceRow": 7,
+      "sourceTrader": 7
+     },
+     {
+      "row": 14,
+      "sourceRow": 8,
+      "sourceTrader": 8
+     },
+     {
+      "row": 15,
+      "sourceRow": 9,
+      "sourceTrader": 1
+     },
+     {
+      "row": 16,
+      "sourceRow": 10,
+      "sourceTrader": 2
+     },
+     {
+      "row": 17,
+      "sourceRow": 11,
+      "sourceTrader": 3
+     },
+     {
+      "row": 18,
+      "sourceRow": 12,
+      "sourceTrader": 4
+     },
+     {
+      "row": 19,
+      "sourceRow": 13,
+      "sourceTrader": 5
+     },
+     {
+      "row": 20,
+      "sourceRow": 14,
+      "sourceTrader": 6
+     },
+     {
+      "row": 21,
+      "sourceRow": 15,
+      "sourceTrader": 7
+     },
+     {
+      "row": 22,
+      "sourceRow": 16,
+      "sourceTrader": 8
+     }
+    ],
+    "phase": "finished",
+    "elapsed": 540.147,
+    "start": "2026-10-13T09:14:37.355Z",
+    "offset": 252.101,
+    "checkpointAt": 1791883417501,
+    "end": "2026-10-13T09:23:37.504Z",
+    "pauseUntil": 1791883512221
+   },
+   {
+    "id": 3,
+    "name": "native-vs-wrapped-payouts",
+    "path": "../jupiter/native-vs-wrapped-payouts.csv",
+    "sourceRows": [
+     {
+      "row": 23,
+      "sourceRow": 1,
+      "sourceTrader": 1
+     },
+     {
+      "row": 24,
+      "sourceRow": 2,
+      "sourceTrader": 2
+     },
+     {
+      "row": 25,
+      "sourceRow": 3,
+      "sourceTrader": 3
+     },
+     {
+      "row": 26,
+      "sourceRow": 4,
+      "sourceTrader": 4
+     },
+     {
+      "row": 27,
+      "sourceRow": 5,
+      "sourceTrader": 1
+     },
+     {
+      "row": 28,
+      "sourceRow": 6,
+      "sourceTrader": 2
+     },
+     {
+      "row": 29,
+      "sourceRow": 7,
+      "sourceTrader": 3
+     },
+     {
+      "row": 30,
+      "sourceRow": 8,
+      "sourceTrader": 4
+     },
+     {
+      "row": 31,
+      "sourceRow": 9,
+      "sourceTrader": 1
+     },
+     {
+      "row": 32,
+      "sourceRow": 10,
+      "sourceTrader": 2
+     },
+     {
+      "row": 33,
+      "sourceRow": 11,
+      "sourceTrader": 3
+     },
+     {
+      "row": 34,
+      "sourceRow": 12,
+      "sourceTrader": 4
+     }
+    ],
+    "phase": "finished",
+    "elapsed": 375.265,
+    "start": "2026-10-13T09:25:14.404Z",
+    "offset": 889.15,
+    "checkpointAt": 1791883889668,
+    "end": "2026-10-13T09:31:29.669Z",
+    "pauseUntil": 1791883965109
+   },
+   {
+    "id": 4,
+    "name": "amount-precision",
+    "path": "../jupiter/amount-precision.csv",
+    "sourceRows": [
+     {
+      "row": 35,
+      "sourceRow": 1,
+      "sourceTrader": 1
+     },
+     {
+      "row": 36,
+      "sourceRow": 2,
+      "sourceTrader": 2
+     },
+     {
+      "row": 37,
+      "sourceRow": 3,
+      "sourceTrader": 3
+     },
+     {
+      "row": 38,
+      "sourceRow": 4,
+      "sourceTrader": 4
+     },
+     {
+      "row": 39,
+      "sourceRow": 5,
+      "sourceTrader": 5
+     },
+     {
+      "row": 40,
+      "sourceRow": 6,
+      "sourceTrader": 6
+     },
+     {
+      "row": 41,
+      "sourceRow": 7,
+      "sourceTrader": 1
+     },
+     {
+      "row": 42,
+      "sourceRow": 8,
+      "sourceTrader": 2
+     },
+     {
+      "row": 43,
+      "sourceRow": 9,
+      "sourceTrader": 3
+     },
+     {
+      "row": 44,
+      "sourceRow": 10,
+      "sourceTrader": 4
+     },
+     {
+      "row": 45,
+      "sourceRow": 11,
+      "sourceTrader": 5
+     },
+     {
+      "row": 46,
+      "sourceRow": 12,
+      "sourceTrader": 6
+     }
+    ],
+    "phase": "finished",
+    "elapsed": 341.48,
+    "start": "2026-10-13T09:32:47.527Z",
+    "offset": 1342.273,
+    "checkpointAt": 1791884309007,
+    "end": "2026-10-13T09:38:29.010Z",
+    "pauseUntil": 1791884395670
+   },
+   {
+    "id": 5,
+    "name": "token-2022-to-token-2022",
+    "path": "../token-2022/token-2022-to-token-2022.csv",
+    "sourceRows": [
+     {
+      "row": 47,
+      "sourceRow": 1,
+      "sourceTrader": 1
+     },
+     {
+      "row": 48,
+      "sourceRow": 3,
+      "sourceTrader": 2
+     },
+     {
+      "row": 49,
+      "sourceRow": 5,
+      "sourceTrader": 3
+     },
+     {
+      "row": 50,
+      "sourceRow": 7,
+      "sourceTrader": 4
+     },
+     {
+      "row": 51,
+      "sourceRow": 9,
+      "sourceTrader": 5
+     },
+     {
+      "row": 52,
+      "sourceRow": 2,
+      "sourceTrader": 1
+     },
+     {
+      "row": 53,
+      "sourceRow": 4,
+      "sourceTrader": 2
+     },
+     {
+      "row": 54,
+      "sourceRow": 6,
+      "sourceTrader": 3
+     },
+     {
+      "row": 55,
+      "sourceRow": 8,
+      "sourceTrader": 4
+     },
+     {
+      "row": 56,
+      "sourceRow": 10,
+      "sourceTrader": 5
+     }
+    ],
+    "phase": "finished",
+    "elapsed": 45.432,
+    "start": "2026-10-13T09:39:57.928Z",
+    "offset": 1772.674,
+    "checkpointAt": 1791884443359,
+    "end": "2026-10-13T09:40:43.361Z",
+    "pauseUntil": 1791884530296
+   },
+   {
+    "id": 6,
+    "name": "token-coverage-gaps",
+    "path": "../jupiter/token-coverage-gaps.csv",
+    "sourceRows": [
+     {
+      "row": 57,
+      "sourceRow": 1,
+      "sourceTrader": 1
+     },
+     {
+      "row": 58,
+      "sourceRow": 3,
+      "sourceTrader": 2
+     },
+     {
+      "row": 59,
+      "sourceRow": 5,
+      "sourceTrader": 3
+     },
+     {
+      "row": 60,
+      "sourceRow": 7,
+      "sourceTrader": 4
+     },
+     {
+      "row": 61,
+      "sourceRow": 9,
+      "sourceTrader": 5
+     },
+     {
+      "row": 62,
+      "sourceRow": 11,
+      "sourceTrader": 6
+     },
+     {
+      "row": 63,
+      "sourceRow": 13,
+      "sourceTrader": 7
+     },
+     {
+      "row": 64,
+      "sourceRow": 15,
+      "sourceTrader": 8
+     },
+     {
+      "row": 65,
+      "sourceRow": 17,
+      "sourceTrader": 9
+     },
+     {
+      "row": 66,
+      "sourceRow": 19,
+      "sourceTrader": 10
+     },
+     {
+      "row": 67,
+      "sourceRow": 21,
+      "sourceTrader": 11
+     },
+     {
+      "row": 68,
+      "sourceRow": 23,
+      "sourceTrader": 12
+     },
+     {
+      "row": 69,
+      "sourceRow": 25,
+      "sourceTrader": 13
+     },
+     {
+      "row": 70,
+      "sourceRow": 27,
+      "sourceTrader": 14
+     },
+     {
+      "row": 71,
+      "sourceRow": 29,
+      "sourceTrader": 15
+     },
+     {
+      "row": 72,
+      "sourceRow": 2,
+      "sourceTrader": 1
+     },
+     {
+      "row": 73,
+      "sourceRow": 31,
+      "sourceTrader": 16
+     },
+     {
+      "row": 74,
+      "sourceRow": 4,
+      "sourceTrader": 2
+     },
+     {
+      "row": 75,
+      "sourceRow": 33,
+      "sourceTrader": 17
+     },
+     {
+      "row": 76,
+      "sourceRow": 6,
+      "sourceTrader": 3
+     },
+     {
+      "row": 77,
+      "sourceRow": 35,
+      "sourceTrader": 18
+     },
+     {
+      "row": 78,
+      "sourceRow": 8,
+      "sourceTrader": 4
+     },
+     {
+      "row": 79,
+      "sourceRow": 37,
+      "sourceTrader": 19
+     },
+     {
+      "row": 80,
+      "sourceRow": 10,
+      "sourceTrader": 5
+     },
+     {
+      "row": 81,
+      "sourceRow": 39,
+      "sourceTrader": 20
+     },
+     {
+      "row": 82,
+      "sourceRow": 12,
+      "sourceTrader": 6
+     },
+     {
+      "row": 83,
+      "sourceRow": 41,
+      "sourceTrader": 21
+     },
+     {
+      "row": 84,
+      "sourceRow": 14,
+      "sourceTrader": 7
+     },
+     {
+      "row": 85,
+      "sourceRow": 42,
+      "sourceTrader": 22
+     },
+     {
+      "row": 86,
+      "sourceRow": 16,
+      "sourceTrader": 8
+     },
+     {
+      "row": 87,
+      "sourceRow": 18,
+      "sourceTrader": 9
+     },
+     {
+      "row": 88,
+      "sourceRow": 20,
+      "sourceTrader": 10
+     },
+     {
+      "row": 89,
+      "sourceRow": 22,
+      "sourceTrader": 11
+     },
+     {
+      "row": 90,
+      "sourceRow": 24,
+      "sourceTrader": 12
+     },
+     {
+      "row": 91,
+      "sourceRow": 26,
+      "sourceTrader": 13
+     },
+     {
+      "row": 92,
+      "sourceRow": 28,
+      "sourceTrader": 14
+     },
+     {
+      "row": 93,
+      "sourceRow": 30,
+      "sourceTrader": 15
+     },
+     {
+      "row": 94,
+      "sourceRow": 32,
+      "sourceTrader": 16
+     },
+     {
+      "row": 95,
+      "sourceRow": 34,
+      "sourceTrader": 17
+     },
+     {
+      "row": 96,
+      "sourceRow": 36,
+      "sourceTrader": 18
+     },
+     {
+      "row": 97,
+      "sourceRow": 38,
+      "sourceTrader": 19
+     },
+     {
+      "row": 98,
+      "sourceRow": 40,
+      "sourceTrader": 20
+     },
+     {
+      "row": 99,
+      "sourceRow": 43,
+      "sourceTrader": 22
+     }
+    ],
+    "phase": "finished",
+    "elapsed": 432.061,
+    "start": "2026-10-13T09:42:16.179Z",
+    "offset": 1910.925,
+    "checkpointAt": 1791884968240,
+    "end": "2026-10-13T09:49:28.244Z",
+    "pauseUntil": 1791885129421
+   },
+   {
+    "id": 7,
+    "name": "xstocks",
+    "path": "../token-2022/xstocks.csv",
+    "sourceRows": [
+     {
+      "row": 100,
+      "sourceRow": 1,
+      "sourceTrader": 1
+     },
+     {
+      "row": 101,
+      "sourceRow": 8,
+      "sourceTrader": 2
+     },
+     {
+      "row": 102,
+      "sourceRow": 14,
+      "sourceTrader": 3
+     },
+     {
+      "row": 103,
+      "sourceRow": 20,
+      "sourceTrader": 4
+     },
+     {
+      "row": 104,
+      "sourceRow": 26,
+      "sourceTrader": 5
+     },
+     {
+      "row": 105,
+      "sourceRow": 32,
+      "sourceTrader": 6
+     },
+     {
+      "row": 106,
+      "sourceRow": 38,
+      "sourceTrader": 7
+     },
+     {
+      "row": 107,
+      "sourceRow": 45,
+      "sourceTrader": 8
+     },
+     {
+      "row": 108,
+      "sourceRow": 51,
+      "sourceTrader": 9
+     },
+     {
+      "row": 109,
+      "sourceRow": 57,
+      "sourceTrader": 10
+     },
+     {
+      "row": 110,
+      "sourceRow": 64,
+      "sourceTrader": 11
+     },
+     {
+      "row": 111,
+      "sourceRow": 70,
+      "sourceTrader": 12
+     },
+     {
+      "row": 112,
+      "sourceRow": 76,
+      "sourceTrader": 13
+     },
+     {
+      "row": 113,
+      "sourceRow": 81,
+      "sourceTrader": 14
+     },
+     {
+      "row": 114,
+      "sourceRow": 39,
+      "sourceTrader": 7
+     },
+     {
+      "row": 115,
+      "sourceRow": 2,
+      "sourceTrader": 1
+     },
+     {
+      "row": 116,
+      "sourceRow": 9,
+      "sourceTrader": 2
+     },
+     {
+      "row": 117,
+      "sourceRow": 15,
+      "sourceTrader": 3
+     },
+     {
+      "row": 118,
+      "sourceRow": 21,
+      "sourceTrader": 4
+     },
+     {
+      "row": 119,
+      "sourceRow": 27,
+      "sourceTrader": 5
+     },
+     {
+      "row": 120,
+      "sourceRow": 33,
+      "sourceTrader": 6
+     },
+     {
+      "row": 121,
+      "sourceRow": 40,
+      "sourceTrader": 7
+     },
+     {
+      "row": 122,
+      "sourceRow": 46,
+      "sourceTrader": 8
+     },
+     {
+      "row": 123,
+      "sourceRow": 52,
+      "sourceTrader": 9
+     },
+     {
+      "row": 124,
+      "sourceRow": 58,
+      "sourceTrader": 10
+     },
+     {
+      "row": 125,
+      "sourceRow": 65,
+      "sourceTrader": 11
+     },
+     {
+      "row": 126,
+      "sourceRow": 71,
+      "sourceTrader": 12
+     },
+     {
+      "row": 127,
+      "sourceRow": 77,
+      "sourceTrader": 13
+     },
+     {
+      "row": 128,
+      "sourceRow": 82,
+      "sourceTrader": 14
+     },
+     {
+      "row": 129,
+      "sourceRow": 3,
+      "sourceTrader": 1
+     },
+     {
+      "row": 130,
+      "sourceRow": 10,
+      "sourceTrader": 2
+     },
+     {
+      "row": 131,
+      "sourceRow": 16,
+      "sourceTrader": 3
+     },
+     {
+      "row": 132,
+      "sourceRow": 22,
+      "sourceTrader": 4
+     },
+     {
+      "row": 133,
+      "sourceRow": 28,
+      "sourceTrader": 5
+     },
+     {
+      "row": 134,
+      "sourceRow": 34,
+      "sourceTrader": 6
+     },
+     {
+      "row": 135,
+      "sourceRow": 41,
+      "sourceTrader": 7
+     },
+     {
+      "row": 136,
+      "sourceRow": 47,
+      "sourceTrader": 8
+     },
+     {
+      "row": 137,
+      "sourceRow": 53,
+      "sourceTrader": 9
+     },
+     {
+      "row": 138,
+      "sourceRow": 59,
+      "sourceTrader": 10
+     },
+     {
+      "row": 139,
+      "sourceRow": 66,
+      "sourceTrader": 11
+     },
+     {
+      "row": 140,
+      "sourceRow": 72,
+      "sourceTrader": 12
+     },
+     {
+      "row": 141,
+      "sourceRow": 78,
+      "sourceTrader": 13
+     },
+     {
+      "row": 142,
+      "sourceRow": 83,
+      "sourceTrader": 14
+     },
+     {
+      "row": 143,
+      "sourceRow": 4,
+      "sourceTrader": 1
+     },
+     {
+      "row": 144,
+      "sourceRow": 5,
+      "sourceTrader": 1
+     },
+     {
+      "row": 145,
+      "sourceRow": 11,
+      "sourceTrader": 2
+     },
+     {
+      "row": 146,
+      "sourceRow": 17,
+      "sourceTrader": 3
+     },
+     {
+      "row": 147,
+      "sourceRow": 23,
+      "sourceTrader": 4
+     },
+     {
+      "row": 148,
+      "sourceRow": 29,
+      "sourceTrader": 5
+     },
+     {
+      "row": 149,
+      "sourceRow": 35,
+      "sourceTrader": 6
+     },
+     {
+      "row": 150,
+      "sourceRow": 42,
+      "sourceTrader": 7
+     },
+     {
+      "row": 151,
+      "sourceRow": 48,
+      "sourceTrader": 8
+     },
+     {
+      "row": 152,
+      "sourceRow": 54,
+      "sourceTrader": 9
+     },
+     {
+      "row": 153,
+      "sourceRow": 60,
+      "sourceTrader": 10
+     },
+     {
+      "row": 154,
+      "sourceRow": 67,
+      "sourceTrader": 11
+     },
+     {
+      "row": 155,
+      "sourceRow": 73,
+      "sourceTrader": 12
+     },
+     {
+      "row": 156,
+      "sourceRow": 84,
+      "sourceTrader": 14
+     },
+     {
+      "row": 157,
+      "sourceRow": 6,
+      "sourceTrader": 1
+     },
+     {
+      "row": 158,
+      "sourceRow": 12,
+      "sourceTrader": 2
+     },
+     {
+      "row": 159,
+      "sourceRow": 18,
+      "sourceTrader": 3
+     },
+     {
+      "row": 160,
+      "sourceRow": 24,
+      "sourceTrader": 4
+     },
+     {
+      "row": 161,
+      "sourceRow": 30,
+      "sourceTrader": 5
+     },
+     {
+      "row": 162,
+      "sourceRow": 36,
+      "sourceTrader": 6
+     },
+     {
+      "row": 163,
+      "sourceRow": 43,
+      "sourceTrader": 7
+     },
+     {
+      "row": 164,
+      "sourceRow": 49,
+      "sourceTrader": 8
+     },
+     {
+      "row": 165,
+      "sourceRow": 55,
+      "sourceTrader": 9
+     },
+     {
+      "row": 166,
+      "sourceRow": 61,
+      "sourceTrader": 10
+     },
+     {
+      "row": 167,
+      "sourceRow": 68,
+      "sourceTrader": 11
+     },
+     {
+      "row": 168,
+      "sourceRow": 74,
+      "sourceTrader": 12
+     },
+     {
+      "row": 169,
+      "sourceRow": 79,
+      "sourceTrader": 13
+     },
+     {
+      "row": 170,
+      "sourceRow": 85,
+      "sourceTrader": 14
+     },
+     {
+      "row": 171,
+      "sourceRow": 62,
+      "sourceTrader": 10
+     },
+     {
+      "row": 172,
+      "sourceRow": 7,
+      "sourceTrader": 1
+     },
+     {
+      "row": 173,
+      "sourceRow": 13,
+      "sourceTrader": 2
+     },
+     {
+      "row": 174,
+      "sourceRow": 19,
+      "sourceTrader": 3
+     },
+     {
+      "row": 175,
+      "sourceRow": 25,
+      "sourceTrader": 4
+     },
+     {
+      "row": 176,
+      "sourceRow": 31,
+      "sourceTrader": 5
+     },
+     {
+      "row": 177,
+      "sourceRow": 37,
+      "sourceTrader": 6
+     },
+     {
+      "row": 178,
+      "sourceRow": 44,
+      "sourceTrader": 7
+     },
+     {
+      "row": 179,
+      "sourceRow": 50,
+      "sourceTrader": 8
+     },
+     {
+      "row": 180,
+      "sourceRow": 56,
+      "sourceTrader": 9
+     },
+     {
+      "row": 181,
+      "sourceRow": 63,
+      "sourceTrader": 10
+     },
+     {
+      "row": 182,
+      "sourceRow": 69,
+      "sourceTrader": 11
+     },
+     {
+      "row": 183,
+      "sourceRow": 75,
+      "sourceTrader": 12
+     },
+     {
+      "row": 184,
+      "sourceRow": 80,
+      "sourceTrader": 13
+     },
+     {
+      "row": 185,
+      "sourceRow": 86,
+      "sourceTrader": 14
+     }
+    ],
+    "phase": "finished",
+    "elapsed": 69.006,
+    "start": "2026-10-13T09:52:12.967Z",
+    "offset": 2507.713,
+    "checkpointAt": 1791885201973,
+    "end": "2026-10-13T09:53:21.975Z",
+    "pauseUntil": 1791885340745
+   },
+   {
+    "id": 8,
+    "name": "failure-isolation",
+    "path": "../jupiter/failure-isolation.csv",
+    "sourceRows": [
+     {
+      "row": 186,
+      "sourceRow": 1,
+      "sourceTrader": 1
+     },
+     {
+      "row": 187,
+      "sourceRow": 2,
+      "sourceTrader": 2
+     },
+     {
+      "row": 188,
+      "sourceRow": 3,
+      "sourceTrader": 7
+     },
+     {
+      "row": 189,
+      "sourceRow": 4,
+      "sourceTrader": 8
+     },
+     {
+      "row": 190,
+      "sourceRow": 5,
+      "sourceTrader": 3
+     },
+     {
+      "row": 191,
+      "sourceRow": 6,
+      "sourceTrader": 4
+     },
+     {
+      "row": 192,
+      "sourceRow": 7,
+      "sourceTrader": 5
+     },
+     {
+      "row": 193,
+      "sourceRow": 8,
+      "sourceTrader": 6
+     },
+     {
+      "row": 194,
+      "sourceRow": 9,
+      "sourceTrader": 1
+     },
+     {
+      "row": 195,
+      "sourceRow": 10,
+      "sourceTrader": 2
+     },
+     {
+      "row": 196,
+      "sourceRow": 11,
+      "sourceTrader": 3
+     },
+     {
+      "row": 197,
+      "sourceRow": 12,
+      "sourceTrader": 4
+     }
+    ],
+    "phase": "finished",
+    "elapsed": 441.657,
+    "start": "2026-10-13T09:55:44.382Z",
+    "offset": 2719.128,
+    "checkpointAt": 1791885786039,
+    "end": "2026-10-13T10:03:06.046Z",
+    "pauseUntil": 1791885823722
+   }
+  ]
+ },
+ "start": "2026-10-13T09:10:25.254Z",
+ "trading_end": "2026-10-13T10:03:43.730Z",
+ "end": "2026-10-13T10:04:43.730Z",
+ "fetched_at": "2026-10-13T10:12:11+00:00"
+}

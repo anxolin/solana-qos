@@ -1,0 +1,23 @@
+{
+  "name": "paradox-standard-load-and-tokens",
+  "solver": "paradox",
+  "env": "staging",
+  "breakSeconds": 60,
+  "scenarios": [
+    "solver-standard-pairs.csv",
+    "solver-same-direction-25.csv",
+    "solver-burst-sell.csv",
+    "solver-token-coverage.csv"
+  ],
+  "options": {
+    "solFundingPerTrader": 0.07,
+    "maxTotalSol": 3,
+    "maxCreationSol": 0.819,
+    "maxRetries": 0,
+    "orderValidity": 300,
+    "fillTimeout": 210,
+    "cancelOnTimeout": true,
+    "cleanup": true,
+    "report": true
+  }
+}

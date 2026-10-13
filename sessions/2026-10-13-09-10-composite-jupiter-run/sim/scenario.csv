@@ -1,0 +1,198 @@
+trader,time,type,amount,token,other_token,mode,note
+1,0,sell,0.005,SOL,USDC,self,standard SOL/USDC: fixed SOL input
+2,30,sell,0.005,SOL,USDT,self,standard SOL/USDT: fixed SOL input
+3,60,sell,0.5,JUP,USDC,self,standard JUP/USDC: fixed JUP input; automatic acquisition if needed
+1,90,buy,0.25,USDC,SOL,sponsored,standard SOL/USDC: exact USDC output
+2,120,buy,0.25,USDT,SOL,sponsored,standard SOL/USDT: exact USDT output
+3,150,buy,0.25,USDC,JUP,sponsored,standard JUP/USDC: exact USDC output; automatic acquisition if needed
+4,252.101,sell,0.0025,SOL,USDC,sponsored,USDC sponsored sell first: verify receiving ATA absent before creation
+5,282.101,sell,0.0025,SOL,USDC,self,USDC self sell first: verify receiving ATA absent before creation
+6,312.101,buy,0.25,USDC,SOL,sponsored,USDC sponsored buy first: verify receiving ATA absent before creation
+7,342.101,buy,0.25,USDC,SOL,self,USDC self buy first: verify receiving ATA absent before creation
+8,372.101,sell,0.0025,SOL,2u1tszSeqZ3qBWF3uNGPFc8TzMk2tdiwknnRMWGWjGWH,sponsored,USDG sponsored sell first: verify receiving ATA absent before creation
+9,402.101,sell,0.0025,SOL,2u1tszSeqZ3qBWF3uNGPFc8TzMk2tdiwknnRMWGWjGWH,self,USDG self sell first: verify receiving ATA absent before creation
+10,432.101,buy,0.25,2u1tszSeqZ3qBWF3uNGPFc8TzMk2tdiwknnRMWGWjGWH,SOL,sponsored,USDG sponsored buy first: verify receiving ATA absent before creation; retain quote failures
+11,462.101,buy,0.25,2u1tszSeqZ3qBWF3uNGPFc8TzMk2tdiwknnRMWGWjGWH,SOL,self,USDG self buy first: verify receiving ATA absent before creation; retain quote failures
+4,582.101,sell,0.0025,SOL,USDC,sponsored,USDC sponsored sell repeat: warm only after first fill
+5,612.101,sell,0.0025,SOL,USDC,self,USDC self sell repeat: warm only after first fill
+6,642.101,buy,0.25,USDC,SOL,sponsored,USDC sponsored buy repeat: warm only after first fill
+7,672.101,buy,0.25,USDC,SOL,self,USDC self buy repeat: warm only after first fill
+8,702.101,sell,0.0025,SOL,2u1tszSeqZ3qBWF3uNGPFc8TzMk2tdiwknnRMWGWjGWH,sponsored,USDG sponsored sell repeat: warm only after first fill
+9,732.101,sell,0.0025,SOL,2u1tszSeqZ3qBWF3uNGPFc8TzMk2tdiwknnRMWGWjGWH,self,USDG self sell repeat: warm only after first fill
+10,762.101,buy,0.25,2u1tszSeqZ3qBWF3uNGPFc8TzMk2tdiwknnRMWGWjGWH,SOL,sponsored,USDG sponsored buy repeat: warm only after first fill; retain quote failures
+11,792.101,buy,0.25,2u1tszSeqZ3qBWF3uNGPFc8TzMk2tdiwknnRMWGWjGWH,SOL,self,USDG self buy repeat: warm only after first fill; retain quote failures
+12,889.15,sell,0.005,SOL,USDC,sponsored,prepare USDC for sponsored native-SOL receipts
+13,919.15,sell,0.005,SOL,USDC,sponsored,prepare USDC for sponsored wSOL receipts
+14,949.15,sell,0.005,SOL,USDC,self,prepare USDC for self-paid native-SOL receipts
+15,979.15,sell,0.005,SOL,USDC,self,prepare USDC for self-paid wSOL receipts
+12,1029.15,sell,0.2,USDC,SOL,sponsored,native SOL sell receipt: check lamports and actual payment mode
+13,1059.15,sell,0.2,USDC,wSOL,sponsored,wSOL sell receipt: check token balance before cleanup
+14,1089.15,sell,0.2,USDC,SOL,self,native SOL sell receipt: self-paid reference
+15,1119.15,sell,0.2,USDC,wSOL,self,wSOL sell receipt: self-paid reference
+12,1169.15,buy,0.002,SOL,USDC,sponsored,native SOL exact-output receipt: forcedSelf makes gasless coverage inconclusive
+13,1199.15,buy,0.002,wSOL,USDC,sponsored,wSOL exact-output receipt: verify raw token output
+14,1229.15,buy,0.002,SOL,USDC,self,native SOL exact-output receipt: verify raw lamport output
+15,1259.15,buy,0.002,wSOL,USDC,self,wSOL exact-output receipt: verify raw token output
+16,1342.273,sell,0.002500001,SOL,USDC,self,SOL sell precision: 2500001 lamports
+17,1372.273,buy,0.002500001,SOL,USDC,self,SOL buy precision: 2500001 lamports; fees separate from receipt
+18,1402.273,sell,0.250001,USDC,USDT,self,USDC sell precision: 250001 raw units
+19,1432.273,buy,0.250001,USDC,SOL,self,USDC buy precision: 250001 raw units
+20,1462.273,sell,100000.00001,BONK,USDC,self,BONK sell precision: 10000000001 raw units; check fresh quote value
+21,1492.273,buy,100000.00001,BONK,SOL,self,BONK buy precision: 10000000001 raw units; check fresh quote value
+16,1522.273,sell,0.002500002,SOL,USDC,self,SOL sell precision: 2500002 lamports
+17,1552.273,buy,0.002500002,SOL,USDC,self,SOL buy precision: 2500002 lamports; fees separate from receipt
+18,1582.273,sell,0.250002,USDC,USDT,self,USDC sell precision: 250002 raw units
+19,1612.273,buy,0.250002,USDC,SOL,self,USDC buy precision: 250002 raw units
+20,1642.273,sell,100000.00002,BONK,USDC,self,BONK sell precision: 10000000002 raw units; check fresh quote value
+21,1672.273,buy,100000.00002,BONK,SOL,self,BONK buy precision: 10000000002 raw units; check fresh quote value
+22,1772.674,sell,0.0025,SOL,2u1tszSeqZ3qBWF3uNGPFc8TzMk2tdiwknnRMWGWjGWH,sponsored,setup: SOL to USDG
+23,1772.674,sell,0.0025,SOL,2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo,sponsored,setup: SOL to PYUSD
+24,1772.674,sell,0.0025,SOL,CASHx9KJUStyftLFWGvEVf59SGeG9sh5FfcnZMVPCASH,sponsored,setup: SOL to CASH
+25,1772.674,sell,0.0025,SOL,XsoCS1TfEyfFhfvj8EtZ528L3CaKBDBRqRapnBbDF2W,sponsored,setup: SOL to SPYx
+26,1772.674,sell,0.0025,SOL,9cRCn9rGT8V2imeM2BaKs13yhMEais3ruM3rPvTGpump,sponsored,setup: SOL to ANSEM
+22,1773.674,sell,0.162516,2u1tszSeqZ3qBWF3uNGPFc8TzMk2tdiwknnRMWGWjGWH,pumpCmXqMfrsAkQ5r49WcJnRayYRqmXz6ae8H7H9Dfn,sponsored,USDG to PUMP: Token-2022 on both sides
+23,1773.674,sell,0.162498,2b1kV6DkPAnxd5ixfnxCpjxmKwqjjaYmCZfHsFu24GXo,98kfF7rmsg1QDUEoCqNE7g7M1FdrTt92TEp2CLzypump,sponsored,PYUSD to PAID: Token-2022 on both sides
+24,1773.674,sell,0.162569,CASHx9KJUStyftLFWGvEVf59SGeG9sh5FfcnZMVPCASH,Ai66LHZG9MCzg1WKdawwqduVAXpNDUuV8M3uyq5ppump,sponsored,CASH to CATE: Token-2022 on both sides
+25,1773.674,sell,0.00020765,XsoCS1TfEyfFhfvj8EtZ528L3CaKBDBRqRapnBbDF2W,CbcyNo7m1amFWqEQm2m4PLv1UNvpcL3C1Ujm6AkzpKoU,sponsored,SPYx to e/acc: Token-2022 on both sides
+26,1773.674,sell,1.201385,9cRCn9rGT8V2imeM2BaKs13yhMEais3ruM3rPvTGpump,XsueG8BtpquVJX9LVLLEGuViXUungE6WmK5YZ3p3bd1,sponsored,ANSEM to CRCLx: Token-2022 on both sides
+27,1910.925,sell,0.0025,SOL,EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm,self,Adapted from solver-validation/solver-token-coverage.csv source row 35: memecoin: WIF; classic control; cleanup sells back
+28,1920.925,sell,0.0025,SOL,7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr,self,Adapted from solver-validation/solver-token-coverage.csv source row 36: memecoin: POPCAT; classic control; cleanup sells back
+29,1930.925,sell,0.0025,SOL,J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn,self,Adapted from solver-validation/solver-token-coverage.csv source row 37: LST: JitoSOL; classic control; cleanup sells back
+30,1940.925,sell,0.0025,SOL,mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So,self,Adapted from solver-validation/solver-token-coverage.csv source row 38: LST: mSOL; classic control; cleanup sells back
+31,1950.925,sell,0.0025,SOL,jupSoLaHXQiZZTSfEWMTRRgpnyFm8f6sZdosWBjx93v,self,Adapted from solver-validation/solver-token-coverage.csv source row 39: LST: JupSOL; classic control; cleanup sells back
+32,1960.925,sell,0.0025,SOL,cbbtcf3aa214zXHbiAZQwf4122FBYbraNdFqgw4iMij,self,Adapted from solver-validation/solver-token-coverage.csv source row 40: Bitcoin: Coinbase wrapped BTC; frontend SolanaDefault and staging sell quote confirmed 2026-10-09; cleanup sells back
+33,1970.925,sell,0.0025,SOL,DEkqHyPN7GMRJ5cArtQFAWefqbZb33Hyf6s5iCwjEonT,self,Adapted from solver-validation/solver-token-coverage.csv source row 41: synthetic dollar: Ethena USDe; frontend SolanaDefault and staging sell quote confirmed 2026-10-09; cleanup sells back
+34,1980.925,sell,0.0025,SOL,HzwqbKZw8HxMN6bF2yFZNrht3c2iXXzpKcFu7uBEDKtr,self,Adapted from solver-validation/solver-token-coverage.csv source row 42: euro stablecoin: Circle EURC; frontend SolanaDefault and staging sell quote confirmed 2026-10-09; cleanup sells back
+35,1990.925,sell,0.0025,SOL,A1KLoBrKBde8Ty9qtNQUtq3C2ortoC3u7twggz7sEto6,self,Adapted from solver-validation/solver-token-coverage.csv source row 43: treasury token: Ondo USDY; frontend SolanaDefault and staging sell quote confirmed 2026-10-09; cleanup sells back
+36,2000.925,sell,0.0025,SOL,27G8MtK7VtTcCHkpASjSDdkWWYfoqT6ggEuKidVJidD4,self,Adapted from solver-validation/solver-token-coverage.csv source row 44: liquidity pool token: Jupiter JLP; frontend SolanaDefault and staging sell quote confirmed 2026-10-09; cleanup sells back
+37,2010.925,sell,0.0025,SOL,5oVNBeEEQvYi1cX3ir8Dx5n1P7pdxydbGF2X4TxVusJm,self,Adapted from solver-validation/solver-token-coverage.csv source row 45: LST pool token: Sanctum Infinity; frontend SolanaDefault and staging sell quote confirmed 2026-10-09; cleanup sells back
+38,2020.925,sell,0.0025,SOL,7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs,self,Adapted from solver-validation/solver-token-coverage.csv source row 46: bridged asset: Ether Portal; frontend SolanaDefault and staging sell quote confirmed 2026-10-09; cleanup sells back
+39,2030.925,sell,0.0025,SOL,9gP2kCy3wA1ctvYWQk75guqXuHfrEomqydHLtcTCqiLa,self,Adapted from solver-validation/solver-token-coverage.csv source row 47: bridged asset: BNB Portal; frontend SolanaDefault and staging sell quote confirmed 2026-10-09; cleanup sells back
+40,2040.925,sell,0.0025,SOL,AymATz4TCL9sWNEEV9Kvyz45CHVhDZ6kUgjTJPzLpU9P,self,Adapted from solver-validation/solver-token-coverage.csv source row 48: gold token: Tether Gold; frontend SolanaDefault and staging sell quote confirmed 2026-10-09; cleanup sells back
+41,2050.925,sell,0.0025,SOL,euro5sNHrZC2wu2RoLvy6xxoVMc3Qnd1vjxoWf4MftA,self,Adapted from solver-validation/solver-token-coverage.csv source row 50: Token-2022 euro stablecoin: EUROPs zero transfer fee; frontend SolanaDefault and staging sell quote confirmed 2026-10-09; cleanup sells back
+27,2060.925,buy,1.283394,EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm,SOL,self,"Adapted from token-universe/test_05_buy-vs-jupiter.csv source row 99: $WIF (classic): Jupiter can buy exact-out, expected to fill"
+42,2060.925,sell,0.0025,SOL,9BB6NFEcjBCtnNLFko2FqVQBq8HHM13kCyYcdQbgpump,self,Adapted from solver-validation/solver-token-coverage.csv source row 51: memecoin: Fartcoin; frontend SolanaDefault and staging sell quote confirmed 2026-10-09; cleanup sells back
+28,2070.925,buy,5.856556402,7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr,SOL,self,"Adapted from token-universe/test_05_buy-vs-jupiter.csv source row 176: POPCAT (classic): Jupiter can buy exact-out, expected to fill"
+43,2070.925,sell,0.0025,SOL,MEW1gQWJ3nEXg2qgERiKu7FAFj79PHvQVREQUzScPP5,self,Adapted from solver-validation/solver-token-coverage.csv source row 52: memecoin: MEW; frontend SolanaDefault and staging sell quote confirmed 2026-10-09; cleanup sells back
+29,2080.925,buy,0.001916358,J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn,SOL,self,"Adapted from token-universe/test_05_buy-vs-jupiter.csv source row 30: JitoSOL (classic): Jupiter can buy exact-out, expected to fill"
+44,2080.925,sell,0.0025,SOL,ukHH6c7mMyiWCf1b9pnWe25TSpkDDt3H5pQZgZ74J82,self,Adapted from solver-validation/solver-token-coverage.csv source row 53: memecoin: BOME; frontend SolanaDefault and staging sell quote confirmed 2026-10-09; cleanup sells back
+30,2090.925,buy,0.001771982,mSoLzYCxHdYgdzU16g5QSh3i5K3z3KZK7ytfqcJm7So,SOL,self,"Adapted from token-universe/test_05_buy-vs-jupiter.csv source row 48: mSOL (classic): Jupiter can buy exact-out, expected to fill"
+45,2090.925,sell,0.0025,SOL,hy1oXYgrBW6PVcJ4s6s2FKavRdwgWTXdfE69AxT7kPT,self,Adapted from solver-validation/solver-token-coverage.csv source row 54: LST: Hylo Staked SOL; frontend SolanaDefault and staging sell quote confirmed 2026-10-09; cleanup sells back
+31,2100.925,buy,0.002058046,jupSoLaHXQiZZTSfEWMTRRgpnyFm8f6sZdosWBjx93v,SOL,self,"Adapted from token-universe/test_05_buy-vs-jupiter.csv source row 32: JupSOL (classic): Jupiter can buy exact-out, expected to fill"
+46,2100.925,sell,0.0025,SOL,pSo1f9nQXWgXibFtKf7NWYxb5enAM4qfP6UJSiXRQfL,self,Adapted from solver-validation/solver-token-coverage.csv source row 55: LST: Phantom Staked SOL; frontend SolanaDefault and staging sell quote confirmed 2026-10-09; cleanup sells back
+32,2110.925,buy,0.00000323,cbbtcf3aa214zXHbiAZQwf4122FBYbraNdFqgw4iMij,SOL,self,"Adapted from token-universe/test_05_buy-vs-jupiter.csv source row 10: cbBTC (classic): Jupiter can buy exact-out, expected to fill"
+47,2110.925,buy,4.915718,Ai66LHZG9MCzg1WKdawwqduVAXpNDUuV8M3uyq5ppump,SOL,self,"Adapted from token-universe/test_05_buy-vs-jupiter.csv source row 340: CATE (token-2022): Jupiter can't (NO_ROUTES_FOUND), expected to fail"
+33,2120.925,buy,0.270987058,DEkqHyPN7GMRJ5cArtQFAWefqbZb33Hyf6s5iCwjEonT,SOL,self,"Adapted from token-universe/test_05_buy-vs-jupiter.csv source row 8: USDe (classic): Jupiter can buy exact-out, expected to fill"
+48,2120.925,sell,0.0025,SOL,5GgRAEmv8ZxF2PR5hY72Qs5x1bnQ6UK2RbTPoqJ3wSwW,self,PAXG gold: adapted from token-2022/all.csv source row 25; zero-fee mint; cleanup supplies return sell
+34,2130.925,buy,0.242159,HzwqbKZw8HxMN6bF2yFZNrht3c2iXXzpKcFu7uBEDKtr,SOL,self,"Adapted from token-universe/test_05_buy-vs-jupiter.csv source row 72: EURC (classic): Jupiter can buy exact-out, expected to fill"
+35,2140.925,buy,0.235142,A1KLoBrKBde8Ty9qtNQUtq3C2ortoC3u7twggz7sEto6,SOL,self,"Adapted from token-universe/test_05_buy-vs-jupiter.csv source row 165: USDY (classic): Jupiter can buy exact-out, expected to fill"
+36,2150.925,buy,0.058305,27G8MtK7VtTcCHkpASjSDdkWWYfoqT6ggEuKidVJidD4,SOL,self,"Adapted from token-universe/test_05_buy-vs-jupiter.csv source row 31: JLP (classic): Jupiter can buy exact-out, expected to fill"
+37,2160.925,buy,0.001718098,5oVNBeEEQvYi1cX3ir8Dx5n1P7pdxydbGF2X4TxVusJm,SOL,self,"Adapted from token-universe/test_05_buy-vs-jupiter.csv source row 85: INF (classic): Jupiter can buy exact-out, expected to fill"
+38,2170.925,buy,0.00010693,7vfCXTUXx5WJV5JADk17DUJ4ksgau7utNKj4b963voxs,SOL,self,"Adapted from token-universe/test_05_buy-vs-jupiter.csv source row 11: ETH (classic): Jupiter can buy exact-out, expected to fill"
+39,2180.925,buy,0.00036318,9gP2kCy3wA1ctvYWQk75guqXuHfrEomqydHLtcTCqiLa,SOL,self,"Adapted from token-universe/test_05_buy-vs-jupiter.csv source row 114: BNB (classic): Jupiter can buy exact-out, expected to fill"
+40,2190.925,buy,0.000064,AymATz4TCL9sWNEEV9Kvyz45CHVhDZ6kUgjTJPzLpU9P,SOL,self,"Adapted from token-universe/test_05_buy-vs-jupiter.csv source row 109: XAUt0 (classic): Jupiter can buy exact-out, expected to fill"
+41,2200.925,buy,0.242317,euro5sNHrZC2wu2RoLvy6xxoVMc3Qnd1vjxoWf4MftA,SOL,self,"Adapted from token-universe/test_05_buy-vs-jupiter.csv source row 316: EUROP (token-2022): Jupiter can't (NO_ROUTES_FOUND), expected to fail"
+42,2210.925,buy,1.643696,9BB6NFEcjBCtnNLFko2FqVQBq8HHM13kCyYcdQbgpump,SOL,self,"Adapted from token-universe/test_05_buy-vs-jupiter.csv source row 49: Fartcoin (classic): Jupiter can buy exact-out, expected to fill"
+43,2220.925,buy,600.28805,MEW1gQWJ3nEXg2qgERiKu7FAFj79PHvQVREQUzScPP5,SOL,self,"Adapted from token-universe/test_05_buy-vs-jupiter.csv source row 170: MEW (classic): Jupiter can buy exact-out, expected to fill"
+44,2230.925,buy,337.283895,ukHH6c7mMyiWCf1b9pnWe25TSpkDDt3H5pQZgZ74J82,SOL,self,"Adapted from token-universe/test_05_buy-vs-jupiter.csv source row 108: BOME (classic): Jupiter can buy exact-out, expected to fill"
+45,2240.925,buy,0.002315729,hy1oXYgrBW6PVcJ4s6s2FKavRdwgWTXdfE69AxT7kPT,SOL,self,"Adapted from token-universe/test_05_buy-vs-jupiter.csv source row 234: hyloSOL (classic): Jupiter can buy exact-out, expected to fill"
+46,2250.925,buy,0.002271161,pSo1f9nQXWgXibFtKf7NWYxb5enAM4qfP6UJSiXRQfL,SOL,self,"Adapted from token-universe/test_05_buy-vs-jupiter.csv source row 105: PSOL (classic): Jupiter can buy exact-out, expected to fill"
+48,2270.925,buy,0.000064,5GgRAEmv8ZxF2PR5hY72Qs5x1bnQ6UK2RbTPoqJ3wSwW,SOL,self,"Adapted from token-universe/test_05_buy-vs-jupiter.csv source row 374: PAXG (token-2022): Jupiter can't (NO_ROUTES_FOUND), expected to fail"
+49,2507.713,sell,0.0025,SOL,XsueG8BtpquVJX9LVLLEGuViXUungE6WmK5YZ3p3bd1,sponsored,CRCLx (Circle xStock) $398.8M/90d: SOL to token
+50,2507.713,sell,0.0025,SOL,Xs3oZwbHvqis4NYcf4YKWmEia2eC84wSiVrcYcTqpH8,sponsored,SPCXx (SpaceX xStock) $162.8M/90d: SOL to token
+51,2507.713,sell,0.0025,SOL,Xs8S1uUs1zvS2p7iwtsG3b6fkhpvmwz4GYU3gWAmWHZ,sponsored,QQQx (Nasdaq xStock) $69.0M/90d: SOL to token
+52,2507.713,sell,0.0025,SOL,XspzcW1PRtgf6Wj92HCiZdjzKCyFekVD8P5Ueh3dRMX,self,MSFTx (Microsoft xStock) $49.2M/90d: SOL to token
+53,2507.713,sell,0.0025,SOL,Xsf9mBktVB9BSU5kf4nHxPq5hCBJ2j2ui3ecFGxPRGc,sponsored,GMEx (Gamestop xStock) $33.1M/90d: SOL to token
+54,2507.713,sell,0.0025,SOL,XsqE9cRRpzxcGKDXj1BJ7Xmg4GRhZoyY1KpmGSxAWT2,sponsored,MCDx (McDonald's xStock) $26.2M/90d: SOL to token
+55,2507.713,sell,0.0025,SOL,XsoBhf2ufR8fTyNSjqfU71DYGaE6Z3SUGAidpzriAA4,sponsored,PLTRx (Palantir xStock) $14.2M/90d: SOL to token
+56,2507.713,sell,0.0025,SOL,XshPgPdXFRWB8tP1j82rebb2Q9rPgGX37RuqzohmArM,self,INTCx (Intel xStock) $5.8M/90d: SOL to token
+57,2507.713,sell,0.0025,SOL,XsjFwUPiLofddX5cWFHW35GCbXcSu1BCUGfxoQAQjeL,sponsored,ORCLx (xStock) $2.4M/90d: SOL to token
+58,2507.713,sell,0.0025,SOL,XsgSaSvNSqLTtFuyWPBhK9196Xb9Bbdyjj4fH3cPJGo,sponsored,AVGOx (xStock) $1.2M/90d: SOL to token
+59,2507.713,sell,0.0025,SOL,XsaHND8sHyfMfsWPj6kSdd5VwvCayZvjYgKmmcNL5qh,sponsored,XOMx (xStock) $652k/90d: SOL to token
+60,2507.713,sell,0.0025,SOL,XszvaiXGPwvk2nwb3o9C1CX4K6zH8sez11E6uyup6fe,self,UNHx (xStock) $351k/90d: SOL to token
+61,2507.713,sell,0.0025,SOL,XsfAzPzYrYjd4Dpa9BU3cusBsvWfVB9gBcyGC87S57n,sponsored,NVOx (xStock) $256k/90d: SOL to token
+62,2507.713,sell,0.0025,SOL,XsAsZLF4MmsvS1sDxRMrUz7REjHfwbC9UAMXSRBqgEB,sponsored,UBERx (xStock) $162k/90d: SOL to token
+55,2508.713,sell,0.00078292,XsoBhf2ufR8fTyNSjqfU71DYGaE6Z3SUGAidpzriAA4,SOL,sponsored,"PLTRx: retain observed reverse NoLiquidity despite a successful inbound quote; conservative fixed partial amount, not 60% of the live balance"
+49,2509.713,buy,0.00321248,XsueG8BtpquVJX9LVLLEGuViXUungE6WmK5YZ3p3bd1,SOL,sponsored,CRCLx (Circle xStock) $398.8M/90d: BUY exact-output probe; retain current no-route responses
+50,2509.713,buy,0.00165941,Xs3oZwbHvqis4NYcf4YKWmEia2eC84wSiVrcYcTqpH8,SOL,sponsored,SPCXx (SpaceX xStock) $162.8M/90d: BUY exact-output probe; retain current no-route responses
+51,2509.713,buy,0.0003632,Xs8S1uUs1zvS2p7iwtsG3b6fkhpvmwz4GYU3gWAmWHZ,SOL,sponsored,QQQx (Nasdaq xStock) $69.0M/90d: BUY exact-output probe; retain current no-route responses
+52,2509.713,buy,0.0004981,XspzcW1PRtgf6Wj92HCiZdjzKCyFekVD8P5Ueh3dRMX,SOL,self,MSFTx (Microsoft xStock) $49.2M/90d: BUY exact-output probe; retain current no-route responses
+53,2509.713,buy,0.00995113,Xsf9mBktVB9BSU5kf4nHxPq5hCBJ2j2ui3ecFGxPRGc,SOL,sponsored,GMEx (Gamestop xStock) $33.1M/90d: BUY exact-output probe; retain current no-route responses
+54,2509.713,buy,0.00112024,XsqE9cRRpzxcGKDXj1BJ7Xmg4GRhZoyY1KpmGSxAWT2,SOL,sponsored,MCDx (McDonald's xStock) $26.2M/90d: BUY exact-output probe; retain current no-route responses
+55,2509.713,buy,0.00130486,XsoBhf2ufR8fTyNSjqfU71DYGaE6Z3SUGAidpzriAA4,SOL,sponsored,PLTRx (Palantir xStock) $14.2M/90d: BUY exact-output probe; retain current no-route responses
+56,2509.713,buy,0.00270181,XshPgPdXFRWB8tP1j82rebb2Q9rPgGX37RuqzohmArM,SOL,self,INTCx (Intel xStock) $5.8M/90d: BUY exact-output probe; retain current no-route responses
+57,2509.713,buy,0.00191264,XsjFwUPiLofddX5cWFHW35GCbXcSu1BCUGfxoQAQjeL,SOL,sponsored,ORCLx (xStock) $2.4M/90d: BUY exact-output probe; retain current no-route responses
+58,2509.713,buy,0.00076666,XsgSaSvNSqLTtFuyWPBhK9196Xb9Bbdyjj4fH3cPJGo,SOL,sponsored,AVGOx (xStock) $1.2M/90d: BUY exact-output probe; retain current no-route responses
+59,2509.713,buy,0.00156561,XsaHND8sHyfMfsWPj6kSdd5VwvCayZvjYgKmmcNL5qh,SOL,sponsored,XOMx (xStock) $652k/90d: BUY exact-output probe; retain current no-route responses
+60,2509.713,buy,0.00068993,XszvaiXGPwvk2nwb3o9C1CX4K6zH8sez11E6uyup6fe,SOL,self,UNHx (xStock) $351k/90d: BUY exact-output probe; retain current no-route responses
+61,2509.713,buy,0.00702429,XsfAzPzYrYjd4Dpa9BU3cusBsvWfVB9gBcyGC87S57n,SOL,sponsored,NVOx (xStock) $256k/90d: BUY exact-output probe; retain current no-route responses
+62,2509.713,buy,0.00379726,XsAsZLF4MmsvS1sDxRMrUz7REjHfwbC9UAMXSRBqgEB,SOL,sponsored,UBERx (xStock) $162k/90d: BUY exact-output probe; retain current no-route responses
+49,2510.713,sell,0.0025,SOL,XsoCS1TfEyfFhfvj8EtZ528L3CaKBDBRqRapnBbDF2W,sponsored,SPYx (SP500 xStock) $330.0M/90d: SOL to token
+50,2510.713,sell,0.0025,SOL,XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB,sponsored,TSLAx (Tesla xStock) $113.4M/90d: SOL to token
+51,2510.713,sell,0.0025,SOL,Xsa62P5mvPszXL1krVUnU5ar38bBSVcWAB6fmPCo5Zu,sponsored,METAx (Meta xStock) $53.5M/90d: SOL to token
+52,2510.713,sell,0.0025,SOL,XsCPL9dNWBMvFtTmwcCA5v3xWPSMEBCszbQdiLLq6aN,self,GOOGLx (Alphabet xStock) $42.2M/90d: SOL to token
+53,2510.713,sell,0.0025,SOL,XsvNBAYkrDRNhA7wPHQfX3ZUXZyZLdnCQDfHZ56bzpg,sponsored,HOODx (Robinhood xStock) $32.6M/90d: SOL to token
+54,2510.713,sell,0.0025,SOL,Xs3eBt7uRfJX8QUs4suhyU8p2M6DoUDrJyWBa8LLZsg,sponsored,AMZNx (Amazon xStock) $16.4M/90d: SOL to token
+55,2510.713,sell,0.0025,SOL,XsfCC9VL4DamVGNgdJpfLXB3sBVa158Gbx8sh7NzmTk,sponsored,VIDAx (Vida Global xStock) $8.3M/90d: SOL to token
+56,2510.713,sell,0.0025,SOL,XsaBXg8dU5cPM6ehmVctMkVqoiRG2ZjMo1cyBJ3AykQ,self,KOx (Coca-Cola xStock) $3.9M/90d: SOL to token
+57,2510.713,sell,0.0025,SOL,XsQLZycSZ7QnBBdBXQaTbQdiUcbRqjNJgyBGAMzhHav,sponsored,MUx (xStock) $1.4M/90d: SOL to token
+58,2510.713,sell,0.0025,SOL,Xs151QeqTCiuKtinzfRATnUESM2xTU6V9Wy8Vy538ci,sponsored,WMTx (xStock) $1.2M/90d: SOL to token
+59,2510.713,sell,0.0025,SOL,XsXcJ6GZ9kVnjqGsjBnktRcuwMBmvKWh8S93RefZ1rF,sponsored,AMDx (xStock) $610k/90d: SOL to token
+60,2510.713,sell,0.0025,SOL,XsafvsGtzFqqHgTnA3aPC83EAMkacU5mcGtcSayhpVV,self,TSMx (xStock) $334k/90d: SOL to token
+61,2510.713,sell,0.0025,SOL,XsXb7KCxcxTi6hqWfYyEe1kpTwtiCeU5TJbEz8N7RWn,sponsored,TCENTx (xStock) $203k/90d: no route on 2026-10-07 - expected NoLiquidity
+62,2510.713,sell,0.0025,SOL,Xsnuv4omNoHozR6EEW5mXkw8Nrny5rB3jVfLqi6gKMH,sponsored,LLYx (xStock) $153k/90d: SOL to token
+49,2511.713,sell,0.00020765,XsoCS1TfEyfFhfvj8EtZ528L3CaKBDBRqRapnBbDF2W,SOL,sponsored,"SPYx: sponsor-paid ETF return control with scaled display units; conservative fixed partial amount, not 60% of the live balance"
+49,2512.713,buy,0.00034609,XsoCS1TfEyfFhfvj8EtZ528L3CaKBDBRqRapnBbDF2W,SOL,sponsored,SPYx (SP500 xStock) $330.0M/90d: BUY exact-output probe; retain current no-route responses
+50,2512.713,buy,0.00072217,XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB,SOL,sponsored,TSLAx (Tesla xStock) $113.4M/90d: BUY exact-output probe; retain current no-route responses
+51,2512.713,buy,0.00036664,Xsa62P5mvPszXL1krVUnU5ar38bBSVcWAB6fmPCo5Zu,SOL,sponsored,METAx (Meta xStock) $53.5M/90d: BUY exact-output probe; retain current no-route responses
+52,2512.713,buy,0.00076634,XsCPL9dNWBMvFtTmwcCA5v3xWPSMEBCszbQdiLLq6aN,SOL,self,GOOGLx (Alphabet xStock) $42.2M/90d: BUY exact-output probe; retain current no-route responses
+53,2512.713,buy,0.00247816,XsvNBAYkrDRNhA7wPHQfX3ZUXZyZLdnCQDfHZ56bzpg,SOL,sponsored,HOODx (Robinhood xStock) $32.6M/90d: BUY exact-output probe; retain current no-route responses
+54,2512.713,buy,0.00104887,Xs3eBt7uRfJX8QUs4suhyU8p2M6DoUDrJyWBa8LLZsg,SOL,sponsored,AMZNx (Amazon xStock) $16.4M/90d: BUY exact-output probe; retain current no-route responses
+55,2512.713,buy,0.20269702,XsfCC9VL4DamVGNgdJpfLXB3sBVa158Gbx8sh7NzmTk,SOL,sponsored,VIDAx (Vida Global xStock) $8.3M/90d: BUY exact-output probe; retain current no-route responses
+56,2512.713,buy,0.00293543,XsaBXg8dU5cPM6ehmVctMkVqoiRG2ZjMo1cyBJ3AykQ,SOL,self,KOx (Coca-Cola xStock) $3.9M/90d: BUY exact-output probe; retain current no-route responses
+57,2512.713,buy,0.00028462,XsQLZycSZ7QnBBdBXQaTbQdiUcbRqjNJgyBGAMzhHav,SOL,sponsored,MUx (xStock) $1.4M/90d: BUY exact-output probe; retain current no-route responses
+58,2512.713,buy,0.00236142,Xs151QeqTCiuKtinzfRATnUESM2xTU6V9Wy8Vy538ci,SOL,sponsored,WMTx (xStock) $1.2M/90d: BUY exact-output probe; retain current no-route responses
+59,2512.713,buy,0.00047014,XsXcJ6GZ9kVnjqGsjBnktRcuwMBmvKWh8S93RefZ1rF,SOL,sponsored,AMDx (xStock) $610k/90d: BUY exact-output probe; retain current no-route responses
+60,2512.713,buy,0.00060557,XsafvsGtzFqqHgTnA3aPC83EAMkacU5mcGtcSayhpVV,SOL,self,TSMx (xStock) $334k/90d: BUY exact-output probe; retain current no-route responses
+62,2512.713,buy,0.00023241,Xsnuv4omNoHozR6EEW5mXkw8Nrny5rB3jVfLqi6gKMH,SOL,sponsored,LLYx (xStock) $153k/90d: BUY exact-output probe; retain current no-route responses
+49,2513.713,sell,0.0025,SOL,Xsc9qvGR1efVDFGLrVsmkzv3qi45LTBjeUKSPmx9qEh,sponsored,NVDAx (NVIDIA xStock) $234.1M/90d: SOL to token
+50,2513.713,sell,0.0025,SOL,XsP7xzNPvEHS1m6qfanPUGjNmdnmsLKEoNAnHjdxxyZ,sponsored,MSTRx (MicroStrategy xStock) $82.9M/90d: SOL to token
+51,2513.713,sell,0.0025,SOL,Xsv9hRk1z5ystj9MhnA7Lq4vjSsLwzL2nxrwmwtD3re,sponsored,GLDx (Gold xStock) $50.4M/90d: SOL to token
+52,2513.713,sell,0.0025,SOL,Xs7ZdzSHLU9ftNJsii5fCeJhoRWSC32SQGzGQtePxNu,self,COINx (Coinbase xStock) $41.9M/90d: SOL to token
+53,2513.713,sell,0.0025,SOL,XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp,sponsored,AAPLx (Apple xStock) $32.5M/90d: SOL to token
+54,2513.713,sell,0.0025,SOL,Xs78JED6PFZxWc2wCEPspZW9kL3Se5J7L5TChKgsidH,sponsored,STRCx (Strategy PP Variable xStock) $15.0M/90d: SOL to token
+55,2513.713,sell,0.0025,SOL,Xs2yquAgsHByNzx68WJC55WHjHBvG9JsMB7CWjTLyPy,sponsored,DFDVx (DFDV xStock) $6.7M/90d: SOL to token
+56,2513.713,sell,0.0025,SOL,Xs6B6zawENwAbWVi7w92rjazLuAr5Az59qgWKcNb45x,self,BRK.Bx (Berkshire Hathaway xStock) $3.6M/90d: SOL to token
+57,2513.713,sell,0.0025,SOL,XsjQP3iMAaQ3kQScQKthQpx9ALRbjKAjQtHg6TFomoc,sponsored,TQQQx (xStock) $1.2M/90d: SOL to token
+58,2513.713,sell,0.0025,SOL,XsEH7wWfJJu2ZT3UCFeVfALnVA6CP5ur7Ee11KmzVpL,sponsored,NFLXx (xStock) $668k/90d: SOL to token
+59,2513.713,sell,0.0025,SOL,XsuxRGDzbLjnJ72v74b7p9VY6N66uYgTCyfwwRjVCJA,sponsored,MRVLx (xStock) $357k/90d: SOL to token
+60,2513.713,sell,0.0025,SOL,Xswbpc8UqU6e1j9QZEWCjBMjyvz4twqD7PCy6j2e7jj,self,SNDKx (xStock) $318k/90d: SOL to token
+61,2513.713,sell,0.0025,SOL,XsnhgGRQwhExfS2bmWzR6EYddKGPRGDEjeJsatkmKqU,sponsored,SKHYx (xStock) $196k/90d: SOL to token
+62,2513.713,sell,0.0025,SOL,XsrBCwaH8c46xiqXBChzobgufRKxQxAWUWbndgBNzFn,sponsored,BMNRx (xStock) $152k/90d: SOL to token
+58,2514.713,sell,0.00022735,XsEH7wWfJJu2ZT3UCFeVfALnVA6CP5ur7Ee11KmzVpL,SOL,sponsored,"NFLXx: sponsor-paid return with active display multiplier 10; conservative fixed partial amount, not 60% of the live balance"
+49,2515.713,buy,0.00120141,Xsc9qvGR1efVDFGLrVsmkzv3qi45LTBjeUKSPmx9qEh,SOL,sponsored,NVDAx (NVIDIA xStock) $234.1M/90d: BUY exact-output probe; retain current no-route responses
+50,2515.713,buy,0.00174356,XsP7xzNPvEHS1m6qfanPUGjNmdnmsLKEoNAnHjdxxyZ,SOL,sponsored,MSTRx (MicroStrategy xStock) $82.9M/90d: BUY exact-output probe; retain current no-route responses
+51,2515.713,buy,0.00070541,Xsv9hRk1z5ystj9MhnA7Lq4vjSsLwzL2nxrwmwtD3re,SOL,sponsored,GLDx (Gold xStock) $50.4M/90d: BUY exact-output probe; retain current no-route responses
+52,2515.713,buy,0.00148708,Xs7ZdzSHLU9ftNJsii5fCeJhoRWSC32SQGzGQtePxNu,SOL,self,COINx (Coinbase xStock) $41.9M/90d: BUY exact-output probe; retain current no-route responses
+53,2515.713,buy,0.00078968,XsbEhLAtcf6HdfpFZ5xEMdqW8nfAvcsP5bdudRLJzJp,SOL,sponsored,AAPLx (Apple xStock) $32.5M/90d: BUY exact-output probe; retain current no-route responses
+54,2515.713,buy,0.00248053,Xs78JED6PFZxWc2wCEPspZW9kL3Se5J7L5TChKgsidH,SOL,sponsored,STRCx (Strategy PP Variable xStock) $15.0M/90d: BUY exact-output probe; retain current no-route responses
+55,2515.713,buy,0.06056963,Xs2yquAgsHByNzx68WJC55WHjHBvG9JsMB7CWjTLyPy,SOL,sponsored,DFDVx (DFDV xStock) $6.7M/90d: BUY exact-output probe; retain current no-route responses
+56,2515.713,buy,0.00052262,Xs6B6zawENwAbWVi7w92rjazLuAr5Az59qgWKcNb45x,SOL,self,BRK.Bx (Berkshire Hathaway xStock) $3.6M/90d: BUY exact-output probe; retain current no-route responses
+57,2515.713,buy,0.00172031,XsjQP3iMAaQ3kQScQKthQpx9ALRbjKAjQtHg6TFomoc,SOL,sponsored,TQQQx (xStock) $1.2M/90d: BUY exact-output probe; retain current no-route responses
+58,2515.713,buy,0.00037893,XsEH7wWfJJu2ZT3UCFeVfALnVA6CP5ur7Ee11KmzVpL,SOL,sponsored,NFLXx (xStock) $668k/90d: BUY exact-output probe; retain current no-route responses
+59,2515.713,buy,0.00106586,XsuxRGDzbLjnJ72v74b7p9VY6N66uYgTCyfwwRjVCJA,SOL,sponsored,MRVLx (xStock) $357k/90d: BUY exact-output probe; retain current no-route responses
+60,2515.713,buy,0.00018281,Xswbpc8UqU6e1j9QZEWCjBMjyvz4twqD7PCy6j2e7jj,SOL,self,SNDKx (xStock) $318k/90d: BUY exact-output probe; retain current no-route responses
+61,2515.713,buy,0.00170138,XsnhgGRQwhExfS2bmWzR6EYddKGPRGDEjeJsatkmKqU,SOL,sponsored,SKHYx (xStock) $196k/90d: BUY exact-output probe; retain current no-route responses
+62,2515.713,buy,0.01072636,XsrBCwaH8c46xiqXBChzobgufRKxQxAWUWbndgBNzFn,SOL,sponsored,BMNRx (xStock) $152k/90d: BUY exact-output probe; retain current no-route responses
+63,2719.128,sell,0.0025,SOL,USDC,self,healthy control before probes: self-paid sell
+64,2719.128,buy,0.25,USDC,SOL,sponsored,healthy control before probes: sponsored buy
+69,2809.128,sell,0.0025,SOL,WXMRyRZhsa19ety5erZhHg4N3xj3EVN92u94422teJp,self,XMR missing-native-price candidate: record filtering versus auction versus simulation failure
+70,2809.128,sell,0.0025,SOL,CJMihkPYswa3k6az9SUbepjKnkJQ6KWpGG5p9qW9n7NV,self,LIKE missing-native-price candidate: record filtering versus auction versus simulation failure
+65,2809.128,sell,0.0025,SOL,USDC,self,healthy control alongside probes: self-paid sell
+66,2809.128,buy,0.25,USDC,SOL,sponsored,healthy control alongside probes: sponsored buy
+67,2824.128,sell,0.0025,SOL,USDC,sponsored,healthy control while probes may remain open: sponsored sell
+68,2824.128,buy,0.25,USDC,SOL,self,healthy control while probes may remain open: self-paid buy
+63,3139.128,sell,0.0025,SOL,USDC,self,late self-paid sell control: recovery only if probes are confirmed final
+64,3139.128,buy,0.25,USDC,SOL,sponsored,late sponsored buy control: recovery only if probes are confirmed final
+65,3139.128,sell,0.0025,SOL,USDC,self,late self-paid sell control: check placement and actual auction membership
+66,3139.128,buy,0.25,USDC,SOL,sponsored,late sponsored buy control: check placement and actual auction membership

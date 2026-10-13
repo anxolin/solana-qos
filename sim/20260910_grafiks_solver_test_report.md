@@ -1,8 +1,10 @@
 # Grafiks solver test report — staging, 9 October 2026
 
-**Grafiks filled all 157 placed scenario orders.** Results below count placed orders, including 6 CoW setup trades, and exclude cleanup. Times are UTC; successful examples use placement timestamps and errors use the first failed-attempt timestamp. Swap failures are confirmed below; quote and connectivity causes remain unresolved.
+**TLDR:** All 157 placed orders filled, and batches of 4 worked, but opposite orders didn't match directly. Only 4/15 buys for an exact token amount worked, and some swaps needed another try because their output was too low. Next, check buy quotes, why most orders settled alone and whether swap quotes were still up to date.
 
-Fill times run from placement until the simulator sees a fill, including polling delay. This placed-order result excludes trades that failed before submission; scheduled-trade totals are in the [CoW report](20260910_grafiks_solver_test_report_for_cow.md).
+Results below count placed orders, including 6 CoW setup trades, and exclude cleanup. Times are UTC; successful examples use placement timestamps and errors use the first failed-attempt timestamp. Swap failures are confirmed below; quote and connectivity causes remain unresolved.
+
+Fill times run from placement until the simulator sees a fill, including polling delay. This placed-order result excludes trades that failed before submission.
 
 | Scenario | Outcome | Next check |
 | --- | --- | --- |

@@ -1,0 +1,22 @@
+# Healthy SOL/USDC controls around two quoteable missing-native-price candidates from the existing token sweep.
+# Exact mints prevent confusion with unrelated XMR or LIKE tokens sharing the same symbols.
+# XMR and LIKE lacked CoinGecko prices in that sweep; a current blocker is not guaranteed.
+# Current staging rejected historical SI/DIVI fee-token probes at quote time, so they were excluded.
+# A probe must be accepted and overlap healthy orders in actual auctions to demonstrate auction isolation.
+# Quote-rejected or pre-auction-filtered probes cover only pipeline isolation; fills do not reproduce the blocker.
+# Late controls at 420s count as recovery only after probes are confirmed final in the logs.
+# Run last: probe tokens can be difficult to sell during cleanup if they unexpectedly fill.
+# 12 main + 0 possible acquisitions + 8 cleanup = 20 estimated creations (0.060 SOL before refunds).
+trader,time,type,amount,token,other_token,mode,note
+1,0,sell,0.0025,SOL,USDC,self,healthy control before probes: self-paid sell
+2,0,buy,0.25,USDC,SOL,sponsored,healthy control before probes: sponsored buy
+7,90,sell,0.0025,SOL,WXMRyRZhsa19ety5erZhHg4N3xj3EVN92u94422teJp,self,XMR missing-native-price candidate: record filtering versus auction versus simulation failure
+8,90,sell,0.0025,SOL,CJMihkPYswa3k6az9SUbepjKnkJQ6KWpGG5p9qW9n7NV,self,LIKE missing-native-price candidate: record filtering versus auction versus simulation failure
+3,90,sell,0.0025,SOL,USDC,self,healthy control alongside probes: self-paid sell
+4,90,buy,0.25,USDC,SOL,sponsored,healthy control alongside probes: sponsored buy
+5,105,sell,0.0025,SOL,USDC,sponsored,healthy control while probes may remain open: sponsored sell
+6,105,buy,0.25,USDC,SOL,self,healthy control while probes may remain open: self-paid buy
+1,420,sell,0.0025,SOL,USDC,self,late self-paid sell control: recovery only if probes are confirmed final
+2,420,buy,0.25,USDC,SOL,sponsored,late sponsored buy control: recovery only if probes are confirmed final
+3,420,sell,0.0025,SOL,USDC,self,late self-paid sell control: check placement and actual auction membership
+4,420,buy,0.25,USDC,SOL,sponsored,late sponsored buy control: check placement and actual auction membership
