@@ -9,12 +9,13 @@ import { fromRaw, type Token } from './tokens.js'
 import { c } from './ui.js'
 
 /** `ReclaimOrder` (discriminator 5): closes a finished order PDA, rent goes to its `created_by`. */
-function reclaimIx(programId: PublicKey, orderPda: PublicKey, createdBy: PublicKey) {
+function reclaimIx(programId: PublicKey, orderPda: PublicKey, createdBy: PublicKey, owner: PublicKey) {
   return new TransactionInstruction({
     programId,
     keys: [
       { pubkey: orderPda, isSigner: false, isWritable: true },
       { pubkey: createdBy, isSigner: false, isWritable: true },
+      { pubkey: owner, isSigner: true, isWritable: false },
     ],
     data: Buffer.from([5]),
   })
@@ -171,7 +172,7 @@ export async function cleanupTrader(ctx: FlowContext, w: Wallets, n: number, env
       if (!info || !info.owner.equals(programId)) return // never created, or already reclaimed
       const createdBy = createdByOf(info.data)
       reclaims.push({
-        ixs: [reclaimIx(programId, new PublicKey(o.orderPda), createdBy)],
+        ixs: [reclaimIx(programId, new PublicKey(o.orderPda), createdBy, owner)],
         meta: { uid: o.uid, orderPda: o.orderPda, createdBy: createdBy.toBase58(), status: o.status },
         label: o.uid.slice(0, 10),
       })

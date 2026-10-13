@@ -173,6 +173,38 @@ describe('retry', () => {
   })
 })
 
+describe('cleanup rent reclaim', () => {
+  it('includes the owner signer while returning sponsored rent to createdBy', async () => {
+    const w = wallets(TEST_MNEMONIC)
+    const owner = w.trader(1).publicKey
+    const createdBy = w.funder.publicKey
+    const programId = Keypair.generate().publicKey
+    const orderPda = Keypair.generate().publicKey
+    const data = Buffer.alloc(51)
+    createdBy.toBuffer().copy(data, 19)
+    const sendAndConfirm = vi.fn().mockResolvedValue('reclaimed')
+    const ctx = {
+      rpc: {
+        tokenAccounts: async () => [], lamports: async () => 0n, sendAndConfirm,
+        call: async (f: (c: unknown) => unknown) => f({ getMultipleAccountsInfo: async () => [{ owner: programId, data }] }),
+      },
+      orders: { programId, ownerOrders: async () => [{ uid: '0x123', orderPda: orderPda.toBase58(), status: 'cancelled', validTo: Date.now() / 1000 + 60 }] },
+      session: { log: vi.fn() }, log: vi.fn(), link: { tx: (sig: string) => sig },
+    } as unknown as FlowContext
+
+    const result = await cleanupTrader(ctx, w, 1, 'staging')
+
+    expect(result.reclaimed).toBe(1)
+    const [instructions, signers] = sendAndConfirm.mock.calls[0]
+    expect(instructions[0].keys).toEqual([
+      { pubkey: orderPda, isSigner: false, isWritable: true },
+      { pubkey: createdBy, isSigner: false, isWritable: true },
+      { pubkey: owner, isSigner: true, isWritable: false },
+    ])
+    expect(signers).toEqual([w.trader(1)])
+  })
+})
+
 describe('cleanup quote failures', () => {
   it.each(['404 Not Found: NoLiquidity: no route found', 'UnsupportedToken', '429 Too Many Requests', 'fetch failed'])('keeps tokens after %s', async error => {
     const w = wallets(TEST_MNEMONIC)

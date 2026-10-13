@@ -9,7 +9,8 @@ import { findOrderPda, findSettlementStatePda, type SolanaOrderIntent } from '@c
  * reclaim orders), v0.5 differs from v0.4 in two places only (solana-programs v0.4.1..v0.5.1, `interface/src`):
  * - the intent's flags byte: bit 0 (`created_on_chain`) is reserved and must be clear; v0.4 required it set;
  * - the PDA seed: `settlement v0.5` instead of `settlement v0.4` (state PDA and order PDAs).
- * The intent layout, instruction discriminators and accounts, and the order account layout are unchanged.
+ * The intent layout, instruction discriminators, and order account layout are unchanged. Reclaiming a cancelled,
+ * unexpired order now also requires the owner as a signer account; cleanup.ts supplies it.
  *
  * To remove once the SDK supports v0.5: bump sdk-trading-solana and sdk-config, delete this file, and in orders.ts
  * call the SDK's `findSettlementStatePda`/`findOrderPda` directly and drop `forSettlement` (search "settlement.js").
