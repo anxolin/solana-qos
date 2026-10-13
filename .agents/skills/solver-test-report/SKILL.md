@@ -7,6 +7,10 @@ description: Combine completed Solana solver scenarios into a short Markdown rep
 
 Explain what each scenario tested, what happened, and what needs attention. Write for solvers who cannot access internal logs. Make the report understandable on its own.
 
+## Jupiter reports
+
+For Jupiter, always produce only `{timestamp}_jupiter_solver_test_report_for_cow.md`. Keep it brief and include only errors: quote rejections, failed orders or attempts, cleanup failures and missing evidence needed to investigate them. Do not create a separate solver report or include successful scenarios, performance metrics or coverage summaries. Group repeated errors with counts and affected tokens or row numbers; keep exact errors, final outcomes and useful order links. State unknown ownership clearly. Aim for about 200 words, with compact error evidence if needed. This rule overrides the two-report, per-scenario, successful-example and comparison formats below for Jupiter; evidence checks still apply.
+
 ## Check the runs
 
 1. Confirm the solver, environment, selected sessions and filename timestamp. Sessions are in `sessions/` at the repo root (`../sessions/` from `sim/`). Check metadata; a shared prefix alone does not confirm which runs belong.
@@ -46,7 +50,7 @@ Before calling an error unknown, investigate the original failure record. Join s
 
 Separate the confirmed failure from its underlying cause and repair owner. Titan LessThanMinimumAmountOut and Jupiter SlippageToleranceExceeded confirm that a swap failed its minimum output check when the program is verified. State that clearly, even if quote freshness, minimum output settings or changes between simulation and execution still need investigation. Do not label these confirmed swap failures ownership unknown or automatically call them solver defects. Keep genuine quote or connectivity uncertainty separate. Link failed transactions beside the affected orders and show when driver simulation passed before execution failed.
 
-Always produce 2 reports:
+For solvers other than Jupiter, always produce 2 reports:
 
 - `{timestamp}_{solverName}_solver_test_report.md`: solver performance, feature results, confirmed solver issues, accepted solver limitations and errors of unknown ownership. Keep unknown ownership errors in both reports with the same order evidence; label them **Ownership unknown**, not solver defects. Exclude errors confirmed to be unrelated to the solver. Keep brief test limitations needed to interpret the results, without unrelated service troubleshooting.
 - `{timestamp}_{solverName}_solver_test_report_for_cow.md`: the complete report for the CoW team. Include solver results plus creation, quoting, services, RPC, settlement retries, cleanup and uncertain errors from the selected runs. Preserve all evidence and explanations, including those in the solver report.
