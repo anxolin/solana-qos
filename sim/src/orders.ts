@@ -5,7 +5,7 @@ import {
   createSyncNativeInstruction,
   getAssociatedTokenAddressSync,
 } from '@solana/spl-token'
-import { OrderBookApi, OrderKind } from '@cowprotocol/sdk-order-book'
+import { DEFAULT_BACKOFF_OPTIONS, OrderBookApi, OrderKind } from '@cowprotocol/sdk-order-book'
 import { SupportedChainId, type CowEnv } from '@cowprotocol/sdk-config'
 import {
   buildCancelOrderInstruction,
@@ -53,7 +53,7 @@ export interface Placed {
   intent: SolanaOrderIntent
 }
 
-type RecordPlacement = (order: Pick<Placed, 'uid' | 'validTo' | 'mode'>, event: 'prepared' | 'rejected') => void
+type RecordPlacement = (order: Pick<Placed, 'uid' | 'validTo' | 'mode'> & { sellMint: string; sellAmount: string }, event: 'prepared' | 'rejected') => void
 
 export interface OrderDto {
   uid: string
@@ -89,17 +89,20 @@ async function stage<T>(name: string, request: unknown, fn: () => Promise<T>): P
 
 /** Sum of sell amounts of a trader's open orders per mint: an SPL approve replaces, never adds. */
 class AllowanceLedger {
-  private open = new Map<string, Map<string, bigint>>()
+  private open = new Map<string, Map<string, { amount: bigint; validTo?: number }>>()
   private key = (owner: PublicKey, mint: PublicKey) => `${owner.toBase58()}:${mint.toBase58()}`
   reserved(owner: PublicKey, mint: PublicKey) {
     let s = 0n
-    for (const v of this.open.get(this.key(owner, mint))?.values() ?? []) s += v
+    for (const [uid, value] of this.open.get(this.key(owner, mint)) ?? []) {
+      if (value.validTo !== undefined && Date.now() >= value.validTo * 1000 + 30_000) this.release(uid)
+      else s += value.amount
+    }
     return s
   }
-  add(owner: PublicKey, mint: PublicKey, uid: string, amount: bigint) {
+  add(owner: PublicKey, mint: PublicKey, uid: string, amount: bigint, validTo?: number) {
     const k = this.key(owner, mint)
     if (!this.open.has(k)) this.open.set(k, new Map())
-    this.open.get(k)!.set(uid, amount)
+    this.open.get(k)!.set(uid, { amount, validTo })
   }
   release(uid: string) {
     for (const m of this.open.values()) m.delete(uid)
@@ -109,13 +112,15 @@ class AllowanceLedger {
 /**
  * Seconds added to the requested validity at quote time. `validTo` is fixed when quoting, and building,
  * signing and posting take a few seconds, over 20s when many traders start at once (rate limits); the orderbook
- * rejects an order with under 120s left. A post rejected anyway is re-quoted once (see `place`).
+ * rejects an order with under 120s left. Placement retries use the flow's configured retry budget.
  */
 export const PLACEMENT_MARGIN_S = 30
 
 export interface OrdersOptions {
   env: CowEnv
   apiBase: string
+  /** Retry budget for standalone quotes; placement retries are owned by placeAndWait. */
+  maxRetries?: number
   /** Seconds the order must still have when it's placed (orderbook minimum 120). */
   validFor: number
   /** Seconds to wait for a fill before giving up on the order (it keeps living until its own expiry, >= 120s). */
@@ -157,9 +162,12 @@ export class Orders {
   ) {
     const quoteRps = opts.quoteRps ?? 5
     const apiRps = opts.apiRps ?? 8
+    if (!Number.isInteger(opts.maxRetries ?? 0) || (opts.maxRetries ?? 0) < 0) throw new Error('maxRetries must be a non-negative integer')
     const orderBookApi = new OrderBookApi({
       chainId: SupportedChainId.SOLANA,
       env: opts.env,
+      // Retry at the flow level so quotes, posts, and fill timeouts share one placement budget.
+      backoffOpts: { ...DEFAULT_BACKOFF_OPTIONS, numOfAttempts: 1 },
       // The SDK shares one limit for quotes and posts; allow both configured lanes.
       limiterOpts: { tokensPerInterval: quoteRps + apiRps, interval: 'second' },
     })
@@ -174,7 +182,17 @@ export class Orders {
   }
 
   /** Quote, then stamp our app data on the intent and re-derive the uid and order PDA from it. */
-  async quote(p: Omit<PlaceParams, 'mode'>): Promise<SolanaQuoteAndPost> {
+  async quote(p: Omit<PlaceParams, 'mode'>, maxRetries = this.opts.maxRetries ?? 0): Promise<SolanaQuoteAndPost> {
+    for (let attempt = 0; ; attempt++) {
+      try { return await this.quoteOnce(p) }
+      catch (error) {
+        if (attempt >= maxRetries || !await DEFAULT_BACKOFF_OPTIONS.retry!(error, attempt + 1)) throw error
+        await sleep(Math.min(1000, 100 * 2 ** attempt))
+      }
+    }
+  }
+
+  private async quoteOnce(p: Omit<PlaceParams, 'mode'>): Promise<SolanaQuoteAndPost> {
     await this.quotes.take()
     const params = {
       ownerAddress: p.owner.publicKey,
@@ -218,25 +236,10 @@ export class Orders {
    * with the backend's funder as fee payer. Self-paid orders send the same bundle with the owner paying.
    */
   async place(p: PlaceParams, record?: RecordPlacement): Promise<Placed> {
-    try {
-      return await this.placeAs(p, p.mode, false, record).catch((e) => {
-        // The quote's validTo ran short before the post landed: a fresh quote resets it.
-        if (/InsufficientValidTo/.test(errorText(e))) return this.placeAs(p, p.mode, false, record)
-        throw e
-      })
-    } catch (e) {
-      // Deployments without services#4990 reject sponsored native-SOL buys; the contracts support them.
-      if (p.mode === 'sponsored' && p.buy.isNative && /native SOL/i.test(errorText(e))) {
-        return this.placeAs(p, 'self', true, record)
-      }
-      throw e
-    }
-  }
-
-  private async placeAs(p: PlaceParams, mode: Mode, forcedSelf: boolean, record?: RecordPlacement): Promise<Placed> {
+    const { mode } = p
     // Wait before quoting/signing, so our API queue does not age the quote or blockhash.
     if (mode === 'sponsored') await this.api.take()
-    const q = await this.quote(p)
+    const q = await this.quote(p, 0)
     const quoted = q.solanaQuote.funder
     if (mode === 'sponsored' && !quoted) throw new Error('sponsoring is disabled on this deployment (no funder in quote)')
     if (this.sponsor && quoted && !quoted.equals(this.sponsor) && !this.warnedSponsor) {
@@ -276,12 +279,13 @@ export class Orders {
     ixs.push(order.instruction)
 
     let signature: string | undefined
-    const prepared = { uid: order.orderId, validTo: intent.validTo, mode }
+    const prepared = { uid: order.orderId, validTo: intent.validTo, mode,
+      sellMint: sellMint.toBase58(), sellAmount: intent.sellAmount.toString() }
     const submit = async <T>(fn: () => Promise<T>): Promise<T> => {
       record?.(prepared, 'prepared')
       try { return await fn() }
       catch (e) {
-        // These explicit rejections trigger the existing fresh-quote/native-SOL fallback, and created no order.
+        // Definite rejections created no order; the flow may retry within its configured budget.
         if (/InsufficientValidTo|native SOL.*(?:not supported|unsupported)|(?:unsupported|not supported).*native SOL/i.test(errorText(e))) record?.(prepared, 'rejected')
         throw e
       }
@@ -300,7 +304,7 @@ export class Orders {
       uid: order.orderId,
       orderPda: order.orderPda.toBase58(),
       mode,
-      forcedSelf,
+      forcedSelf: false,
       sellAmount: intent.sellAmount,
       buyAmount: intent.buyAmount,
       validTo: intent.validTo,

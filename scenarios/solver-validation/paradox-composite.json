@@ -2,7 +2,7 @@
   "name": "paradox-standard-load-and-tokens",
   "solver": "paradox",
   "env": "staging",
-  "breakSeconds": 60,
+  "breakSeconds": 30,
   "scenarios": [
     "solver-standard-pairs.csv",
     "solver-same-direction-25.csv",
@@ -15,7 +15,7 @@
     "maxCreationSol": 0.819,
     "maxRetries": 0,
     "orderValidity": 300,
-    "fillTimeout": 210,
+    "fillTimeout": 60,
     "cancelOnTimeout": true,
     "cleanup": true,
     "report": true

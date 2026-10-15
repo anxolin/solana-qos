@@ -79,28 +79,113 @@ it('waits for an open order before recovering its row', async () => {
   expect(saved.results[0].status).toBe('filled')
 })
 
-it.each(['missing', 'unavailable', 'stale'])('stops when an order status is %s instead of assuming it can be replayed', async status => {
+it.each(['missing', 'unavailable', 'stale', 'stalled'])('continues without replay after expiry when status is %s, retaining the unknown outcome', async status => {
   vi.useFakeTimers()
   vi.setSystemTime(400_000)
   const { session, saved, order } = fixture()
-  const getOrder = async () => {
+  const getOrder = vi.fn(async () => {
     if (status === 'unavailable') throw new Error('RPC unavailable')
+    if (status === 'stalled') return new Promise<OrderDto | null>(() => {})
     return status === 'missing' ? null : order('open')
-  }
-  await expect(recoverRun(session, saved, getOrder)).rejects.toThrow()
-  expect(saved.results).toEqual([])
-  expect(readRun(session).results).toEqual([])
+  })
+  const warn = vi.fn()
+  const recovery = recoverRun(session, saved, getOrder, undefined, warn)
+  await vi.runAllTimersAsync()
+  await recovery
+  expect(getOrder).toHaveBeenCalledTimes(3)
+  expect(warn).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ uid: 'order', row: 1, trader: 1 }))
+  expect(saved.results).toEqual([expect.objectContaining({ row: 1, status: 'failed', reason: expect.stringContaining('unknown') })])
+  expect(readRun(session).unresolvedOrders).toEqual(saved.unresolvedOrders)
+  expect(saved.unresolvedOrders).toHaveLength(1)
+  expect(session.outstandingOrders()).toEqual([{ uid: 'order', validTo: 300 }])
+  const recovered = recoverRun(session, saved, async () => order('fulfilled'))
+  await recovered
+  expect(saved.unresolvedOrders).toEqual([])
+  expect(saved.results[0].status).toBe('failed')
+  expect(session.outstandingOrders()).toEqual([])
 })
 
-it('stops after a stalled order lookup instead of hanging indefinitely', async () => {
+it.each(['missing', 'unavailable'])('records an unexpired unknown order for cleanup deferral when the API is %s', async status => {
+  vi.useFakeTimers()
+  vi.setSystemTime(0)
+  const { session, saved } = fixture()
+  const recovery = recoverRun(session, saved, async () => {
+    if (status === 'unavailable') throw new Error('API unavailable')
+    return null
+  })
+  await vi.runAllTimersAsync()
+  await recovery
+  expect(Date.now()).toBeLessThanOrEqual(10_000)
+  expect(saved.results[0].status).toBe('failed')
+  expect(saved.unresolvedOrders).toEqual([expect.objectContaining({ uid: 'order', trader: 1, validTo: 300 })])
+})
+
+it('recovers a missing expired order on retry without reporting it as unknown', async () => {
+  vi.useFakeTimers()
+  vi.setSystemTime(330_000)
+  const { session, saved, order } = fixture()
+  const getOrder = vi.fn().mockResolvedValueOnce(null).mockResolvedValue(order('fulfilled'))
+  const warn = vi.fn()
+  const recovery = recoverRun(session, saved, getOrder, undefined, warn)
+  await vi.runAllTimersAsync()
+  await recovery
+  expect(getOrder).toHaveBeenCalledTimes(2)
+  expect(warn).not.toHaveBeenCalled()
+  expect(saved.results[0].status).toBe('filled')
+})
+
+it('does not replay an acquisition whose outcome remains unknown after expiry', async () => {
+  vi.useFakeTimers()
+  vi.setSystemTime(400_000)
+  const { session, saved } = fixture('acquire')
+  const recovery = recoverRun(session, saved, async () => null)
+  await vi.runAllTimersAsync()
+  await recovery
+  expect(saved.results[0]).toMatchObject({ row: 1, status: 'failed' })
+})
+
+it('bounds stalled lookups and records the wallet for cleanup deferral', async () => {
   vi.useFakeTimers()
   vi.setSystemTime(0)
   const { session, saved } = fixture()
   const recovery = recoverRun(session, saved, () => new Promise(() => {}))
-  const outcome = expect(recovery).rejects.toThrow('Cannot verify order order')
-  await vi.advanceTimersByTimeAsync(30_000)
-  await outcome
-  expect(saved.results).toEqual([])
+  await vi.advanceTimersByTimeAsync(10_000)
+  await recovery
+  expect(saved.unresolvedOrders).toEqual([expect.objectContaining({ uid: 'order', reason: 'Order lookup timed out' })])
+  expect(saved.results[0].status).toBe('failed')
+})
+
+it('checks stalled orders concurrently within one ten-second recovery window', async () => {
+  vi.useFakeTimers()
+  vi.setSystemTime(0)
+  const { session, saved } = fixture()
+  for (const trader of [2, 3]) session.log({ step: 'main', event: 'prepared', trader, uid: `order-${trader}`, validTo: 300 })
+  const recovery = recoverRun(session, saved, () => new Promise(() => {}))
+  await vi.advanceTimersByTimeAsync(10_000)
+  await recovery
+  expect(saved.unresolvedOrders).toHaveLength(3)
+  expect(Date.now()).toBe(10_000)
+})
+
+it('does not recover another wallet while its row is still running', async () => {
+  const { session, saved, order } = fixture()
+  saved.scenarios[0].rows.push({ ...saved.scenarios[0].rows[0], row: 2, trader: 2 })
+  session.log({ step: 'main', event: 'prepared', trader: 2, row: 2, uid: 'in-flight', validTo: 300 })
+  session.log({ step: 'main', event: 'row_done', trader: 2, row: 2, orders: 1 })
+  const getOrder = vi.fn(async () => order('fulfilled'))
+  await recoverRun(session, saved, getOrder, undefined, undefined, new Set(['order']))
+  expect(getOrder).toHaveBeenCalledExactlyOnceWith('order')
+  expect(saved.results.map(row => row.row)).toEqual([1])
+  expect(session.outstandingOrders()).toEqual([{ uid: 'in-flight', validTo: 300 }])
+})
+
+it('does not recheck a confirmed cancellation just because its final event says timeout', async () => {
+  const { session, saved } = fixture()
+  session.log({ step: 'main', trader: 1, row: 1, uid: 'order', event: 'final', status: 'timeout', cancelTx: 'confirmed-cancel' })
+  const getOrder = vi.fn(async () => null)
+  await recoverRun(session, saved, getOrder)
+  expect(getOrder).not.toHaveBeenCalled()
+  expect(saved.unresolvedOrders).toBeUndefined()
 })
 
 it('requires a supported checkpoint and writes it atomically', () => {

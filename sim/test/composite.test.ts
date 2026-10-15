@@ -25,7 +25,7 @@ describe('composite scenarios', () => {
       ['solver-token-coverage.csv', 55], ['solver-transaction-size.csv', 10],
     ])
     expect(composite.solver).toBe('grafiks')
-    expect(composite.breakSeconds).toBe(60)
+    expect(composite.breakSeconds).toBe(30)
     expect(new Set(rows.map(row => row.row)).size).toBe(189)
     const walletCount = new Set(rows.map(row => row.trader)).size
     expect(walletCount).toBe(114)

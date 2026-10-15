@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Keypair, Transaction } from '@solana/web3.js'
+import { decodeApproveInstruction } from '@solana/spl-token'
 import { OrderKind } from '@cowprotocol/sdk-order-book'
 import type { SolanaQuoteAndPost } from '@cowprotocol/sdk-trading-solana'
 import { placeAndWait, runRow, type FlowContext } from '../src/flow.js'
@@ -15,16 +16,17 @@ import { resolveToken, splMint } from '../src/tokens.js'
 
 afterEach(() => {
   vi.restoreAllMocks()
+  vi.unstubAllGlobals()
   vi.useRealTimers()
 })
 
-async function fixture() {
+async function fixture(maxRetries = 0) {
   const rpc = new Rpc('http://unused.invalid')
   vi.spyOn(rpc, 'mintInfo').mockResolvedValue({ decimals: 6, programId: (await resolveToken(rpc, 'SOL')).programId })
   const owner = Keypair.generate()
   const sell = await resolveToken(rpc, 'SOL')
   const buy = await resolveToken(rpc, 'USDC')
-  const orders = new Orders(rpc, { env: 'staging', apiBase: 'http://unused.invalid', validFor: 120, quoteRps: 2 })
+  const orders = new Orders(rpc, { env: 'staging', apiBase: 'http://unused.invalid', validFor: 120, quoteRps: 2, maxRetries })
   const built = await orders.sdk.buildLimitOrder({
     env: 'staging', ownerAddress: owner.publicKey, sellTokenAddress: splMint(sell), buyTokenAddress: buy.mint,
     sellAmount: 1_000_000n, buyAmount: 100_000n, kind: OrderKind.SELL,
@@ -39,6 +41,88 @@ async function fixture() {
 }
 
 describe('placement reliability', () => {
+  it('adds a resumed live reservation to the next approval and releases it after expiry', async () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(0)
+    const { rpc, orders, owner, buy: usdc, sell: sol } = await fixture()
+    orders.ledger.add(owner.publicKey, usdc.mint, 'old-order', 10_000_000n, 300)
+    const built = await orders.sdk.buildLimitOrder({
+      env: 'staging', ownerAddress: owner.publicKey, sellTokenAddress: usdc.mint, buyTokenAddress: splMint(sol),
+      sellAmount: 5_000_000n, buyAmount: 100_000n, kind: OrderKind.SELL,
+      validTo: 600, partiallyFillable: false, appData: new Uint8Array(32),
+    })
+    vi.spyOn(orders, 'quote').mockResolvedValue({ solanaQuote: {}, buildOrder: async () => built } as unknown as SolanaQuoteAndPost)
+    const send = vi.spyOn(rpc, 'sendAndConfirm').mockResolvedValue('tx')
+    const placed = await orders.place({ owner, sell: usdc, buy: sol, kind: 'sell', amount: 5_000_000n, mode: 'self' })
+    expect(decodeApproveInstruction(send.mock.calls[0][0][0]).data.amount).toBe(15_000_000n)
+    expect(orders.ledger.reserved(owner.publicKey, usdc.mint)).toBe(15_000_000n)
+    vi.setSystemTime(330_000)
+    expect(orders.ledger.reserved(owner.publicKey, usdc.mint)).toBe(5_000_000n)
+    orders.ledger.release(placed.uid)
+    expect(orders.ledger.reserved(owner.publicKey, usdc.mint)).toBe(0n)
+  })
+
+  it.each([[500, 0, 1], [500, 2, 3], [429, 1, 2], [400, 2, 1]])('bounds HTTP %s quotes with maxRetries=%s at %s attempts', async (status, maxRetries, attempts) => {
+    vi.useFakeTimers()
+    const { orders, owner, sell, buy } = await fixture(maxRetries)
+    const fetch = vi.fn(async () => new Response(JSON.stringify({ errorType: 'TestFailure' }), {
+      status, headers: { 'Content-Type': 'application/json' },
+    }))
+    vi.stubGlobal('fetch', fetch)
+    const start = Date.now()
+    const result = expect(orders.quote({ owner, sell, buy, kind: 'sell', amount: 1_000_000n })).rejects.toThrow()
+    await vi.runAllTimersAsync()
+    await result
+    expect(fetch).toHaveBeenCalledTimes(attempts)
+    expect(Date.now() - start).toBeLessThanOrEqual(2000)
+  })
+
+  it.each([0, 1, 2])('does not multiply placement retries with SDK retries when maxRetries=%s', async maxRetries => {
+    vi.useFakeTimers()
+    const { orders, owner, sell, buy, rpc } = await fixture(maxRetries)
+    const fetch = vi.fn(async () => new Response(JSON.stringify({ errorType: 'InternalServerError' }), {
+      status: 500, headers: { 'Content-Type': 'application/json' },
+    }))
+    vi.stubGlobal('fetch', fetch)
+    const ctx: FlowContext = { orders, rpc, maxRetries, acquireBufferBps: 100,
+      session: { log: vi.fn(), addOrder: vi.fn() } as unknown as Session,
+      log: vi.fn(), link: { order: uid => uid, tx: sig => sig } }
+    const result = placeAndWait(ctx, { owner, sell, buy, kind: 'sell', amount: 1_000_000n, mode: 'sponsored' }, { row: 1, trader: 1, step: 'main' })
+    await vi.runAllTimersAsync()
+    expect(await result).toMatchObject({ status: 'error', attempts: maxRetries + 1 })
+    expect(fetch).toHaveBeenCalledTimes(maxRetries + 1)
+  })
+
+  it.each([0, 2])('bounds sponsored POST failures with maxRetries=%s', async maxRetries => {
+    vi.useFakeTimers()
+    const { rpc, orders, owner, sell, buy, built } = await fixture(maxRetries)
+    const post = vi.fn().mockRejectedValue(new Error('500 InternalServerError'))
+    vi.spyOn(orders, 'quote').mockResolvedValue({ solanaQuote: { funder: Keypair.generate().publicKey },
+      buildOrder: vi.fn().mockResolvedValue(built), postSponsoredOrder: post } as unknown as SolanaQuoteAndPost)
+    vi.spyOn(rpc, 'call').mockResolvedValue({ blockhash: Keypair.generate().publicKey.toBase58(), lastValidBlockHeight: 1000 })
+    const ctx: FlowContext = { orders, rpc, maxRetries, acquireBufferBps: 100,
+      session: { log: vi.fn(), addOrder: vi.fn() } as unknown as Session,
+      log: vi.fn(), link: { order: uid => uid, tx: sig => sig } }
+    const result = placeAndWait(ctx, { owner, sell, buy, kind: 'sell', amount: 1_000_000n, mode: 'sponsored' }, { row: 1, trader: 1, step: 'main' })
+    await vi.runAllTimersAsync()
+    expect(await result).toMatchObject({ status: 'error', attempts: maxRetries + 1 })
+    expect(post).toHaveBeenCalledTimes(maxRetries + 1)
+  })
+
+  it('shares one retry budget across placement errors and fill timeouts', async () => {
+    vi.useFakeTimers()
+    const { orders, rpc, owner, sell, buy, placed } = await fixture(2)
+    const place = vi.spyOn(orders, 'place').mockRejectedValueOnce(new Error('placement failed')).mockResolvedValue(placed)
+    vi.spyOn(orders, 'waitFinal').mockResolvedValueOnce({ status: 'timeout', order: null }).mockResolvedValue({ status: 'fulfilled', order: null })
+    const ctx: FlowContext = { orders, rpc, maxRetries: 2, acquireBufferBps: 100,
+      session: { log: vi.fn(), addOrder: vi.fn() } as unknown as Session,
+      log: vi.fn(), link: { order: uid => uid, tx: sig => sig } }
+    const result = placeAndWait(ctx, { owner, sell, buy, kind: 'sell', amount: 1_000_000n, mode: 'self' }, { row: 1, trader: 1, step: 'main' })
+    await vi.runAllTimersAsync()
+    expect(await result).toMatchObject({ status: 'fulfilled', attempts: 3 })
+    expect(place).toHaveBeenCalledTimes(3)
+  })
+
   it('waits before cleanup when an accepted submission loses its response', async () => {
     vi.useFakeTimers()
     vi.setSystemTime(0)
@@ -123,9 +207,9 @@ describe('placement reliability', () => {
   })
 
   it.each([
-    { message: 'InsufficientValidTo', retried: true },
-    { message: 'Network timeout posting native SOL', retried: false },
-  ])('records only definite rejections: $message', async ({ message, retried }) => {
+    { message: 'InsufficientValidTo', rejected: true },
+    { message: 'Network timeout posting native SOL', rejected: false },
+  ])('records definite rejections without hidden placement retries: $message', async ({ message, rejected }) => {
     const { rpc, orders, owner, sell, buy, built } = await fixture()
     const funder = Keypair.generate().publicKey
     const post = vi.fn().mockRejectedValueOnce(new Error(message)).mockResolvedValue(built.orderId)
@@ -134,9 +218,9 @@ describe('placement reliability', () => {
     vi.spyOn(rpc, 'call').mockResolvedValue({ blockhash: Keypair.generate().publicKey.toBase58(), lastValidBlockHeight: 1000 })
     const record = vi.fn()
     const placing = orders.place({ owner, sell, buy, kind: 'sell', amount: 1_000_000n, mode: 'sponsored' }, record)
-    if (retried) await expect(placing).resolves.toMatchObject({ uid: built.orderId })
-    else await expect(placing).rejects.toThrow(message)
-    expect(record.mock.calls.map(call => call[1])).toEqual(retried ? ['prepared', 'rejected', 'prepared'] : ['prepared'])
+    await expect(placing).rejects.toThrow(message)
+    expect(post).toHaveBeenCalledOnce()
+    expect(record.mock.calls.map(call => call[1])).toEqual(rejected ? ['prepared', 'rejected'] : ['prepared'])
   })
 
   it('waits for the API slot before quoting or fetching the sponsored blockhash', async () => {
@@ -157,7 +241,8 @@ describe('placement reliability', () => {
     release()
     expect((await pending).uid).toBe(built.orderId)
     expect(post).toHaveBeenCalledTimes(1)
-    expect(prepared).toHaveBeenCalledWith({ uid: built.orderId, validTo: built.intent.validTo, mode: 'sponsored' }, 'prepared')
+    expect(prepared).toHaveBeenCalledWith({ uid: built.orderId, validTo: built.intent.validTo, mode: 'sponsored',
+      sellMint: splMint(sell).toBase58(), sellAmount: built.intent.sellAmount.toString() }, 'prepared')
     expect(prepared.mock.invocationCallOrder[0]).toBeLessThan(post.mock.invocationCallOrder[0])
     const tx = Transaction.from(Buffer.from(post.mock.calls[0][0], 'base64'))
     expect(tx.recentBlockhash).toBe(blockhash)

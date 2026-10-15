@@ -15,7 +15,7 @@ The first round allows 313 orders conservatively, or 0.939 SOL at the planning r
 ## What to check
 
 1. **25 sells:** all wallets spend SOL for JUP at time zero. This uses sell orders because the solver promises batches of up to four sells. Check how 25 orders split into groups and how the last order clears. One timestamp starts the flows; actual placement times determine which orders share an auction.
-2. **Sell bursts:** 4, 8, 16, 24 and 32 wallets start at 0, 150, 300, 450 and 600 seconds. Wallets are reused, with unequal SOL inputs of 0.0025–0.004. Check batch sizes, one swap per sell batch, proportional output, single-order price protection and time to clear the backlog. This measures bursts, not a sustainable continuous arrival rate.
+2. **Sell bursts:** 4, 8, 16, 24 and 32 wallets start at 0, 90, 180, 270 and 360 seconds. Wallets are reused, with unequal SOL inputs of 0.0025–0.004. Check batch sizes, one swap per sell batch, proportional output, single-order price protection and time to clear the backlog. This measures bursts, not a sustainable continuous arrival rate.
 3. **CoW:** a copy of the existing perfect and imperfect opposing-order cases, including preparation and a control. It retains sponsored creation, so record creation failures separately. Verify both sides reached the same auction. A shared transaction proves batching; inspect DEX instructions to establish direct CoW. Unequal demand or the solver's DEX-price guard can make a swap or separate execution reasonable.
 4. **Tokens:** 40 distinct token/SOL pairs, including Token-2022, memecoins, LSTs, Bitcoin, bridged assets, gold, stocks, stablecoins and pool tokens. The 15 original positive Token-2022 candidates retain inbound sells and exact-output buys; explicit return sells were removed because cleanup provides that direction. The 25 added controls each get one inbound sell and cleanup return. Three expected unsupported-token rows test the backend. Original PAID and SI probes are outside the frontend list. Original fixed buy amounts need fresh quote checks.
 5. **Size:** SOL → EURC and SOL → JLP each have one baseline followed by four sells together, using self paid creation. Check account setup, lookup tables, chosen routes and final settlement bytes. The file is a large-route candidate test, not a proven byte-boundary test.
@@ -51,7 +51,7 @@ pnpm sim simulate-composite-scenario ../scenarios/solver-validation/grafiks-comp
 pnpm sim simulate-composite-scenario ../scenarios/solver-validation/grafiks-composite.json
 ```
 
-The runner funds one scenario, runs its trades, waits for outstanding orders, and cleans up its wallets. It pauses for 60 seconds by default before funding the next scenario. Remaining SOL returns to the funder for reuse. Allow extra SOL for fees and trading losses; balances are checked before each funding pass. `maxTotalSol` caps funding per scenario, while `maxCreationSol` covers the whole composite's estimated creation fees/rent before refunds.
+The runner funds one scenario, runs its trades, waits for outstanding orders, and cleans up its wallets. The solver composite configs pause for 30 seconds before funding the next scenario; the simulator still defaults to 60 seconds when a config omits `breakSeconds`. Remaining SOL returns to the funder for reuse. Allow extra SOL for fees and trading losses; balances are checked before each funding pass. `maxTotalSol` caps funding per scenario, while `maxCreationSol` covers the whole composite's estimated creation fees/rent before refunds.
 
 All scenarios share the config's `options`; explicit CLI flags override them. Use `--dry-run` to check quotes without trading. The solver name is a label: enable the target solver in the chosen environment before an isolated test. Each scenario keeps its own CSV timings and gets separate wallets. The session has prefixed trade logs, a results table, and one combined report when enabled.
 
@@ -65,8 +65,30 @@ The broader top250 scenario is outside this first round. Its earlier version had
 
 ## Optional buy burst
 
-[solver-burst-buy.csv](solver-burst-buy.csv) adds the same bursts of 4, 8, 16, 24 and 32 orders at 0, 240, 480, 720 and 960 seconds. Both burst files spend SOL and receive USDC: sells fix the SOL input; buys fix the USDC output. The buy file uses self paid creation and unequal output amounts of 0.25–0.40 USDC. Buy batching is outside the solver's stated promise, so use it as an optional comparison of order types.
+[solver-burst-buy.csv](solver-burst-buy.csv) adds the same bursts of 4, 8, 16, 24 and 32 orders at 0, 90, 180, 270 and 360 seconds. Both burst files spend SOL and receive USDC: sells fix the SOL input; buys fix the USDC output. The buy file uses self paid creation and unequal output amounts of 0.25–0.40 USDC. Buy batching is outside the solver's stated promise, so use it as an optional comparison of order types.
 
 It allows 84 main orders, no acquisitions and 32 cleanup orders: 116 estimated orders and 0.348 SOL before refunds. Adding it to the five first-round runs gives 429 estimated orders and a 1.287 SOL creation allowance. Use the run settings above with 0.06 SOL per trader, a maximum of 1.92 funded SOL and a 0.348 SOL creation allowance. Dry-run first to check the fixed USDC amounts against current quotes.
 
-CSV timestamps start each trade flow; inspect actual placement times and auction membership before judging missed batching opportunities. A wallet waits for its earlier flow to finish, so check actual starts if a burst overruns its gap: 150 seconds for sells or 240 seconds for buys. Retain individual bids from the same auction when checking the single-order price guard.
+CSV timestamps start each trade flow; inspect actual placement times and auction membership before judging missed batching opportunities. A wallet waits for its earlier flow to finish, so check actual starts if a burst overruns its gap: 90 seconds for both sells and buys. Retain individual bids from the same auction when checking the single-order price guard.
+
+## Faster schedules
+
+All solver composite configs use a 30-second pause after cleanup, a 60-second fill timeout and no trade retries. Standard pairs and focused Jupiter account, payout, precision and general-asset checks start every independent wallet at 0 seconds. Later rows use 1-second stage offsets and wait only for the preceding flow on their own wallet. These offsets are relative to scenario start, not extra pauses after a fill. A previous flow must finish but need not succeed. Unknown outcomes are checked and reported without blocking or skipping later rows; only cleanup is deferred for wallets with potentially live orders.
+
+| Functional check | Last scheduled start before this review | Last scheduled start now |
+|---|---:|---:|
+| Standard pairs | 15s | 1s |
+| Receiving-account costs | 270s | 1s |
+| Native/wrapped payouts | 185s | 2s |
+| Amount precision | 165s | 1s |
+| General asset gaps | 180s | 1s |
+
+Sell and optional buy bursts now both use 90-second wave gaps. Every order within a wave has the same timestamp. The standalone 8/16/24/32 burst also uses 90-second gaps instead of 180 seconds. This leaves room for the 60-second fill window plus preparation and cancellation; it does not guarantee slow earlier flows have finished. Baselines for the two independent transaction-size pairs start together at 0 seconds, followed by both four-order groups at 90 seconds, instead of four phases ending at 180 seconds.
+
+CSV timestamps start trade flows. Quotes, RPC limits, order creation and earlier flows on reused wallets can spread actual placements; verify placement times and auction membership before claiming simultaneous submission or batching. Denser schedules change offered load. Row counts, wallet IDs, per-wallet order, amounts, modes, creation allowances and order validity are preserved.
+
+All 49 scenario CSVs were reviewed. Token-2022, xStock, token-universe, retry and most experiment files already have parallel wallet starts and back-to-back wallet rows. The generated traffic profiles and sustained-rate experiments keep their intended arrival rates. CoW and opposing-order files retain 150/120-second preparation windows so pre-funded sides have time to be ready. Failure-isolation probes move from 90 to 30 seconds, with follow-up controls at 45 seconds; late controls retain 420 seconds to allow 300-second validity plus preparation and an expiry margin. Late recovery still requires confirmed final probe orders. The sustained test retains its recovery probe for the same reason.
+
+Funding, fills, cancellation and cleanup still take their actual time. Any caller of these shared CSVs uses the new timings, including standalone runs; standalone runs should explicitly use `--fill-timeout 60 --cancel-on-timeout` for the shorter burst gaps. Composite configs already set these options.
+
+A live or resumed session uses its saved config, rows and timings. These changes apply to new sessions; they do not accelerate an already-running session.

@@ -45,16 +45,20 @@ export async function placeAndWait(
 ): Promise<{ status: FinalStatus | 'error'; attempts: number; last?: Placed; error?: string }> {
   let attempts = 0
   let last: Placed | undefined
+  let mode = p.mode
   for (let attempt = 0; attempt <= ctx.maxRetries; attempt++) {
     attempts++
     try {
-      last = await ctx.orders.place(p, (order, event) => ctx.session.log({ ...meta, ...order, event, attempt }))
+      last = await ctx.orders.place({ ...p, mode }, (order, event) => ctx.session.log({ ...meta, ...order, event, attempt }))
+      last.forcedSelf = p.mode === 'sponsored' && mode === 'self'
     } catch (e) {
       const error = errorDetail(e)
       const info = errorInfo(e)
-      ctx.session.log({ ...meta, event: 'place_error', attempt, mode: p.mode, error, ...info })
+      ctx.session.log({ ...meta, event: 'place_error', attempt, mode, error, ...info })
       ctx.log(`  ${tag(meta.row, meta.trader)} ${stepLabel(meta.step)}: ${ui.error(`place failed${info.stage ? ` (${info.stage})` : ''}: ${error}`)}`)
       if (attempt < ctx.maxRetries) {
+        // A definite native-SOL rejection can fall back to self-paid placement, using the same retry budget.
+        if (mode === 'sponsored' && p.buy.isNative && /native SOL.*(?:not supported|unsupported)|(?:unsupported|not supported).*native SOL/i.test(error)) mode = 'self'
         await sleep(5000)
         continue
       }

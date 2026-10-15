@@ -1,5 +1,6 @@
 # Small positive quantities with adjacent raw-unit endings: SOL 9 decimals; USDC 6; BONK 5.
 # Each wallet runs two orders differing by one raw unit; compare signed and executed raw amounts.
+# All wallets start at 0s; adjacent-unit repeats at 1s wait only for the preceding flow on their own wallet.
 # Market movement and fees can change prices: do not demand a one-unit change in the OTHER token.
 # USDC sells use USDT output; other sells use USDC. All buys pay SOL or USDC as stated.
 # Amounts near zero and beyond token precision belong in quote-only checks; no deliberate dust trades.
@@ -7,14 +8,14 @@
 # 12 main + 6 possible acquisitions + 8 cleanup = 26 estimated creations (0.078 SOL before refunds).
 trader,time,type,amount,token,other_token,mode,note
 1,0,sell,0.002500001,SOL,USDC,self,SOL sell precision: 2500001 lamports
-2,30,buy,0.002500001,SOL,USDC,self,SOL buy precision: 2500001 lamports; fees separate from receipt
-3,60,sell,0.250001,USDC,USDT,self,USDC sell precision: 250001 raw units
-4,90,buy,0.250001,USDC,SOL,self,USDC buy precision: 250001 raw units
-5,120,sell,100000.00001,BONK,USDC,self,BONK sell precision: 10000000001 raw units; check fresh quote value
-6,150,buy,100000.00001,BONK,SOL,self,BONK buy precision: 10000000001 raw units; check fresh quote value
-1,180,sell,0.002500002,SOL,USDC,self,SOL sell precision: 2500002 lamports
-2,210,buy,0.002500002,SOL,USDC,self,SOL buy precision: 2500002 lamports; fees separate from receipt
-3,240,sell,0.250002,USDC,USDT,self,USDC sell precision: 250002 raw units
-4,270,buy,0.250002,USDC,SOL,self,USDC buy precision: 250002 raw units
-5,300,sell,100000.00002,BONK,USDC,self,BONK sell precision: 10000000002 raw units; check fresh quote value
-6,330,buy,100000.00002,BONK,SOL,self,BONK buy precision: 10000000002 raw units; check fresh quote value
+2,0,buy,0.002500001,SOL,USDC,self,SOL buy precision: 2500001 lamports; fees separate from receipt
+3,0,sell,0.250001,USDC,USDT,self,USDC sell precision: 250001 raw units
+4,0,buy,0.250001,USDC,SOL,self,USDC buy precision: 250001 raw units
+5,0,sell,100000.00001,BONK,USDC,self,BONK sell precision: 10000000001 raw units; check fresh quote value
+6,0,buy,100000.00001,BONK,SOL,self,BONK buy precision: 10000000001 raw units; check fresh quote value
+1,1,sell,0.002500002,SOL,USDC,self,SOL sell precision: 2500002 lamports
+2,1,buy,0.002500002,SOL,USDC,self,SOL buy precision: 2500002 lamports; fees separate from receipt
+3,1,sell,0.250002,USDC,USDT,self,USDC sell precision: 250002 raw units
+4,1,buy,0.250002,USDC,SOL,self,USDC buy precision: 250002 raw units
+5,1,sell,100000.00002,BONK,USDC,self,BONK sell precision: 10000000002 raw units; check fresh quote value
+6,1,buy,100000.00002,BONK,SOL,self,BONK buy precision: 10000000002 raw units; check fresh quote value

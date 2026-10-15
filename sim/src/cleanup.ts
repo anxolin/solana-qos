@@ -88,7 +88,7 @@ const EXPIRY_MARGIN_S = 10
  * 3. reclaim the rent of finished orders (looked up in one batched call);
  * 4. sweep all SOL to the funder.
  */
-export async function cleanupTrader(ctx: FlowContext, w: Wallets, n: number, env: CowEnv): Promise<CleanupResult> {
+export async function cleanupTrader(ctx: FlowContext, w: Wallets, n: number, env: CowEnv, finalAttempt = true): Promise<CleanupResult> {
   void env
   const kp = w.trader(n)
   const owner = kp.publicKey
@@ -110,7 +110,7 @@ export async function cleanupTrader(ctx: FlowContext, w: Wallets, n: number, env
   const plans = await Promise.all(
     holdings.map(async (a) => {
       try {
-        const q = await ctx.orders.quote({ owner: kp, sell: tokenOf(a), buy: sol, kind: 'sell', amount: a.amount })
+        const q = await ctx.orders.quote({ owner: kp, sell: tokenOf(a), buy: sol, kind: 'sell', amount: a.amount }, ctx.maxRetries)
         return { a, burn: q.solanaQuote.intent.buyAmount < BigInt(a.lamports) }
       } catch (e) {
         // Even "no route" can be temporary. A failed quote never proves the tokens are dust.
@@ -180,7 +180,10 @@ export async function cleanupTrader(ctx: FlowContext, w: Wallets, n: number, env
   }
   result.reclaimed = await sendBatches(ctx, reclaims, kp, 10, n, 'reclaim')
 
-  const sweep = await sweepToFunder(ctx.rpc, w, n)
+  // Keep fee funds while leftover tokens have another cleanup attempt.
+  const sweep = finalAttempt || !result.leftover.length
+    ? await sweepToFunder(ctx.rpc, w, n)
+    : { amount: 0n, signature: undefined }
   result.swept = sweep.amount
   if (sweep.signature) {
     ctx.session.log({ trader: n, step: 'cleanup', event: 'swept', amount: sweep.amount.toString(), signature: sweep.signature })

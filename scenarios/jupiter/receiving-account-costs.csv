@@ -1,24 +1,24 @@
 # Receiving-account costs: classic SPL USDC and zero-fee Token-2022 USDG.
 # Each wallet repeats an identical order kind and amount in the same payment mode.
-# Starts are staggered to isolate account state from burst load. Second rows wait for first rows.
+# All wallets start at 0s; repeats are scheduled at 1s and wait only for the preceding flow on their own wallet.
 # A repeat is a warm-account observation only if the first order filled and the ATA still exists.
 # The client creates the buy ATA; this measures its actual payer and quote treatment, not driver-only creation.
 # Keep USDG exact-output buys even when quotes fail: record the response and stage; rent checks then remain unexercised.
 # 16 main + 0 possible acquisitions + 8 cleanup = 24 estimated creations (0.072 SOL before refunds).
 trader,time,type,amount,token,other_token,mode,note
 1,0,sell,0.0025,SOL,USDC,sponsored,USDC sponsored sell first: verify receiving ATA absent before creation
-2,30,sell,0.0025,SOL,USDC,self,USDC self sell first: verify receiving ATA absent before creation
-3,60,buy,0.25,USDC,SOL,sponsored,USDC sponsored buy first: verify receiving ATA absent before creation
-4,90,buy,0.25,USDC,SOL,self,USDC self buy first: verify receiving ATA absent before creation
-5,120,sell,0.0025,SOL,2u1tszSeqZ3qBWF3uNGPFc8TzMk2tdiwknnRMWGWjGWH,sponsored,USDG sponsored sell first: verify receiving ATA absent before creation
-6,150,sell,0.0025,SOL,2u1tszSeqZ3qBWF3uNGPFc8TzMk2tdiwknnRMWGWjGWH,self,USDG self sell first: verify receiving ATA absent before creation
-7,180,buy,0.25,2u1tszSeqZ3qBWF3uNGPFc8TzMk2tdiwknnRMWGWjGWH,SOL,sponsored,USDG sponsored buy first: verify receiving ATA absent before creation; retain quote failures
-8,210,buy,0.25,2u1tszSeqZ3qBWF3uNGPFc8TzMk2tdiwknnRMWGWjGWH,SOL,self,USDG self buy first: verify receiving ATA absent before creation; retain quote failures
-1,330,sell,0.0025,SOL,USDC,sponsored,USDC sponsored sell repeat: warm only after first fill
-2,360,sell,0.0025,SOL,USDC,self,USDC self sell repeat: warm only after first fill
-3,390,buy,0.25,USDC,SOL,sponsored,USDC sponsored buy repeat: warm only after first fill
-4,420,buy,0.25,USDC,SOL,self,USDC self buy repeat: warm only after first fill
-5,450,sell,0.0025,SOL,2u1tszSeqZ3qBWF3uNGPFc8TzMk2tdiwknnRMWGWjGWH,sponsored,USDG sponsored sell repeat: warm only after first fill
-6,480,sell,0.0025,SOL,2u1tszSeqZ3qBWF3uNGPFc8TzMk2tdiwknnRMWGWjGWH,self,USDG self sell repeat: warm only after first fill
-7,510,buy,0.25,2u1tszSeqZ3qBWF3uNGPFc8TzMk2tdiwknnRMWGWjGWH,SOL,sponsored,USDG sponsored buy repeat: warm only after first fill; retain quote failures
-8,540,buy,0.25,2u1tszSeqZ3qBWF3uNGPFc8TzMk2tdiwknnRMWGWjGWH,SOL,self,USDG self buy repeat: warm only after first fill; retain quote failures
+2,0,sell,0.0025,SOL,USDC,self,USDC self sell first: verify receiving ATA absent before creation
+3,0,buy,0.25,USDC,SOL,sponsored,USDC sponsored buy first: verify receiving ATA absent before creation
+4,0,buy,0.25,USDC,SOL,self,USDC self buy first: verify receiving ATA absent before creation
+5,0,sell,0.0025,SOL,2u1tszSeqZ3qBWF3uNGPFc8TzMk2tdiwknnRMWGWjGWH,sponsored,USDG sponsored sell first: verify receiving ATA absent before creation
+6,0,sell,0.0025,SOL,2u1tszSeqZ3qBWF3uNGPFc8TzMk2tdiwknnRMWGWjGWH,self,USDG self sell first: verify receiving ATA absent before creation
+7,0,buy,0.25,2u1tszSeqZ3qBWF3uNGPFc8TzMk2tdiwknnRMWGWjGWH,SOL,sponsored,USDG sponsored buy first: verify receiving ATA absent before creation; retain quote failures
+8,0,buy,0.25,2u1tszSeqZ3qBWF3uNGPFc8TzMk2tdiwknnRMWGWjGWH,SOL,self,USDG self buy first: verify receiving ATA absent before creation; retain quote failures
+1,1,sell,0.0025,SOL,USDC,sponsored,USDC sponsored sell repeat: warm only after first fill
+2,1,sell,0.0025,SOL,USDC,self,USDC self sell repeat: warm only after first fill
+3,1,buy,0.25,USDC,SOL,sponsored,USDC sponsored buy repeat: warm only after first fill
+4,1,buy,0.25,USDC,SOL,self,USDC self buy repeat: warm only after first fill
+5,1,sell,0.0025,SOL,2u1tszSeqZ3qBWF3uNGPFc8TzMk2tdiwknnRMWGWjGWH,sponsored,USDG sponsored sell repeat: warm only after first fill
+6,1,sell,0.0025,SOL,2u1tszSeqZ3qBWF3uNGPFc8TzMk2tdiwknnRMWGWjGWH,self,USDG self sell repeat: warm only after first fill
+7,1,buy,0.25,2u1tszSeqZ3qBWF3uNGPFc8TzMk2tdiwknnRMWGWjGWH,SOL,sponsored,USDG sponsored buy repeat: warm only after first fill; retain quote failures
+8,1,buy,0.25,2u1tszSeqZ3qBWF3uNGPFc8TzMk2tdiwknnRMWGWjGWH,SOL,self,USDG self buy repeat: warm only after first fill; retain quote failures

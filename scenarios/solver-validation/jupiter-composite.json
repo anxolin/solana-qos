@@ -2,7 +2,7 @@
   "name": "jupiter-core-token-coverage-xstocks-and-token-2022-pairs",
   "solver": "jupiter",
   "env": "prod",
-  "breakSeconds": 60,
+  "breakSeconds": 30,
   "scenarios": [
     "solver-standard-pairs.csv",
     "../jupiter/receiving-account-costs.csv",
@@ -19,7 +19,7 @@
     "maxCreationSol": 0.981,
     "maxRetries": 0,
     "orderValidity": 300,
-    "fillTimeout": 210,
+    "fillTimeout": 60,
     "cancelOnTimeout": true,
     "quoteRps": 2,
     "apiRps": 5,

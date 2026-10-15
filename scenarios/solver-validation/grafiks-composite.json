@@ -2,7 +2,7 @@
   "name": "grafiks-five-scenarios",
   "solver": "grafiks",
   "env": "staging",
-  "breakSeconds": 60,
+  "breakSeconds": 30,
   "scenarios": [
     "solver-same-direction-25.csv",
     "solver-burst-sell.csv",
@@ -16,7 +16,7 @@
     "maxCreationSol": 0.939,
     "maxRetries": 0,
     "orderValidity": 300,
-    "fillTimeout": 210,
+    "fillTimeout": 60,
     "cancelOnTimeout": true,
     "cleanup": true,
     "report": true

@@ -1,19 +1,20 @@
 # Native SOL and wSOL RECEIPTS from USDC: sell and exact-output buy in sponsored and self modes.
 # Four explicit preparation rows provide USDC; they are included in the 12-row count.
+# All wallets prepare at 0s; receipt rows at 1s and 2s wait only for the preceding flow on their own wallet.
 # Compare native lamports with wSOL token balances before cleanup unwraps wSOL.
 # Sponsored native-SOL fallback must be reported separately; self-paid success is not gasless success.
 # wSOL sells are deliberately excluded: the client wraps SOL even for an explicit wSOL sell.
 # 12 main + 8 possible acquisitions + 4 cleanup = 24 estimated creations (0.072 SOL before refunds).
 trader,time,type,amount,token,other_token,mode,note
 1,0,sell,0.005,SOL,USDC,sponsored,prepare USDC for sponsored native-SOL receipts
-2,30,sell,0.005,SOL,USDC,sponsored,prepare USDC for sponsored wSOL receipts
-3,60,sell,0.005,SOL,USDC,self,prepare USDC for self-paid native-SOL receipts
-4,90,sell,0.005,SOL,USDC,self,prepare USDC for self-paid wSOL receipts
-1,140,sell,0.2,USDC,SOL,sponsored,native SOL sell receipt: check lamports and actual payment mode
-2,170,sell,0.2,USDC,wSOL,sponsored,wSOL sell receipt: check token balance before cleanup
-3,200,sell,0.2,USDC,SOL,self,native SOL sell receipt: self-paid reference
-4,230,sell,0.2,USDC,wSOL,self,wSOL sell receipt: self-paid reference
-1,280,buy,0.002,SOL,USDC,sponsored,native SOL exact-output receipt: forcedSelf makes gasless coverage inconclusive
-2,310,buy,0.002,wSOL,USDC,sponsored,wSOL exact-output receipt: verify raw token output
-3,340,buy,0.002,SOL,USDC,self,native SOL exact-output receipt: verify raw lamport output
-4,370,buy,0.002,wSOL,USDC,self,wSOL exact-output receipt: verify raw token output
+2,0,sell,0.005,SOL,USDC,sponsored,prepare USDC for sponsored wSOL receipts
+3,0,sell,0.005,SOL,USDC,self,prepare USDC for self-paid native-SOL receipts
+4,0,sell,0.005,SOL,USDC,self,prepare USDC for self-paid wSOL receipts
+1,1,sell,0.2,USDC,SOL,sponsored,native SOL sell receipt: check lamports and actual payment mode
+2,1,sell,0.2,USDC,wSOL,sponsored,wSOL sell receipt: check token balance before cleanup
+3,1,sell,0.2,USDC,SOL,self,native SOL sell receipt: self-paid reference
+4,1,sell,0.2,USDC,wSOL,self,wSOL sell receipt: self-paid reference
+1,2,buy,0.002,SOL,USDC,sponsored,native SOL exact-output receipt: forcedSelf makes gasless coverage inconclusive
+2,2,buy,0.002,wSOL,USDC,sponsored,wSOL exact-output receipt: verify raw token output
+3,2,buy,0.002,SOL,USDC,self,native SOL exact-output receipt: verify raw lamport output
+4,2,buy,0.002,wSOL,USDC,self,wSOL exact-output receipt: verify raw token output

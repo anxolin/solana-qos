@@ -2,7 +2,7 @@
   "name": "jupiter-xstocks-market-window",
   "solver": "jupiter",
   "env": "prod",
-  "breakSeconds": 60,
+  "breakSeconds": 30,
   "scenarios": [
     "../token-2022/xstocks.csv"
   ],
@@ -12,7 +12,7 @@
     "maxCreationSol": 0.393,
     "maxRetries": 0,
     "orderValidity": 300,
-    "fillTimeout": 210,
+    "fillTimeout": 60,
     "cancelOnTimeout": true,
     "quoteRps": 2,
     "apiRps": 5,

@@ -19,25 +19,43 @@ it.each([
   { override: ['--session', 'offline', '--no-cleanup'], name: 'offline', cleanup: false, mode: 'fresh' },
   { override: ['--session', 'interrupt'], name: 'interrupt', cleanup: true, mode: 'interrupt' },
   { override: ['--session', 'unsorted', '--sol-funding-per-trader', '0.07', '--report'], name: 'unsorted', cleanup: true, mode: 'unsorted' },
-  ...['running', 'single', 'cleanup', 'pause', 'unknown', 'identity', 'finished'].map(mode => ({ override: [], name: mode, cleanup: true, mode })),
+  ...['running', 'single', 'cleanup', 'pause', 'unknown', 'resume-reservations', 'expired-unknown', 'identity', 'finished'].map(mode => ({ override: [], name: mode, cleanup: true, mode })),
   ...['defer', 'defer-running', 'defer-unknown', 'defer-shared'].map(mode => ({ override: ['--defer-cleanup'], name: mode, cleanup: true, mode })),
+  ...['auto-defer', 'auto-defer-throw', 'auto-defer-retry', 'auto-defer-unknown', 'auto-defer-retry-unknown', 'auto-defer-fees', 'auto-defer-success', 'auto-defer-single', 'auto-defer-resume'].map(mode => ({
+    override: ['--session', mode, '--defer-cleanup'], name: mode, cleanup: true, mode,
+  })),
+  { override: ['--session', 'cleanup-failure'], name: 'cleanup-failure', cleanup: true, mode: 'cleanup-failure' },
+  ...['normal-unknown', 'normal-unknown-single', 'normal-unknown-no-cleanup', 'normal-unknown-last'].map(mode => ({
+    override: ['--session', mode, ...(mode.endsWith('no-cleanup') ? ['--no-cleanup'] : [])],
+    name: mode, cleanup: !mode.endsWith('no-cleanup'), mode,
+  })),
 ])('runs the real command offline: $name', async ({ override, name, cleanup, mode }) => {
   vi.resetModules()
   const root = mkdtempSync(join(tmpdir(), 'composite-cli-'))
   writeFileSync(join(root, 'tokens.json'), JSON.stringify({
     EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v: 'USDC',
   }))
-  const sample = fileURLToPath(new URL('./fixtures/composite/composite.json', import.meta.url))
+  let sample = fileURLToPath(new URL('./fixtures/composite/composite.json', import.meta.url))
+  const retryCleanup = ['auto-defer-retry', 'auto-defer-retry-unknown', 'auto-defer-fees'].includes(mode)
+  if (retryCleanup) {
+    const config = JSON.parse(readFileSync(sample, 'utf8'))
+    config.options.maxRetries = 1
+    config.scenarios = config.scenarios.map((file: string) => fileURLToPath(new URL(`./fixtures/composite/${file}`, import.meta.url)))
+    sample = join(root, 'retry-composite.json')
+    writeFileSync(sample, JSON.stringify(config))
+  }
   const singleCsv = join(root, 'unsorted.csv')
   writeFileSync(singleCsv, 'trader,time,type,amount,token,other_token\n1,10,sell,0.001,SOL,USDC\n2,0,sell,0.002,SOL,USDC\n3,20,sell,0.003,SOL,USDC\n')
   const mnemonic = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about'
   const starts: [number, number][] = []
-  let interrupt = mode === 'interrupt'
+  let interrupt = mode === 'interrupt' || mode === 'auto-defer-resume'
   const lifecycle: [string, number[], number][] = []
   const balances = new Map<string, bigint>()
   let holdings = true
   let quoteOutage = true
   let funderBalance = mode === 'cleanup' ? 80_000_000n : mode === 'unsorted' ? 500_000_000n : cleanup ? 150_000_000n : 300_000_000n
+  const fresh = ['fresh', 'interrupt', 'unsorted', 'cleanup-failure'].includes(mode) || mode.startsWith('auto-defer') || mode.startsWith('normal-unknown')
+  if (mode.startsWith('auto-defer') || mode.startsWith('normal-unknown') || mode === 'cleanup-failure') funderBalance = 500_000_000n
   const fund = vi.fn<typeof import('../src/wallets.js').fund>(async (_rpc, _w, plan) => {
     lifecycle.push(['fund', plan.map(line => line.trader), Date.now() / 1000])
     funderBalance -= plan.reduce((sum, line) => sum + line.topUp, 0n)
@@ -68,10 +86,21 @@ it.each([
     ...await importOriginal<typeof import('../src/flow.js')>(),
     runRow: async (ctx: FlowContext, _wallet: unknown, row: TradeRow) => {
       starts.push([row.row, Date.now() / 1000])
-      ctx.session.log({ step: 'main', event: 'placed', row: row.row, uid: `order-${row.row}`, validTo: 300 })
+      if (mode === 'resume-reservations' && row.row === 7) {
+        const { resolveMint } = await import('../src/tokens.js')
+        expect(ctx.orders.ledger.reserved(w.trader(4).publicKey, resolveMint('USDC'))).toBe(10_000_000n)
+      }
+      const ambiguous = mode === 'normal-unknown-last' && row.row === 3
+      ctx.session.log({ step: 'main', event: ambiguous ? 'prepared' : 'placed', row: row.row, trader: row.trader, uid: `order-${row.row}`, validTo: 300 })
       await new Promise(resolve => setTimeout(resolve, row.row === 1 ? 10_000 : 1000))
+      if (ambiguous) {
+        ctx.session.log({ step: 'main', event: 'place_error', row: row.row, trader: row.trader, error: '500 InternalServerError' })
+        return { row: row.row, trader: row.trader, orders: 0, status: 'failed', reason: 'post failed' }
+      }
       if (row.row === 1 && interrupt) { interrupt = false; throw new Error('Simulated process interruption') }
       ctx.session.log({ step: 'main', event: 'final', uid: `order-${row.row}`, status: row.row === 1 ? 'timeout' : 'fulfilled' })
+      ctx.session.log({ step: 'main', event: row.row === 1 ? 'row_failed' : 'row_done', row: row.row, trader: row.trader,
+        orders: 1, reason: row.row === 1 ? 'main timeout' : undefined })
       ctx.log(`  #${row.row} t${row.trader} main: ${row.row === 1 ? 'timeout' : 'fulfilled'}`)
       return { row: row.row, trader: row.trader, orders: 1, status: row.row === 1 ? 'failed' : 'filled',
         reason: row.row === 1 ? 'main timeout' : undefined }
@@ -80,10 +109,21 @@ it.each([
   vi.doMock('../src/cleanup.js', async importOriginal => {
     const actual = await importOriginal<typeof import('../src/cleanup.js')>()
     return {
-      cleanupTrader: async (ctx: FlowContext, w: ReturnType<typeof wallets>, trader: number) => {
+      cleanupTrader: async (ctx: FlowContext, w: ReturnType<typeof wallets>, trader: number, env: 'staging', finalAttempt = true) => {
+        expect(ctx.maxRetries).toBe(0)
         lifecycle.push(['cleanup', [trader], Date.now() / 1000])
         await new Promise(resolve => setTimeout(resolve, 3000))
-        if (mode === 'cleanup') return actual.cleanupTrader(ctx, w, trader, 'staging')
+        if (mode === 'cleanup' || mode === 'auto-defer-fees' && trader === 2) {
+          const result = await actual.cleanupTrader(ctx, w, trader, env, finalAttempt)
+          quoteOutage = false
+          return result
+        }
+        if (trader === 2 && ((mode.startsWith('auto-defer') && mode !== 'auto-defer-success') || mode === 'cleanup-failure')) {
+          if (mode === 'auto-defer-throw') throw new Error('cleanup RPC unavailable')
+          if (mode === 'auto-defer-unknown' || mode === 'auto-defer-retry-unknown') ctx.session.log({ step: 'cleanup', event: 'placed', trader, uid: 'uncertain-cleanup', validTo: 300 })
+          ctx.session.log({ step: 'cleanup', event: 'cleanup_done', trader, leftover: ['1 USDC'] })
+          return { swept: 0n, leftover: ['1 USDC'] }
+        }
         funderBalance += 70_000_000n
         ctx.session.log({ step: 'cleanup', event: 'cleanup_done', trader, leftover: [] })
         return { swept: 70_000_000n, leftover: [] }
@@ -102,11 +142,11 @@ it.each([
     const { Orders } = await import('../src/orders.js')
     vi.spyOn(Rpc.prototype, 'lamports').mockImplementation(async address =>
       address.equals(funder) ? funderBalance : address.toBase58() === '11111111111111111111111111111111' ? 10_000_000_000n : balances.get(address.toBase58()) ?? 0n)
-    vi.spyOn(Orders.prototype, 'getOrder').mockImplementation(async uid => mode === 'unknown' || mode === 'defer-unknown' ? null : ({
-      uid, status: Date.now() >= 20_000 ? 'fulfilled' : 'open', validTo: 300,
+    vi.spyOn(Orders.prototype, 'getOrder').mockImplementation(async uid => mode === 'unknown' || mode === 'defer-unknown' || mode === 'resume-reservations' && uid === 'interrupted-main' || mode.startsWith('normal-unknown') && uid === (mode === 'normal-unknown-last' ? 'order-3' : 'order-1') || mode === 'expired-unknown' && uid === 'interrupted-main' || ['auto-defer-unknown', 'auto-defer-retry-unknown'].includes(mode) && uid === 'uncertain-cleanup' ? null : ({
+      uid, status: Date.now() >= 15_000 ? 'fulfilled' : 'open', validTo: 300,
       executedSellAmount: '0', executedBuyAmount: '0', orderPda: '',
     }))
-    if (mode === 'cleanup') {
+    if (mode === 'cleanup' || mode === 'auto-defer-fees') {
       const { PublicKey, SystemProgram } = await import('@solana/web3.js')
       const { TOKEN_PROGRAM_ID } = await import('@solana/spl-token')
       vi.spyOn(Rpc.prototype, 'tokenAccounts').mockImplementation(async owner => owner.equals(w.trader(2).publicKey) && holdings ? [{
@@ -144,7 +184,7 @@ it.each([
   const errors = vi.spyOn(console, 'error').mockImplementation(() => {})
   const exit = vi.spyOn(process, 'exit').mockImplementation(() => undefined as never)
   const argv = vi.spyOn(process, 'argv', 'get').mockReturnValue([
-    process.execPath, 'sim', ...(mode === 'unsorted' ? ['simulate-trade-session', singleCsv] : mode === 'fresh' || mode === 'interrupt' ? ['simulate-composite-scenario', sample] : ['resume-session', name]), ...override, '--yes',
+    process.execPath, 'sim', ...(mode === 'unsorted' || mode === 'auto-defer-single' || mode === 'normal-unknown-single' ? ['simulate-trade-session', singleCsv] : fresh ? ['simulate-composite-scenario', sample] : ['resume-session', name]), ...override, '--yes',
   ])
   // Capture the CLI's completion without exporting an entry point only for tests.
   const parse = Command.prototype.parseAsync
@@ -157,7 +197,7 @@ it.each([
   vi.useFakeTimers()
   vi.setSystemTime(0)
   try {
-    if (mode !== 'fresh' && mode !== 'interrupt' && mode !== 'unsorted') {
+    if (!fresh) {
       const { Session } = await import('../src/session.js')
       const { readComposite } = await import('../src/composite.js')
       const { saveRun } = await import('../src/resume.js')
@@ -185,11 +225,13 @@ it.each([
         saved.results = first.rows.map(row => ({ row: row.row, trader: row.trader, orders: 1,
           status: row.row === 1 ? 'failed' : 'filled', reason: row.row === 1 ? 'main timeout' : undefined }))
         for (const row of first.rows) saved.times[row.row] = row.time
-        if (mode === 'running' || mode === 'unknown') {
+        if (mode === 'running' || mode === 'unknown' || mode === 'resume-reservations' || mode === 'expired-unknown') {
           Object.assign(saved.scenarios[1], { phase: 'running', elapsed: 2, checkpointAt: 84_000,
             start: new Date(82_000).toISOString(), offset: 77 })
           saved.times[5] = 77
           session.log({ step: 'main', event: 'prepared', row: 5, trader: 4, uid: 'interrupted-main', validTo: 300 })
+          if (mode === 'resume-reservations') session.log({ step: 'main', event: 'place_error', row: 5, trader: 4,
+            request: { uid: 'interrupted-main', intent: { sellMint: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v', sellAmount: '10000000' } } })
           session.log({ step: 'acquire', event: 'placed', row: 7, trader: 4, uid: 'interrupted-acquisition', validTo: 300 })
         }
         if (mode === 'cleanup') {
@@ -210,11 +252,20 @@ it.each([
         if (mode === 'defer-unknown') session.log({ step: 'cleanup', event: 'placed', trader: 2, uid: 'uncertain-cleanup', validTo: 300 })
       }
       saveRun(session, saved)
-      vi.setSystemTime(100_000)
+      vi.setSystemTime(mode === 'expired-unknown' ? 400_000 : 100_000)
     }
     await import('../src/cli/index.js')
     await vi.runAllTimersAsync()
-    if (mode === 'interrupt') {
+    if (mode === 'cleanup-failure') {
+      await expect(completion).rejects.toThrow('Cleanup is unfinished')
+      expect(lifecycle.filter(event => event[0] === 'fund')).toHaveLength(1)
+      const saved = JSON.parse(readFileSync(join(root, 'sessions', name, 'sim', 'run.json'), 'utf8')) as SavedRun
+      expect(saved.scenarios[0].phase).toBe('cleanup')
+      expect(saved.scenarios[0].cleanupDeferred).toBeUndefined()
+      expect(saved.finished).not.toBe(true)
+      return
+    }
+    if (mode === 'interrupt' || mode === 'auto-defer-resume') {
       await expect(completion).rejects.toThrow('Simulated process interruption')
       const saved = JSON.parse(readFileSync(join(root, 'sessions', name, 'sim', 'run.json'), 'utf8')) as SavedRun
       expect(saved.scenarios[0].phase).toBe('running')
@@ -231,7 +282,7 @@ it.each([
       await import('../src/cli/index.js')
       await vi.runAllTimersAsync()
     }
-    if (mode === 'unknown' || mode === 'identity' || ['defer-running', 'defer-unknown', 'defer-shared'].includes(mode)) {
+    if (mode === 'identity' || ['defer-running', 'defer-shared'].includes(mode)) {
       const error = {
         unknown: 'Cannot verify order interrupted-main', identity: 'original funder',
         'defer-running': 'only when a composite scenario is waiting for cleanup',
@@ -258,6 +309,96 @@ it.each([
     const directory = join(root, 'sessions', name)
     const checkpoint = JSON.parse(readFileSync(join(directory, 'sim', 'run.json'), 'utf8')) as SavedRun
     expect(checkpoint.finished).toBe(true)
+    expect(new Set(checkpoint.results.map(result => result.row)).size).toBe(checkpoint.results.length)
+    if (mode === 'resume-reservations') {
+      expect(starts.map(([row]) => row)).toEqual([6, 7])
+      expect(checkpoint.unresolvedOrders).toEqual([expect.objectContaining({ uid: 'interrupted-main', sellAmount: '10000000' })])
+      return
+    }
+    if (mode === 'unknown' || mode === 'defer-unknown') {
+      expect(checkpoint.unresolvedOrders?.length).toBe(mode === 'unknown' ? 2 : 1)
+      expect(starts.map(([row]) => row)).toEqual(mode === 'unknown' ? [6] : [5, 6, 7])
+      expect(starts.every(([, time]) => time < 330)).toBe(true)
+      const blocked = mode === 'unknown' ? 4 : 2
+      expect(lifecycle.filter(event => event[0] === 'cleanup').some(event => event[1].includes(blocked))).toBe(false)
+      return
+    }
+    if (mode === 'normal-unknown-last') {
+      expect(checkpoint.unresolvedOrders).toEqual([expect.objectContaining({ uid: 'order-3', trader: 1 })])
+      expect(checkpoint.scenarios[0].cleanupDeferred).toBe(true)
+      expect(starts.find(([row]) => row === 5)![1]).toBeLessThan(60)
+      expect(lifecycle.filter(event => event[0] === 'cleanup').some(event => event[1].includes(1))).toBe(false)
+      expect(checkpoint.results.find(result => result.row === 3)?.status).toBe('failed')
+      return
+    }
+    if (mode.startsWith('normal-unknown')) {
+      expect(checkpoint.options.deferCleanup).toBeFalsy()
+      expect(starts.filter(([row]) => row === 1)).toHaveLength(1)
+      expect(checkpoint.unresolvedOrders).toEqual([expect.objectContaining({ uid: 'order-1', row: 1, trader: 1 })])
+      expect(checkpoint.results.find(result => result.row === 1)?.status).toBe('failed')
+      const output = logs.mock.calls.map(call => call.join(' ')).join('\n')
+      expect(output).toContain('1 orders still have unknown outcomes')
+      expect(output).toContain('order-1')
+      const events = readFileSync(join(directory, 'sim', 'journal.jsonl'), 'utf8').trim().split('\n').map(line => JSON.parse(line))
+      expect(events).toContainEqual(expect.objectContaining({ event: 'recovery_unresolved', uid: 'order-1' }))
+      expect(events.filter(event => event.event === 'final' && event.uid === 'order-1').every(event => event.status === 'timeout')).toBe(true)
+      expect(starts).toHaveLength(mode === 'normal-unknown-single' ? 3 : 7)
+      if (cleanup && mode === 'normal-unknown-single') {
+        expect(lifecycle.filter(event => event[0] === 'cleanup').map(event => event[1][0])).toEqual([2, 3])
+        expect(lifecycle.filter(event => event[0] === 'cleanup').every(event => event[2] < 330)).toBe(true)
+      } else if (cleanup) {
+        expect(lifecycle.filter(event => event[0] === 'cleanup').every(event => event[2] < 330)).toBe(true)
+        expect(lifecycle.filter(event => event[0] === 'cleanup').some(event => event[1].includes(1))).toBe(false)
+      }
+      else expect(lifecycle.filter(event => event[0] === 'cleanup')).toEqual([])
+      if (mode !== 'normal-unknown-single') {
+        expect(starts.find(([row]) => row === 3)![1]).toBe(starts.find(([row]) => row === 1)![1] + 10)
+        expect(starts.find(([row]) => row === 5)![1]).toBeLessThan(120)
+        expect(checkpoint.results.find(result => result.row === 3)?.status).toBe('filled')
+        expect(events).toContainEqual(expect.objectContaining({ event: 'placed', row: 3, trader: 1 }))
+        expect(output).not.toContain('waiting before reusing')
+      }
+      return
+    }
+    if (mode === 'expired-unknown') {
+      expect(starts.map(([row]) => row)).toEqual([6, 7])
+      expect(checkpoint.results.find(result => result.row === 5)).toMatchObject({ status: 'failed', reason: expect.stringContaining('unknown') })
+      expect(checkpoint.unresolvedOrders).toEqual([expect.objectContaining({ uid: 'interrupted-main', row: 5, trader: 4 })])
+      const output = logs.mock.calls.map(call => call.join(' ')).join('\n')
+      expect(output).toContain('1 orders still have unknown outcomes')
+      expect(output).toContain('interrupted-main')
+      expect(output).toContain('continuing without replay')
+      const events = readFileSync(join(directory, 'sim', 'journal.jsonl'), 'utf8').trim().split('\n').map(line => JSON.parse(line))
+      expect(events).toContainEqual(expect.objectContaining({ event: 'recovery_unresolved', uid: 'interrupted-main' }))
+      expect(events.filter(event => event.event === 'final' && event.uid === 'interrupted-main')).toEqual([])
+      return
+    }
+    if (mode.startsWith('auto-defer')) {
+      const deferred = mode !== 'auto-defer-success' && mode !== 'auto-defer-fees'
+      expect(checkpoint.options.deferCleanup).toBe(true)
+      expect(checkpoint.options.maxRetries).toBe(retryCleanup ? 1 : 0)
+      expect(checkpoint.options.cleanup).toBe(true)
+      expect(checkpoint.scenarios[0].cleanupDeferred).toBe(deferred ? true : undefined)
+      if (mode === 'auto-defer-unknown' || mode === 'auto-defer-retry-unknown') {
+        expect(checkpoint.unresolvedOrders).toEqual([expect.objectContaining({ uid: 'uncertain-cleanup', step: 'cleanup' })])
+        expect(lifecycle.find(event => event[0] === 'fund' && event[1].includes(3))![2]).toBeLessThan(60)
+      }
+      expect(lifecycle.filter(event => event[0] === 'cleanup').map(event => event[1][0])).toEqual(
+        mode === 'auto-defer-single' ? [1, 2, 3] : mode === 'auto-defer-retry' || mode === 'auto-defer-fees' ? [1, 2, 2, 3, 4] : [1, 2, 3, 4])
+      const events = readFileSync(join(directory, 'sim', 'journal.jsonl'), 'utf8').trim().split('\n').map(line => JSON.parse(line))
+      expect(events.filter(event => event.event === 'cleanup_deferred')).toEqual(deferred ? [
+        expect.objectContaining({ scenario: 1, traders: [2] }),
+      ] : [])
+      expect(new Set(checkpoint.results.map(result => result.row)).size).toBe(mode === 'auto-defer-single' ? 3 : 7)
+      if (mode === 'auto-defer') {
+        expect(lifecycle).toEqual([
+          ['fund', [1, 2], 0], ['cleanup', [1], 16], ['cleanup', [2], 16],
+          ['fund', [3, 4], 39], ['cleanup', [3], 47], ['cleanup', [4], 47],
+        ])
+        expect(checkpoint.scenarios[1].cleanupDeferred).toBeUndefined()
+      }
+      return
+    }
     if (mode === 'unsorted') {
       const savedRows = readScenario(join(directory, 'sim', 'scenario.csv'))
       const original = readScenario(singleCsv)
@@ -313,17 +454,17 @@ it.each([
     expect(output).not.toContain('Trade 5 completed')
     expect(output).toContain('Trade logs:')
     expect(output).toContain('sim/journal.jsonl')
-    const cowStart = cleanup ? 87 : 84
+    const cowStart = cleanup ? 81 : 78
     expect(starts).toEqual([[1, 5], [2, 5], [4, 7], [3, 15], [5, cowStart], [6, cowStart + 5], [7, cowStart + 5]])
     expect(fund).toHaveBeenCalledTimes(2)
     expect(fund.mock.calls.map(call => call[2].reduce((sum, line) => sum + line.topUp, 0n))).toEqual([140_000_000n, 140_000_000n])
     expect(lifecycle).toEqual(cleanup ? [
-      ['fund', [1, 2], 0], ['cleanup', [1], 22], ['cleanup', [2], 22],
-      ['fund', [3, 4], 85], ['cleanup', [3], 93], ['cleanup', [4], 93],
-    ] : [['fund', [1, 2], 0], ['fund', [3, 4], 82]])
+      ['fund', [1, 2], 0], ['cleanup', [1], 16], ['cleanup', [2], 16],
+      ['fund', [3, 4], 79], ['cleanup', [3], 87], ['cleanup', [4], 87],
+    ] : [['fund', [1, 2], 0], ['fund', [3, 4], 76]])
     const meta = JSON.parse(readFileSync(join(directory, 'meta.json'), 'utf8'))
     expect(meta.composite.scenarios).toMatchObject([
-      { name: 'burst', offset: 0, start: '1970-01-01T00:00:05.000Z', end: '1970-01-01T00:00:22.000Z' },
+      { name: 'burst', offset: 0, start: '1970-01-01T00:00:05.000Z', end: '1970-01-01T00:00:16.000Z' },
       { name: 'cow', offset: cowStart - 5, start: new Date(cowStart * 1000).toISOString(), end: new Date((cowStart + 6) * 1000).toISOString() },
     ])
     expect(meta.composite.scenarios[1].sourceRows[0]).toEqual({ row: 5, sourceRow: 1, sourceTrader: 2 })

@@ -5,6 +5,7 @@ import { parseEnv } from 'node:util'
 import { createInterface } from 'node:readline/promises'
 import { Command, Option } from 'commander'
 import type { CowEnv } from '@cowprotocol/sdk-config'
+import { PublicKey } from '@solana/web3.js'
 import { canBuild, SHIMMED, sdkVersion } from '../settlement.js'
 import { LOG_ENV_HINT, links, loadEnv, logsConfigured, lamportsToSol, QOS_ROOT, SIM_ROOT, solToLamports, TRADER_RESERVE_SOL } from '../config.js'
 import { NATIVE_SOL, Rpc, WSOL_MINT } from '../rpc.js'
@@ -14,9 +15,9 @@ import { Session } from '../session.js'
 import { parseScenario, readScenario, sessionSlug, tradersIn, writeScenario, type TradeRow } from '../scenario.js'
 import { failureKind, latestOutcomes, retryRows } from '../retry.js'
 import { runRow, type FlowContext, type RowResult } from '../flow.js'
-import { playScenarios, waitForOutstandingOrders } from '../runner.js'
+import { playScenarios } from '../runner.js'
 import { combinedRows, readComposite, type CompositeScenario } from '../composite.js'
-import { journal, readRun, recoverRun, saveRun, type SavedRun } from '../resume.js'
+import { journal, readRun, recoverOrders, recoverRun, saveRun, type SavedRun, type UnresolvedOrder } from '../resume.js'
 import { cleanupTrader } from '../cleanup.js'
 import { loadUniverse, resolveToken, splMint, toRaw, fromRaw, usdPrices } from '../tokens.js'
 import { generate, MIN_GAP_S, MIXES } from '../generator.js'
@@ -70,20 +71,31 @@ const cleanupParallel = (rpcRps = 10) => Math.max(10, Math.floor(rpcRps))
 
 /**
  * Clean up every trader; one trader failing (RPC rate limits, dropped connections) never stops the others. Traders
- * that fail get one more pass after a pause, since cleanup is safe to repeat.
+ * that fail can use the configured retry budget for another pass, without nested order retries.
  */
 async function cleanupAll(ctx: FlowContext, w: ReturnType<typeof wallets>, traders: number[], env: CowEnv, rpcRps?: number) {
   const done = new Map<number, Awaited<ReturnType<typeof cleanupTrader>>>()
+  const deferred = new Set<number>()
   let todo = traders
-  for (let pass = 1; pass <= 2 && todo.length; pass++) {
+  for (let pass = 1; pass <= ctx.maxRetries + 1 && todo.length; pass++) {
     if (pass > 1) {
+      const retryUids = new Set(journal(ctx.session).filter(event => event.uid && todo.includes(event.trader)).map(event => event.uid!))
+      const unresolved = await recoverOrders(ctx.session, uid => ctx.orders.getOrder(uid),
+        order => ctx.orders.ledger.release(order.uid), undefined, retryUids)
+      for (const order of unresolved) {
+        if (Date.now() < order.validTo * 1000 + 30_000) deferred.add(order.trader)
+      }
+      todo = todo.filter(trader => !deferred.has(trader))
+      if (!todo.length) break
       ctx.log(ui.warn(`Cleanup didn't finish for ${todo.length} traders, retrying in 20s: ${todo.map((n) => `t${n}`).join(', ')}`))
       await sleep(20_000)
     }
     const failed: number[] = []
     await pool(todo, cleanupParallel(rpcRps), async (n) => {
       try {
-        done.set(n, await cleanupTrader(ctx, w, n, env))
+        const result = await cleanupTrader({ ...ctx, maxRetries: 0 }, w, n, env, pass === ctx.maxRetries + 1)
+        done.set(n, result)
+        if (result.leftover.length) failed.push(n)
       } catch (e) {
         failed.push(n)
         ctx.log(`  ${c.blue(`t${n}`)} ${c.blue('cleanup')}: ${ui.error(errorDetail(e).slice(0, 200))}`)
@@ -92,8 +104,9 @@ async function cleanupAll(ctx: FlowContext, w: ReturnType<typeof wallets>, trade
     })
     todo = failed.sort((a, b) => a - b)
   }
-  if (todo.length) {
-    ctx.log(ui.warn(`Cleanup still unfinished for ${todo.length} traders. Re-run: pnpm sim cleanup-trade-session --traders ${todo.join(',')}`))
+  const unfinished = [...new Set([...todo, ...deferred])].sort((a, b) => a - b)
+  if (unfinished.length) {
+    ctx.log(ui.warn(`Cleanup still unfinished for ${unfinished.length} traders. Re-run: pnpm sim cleanup-trade-session --traders ${unfinished.join(',')}`))
   }
   return [...done.values()]
 }
@@ -150,6 +163,7 @@ function context(
   const orders = new Orders(rpc, {
     env: opts.env,
     apiBase: env.apiBase,
+    maxRetries: opts.maxRetries ?? 0,
     validFor: opts.orderValidity ?? 120,
     fillTimeout: opts.fillTimeout ?? 90,
     cancelOnTimeout: Boolean(opts.cancelOnTimeout),
@@ -274,7 +288,7 @@ function sessionCommand(name: string) {
     .option('--sol-funding-per-trader <sol>', 'SOL each trader is topped up to', parseFloat, 0.1)
     .option('--max-total-sol <sol>', 'refuse to fund more than this per scenario', parseFloat, 3)
     .option('--max-creation-sol <sol>', 'refuse a run whose estimated creation costs exceed this amount', Number)
-    .option('--max-retries <n>', 're-quote and retry an order that expires or times out (0 = move on)', (v) => parseInt(v, 10), 0)
+    .option('--max-retries <n>', 'retry failed quotes, placement or fills (0 = no retries)', Number, 0)
     .option('--order-validity <s>', 'seconds an order has left when placed (orderbook minimum 120)', (v) => {
       const n = parseInt(v, 10)
       if (!(n >= 120)) throw new Error('--order-validity must be at least 120 seconds (the orderbook rejects shorter orders)')
@@ -289,6 +303,7 @@ function sessionCommand(name: string) {
     .option('--dry-run', 'quote every row and print the funding plan, without trading')
     .option('--allow-public-rpc', 'trade on the public mainnet RPC anyway (it rate-limits sessions; set RPC_URL to a paid one)')
     .option('--no-cleanup', 'leave tokens and SOL in the trader wallets')
+    .option('--defer-cleanup', 'try cleanup normally; if unfinished, record it for later and continue after checking outstanding orders')
     .option('--report', 'run qos.py fetch + report on the session afterwards')
     .option('-y, --yes', 'skip the confirmation prompt')
     .addOption(envOption)
@@ -308,6 +323,27 @@ async function runSession(scenarioPath: string, opts: any, composite?: ReturnTyp
   }
   const run = context(opts, session)
   const { env, rpc, orders, ctx, w } = run
+  const warnUnresolved = (order: UnresolvedOrder) => {
+    if (order.sellMint && order.sellAmount) {
+      const mint = new PublicKey(order.sellMint)
+      orders.ledger.add(w.trader(order.trader).publicKey, mint.equals(NATIVE_SOL) ? WSOL_MINT : mint,
+        order.uid, BigInt(order.sellAmount), order.validTo)
+    }
+    log(ui.warn(`${tag(order.row, order.trader)} ${order.step}: outcome unknown; continuing without replay. ${order.reason}`))
+    log(ui.warn(`Order ${order.uid}: ${ctx.link.order(order.uid)}`))
+  }
+  const liveUnresolvedOrders = (saved: SavedRun, trader: number) => (saved.unresolvedOrders ?? [])
+    .filter(order => order.trader === trader && Date.now() < order.validTo * 1000 + 30_000)
+  const recoverOutstanding = async (saved: SavedRun, scenarioLog: (message: string) => void, traders?: ReadonlySet<number>) => {
+    const uids = traders && new Set(journal(session).filter(event => event.uid && traders.has(event.trader)).map(event => event.uid!))
+    const outstanding = session.outstandingOrders()
+    const outstandingUids = new Set(outstanding.map(order => order.uid))
+    saved.unresolvedOrders = saved.unresolvedOrders?.filter(order => outstandingUids.has(order.uid))
+    const pending = outstanding.filter(order => !uids || uids.has(order.uid))
+    if (!pending.length) return
+    scenarioLog(c.dim(`Checking ${pending.length} outstanding orders before continuing`))
+    await recoverRun(session, saved, uid => orders.getOrder(uid), order => orders.ledger.release(order.uid), warnUnresolved, new Set(pending.map(order => order.uid)))
+  }
   if (resume && (resume.funder !== w.funder.publicKey.toBase58() || resume.program !== orders.programId.toBase58() || resume.api !== env.apiBase)) {
     throw new Error('Resume requires the original funder, settlement program, and orderbook. Check MNEMONIC and environment settings.')
   }
@@ -323,10 +359,11 @@ async function runSession(scenarioPath: string, opts: any, composite?: ReturnTyp
       if (JSON.stringify(readRun(session)) !== JSON.stringify(resume)) throw new Error('Session changed while confirming. Run resume-session again.')
       log('Checking previously submitted orders before continuing…')
       await recoverRun(session, resume, uid => orders.getOrder(uid), recovered => {
+        orders.ledger.release(recovered.uid)
         const scenario = composite && scenarios.find(s => s.rows.some(row => row.trader === recovered.trader))
         log(`${scenario ? `[${scenario.name}] ` : ''}${tag(recovered.row, recovered.trader)} ${stepLabel(recovered.step)}: ${ui.status(recovered.status)} ${c.dim('(recovered)')}`)
         log(`      ${c.dim('🐞')} ${c.cyan(ctx.link.order(recovered.uid))}`)
-      })
+      }, warnUnresolved)
       session.log({ step: 'setup', event: 'resumed', completedRows: resume.results.length })
       session.writeMeta({ resumes: [...(session.readMeta().resumes as unknown[] ?? []), {
         at: new Date().toISOString(), checkpoint: resume.scenarios.find(s => s.phase === 'running')?.checkpointAt,
@@ -369,7 +406,7 @@ async function runSession(scenarioPath: string, opts: any, composite?: ReturnTyp
       ['Order validity', `${opts.orderValidity}s, the orderbook minimum`],
       ['Fill timeout', `${opts.fillTimeout}s, then ${opts.cancelOnTimeout ? 'cancel on-chain and move on' : 'move on and let the order expire'}`],
       ['Client limits', `${opts.quoteRps} quotes/s, ${opts.apiRps} API calls/s, ${opts.rpcRps} RPC calls/s`],
-      ['Cleanup', onOff(opts.cleanup)],
+      ['Cleanup', `${onOff(opts.cleanup)}${opts.cleanup && opts.deferCleanup ? ' (defer failures and continue)' : ''}`],
       ['Report', onOff(Boolean(opts.report))],
       [
         'Logs',
@@ -519,9 +556,7 @@ async function runSession(scenarioPath: string, opts: any, composite?: ReturnTyp
             process.off('SIGINT', stop)
             process.off('SIGTERM', stop)
           }
-          const pending = session.outstandingOrders()
-          if (pending.length) scenarioLog(c.dim(`Waiting for ${pending.length} outstanding orders`))
-          await waitForOutstandingOrders(pending, uid => orders.getOrder(uid))
+          await recoverOutstanding(saved, scenarioLog, new Set(tradersIn(scenario.rows)))
           scenario.end = new Date().toISOString()
           scenario.phase = 'cleanup'
           saveComposite()
@@ -529,16 +564,25 @@ async function runSession(scenarioPath: string, opts: any, composite?: ReturnTyp
           scenarioLog('Finished')
         }
         if (scenario.phase === 'cleanup') {
-          if (scenario.id === opts.deferCleanupScenario) {
+          const deferCleanup = () => {
+            assertCleanupCanBeDeferred(saved.scenarios, scenario)
             const cleaned = new Set(journal(session).filter(e => e.event === 'cleanup_done' && !e.leftover?.length).map(e => e.trader))
             const traders = tradersIn(scenario.rows).filter(trader => !cleaned.has(trader))
             scenario.cleanupDeferred = true
             session.log({ step: 'cleanup', event: 'cleanup_deferred', scenario: scenario.id, traders })
             scenarioLog(ui.warn(`Cleanup deferred for traders ${traders.join(', ')}; their remaining tokens and SOL stay in their wallets.`))
-          } else if (opts.cleanup) {
+          }
+          if (scenario.id === opts.deferCleanupScenario) deferCleanup()
+          else if (opts.cleanup) {
             scenarioLog(c.bold('🧹 Cleaning up'))
             const cleaned = new Set(journal(session).filter(e => e.event === 'cleanup_done' && !e.leftover?.length).map(e => e.trader))
-            const todo = tradersIn(scenario.rows).filter(trader => !cleaned.has(trader))
+            const blocked = tradersIn(scenario.rows).filter(trader => liveUnresolvedOrders(saved, trader).length)
+            if (blocked.length) {
+              scenario.cleanupDeferred = true
+              session.log({ step: 'cleanup', event: 'cleanup_deferred', scenario: scenario.id, traders: blocked, reason: 'unresolved_orders' })
+              scenarioLog(ui.warn(`Cleanup deferred for traders ${blocked.join(', ')} with unresolved orders; continuing.`))
+            }
+            const todo = tradersIn(scenario.rows).filter(trader => !cleaned.has(trader) && !blocked.includes(trader))
             if (resumingCleanup && todo.length) {
               const lines = await fundingPlan(rpc, w, todo, target)
               const issues = fundingIssues(lines, await rpc.lamports(w.funder.publicKey), 0n)
@@ -546,8 +590,17 @@ async function runSession(scenarioPath: string, opts: any, composite?: ReturnTyp
               await fundScenario(scenario, lines)
             }
             const cleanedUp = await cleanupAll({ ...ctx, log: scenarioLog }, w, todo, opts.env, opts.rpcRps)
+            await recoverOutstanding(saved, scenarioLog, new Set(todo))
             if (cleanedUp.length !== todo.length || cleanedUp.some(result => result.leftover.length)) {
-              throw new Error(`Cleanup is unfinished for ${scenario.name}. Use resume-session ${session.name} to continue cleanup.`)
+              const unfinished = todo.filter(trader => !cleanedUp.some(result => result.trader === trader && !result.leftover.length))
+              if (unfinished.every(trader => liveUnresolvedOrders(saved, trader).length)) {
+                scenario.cleanupDeferred = true
+                session.log({ step: 'cleanup', event: 'cleanup_deferred', scenario: scenario.id, traders: unfinished, reason: 'unresolved_orders' })
+                scenarioLog(ui.warn(`Cleanup deferred for traders ${unfinished.join(', ')} with unresolved orders.`))
+              } else {
+                if (!opts.deferCleanup) throw new Error(`Cleanup is unfinished for ${scenario.name}. Use resume-session ${session.name} to continue cleanup.`)
+                deferCleanup()
+              }
             }
           }
           scenario.phase = 'pause'
@@ -585,6 +638,10 @@ async function runSession(scenarioPath: string, opts: any, composite?: ReturnTyp
     for (const scenario of saved.scenarios.filter(s => s.cleanupDeferred)) {
       log(ui.warn(`Cleanup still deferred for ${scenario.name}. Its wallets need separate cleanup.`))
     }
+    if (saved.unresolvedOrders?.length) {
+      log(ui.warn(`${saved.unresolvedOrders.length} orders still have unknown outcomes. See recovery_unresolved in sim/journal.jsonl.`))
+      for (const order of saved.unresolvedOrders) warnUnresolved(order)
+    }
 
     if (opts.report) {
       for (const cmd of [...(logsConfigured(opts.env) ? ['logs'] : []), 'fetch', 'report']) spawnSync('python3', [resolve(QOS_ROOT, 'qos.py'), cmd, '--session', session.name], { stdio: 'inherit' })
@@ -601,6 +658,13 @@ async function runSession(scenarioPath: string, opts: any, composite?: ReturnTyp
   } finally { release?.() }
 }
 
+function assertCleanupCanBeDeferred(scenarios: SavedRun['scenarios'], deferred: SavedRun['scenarios'][number]) {
+  const traders = new Set(tradersIn(deferred.rows))
+  if (scenarios.some(s => s.id > deferred.id && s.phase !== 'finished' && s.rows.some(row => traders.has(row.trader)))) {
+    throw new Error('Cannot defer cleanup: later scenarios reuse its trader wallets.')
+  }
+}
+
 program.command('resume-session')
   .description('Continue an interrupted individual or composite run in the same session')
   .argument('<session>', 'existing session folder name')
@@ -615,10 +679,7 @@ program.command('resume-session')
       if (!saved.composite || deferred?.phase !== 'cleanup') {
         throw new Error('--defer-cleanup is allowed only when a composite scenario is waiting for cleanup.')
       }
-      const traders = new Set(tradersIn(deferred.rows))
-      if (saved.scenarios.some(s => s.id > deferred.id && s.phase !== 'finished' && s.rows.some(row => traders.has(row.trader)))) {
-        throw new Error('Cannot defer cleanup: later scenarios reuse its trader wallets.')
-      }
+      assertCleanupCanBeDeferred(saved.scenarios, deferred)
     }
     const opts: any = { ...saved.options, session: name, yes: flags.yes, allowPublicRpc: flags.allowPublicRpc || saved.options.allowPublicRpc,
       deferCleanupScenario: deferred?.id }
@@ -663,9 +724,14 @@ sessionCommand('simulate-composite-scenario')
       console.log('')
       console.log('Breaks start after all trades, outstanding orders, and cleanup finish.')
       console.log('During a run: each scenario logs trade outcomes, failure reasons, and its trade completion rate.')
-      console.log(settings.cleanup ? '\nCleanup: after each scenario; return remaining funds before funding the next.' : '\nCleanup: disabled; funds stay in the trader wallets.')
+      console.log(settings.cleanup
+        ? settings.deferCleanup
+          ? '\nCleanup: try after each scenario; defer failures after checking orders, then use one-third of the normal pause. Retained funds need separate cleanup.'
+          : '\nCleanup: after each scenario; return remaining funds before funding the next.'
+        : '\nCleanup: disabled; funds stay in the trader wallets.')
       console.log(settings.report ? 'Report: one combined report with results for each scenario.' : 'Report: disabled.')
-      console.log(`\nFunding: up to ${fmtSol(solToLamports(settings.solFundingPerTrader) * BigInt(wallets))}${settings.cleanup ? ' at a time' : ' across all scenarios'}; cap ${settings.maxTotalSol} SOL per scenario. Existing balances reduce top-ups.`)
+      const fundingScope = settings.cleanup ? settings.deferCleanup ? ' per scenario; deferred cleanup can retain earlier funding' : ' at a time' : ' across all scenarios'
+      console.log(`\nFunding: up to ${fmtSol(solToLamports(settings.solFundingPerTrader) * BigInt(wallets))}${fundingScope}; cap ${settings.maxTotalSol} SOL per scenario. Existing balances reduce top-ups.`)
       console.log('Keep extra SOL for fees and trading losses; balances are checked before funding each scenario.')
       console.log(`Estimated order creation fees/rent: ${fmtSol(budget.total)} before refunds; excludes trade amounts and other fees.`)
       return
@@ -681,6 +747,7 @@ program
   .option('--quote-rps <n>', 'quotes per second (raise for stress tests)', parseFloat, 5)
   .option('--api-rps <n>', 'other orderbook calls per second: posting, polling', parseFloat, 8)
   .option('--rpc-rps <n>', 'Solana RPC calls per second (your RPC plan is the limit)', parseFloat, 10)
+  .option('--max-retries <n>', 'additional cleanup passes after failures (0 = no retries)', Number, 0)
   .option('-y, --yes', 'skip the confirmation prompt')
   .addOption(envOption)
   .action(async (opts) => {
