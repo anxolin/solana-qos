@@ -34,6 +34,15 @@ export function endpoints(cowEnv: CowEnv): Endpoints {
   return { ...e, api: process.env.COW_SOLANA_API?.trim() || e.api }
 }
 
+/**
+ * Headers for orderbook API calls: `X-API-Key` when COW_API_KEY is set, for higher rate limits than anonymous
+ * requests. Sent to the environment's own API, not the SDK's partner gateway, which has no Solana route.
+ */
+export function apiHeaders(): Record<string, string> {
+  const key = process.env.COW_API_KEY?.trim()
+  return key ? { 'X-API-Key': key } : {}
+}
+
 const LOG_KEYS = ['GRAFANA_URL', 'GRAFANA_API_TOKEN', 'GRAFANA_DATASOURCE_UID'] as const
 
 /**

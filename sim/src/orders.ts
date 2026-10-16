@@ -17,6 +17,7 @@ import {
   type SolanaOrderIntent,
 } from '@cowprotocol/sdk-trading-solana'
 import { APP_DATA } from './appData.js'
+import { apiHeaders } from './config.js'
 import { settlementFor } from './settlement.js'
 import { RateLimiter, retry, sleep } from './limiter.js'
 import { WSOL_MINT, type Rpc } from './rpc.js'
@@ -163,9 +164,12 @@ export class Orders {
     const quoteRps = opts.quoteRps ?? 5
     const apiRps = opts.apiRps ?? 8
     if (!Number.isInteger(opts.maxRetries ?? 0) || (opts.maxRetries ?? 0) < 0) throw new Error('maxRetries must be a non-negative integer')
+    const apiKey = apiHeaders()['X-API-Key']
     const orderBookApi = new OrderBookApi({
       chainId: SupportedChainId.SOLANA,
       env: opts.env,
+      // With an apiKey the SDK switches to its partner gateway, which has no Solana route: keep our own API.
+      ...(apiKey ? { apiKey, baseUrls: { [SupportedChainId.SOLANA]: opts.apiBase.replace(/\/api$/, '') } as Record<SupportedChainId, string> } : {}),
       // Retry at the flow level so quotes, posts, and fill timeouts share one placement budget.
       backoffOpts: { ...DEFAULT_BACKOFF_OPTIONS, numOfAttempts: 1 },
       // The SDK shares one limit for quotes and posts; allow both configured lanes.
@@ -318,7 +322,7 @@ export class Orders {
 
   async getOrder(uid: string): Promise<OrderDto | null> {
     await this.api.take()
-    const res = await retry(() => fetch(`${this.opts.apiBase}/v1/orders/${uid}`))
+    const res = await retry(() => fetch(`${this.opts.apiBase}/v1/orders/${uid}`, { headers: apiHeaders() }))
     if (res.status === 404) return null
     if (!res.ok) throw new Error(`GET order ${uid}: ${res.status}`)
     return (await res.json()) as OrderDto
@@ -326,7 +330,7 @@ export class Orders {
 
   async ownerOrders(owner: PublicKey): Promise<OrderDto[]> {
     await this.api.take()
-    const res = await retry(() => fetch(`${this.opts.apiBase}/v1/account/${owner.toBase58()}/orders?limit=1000`))
+    const res = await retry(() => fetch(`${this.opts.apiBase}/v1/account/${owner.toBase58()}/orders?limit=1000`, { headers: apiHeaders() }))
     if (!res.ok) throw new Error(`GET account orders: ${res.status}`)
     return (await res.json()) as OrderDto[]
   }

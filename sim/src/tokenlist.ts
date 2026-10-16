@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { PublicKey } from '@solana/web3.js'
 import { TOKEN_2022_PROGRAM_ID } from '@solana/spl-token'
+import { apiHeaders } from './config.js'
 import { RateLimiter, retry, sleep } from './limiter.js'
 import type { Rpc } from './rpc.js'
 import { NATIVE_SOL, WSOL_MINT } from './rpc.js'
@@ -93,7 +94,7 @@ export async function classify(
       fetch(`${apiBase}/v1/quote`, {
         method: 'POST',
         signal: AbortSignal.timeout(30_000),
-        headers: { 'content-type': 'application/json' },
+        headers: { 'content-type': 'application/json', ...apiHeaders() },
         body: JSON.stringify({
           from: '11111111111111111111111111111112', // any valid key; quotes don't need a funded owner
           sellToken: WSOL_MINT.toBase58(),

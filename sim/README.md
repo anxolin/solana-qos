@@ -20,6 +20,7 @@ MNEMONIC="word1 word2 … word12"
 RPC_URL="https://…"        # a paid RPC (Helius, Triton, QuickNode…): the public one rate-limits
 RPC_BACKUP_URL="https://…" # optional: a second provider with its own quota, used while the first fails
 DUNE_KEY="…"               # only for build-token-universe
+COW_API_KEY="…"            # optional: orderbook API key, sent as X-API-Key for higher rate limits (also read by qos.py)
 ```
 
 Then send SOL to the funder address. A session needs about `traders × --sol-funding-per-trader` (25 traders at 0.1 is

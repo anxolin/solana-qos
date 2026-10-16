@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs'
 import { PublicKey } from '@solana/web3.js'
 import { TOKEN_2022_PROGRAM_ID } from '@solana/spl-token'
 import { parse } from 'csv-parse/sync'
+import { apiHeaders } from './config.js'
 import { RateLimiter, retry } from './limiter.js'
 import type { Rpc } from './rpc.js'
 import { NATIVE_SOL, WSOL_MINT } from './rpc.js'
@@ -232,7 +233,7 @@ async function quote(apiBase: string, sellToken: string, buyToken: string, kind:
     fetch(`${apiBase}/v1/quote`, {
       method: 'POST',
       signal: AbortSignal.timeout(HTTP_TIMEOUT_MS),
-      headers: { 'content-type': 'application/json' },
+      headers: { 'content-type': 'application/json', ...apiHeaders() },
       body: JSON.stringify({
         from: '11111111111111111111111111111112', // any valid key; quotes don't need a funded owner
         sellToken,

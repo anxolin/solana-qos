@@ -49,9 +49,23 @@ SOLSCAN = "https://solscan.io/tx/"
 # --- io ----------------------------------------------------------------------
 
 
+def api_key() -> str:
+    """COW_API_KEY from the environment or sim/.env: raises the orderbook's rate limits for our requests."""
+    key = os.environ.get("COW_API_KEY", "").strip()
+    env = ROOT / "sim" / ".env"
+    if not key and env.exists():
+        for line in env.read_text().splitlines():
+            k, _, v = line.partition("=")
+            if k.strip() == "COW_API_KEY":
+                key = v.strip().strip('"').strip("'")
+    return key
+
+
 def http_json(url: str, body: dict | None = None, retries: int = 7):
     data = json.dumps(body).encode() if body is not None else None
     headers = {"content-type": "application/json", "user-agent": "solana-qos"}
+    if url.startswith(API) and api_key():
+        headers["X-API-Key"] = api_key()
     for attempt in range(retries):
         try:
             req = urllib.request.Request(url, data=data, headers=headers)
