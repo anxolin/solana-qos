@@ -67,7 +67,7 @@ def tone(cause: str, incident_labels: set[str]) -> str:
         return "good"
     if cause in incident_labels:
         return "critical"
-    if cause in NEUTRAL:
+    if cause.split(":")[0] in NEUTRAL:
         return "muted"
     return "serious"
 
@@ -590,7 +590,7 @@ def render(*, session, meta, orders, by_solver, drivers, autopilot, sol, compari
              ("Executed", str(len(executed)), f"{pct(len(executed), n)} fill rate"),
              ("Never created on-chain", str(len(never)), f"{pct(len(never), n)} of orders, all sponsored"),
              ("Time to execution", f"{statistics.median(lat):.0f}s" if lat else "–",
-              f"median · p90 {p90:.0f}s" if lat else "")]
+              f"market orders · median · p90 {p90:.0f}s" if lat else "")]
     h += ['<section aria-label="Summary"><div class="tiles">'] + [
         f'<div class="tile"><span class="k">{k}</span><span class="v">{v}</span><span class="s">{s}</span></div>'
         for k, v, s in tiles] + ["</div></section>"]
@@ -661,7 +661,9 @@ def render(*, session, meta, orders, by_solver, drivers, autopilot, sol, compari
     no_order_note = (f' <strong>{len(no_order)} more scenario rows failed before an order existed</strong> and aren\'t '
                      'counted here: see <a href="#no-order">Rows without an order</a>.') if no_order else ""
     h += ['<section><h2>Why orders didn\'t execute</h2>',
-          f"<p>{len(failed)} orders didn't execute. Causes come from the driver and autopilot logs.{no_order_note}</p>",
+          f"<p>{len(failed)} orders didn't execute ({sum(o['type'] == 'market' for o in failed)} market, "
+          f"{sum(o['type'] == 'limit' for o in failed)} limit). Causes come from the driver, autopilot and solver logs; "
+          f"for open and cancelled orders, what kept them out of a settlement.{no_order_note}</p>",
           '<div class="panel">']
     vmax = max(fail_causes.values(), default=1)
     h.append('<div class="bars">')
@@ -720,12 +722,12 @@ def render(*, session, meta, orders, by_solver, drivers, autopilot, sol, compari
             g[key(o)][1] += o["outcome"] == "executed"
         return sorted(g.items(), key=lambda kv: (-kv[1][0], kv[0]))
 
-    kinds = group(lambda o: o["kind"])
+    kinds = group(lambda o: f"{o['type']} {o['kind']}")
     pairs = group(lambda o: o["pair"])
     pair_html = {o["pair"]: pair_cell(o) for o in orders}
     owners = group(lambda o: o["owner"])
-    h += ["<section><h2>Breakdowns</h2>", '<div class="two"><div class="panel"><h3>By order kind</h3>',
-          table(["Kind", "Placed", "Executed", "Fill rate"], [[k, p, e, pct(e, p)] for k, (p, e) in kinds], {1, 2, 3}),
+    h += ["<section><h2>Breakdowns</h2>", '<div class="two"><div class="panel"><h3>By order type</h3>',
+          table(["Type", "Placed", "Executed", "Fill rate"], [[k, p, e, pct(e, p)] for k, (p, e) in kinds], {1, 2, 3}),
           '</div><div class="panel"><h3>Top token pairs</h3>',
           table(["Pair", "Placed", "Executed", "Fill rate"],
                 [[pair_html[k], p, e, pct(e, p)] for k, (p, e) in pairs[:8]], {1, 2, 3}), "</div></div>",
@@ -756,8 +758,8 @@ def render(*, session, meta, orders, by_solver, drivers, autopilot, sol, compari
              + "".join(f'<option value="{w}">{c} not executed</option>' for w, c in owner_counts.most_common())
              + '</datalist><button type="button" id="owner-clear" class="clear">Clear</button></div>')
     h.append('<div id="failed">' + table(
-        ["Created (UTC)", "Pair", "Kind", "Cause", "Trader", "Order"],
-        [[o["creationDate"][11:19], pair_cell(o), o["kind"], escape(o["cause"]),
+        ["Created (UTC)", "Pair", "Type", "Cause", "Trader", "Order"],
+        [[o["creationDate"][11:19], pair_cell(o), f"{o['type']} {o['kind']}", escape(o["cause"]),
           f'<button type="button" class="owner-pick mono" data-owner="{o["owner"]}" title="Show only {o["owner"]}">'
           f'{o["owner"][:6]}…{o["owner"][-4:]}</button>',
           order_cell(o["uid"])] for o in failed],

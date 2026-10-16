@@ -84,6 +84,17 @@ Optional session inputs:
 - `logs/settle_failures.txt`: lines of `<category> <order_uid> <time>` from the
   driver's `settle failed` errors, joined to `settling orders`. This gives per-order
   causes such as `funder_out_of_sol` and `creation_blockhash_not_found`.
+  `./qos.py logs` also adds orders the driver dropped before settling: `buy_account_unreceivable` (a missing
+  buy token account that isn't the owner's ATA, e.g. a custom recipient's) and `transaction_too_large`.
+- `logs/order_states.txt`: lines of `<state> <order_uid> <first>`: the autopilot's `filtered orders`
+  reasons (`unfunded_sell_token_account`, `unreceivable_buy_token_account`, …) and `out_of_price` from the
+  Jupiter solver's `swap does not satisfy order`. Open and cancelled orders get their cause from these,
+  e.g. "Still open: limit price not reached".
+
+Orders are split into limit and market by appData: CoW Swap signs limit orders with a hardcoded hash
+(`limitAppData` in `environments.json`). Time to execution counts market orders only. `./qos.py fetch` also
+flags orders whose sell or buy account is the owner's classic-Token ATA of a Token-2022 mint
+(`wrongTokenProgram`), an account that never holds the tokens.
 - `logs/jupiter_quotes.txt`: lines of `<order_uid> <attempts> <rate_limited> <solved> <first> <last>`
   from `solana-jupiter-staging-solve`, grouped by `parsed.spans.solve.order`.
   An order that never executed, got no other bid, and whose Jupiter quotes were

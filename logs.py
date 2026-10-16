@@ -134,6 +134,46 @@ def fetch_logs(session: Path, meta: dict, env: dict, creds: dict[str, str]) -> d
         "max(cat) cat, max(parsed.fields.orders) orders, min(_time) t "
         '| filter cat:!"" | unroll by (orders) | stats by (cat, orders) count() attempts, min(t) first')
     lines = sorted((r.get("first", ""), r["cat"], r["orders"]) for r in rows if r.get("orders"))
+
+    # Orders the driver dropped before any settlement attempt, so they never reach `settle failed`.
+    # A buy token account that is missing and not the owner's ATA (a custom recipient's): the driver can't create it.
+    lines += [(r.get("first", ""), "buy_account_unreceivable", r["parsed.fields.order"]) for r in lg.rows(
+        f'container:"{drv}" AND _msg:"dropping order, its buy token account cannot receive the payout" '
+        "| stats by (parsed.fields.order) min(_time) first") if r.get("parsed.fields.order")]
+    # Solutions over Solana's 1232-byte limit. The driver line names only the auction and solution id, and no
+    # line maps a dropped solution to its order, so join on the auction through the Jupiter solver's per-order
+    # `solved` lines, and only where every solution in the auction was too large: in a busy auction the other
+    # orders' solutions were fine and they'd be blamed for someone else's route.
+    too_large = {r["auction"]: n(r) for r in lg.rows(
+        f'container:"{drv}" AND _msg:"dropping solution, its settlement fails in simulation" '
+        'AND parsed.fields.error:~"TransactionTooLarge" | format "<parsed.spans./solve.auction_id>" as auction '
+        "| stats by (auction) count_uniq(parsed.fields.solution_id) n") if r.get("auction")}
+    if too_large:
+        ids = ",".join(f'"Some({a})"' for a in sorted(too_large))
+        solved = defaultdict(list)
+        for r in lg.rows(f'container:"{jup}" AND _msg:"solved" AND parsed.spans.solve.auction_id:in({ids}) '
+                         "| stats by (parsed.spans.solve.auction_id, parsed.spans.solve.order) min(_time) first"):
+            if r.get("parsed.spans.solve.order"):
+                solved[r["parsed.spans.solve.auction_id"][5:-1]].append((r.get("first", ""), r["parsed.spans.solve.order"]))
+        first = {}
+        for auction, rows in solved.items():
+            if too_large.get(auction, 0) >= len(rows):
+                for t, uid in rows:
+                    first[uid] = min(first.get(uid, t), t)
+        lines += [(t, "transaction_too_large", uid) for uid, t in first.items()]
+    lines.sort()
+    # Why an order sat in auctions without a fill: the autopilot's filter reasons (`unfunded_sell_token_account`,
+    # `unreceivable_buy_token_account`, …) and the solver's `out_of_price` when no route met the limit.
+    states = [(r.get("first", ""), r["parsed.fields.reason"], r["parsed.fields.orders"]) for r in lg.rows(
+        f'container:"{ap}" AND _msg:"filtered orders" AND parsed.fields.reason:!"in_flight" '
+        "| unroll by (parsed.fields.orders) | stats by (parsed.fields.reason, parsed.fields.orders) min(_time) first")
+        if r.get("parsed.fields.orders", "").startswith("0x")]
+    states += [(r.get("first", ""), "out_of_price", r["parsed.spans.solve.order"]) for r in lg.rows(
+        f'container:"{jup}" AND _msg:"swap does not satisfy order" '
+        "| stats by (parsed.spans.solve.order) min(_time) first") if r.get("parsed.spans.solve.order")]
+    states.sort()
+    (out / "order_states.txt").write_text("".join(f"{s} {uid} {first}\n" for first, s, uid in states))
+    summary["order_states"] = len(states)
     (out / "settle_failures.txt").write_text("".join(f"{cat} {uid} {first}\n" for first, cat, uid in lines))
     summary["settle_failures"] = len(lines)
 

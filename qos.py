@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import json
 import os
 import re
@@ -138,6 +139,70 @@ def tx_info(sig: str) -> dict:
     }
 
 
+# --- token accounts -------------------------------------------------------------
+
+B58 = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
+TOKEN_PROGRAM = "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+TOKEN_2022_PROGRAM = "TokenzQdBNbLqP5VEhdkAS6EPFLC1PHnBqCXEpPxuEb"
+ATA_PROGRAM = "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL"
+
+
+def b58decode(s: str) -> bytes:
+    n = 0
+    for c in s:
+        n = n * 58 + B58.index(c)
+    return b"\0" * (len(s) - len(s.lstrip("1"))) + n.to_bytes((n.bit_length() + 7) // 8, "big")
+
+
+def b58encode(b: bytes) -> str:
+    n, out = int.from_bytes(b, "big"), ""
+    while n:
+        n, r = divmod(n, 58)
+        out = B58[r] + out
+    return "1" * (len(b) - len(b.lstrip(b"\0"))) + out
+
+
+def on_curve(b: bytes) -> bool:
+    """Whether 32 bytes decode to an ed25519 point (a PDA must not)."""
+    p = 2**255 - 19
+    d = -121665 * pow(121666, p - 2, p) % p
+    y = int.from_bytes(b, "little") & ((1 << 255) - 1)
+    if y >= p:
+        return False
+    x2 = (y * y - 1) * pow(d * y * y + 1, p - 2, p) % p
+    x = pow(x2, (p + 3) // 8, p)
+    if (x * x - x2) % p:
+        x = x * pow(2, (p - 1) // 4, p) % p
+    return (x * x - x2) % p == 0
+
+
+def ata(owner: str, mint: str, program: str) -> str:
+    seeds = b58decode(owner) + b58decode(program) + b58decode(mint)
+    for bump in range(255, -1, -1):
+        h = hashlib.sha256(seeds + bytes([bump]) + b58decode(ATA_PROGRAM) + b"ProgramDerivedAddress").digest()
+        if not on_curve(h):
+            return b58encode(h)
+    raise ValueError("no ATA bump")
+
+
+def mint_programs(mints: set[str]) -> dict[str, str]:
+    out, mints = {}, sorted(mints)
+    for i in range(0, len(mints), 100):
+        res = http_json(RPC, {"jsonrpc": "2.0", "id": 1, "method": "getMultipleAccounts",
+                              "params": [mints[i:i + 100], {"encoding": "base64", "dataSlice": {"offset": 0, "length": 0}}]})
+        for m, acc in zip(mints[i:i + 100], (res or {}).get("result", {}).get("value", [])):
+            if acc:
+                out[m] = acc["owner"]
+    return out
+
+
+def wrong_token_program(o: dict, programs: dict[str, str]) -> list[str]:
+    """Sides whose signed account is the owner's classic-Token ATA of a Token-2022 mint: an account that never
+    holds the tokens, so the order can't be funded (sell) or paid (buy)."""
+    return [side for side, mint, acct in (("sell", o["sellToken"], o["sellTokenAccount"]), ("buy", o["buyToken"], o["buyTokenAccount"]))
+            if programs.get(mint) == TOKEN_2022_PROGRAM and acct == ata(o["owner"], mint, TOKEN_PROGRAM)]
+
+
 def cmd_fetch(a):
     session = ROOT / "sessions" / a.session
     meta = json.loads((session / "meta.json").read_text())
@@ -188,8 +253,10 @@ def cmd_fetch(a):
         time.sleep(0.25)  # public RPC rate limit
     cache_path.write_text(json.dumps(txs, indent=1))
 
+    programs = mint_programs({m for o in orders.values() for m in (o["sellToken"], o["buyToken"])})
     for uid, o in orders.items():
         o["trades"] = [dict(t, tx=txs.get(t["txSignature"], {})) for t in trades.get(uid, [])]
+        o["wrongTokenProgram"] = wrong_token_program(o, programs)
 
     update_tokens({m for o in orders.values() for m in (o["sellToken"], o["buyToken"])})
     (session / "orders.json").write_text(json.dumps(list(orders.values()), indent=1))
@@ -255,6 +322,19 @@ def settle_failures(session: Path) -> dict[str, set[str]]:
 
 
 RATE_LIMITED = "Jupiter rate limited, no other solver bid"
+# Orders the driver dropped before any settlement attempt (see logs.py), most specific cause first.
+DROPPED = {
+    "buy_account_unreceivable": "Recipient's buy token account missing, driver can't create it",
+    "transaction_too_large": "Settlement too large for one transaction",
+}
+# CoW Swap's limit-order form derives both accounts with the classic Token program (see wrong_token_program).
+WRONG_PROGRAM = "Order signed a Token-2022 token's classic-Token account (frontend)"
+# Why an order sat in auctions unfilled (logs/order_states.txt): autopilot filter reasons and the solver's out_of_price.
+STATES = {
+    "out_of_price": "limit price not reached",
+    "unfunded_sell_token_account": "sell balance or approval too low",
+    "unreceivable_buy_token_account": "buy token account can't receive",
+}
 
 
 def solver_quotes(session: Path) -> dict[str, dict]:
@@ -268,12 +348,32 @@ def solver_quotes(session: Path) -> dict[str, dict]:
     return out
 
 
-def cause(o: dict, failures: dict[str, set[str]], incidents: list[dict], quotes: dict | None = None) -> str:
+def order_states(session: Path) -> dict[str, list[str]]:
+    """logs/order_states.txt: `<state> <order_uid> <first>` per line, sorted by time: an order's states in the order they began."""
+    out = defaultdict(list)
+    for line in lines(session / "logs" / "order_states.txt"):
+        state, uid, *_ = line.split()
+        if state not in out[uid]:
+            out[uid].append(state)
+    return out
+
+
+def cause(o: dict, failures: dict[str, set[str]], incidents: list[dict], quotes: dict | None = None,
+          states: dict[str, list[str]] | None = None) -> str:
     """Why a non-executed order didn't execute, as specific as the data allows."""
-    plain = {"executed": "Executed", "cancelled": "Cancelled", "open": "Still open", "expired": "Expired without a fill"}
-    if o["outcome"] in plain:
-        return plain[o["outcome"]]
+    if o["outcome"] == "executed":
+        return "Executed"
+    if o.get("wrongTokenProgram"):
+        return WRONG_PROGRAM
     f = failures.get(o["uid"], set())
+    for category, label in DROPPED.items():
+        if category in f:
+            return label
+    plain = {"cancelled": "Cancelled", "open": "Still open", "expired": "Expired without a fill"}
+    if o["outcome"] in plain:
+        seen = (states or {}).get(o["uid"], [])
+        why = ", then ".join(STATES.get(s, s.replace("_", " ")) for s in seen)
+        return f"{plain[o['outcome']]}: {why}" if why else plain[o["outcome"]]
     created = ts(o["creationDate"])
     for inc in incidents:
         # A sponsored creation stays valid ~60s, so an order placed just
@@ -483,6 +583,7 @@ def cmd_report(a):
     failures = settle_failures(session)
     incidents = meta.get("incidents", [])
     quotes = solver_quotes(session)
+    states = order_states(session)
     journal = read_journal(session)
     logs_available = comp_path.exists()
     tokens, names = load_map("tokens.json"), load_map("solvers.json")
@@ -493,7 +594,8 @@ def cmd_report(a):
     orders.sort(key=lambda o: o["creationDate"])
     for o in orders:
         o["outcome"] = outcome(o, creation_expired)
-        o["cause"] = cause(o, failures, incidents, quotes)
+        o["type"] = "limit" if o["appData"] == env.get("limitAppData") else "market"
+        o["cause"] = cause(o, failures, incidents, quotes, states)
         info = (journal or {}).get("orders", {}).get(o["uid"], {})
         o["step"], o["row"], o["sim_trader"] = info.get("step", ""), info.get("row", ""), info.get("trader")
         o["scenario"] = scenario_by_row.get(o["row"], "") if o["step"] != "cleanup" else ""
@@ -502,7 +604,9 @@ def cmd_report(a):
         o["pair"] = f"{tok(o['sellToken'])} → {tok(o['buyToken'])}"
         o["sell_sym"], o["buy_sym"] = tok(o["sellToken"]), tok(o["buyToken"])
         times = [t["tx"].get("block_time") for t in o["trades"] if t["tx"].get("block_time")]
-        o["latency"] = min(times) - ts(o["creationDate"]).timestamp() if times else None
+        o["fill_seconds"] = min(times) - ts(o["creationDate"]).timestamp() if times else None
+        # A limit order waits for its price, so only market orders count towards time to execution.
+        o["latency"] = o["fill_seconds"] if o["type"] == "market" else None
         o["solver"] = next((t["tx"]["fee_payer"] for t in o["trades"] if t["tx"].get("fee_payer")), None)
 
     # Scenario rows name tokens by symbol or mint: resolve both to a mint (for explorer links) and a symbol.
@@ -595,7 +699,7 @@ def cmd_report(a):
     if lat:
         q = lambda p: lat[min(len(lat) - 1, int(p * len(lat)))]  # noqa: E731
         md += ["## Time to execution", "",
-               "From order creation (API) to the settlement's block time (RPC).", ""]
+               "Market orders, from order creation (API) to the settlement's block time (RPC).", ""]
         md += [table(["Median", "p75", "p90", "Max"],
                      [[f"{statistics.median(lat):.0f}s", f"{q(.75):.0f}s", f"{q(.9):.0f}s", f"{lat[-1]:.0f}s"]]), ""]
 
@@ -678,10 +782,10 @@ def cmd_report(a):
 
     kinds = defaultdict(lambda: [0, 0])
     for o in orders:
-        kinds[o["kind"]][0] += 1
-        kinds[o["kind"]][1] += o["outcome"] == "executed"
-    md += ["## By order kind", ""]
-    md += [table(["Kind", "Placed", "Executed", "Fill rate"],
+        kinds[f"{o['type']} {o['kind']}"][0] += 1
+        kinds[f"{o['type']} {o['kind']}"][1] += o["outcome"] == "executed"
+    md += ["## By order type", "", f"Limit orders carry CoW Swap's limit-order appData (`{env.get('limitAppData')}`).", ""]
+    md += [table(["Type", "Placed", "Executed", "Fill rate"],
                  [[k, p, e, pct(e, p)] for k, (p, e) in sorted(kinds.items(), key=lambda kv: -kv[1][0])]), ""]
 
     pairs = defaultdict(lambda: [0, 0])
@@ -701,10 +805,12 @@ def cmd_report(a):
     failed = [o for o in orders if o["outcome"] != "executed"]
     if failed:
         md += ["## Why orders didn't execute", ""]
-        md += [table(["Cause", "Orders"], [[k, v] for k, v in Counter(o["cause"] for o in failed).most_common()]), ""]
+        by_type = {t: Counter(o["cause"] for o in failed if o["type"] == t) for t in ("market", "limit")}
+        md += [table(["Cause", "Market", "Limit"], [[k, by_type["market"][k], by_type["limit"][k]]
+                                                    for k, _ in Counter(o["cause"] for o in failed).most_common()]), ""]
         md += ["## Orders not executed", ""]
-        md += [table(["Created (UTC)", "Pair", "Kind", "Cause", "Order"], [
-            [o["creationDate"][11:19], o["pair"], o["kind"], o["cause"],
+        md += [table(["Created (UTC)", "Pair", "Type", "Cause", "Order"], [
+            [o["creationDate"][11:19], o["pair"], f"{o['type']} {o['kind']}", o["cause"],
              f"`{o['uid'][:10]}…` [🐞]({DEBUG}{o['uid']})"] for o in failed]), ""]
 
     out = session / "report.md"
@@ -718,14 +824,16 @@ def cmd_report(a):
         w = csv.writer(fh)
         w.writerow(["created_utc", "uid", "owner", "sell_token", "buy_token", "sell_symbol", "buy_symbol",
                     "kind", "sell_amount", "buy_amount", "executed_sell", "executed_buy", "api_status",
-                    "cause", "solver", "seconds_to_execution", "tx_signature", "sim_row", "sim_step", "sim_scenario"])
+                    "cause", "solver", "seconds_to_execution", "tx_signature", "sim_row", "sim_step", "sim_scenario",
+                    "order_type"])
         for o in all_orders:
             w.writerow([o["creationDate"], o["uid"], o["owner"], o["sellToken"], o["buyToken"],
                         tok(o["sellToken"]), tok(o["buyToken"]), o["kind"], o["sellAmount"], o["buyAmount"],
                         o["executedSellAmount"], o["executedBuyAmount"], o["status"], o["cause"],
                         sol(o["solver"]) if o["solver"] else "",
-                        f"{o['latency']:.0f}" if o["latency"] is not None else "",
-                        o["trades"][0]["txSignature"] if o["trades"] else "", o["row"], o["step"], o["scenario"]])
+                        f"{o['fill_seconds']:.0f}" if o["fill_seconds"] is not None else "",
+                        o["trades"][0]["txSignature"] if o["trades"] else "", o["row"], o["step"], o["scenario"],
+                        o["type"]])
     print(f"wrote {out}")
 
     import html_report
