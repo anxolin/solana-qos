@@ -1,0 +1,16 @@
+{
+ "rpc": "solana-mainnet.g.alchemy.com",
+ "name": "2026-10-13-13-00-token-universe__test_01_cow-swap-top trade session",
+ "title": "2026-10-13-13-00-token-universe__test_01_cow-swap-top",
+ "start": "2026-10-13T13:00:42.092Z",
+ "env": "prod",
+ "sim": {
+  "scenario": "/Users/anxo/Bunker/code/cow/solana-qos/scenarios/token-universe/test_01_cow-swap-top.csv",
+  "traders": 30,
+  "rows": 97,
+  "solFundingPerTrader": 0.1
+ },
+ "trading_end": "2026-10-13T13:02:07.581Z",
+ "end": "2026-10-13T13:05:15.113Z",
+ "fetched_at": "2026-10-13T13:14:05+00:00"
+}

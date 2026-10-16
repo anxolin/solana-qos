@@ -1,0 +1,16 @@
+{
+ "rpc": "solana-mainnet.g.alchemy.com",
+ "name": "2026-10-13-12-30-token-2022__xstocks trade session",
+ "title": "2026-10-13-12-30-token-2022__xstocks",
+ "start": "2026-10-13T12:31:30.561Z",
+ "env": "staging",
+ "sim": {
+  "scenario": "/Users/anxo/Bunker/code/cow/solana-qos/scenarios/token-2022/xstocks.csv",
+  "traders": 14,
+  "rows": 124,
+  "solFundingPerTrader": 0.1
+ },
+ "trading_end": "2026-10-13T12:36:57.954Z",
+ "end": "2026-10-13T12:38:32.010Z",
+ "fetched_at": "2026-10-13T12:40:43+00:00"
+}

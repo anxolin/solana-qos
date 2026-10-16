@@ -1,0 +1,9 @@
+# Hand-written smoke test: every path once. Fund with --sol-funding-per-trader 0.05.
+# Times are 0-2s: a trader's rows run back to back (each waits for the previous fill), traders run in parallel.
+trader,time,type,amount,token,other_token,mode,note
+1,0,sell,0.01,SOL,USDC,sponsored,sponsored SOL sell (wrap in template)
+2,0,buy,2,JUP,SOL,sponsored,sponsored buy paying SOL
+1,1,buy,1,JUP,USDC,sponsored,buy paying held USDC
+2,1,sell,1,JUP,wSOL,sponsored,sell held token into wSOL
+1,2,sell,0.5,JUP,SOL,self,self-paid sell to native SOL
+2,2,buy,1,USDT,USDC,sponsored,acquires USDC first
