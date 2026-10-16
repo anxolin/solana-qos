@@ -13,6 +13,7 @@ export type RunScenario = CompositeScenario & {
   checkpointAt?: number
   pauseUntil?: number
   cleanupDeferred?: boolean
+  cleanupPending?: number[]
 }
 
 /** Only public identity and effective CLI settings are saved; never the mnemonic or RPC credentials. */

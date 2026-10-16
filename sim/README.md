@@ -55,6 +55,8 @@ pnpm sim cleanup-trade-session --traders 1-25
 pnpm sim wallets --traders 1-25
 ```
 
+Standalone cleanup shows any SOL top-ups needed for fees and order rent before asking for confirmation. After confirmation, it tops up token-holding traders from the funder to at least the usual 0.02 SOL reserve (more for wallets with many token accounts), then cleans them up. It stops before sending if the funder cannot cover the top-ups and transfer fees. This lets cleanup retry wallets whose SOL was already swept while tokens remained. Cleanup still returns remaining SOL to the funder, including on its final attempt when some tokens could not be sold.
+
 Main flags of `simulate-trade-session`:
 
 | Flag | Default | |
@@ -68,11 +70,11 @@ Main flags of `simulate-trade-session`:
 | `--quote-rps` / `--api-rps` / `--rpc-rps` | 5 / 8 / 10 | Request rates for quotes, other orderbook calls and Solana RPC. Raise for stress tests |
 | `--report` | off | Fetch logs (if configured) and build the report afterwards |
 | `--dry-run`, `--no-cleanup`, `-y` | | Quote only; keep the funds in the traders; skip the prompt |
-| `--defer-cleanup` | off | Try cleanup; if unfinished, check outstanding orders, record the wallets for later and continue |
+| `--defer-cleanup` | automatic | Compatibility flag; unfinished cleanup now continues and retries at the end by default |
 | `--max-creation-sol` | off | Refuses a run whose estimated creation cost (acquisitions, retries, cleanup) is above this |
 | `--env` | staging | `prod` must be passed explicitly |
 
-`--fill-timeout` starts after placement. `--max-retries N` allows at most N further attempts after placement errors or fill failures, shared across both kinds of failure. The SDK makes each request once, so its retries cannot multiply that budget. Standalone preparation and cleanup quotes also use `maxRetries`, with quote retry delays capped at one second. With `maxRetries: 0`, there are no automatic quote, placement, or cleanup-pass retries, including fresh quotes after a validity rejection or self-paid fallback after a native-SOL rejection. A failed sponsored submission may still have been accepted, so outstanding-order recovery checks its UID before cleanup or the next scenario. Recovery polling and RPC transport handling remain separate from trade retries.
+`--fill-timeout` starts after placement. `--max-retries N` allows at most N further attempts after placement errors or fill failures, shared across both kinds of failure. The SDK makes each request once, so its retries cannot multiply that budget. Standalone preparation and cleanup quotes also use `maxRetries`, with quote retry delays capped at one second. With `maxRetries: 0`, each quote, placement and cleanup stage gets one attempt, including no fresh quotes after a validity rejection or self-paid fallback after a native-SOL rejection. A run still has a separate final cleanup stage for unfinished wallets. A failed sponsored submission may still have been accepted, so outstanding-order recovery checks its UID before cleanup or the next scenario. Recovery polling and RPC transport handling remain separate from trade retries.
 
 ## Composite scenarios
 
@@ -152,15 +154,15 @@ pnpm sim simulate-composite-scenario test/fixtures/composite/composite.json
 
 `--preview` is the fully offline check. `--dry-run` uses RPC and quotes to check the rows but does not fund or trade. A live run uses the usual wallet/RPC settings described above.
 
-Add `--defer-cleanup` to `simulate-trade-session` or `simulate-composite-scenario` to try cleanup normally and continue if it cannot finish. For example:
+Both `simulate-trade-session` and `simulate-composite-scenario` try cleanup normally after each scenario. If cleanup cannot finish, they record the unfinished wallets and continue trading. After all trading and the last scenario's normal cleanup finish, they retry only those wallets. No flag is needed:
 
 ```sh
-pnpm sim simulate-composite-scenario ../scenarios/solver-validation/fractal-composite.json --env staging --defer-cleanup
+pnpm sim simulate-composite-scenario ../scenarios/solver-validation/fractal-composite.json --env staging
 ```
 
-Cleanup still runs for every scenario, using the configured retry budget. The runner checks submitted orders before deferring unfinished cleanup, records unfinished wallet IDs in the `cleanup_deferred` journal event, and warns at the end. Explicit cleanup deferral refuses later scenarios that reuse those wallets. Wallets with unresolved live orders have cleanup deferred automatically, even without this flag. Later trade rows still run on schedule after their own wallet's previous flow and bounded recovery check finish. After a deferral, the inter-scenario pause is one-third of the configured pause (10 seconds for a 30-second setting). Successful cleanup keeps the normal pause. The option is saved, so a resumed run keeps this behavior without needing the flag again.
+Each normal cleanup and the final cleanup use the configured retry budget. The runner checks submitted orders before queuing unfinished wallets, records their IDs in the `cleanup_deferred` journal event and saves them in the run checkpoint. Before the final attempt it checks orders again, skips wallets with orders that may still execute, and tops up token-holding wallets from the funder when they need SOL for fees and order rent. The final pass starts after the last scenario, with no extra inter-scenario pause. After an earlier deferral, the inter-scenario pause is one-third of the configured pause (10 seconds for a 30-second setting); successful cleanup keeps the normal pause. `--defer-cleanup` remains accepted for compatibility and has the same behavior as the default.
 
-Deferred funds stay in trader wallets, so later scenarios may need more funder SOL; per-scenario funding and creation limits still apply. Run `cleanup-trade-session --traders <ids>` separately for the recorded wallets. This option does not schedule an automatic cleanup pass at the end. Without the flag, unfinished cleanup still stops the run. `--no-cleanup` skips cleanup entirely.
+Queued funds stay in trader wallets until cleanup succeeds, so later scenarios may need more funder SOL; per-scenario funding and creation limits still apply. If the final cleanup fails or cannot be funded, the runner reports the remaining wallet IDs and leaves cleanup pending in the checkpoint. Run `resume-session <session-name>` to retry only pending cleanup without replaying trades, or use `cleanup-trade-session --traders <ids>` separately. `--no-cleanup` skips both normal and final cleanup.
 
 ### Interrupted runs
 
@@ -172,9 +174,9 @@ pnpm sim resume-session <session-name>
 
 Resume uses the saved scenarios, effective settings, and wallet IDs; the original CSVs and config are no longer needed. It asks for confirmation and checks that the funder, settlement program, and orderbook match the original run. Two runners cannot use the same session at once. Starting a fresh run with an existing session name is rejected.
 
-Normal runs, resumes, and cleanup deferral share the same recovery check. It makes up to three status lookups per order concurrently, bounded to about ten seconds per recovery check. Unknown outcomes are recorded as `recovery_unresolved` in `sim/journal.jsonl` and `unresolvedOrders` in `sim/run.json`, and highlighted with order UIDs and links. Failed trades are not replayed or marked filled. An unresolved order does not pause or skip later trades, including rows on the same wallet. Cleanup is deferred for that wallet until the order is confirmed final or its validity deadline plus a 30-second buffer has passed; unknown outcomes remain reported after that buffer. Deferred wallets need separate cleanup. A later resume attempts recovery again; the same run does not keep querying already unresolved orders at each scenario boundary.
+Normal runs, resumes, and cleanup deferral share the same recovery check. It makes up to three status lookups per order concurrently, bounded to about ten seconds per recovery check. Unknown outcomes are recorded as `recovery_unresolved` in `sim/journal.jsonl` and `unresolvedOrders` in `sim/run.json`, and highlighted with order UIDs and links. Failed trades are not replayed or marked filled. An unresolved order does not pause or skip later trades, including rows on the same wallet. Cleanup waits for that wallet until the order is confirmed final or its validity deadline plus a 30-second buffer has passed; unknown outcomes remain reported after that buffer. The final cleanup checks queued wallets again. If they still cannot be cleaned safely, a later resume retries recovery and cleanup.
 
-If a composite is blocked in cleanup, use `pnpm sim resume-session <session-name> --defer-cleanup` to leave that scenario's wallets for later and continue the remaining tests. This checks outstanding orders first, records cleanup as deferred, and keeps cleanup enabled for later scenarios. The pause before the next scenario is reduced to 1/3 of the configured pause; normal cleanup keeps the full pause. It refuses to defer if later scenarios reuse those wallets. Clean the deferred wallets separately; `cleanup-trade-session` still uses the configured CoW solver, so it does not bypass a solver problem.
+If an older composite is blocked in cleanup, `pnpm sim resume-session <session-name>` retries cleanup and automatically queues remaining failures for the end before continuing the tests. `--defer-cleanup` on resume skips the current cleanup attempt, queues those wallets for the final pass and keeps cleanup enabled for later scenarios; this explicit skip refuses later scenarios that reuse those wallets. Cleanup still uses the configured CoW solver, so it does not bypass a solver problem.
 
 | Interrupted during | Resume behavior |
 |---|---|
@@ -264,7 +266,7 @@ Runs after each composite scenario or at the end of an individual session, for u
 3. **Reclaim** the rent of finished orders.
 4. **Sweep** all SOL back to the funder.
 
-Every failed quote, including `NoLiquidity` or "no route", leaves the tokens untouched and logs the reason. Unfilled cleanup orders also leave tokens for another attempt. Remaining SOL is still swept back to the funder. If tokens remain, the run stays in cleanup; `resume-session <session-name>` tops up only unfinished wallets and retries cleanup without replaying completed or failed test rows. Use the same mnemonic so those wallets remain accessible. Wait for the quote or settlement problem to be fixed before retrying; resuming cannot recover tokens already burned.
+Every failed quote, including `NoLiquidity` or "no route", leaves the tokens untouched and logs the reason. Unfilled cleanup orders also leave tokens for another attempt. Remaining SOL is still swept back to the funder. If tokens remain, the run queues those wallets and retries them after all trading finishes. Final cleanup tops up token wallets when needed. If that still fails, `resume-session <session-name>` retries pending cleanup without replaying completed or failed test rows. Use the same mnemonic so those wallets remain accessible. Wait for the quote or settlement problem to be fixed before retrying; resuming cannot recover tokens already burned.
 
 ## Output
 

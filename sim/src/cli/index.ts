@@ -7,7 +7,7 @@ import { Command, Option } from 'commander'
 import type { CowEnv } from '@cowprotocol/sdk-config'
 import { PublicKey } from '@solana/web3.js'
 import { canBuild, SHIMMED, sdkVersion } from '../settlement.js'
-import { LOG_ENV_HINT, links, loadEnv, logsConfigured, lamportsToSol, QOS_ROOT, SIM_ROOT, solToLamports, TRADER_RESERVE_SOL } from '../config.js'
+import { LOG_ENV_HINT, links, loadEnv, logsConfigured, lamportsToSol, QOS_ROOT, SIM_ROOT, solToLamports, TRADER_RESERVE_SOL, TX_FEE_LAMPORTS } from '../config.js'
 import { NATIVE_SOL, Rpc, WSOL_MINT } from '../rpc.js'
 import { fmtSol, fund, fundingPlan, wallets } from '../wallets.js'
 import { Orders } from '../orders.js'
@@ -303,7 +303,7 @@ function sessionCommand(name: string) {
     .option('--dry-run', 'quote every row and print the funding plan, without trading')
     .option('--allow-public-rpc', 'trade on the public mainnet RPC anyway (it rate-limits sessions; set RPC_URL to a paid one)')
     .option('--no-cleanup', 'leave tokens and SOL in the trader wallets')
-    .option('--defer-cleanup', 'try cleanup normally; if unfinished, record it for later and continue after checking outstanding orders')
+    .option('--defer-cleanup', 'continue after unfinished cleanup and retry at the end (now the default)')
     .option('--report', 'run qos.py fetch + report on the session afterwards')
     .option('-y, --yes', 'skip the confirmation prompt')
     .addOption(envOption)
@@ -406,7 +406,7 @@ async function runSession(scenarioPath: string, opts: any, composite?: ReturnTyp
       ['Order validity', `${opts.orderValidity}s, the orderbook minimum`],
       ['Fill timeout', `${opts.fillTimeout}s, then ${opts.cancelOnTimeout ? 'cancel on-chain and move on' : 'move on and let the order expire'}`],
       ['Client limits', `${opts.quoteRps} quotes/s, ${opts.apiRps} API calls/s, ${opts.rpcRps} RPC calls/s`],
-      ['Cleanup', `${onOff(opts.cleanup)}${opts.cleanup && opts.deferCleanup ? ' (defer failures and continue)' : ''}`],
+      ['Cleanup', `${onOff(opts.cleanup)}${opts.cleanup ? ' (retry unfinished wallets at the end; top up fees if needed)' : ''}`],
       ['Report', onOff(Boolean(opts.report))],
       [
         'Logs',
@@ -559,18 +559,19 @@ async function runSession(scenarioPath: string, opts: any, composite?: ReturnTyp
           await recoverOutstanding(saved, scenarioLog, new Set(tradersIn(scenario.rows)))
           scenario.end = new Date().toISOString()
           scenario.phase = 'cleanup'
+          if (opts.cleanup) scenario.cleanupPending = tradersIn(scenario.rows)
           saveComposite()
           console.log('')
           scenarioLog('Finished')
         }
         if (scenario.phase === 'cleanup') {
-          const deferCleanup = () => {
-            assertCleanupCanBeDeferred(saved.scenarios, scenario)
+          const deferCleanup = (unfinished?: number[]) => {
             const cleaned = new Set(journal(session).filter(e => e.event === 'cleanup_done' && !e.leftover?.length).map(e => e.trader))
-            const traders = tradersIn(scenario.rows).filter(trader => !cleaned.has(trader))
+            const traders = unfinished ?? scenario.cleanupPending ?? tradersIn(scenario.rows).filter(trader => !cleaned.has(trader))
             scenario.cleanupDeferred = true
+            scenario.cleanupPending = [...new Set([...(scenario.cleanupPending ?? []), ...traders])]
             session.log({ step: 'cleanup', event: 'cleanup_deferred', scenario: scenario.id, traders })
-            scenarioLog(ui.warn(`Cleanup deferred for traders ${traders.join(', ')}; their remaining tokens and SOL stay in their wallets.`))
+            scenarioLog(ui.warn(`Cleanup queued for the end for traders ${traders.join(', ')}; their remaining tokens and SOL stay in their wallets.`))
           }
           if (scenario.id === opts.deferCleanupScenario) deferCleanup()
           else if (opts.cleanup) {
@@ -579,10 +580,11 @@ async function runSession(scenarioPath: string, opts: any, composite?: ReturnTyp
             const blocked = tradersIn(scenario.rows).filter(trader => liveUnresolvedOrders(saved, trader).length)
             if (blocked.length) {
               scenario.cleanupDeferred = true
+              scenario.cleanupPending = [...new Set([...(scenario.cleanupPending ?? []), ...blocked])]
               session.log({ step: 'cleanup', event: 'cleanup_deferred', scenario: scenario.id, traders: blocked, reason: 'unresolved_orders' })
               scenarioLog(ui.warn(`Cleanup deferred for traders ${blocked.join(', ')} with unresolved orders; continuing.`))
             }
-            const todo = tradersIn(scenario.rows).filter(trader => !cleaned.has(trader) && !blocked.includes(trader))
+            const todo = (scenario.cleanupPending ?? tradersIn(scenario.rows).filter(trader => !cleaned.has(trader))).filter(trader => !blocked.includes(trader))
             if (resumingCleanup && todo.length) {
               const lines = await fundingPlan(rpc, w, todo, target)
               const issues = fundingIssues(lines, await rpc.lamports(w.funder.publicKey), 0n)
@@ -591,15 +593,16 @@ async function runSession(scenarioPath: string, opts: any, composite?: ReturnTyp
             }
             const cleanedUp = await cleanupAll({ ...ctx, log: scenarioLog }, w, todo, opts.env, opts.rpcRps)
             await recoverOutstanding(saved, scenarioLog, new Set(todo))
+            const unfinished = todo.filter(trader => !cleanedUp.some(result => result.trader === trader && !result.leftover.length))
+            scenario.cleanupPending = [...new Set([...blocked, ...unfinished])]
+            scenario.cleanupDeferred = scenario.cleanupPending.length ? true : undefined
             if (cleanedUp.length !== todo.length || cleanedUp.some(result => result.leftover.length)) {
-              const unfinished = todo.filter(trader => !cleanedUp.some(result => result.trader === trader && !result.leftover.length))
               if (unfinished.every(trader => liveUnresolvedOrders(saved, trader).length)) {
                 scenario.cleanupDeferred = true
                 session.log({ step: 'cleanup', event: 'cleanup_deferred', scenario: scenario.id, traders: unfinished, reason: 'unresolved_orders' })
                 scenarioLog(ui.warn(`Cleanup deferred for traders ${unfinished.join(', ')} with unresolved orders.`))
               } else {
-                if (!opts.deferCleanup) throw new Error(`Cleanup is unfinished for ${scenario.name}. Use resume-session ${session.name} to continue cleanup.`)
-                deferCleanup()
+                deferCleanup(unfinished)
               }
             }
           }
@@ -613,6 +616,47 @@ async function runSession(scenarioPath: string, opts: any, composite?: ReturnTyp
           if (remaining) scenarioLog(c.dim(`Pause: ${remaining / 1000}s before the next scenario`))
           await sleep(remaining)
           scenario.phase = 'finished'
+          saveComposite()
+        }
+      }
+      if (opts.cleanup) {
+        const queued = saved.scenarios.filter(scenario => scenario.cleanupDeferred)
+        for (const scenario of queued) {
+          scenario.cleanupPending ??= tradersIn(scenario.rows)
+        }
+        const pending = [...new Set(queued.flatMap(scenario => scenario.cleanupPending!))].sort((a, b) => a - b)
+        if (pending.length) {
+          log(c.bold(`🧹 Retrying unfinished cleanup at the end for traders ${pending.join(', ')}`))
+          await recoverOutstanding(saved, log, new Set(pending))
+          const todo = pending.filter(trader => !liveUnresolvedOrders(saved, trader).length)
+          if (todo.length) {
+            try {
+              const balances = await Promise.all(todo.map(async trader => [trader, await rpc.lamports(w.trader(trader).publicKey), (await rpc.tokenAccounts(w.trader(trader).publicKey)).length] as const))
+              const lines = cleanupFundingPlan(w, balances)
+              const topUps = lines.filter(line => line.topUp > 0n)
+              const amount = topUps.reduce((sum, line) => sum + line.topUp, 0n)
+              if (amount > 0n) {
+                for (const scenario of queued) {
+                  const scenarioAmount = topUps.filter(line => scenario.cleanupPending!.includes(line.trader)).reduce((sum, line) => sum + line.topUp, 0n)
+                  if (scenarioAmount > solToLamports(opts.maxTotalSol)) throw new Error(`Final cleanup funding ${fmtSol(scenarioAmount)} for ${scenario.name} is over --max-total-sol ${opts.maxTotalSol}`)
+                }
+                const needed = amount + BigInt(Math.ceil(topUps.length / 15)) * TX_FEE_LAMPORTS
+                if (await rpc.lamports(w.funder.publicKey) < needed) throw new Error(`Funder needs ${fmtSol(needed)} for final cleanup top-ups and transfer fees.`)
+                await fund(rpc, w, lines, log, ctx.link.tx)
+                session.log({ step: 'cleanup', event: 'funded', traders: topUps.map(line => line.trader), amount: amount.toString() })
+              }
+              const cleaned = await cleanupAll(ctx, w, todo, opts.env, opts.rpcRps)
+              const completed = new Set(todo.filter(trader => cleaned.some(result => result.trader === trader && !result.leftover.length)))
+              for (const scenario of queued) {
+                scenario.cleanupPending = scenario.cleanupPending!.filter(trader => !completed.has(trader))
+                scenario.cleanupDeferred = scenario.cleanupPending.length ? true : undefined
+              }
+              await recoverOutstanding(saved, log, new Set(todo))
+            } catch (error) {
+              log(ui.warn(`Final cleanup could not finish: ${errorDetail(error)}`))
+              session.log({ step: 'cleanup', event: 'cleanup_final_failed', traders: todo, error: errorDetail(error) })
+            }
+          }
           saveComposite()
         }
       }
@@ -636,7 +680,7 @@ async function runSession(scenarioPath: string, opts: any, composite?: ReturnTyp
       console.log(`  ${scenario ? `[${scenario.name}] ` : ''}${tag(r.row, r.trader)}: ${c.red(r.reason ?? 'failed')}`)
     }
     for (const scenario of saved.scenarios.filter(s => s.cleanupDeferred)) {
-      log(ui.warn(`Cleanup still deferred for ${scenario.name}. Its wallets need separate cleanup.`))
+      log(ui.warn(`Cleanup still pending for ${scenario.name}: traders ${scenario.cleanupPending?.join(', ')}. Retry with: pnpm sim resume-session ${session.name}`))
     }
     if (saved.unresolvedOrders?.length) {
       log(ui.warn(`${saved.unresolvedOrders.length} orders still have unknown outcomes. See recovery_unresolved in sim/journal.jsonl.`))
@@ -646,9 +690,9 @@ async function runSession(scenarioPath: string, opts: any, composite?: ReturnTyp
     if (opts.report) {
       for (const cmd of [...(logsConfigured(opts.env) ? ['logs'] : []), 'fetch', 'report']) spawnSync('python3', [resolve(QOS_ROOT, 'qos.py'), cmd, '--session', session.name], { stdio: 'inherit' })
     }
-    saved.finished = true
+    saved.finished = !saved.scenarios.some(scenario => scenario.cleanupDeferred)
     saveRun(session, saved)
-    log(`${ui.ok('Done.')} Session: ${c.cyan(session.dir)}`)
+    log(`${saved.finished ? ui.ok('Done.') : ui.warn('Trading finished; cleanup still pending.')} Session: ${c.cyan(session.dir)}`)
     if (composite) {
       log(`Trade logs: ${resolve(session.dir, 'sim', 'journal.jsonl')}`)
       if (opts.report) log(`Scenario results: ${resolve(session.dir, 'report.html')}`)
@@ -663,6 +707,15 @@ function assertCleanupCanBeDeferred(scenarios: SavedRun['scenarios'], deferred: 
   if (scenarios.some(s => s.id > deferred.id && s.phase !== 'finished' && s.rows.some(row => traders.has(row.trader)))) {
     throw new Error('Cannot defer cleanup: later scenarios reuse its trader wallets.')
   }
+}
+
+function cleanupFundingPlan(w: ReturnType<typeof wallets>, balances: readonly (readonly [number, bigint, number])[]) {
+  return balances.map(([trader, balance, accounts]) => {
+    const creationReserve = BigInt(accounts) * ORDER_CREATION_LAMPORTS + TX_FEE_LAMPORTS * 2n
+    const reserve = solToLamports(TRADER_RESERVE_SOL)
+    const target = creationReserve > reserve ? creationReserve : reserve
+    return { trader, address: w.trader(trader).publicKey, balance, topUp: accounts > 0 && balance < target ? target - balance : 0n }
+  })
 }
 
 program.command('resume-session')
@@ -758,7 +811,21 @@ program
     const active = balances.filter(([, l, a]) => l > 0n || a > 0).map(([n]) => n)
     console.log(`${c.bold(active.length)} of ${traders.length} traders hold SOL or token accounts.`)
     if (!active.length) return
+    const plan = cleanupFundingPlan(w, balances)
+    const topUps = plan.filter(line => line.topUp > 0n)
+    const funding = topUps.reduce((sum, line) => sum + line.topUp, 0n)
+    if (funding > 0n) {
+      const needed = funding + BigInt(Math.ceil(topUps.length / 15)) * TX_FEE_LAMPORTS
+      if (await rpc.lamports(w.funder.publicKey) < needed) {
+        throw new Error(`Funder needs ${fmtSol(needed)} for cleanup top-ups and transfer fees. Fund it before retrying cleanup.`)
+      }
+      console.log(`Cleanup funding: top up ${topUps.length} traders with ${fmtSol(funding)} total from the funder for fees and order rent.`)
+    }
     await confirm(`Clean up traders ${active.join(', ')}?`, opts.yes)
+    if (funding > 0n) {
+      await fund(rpc, w, plan, log, ctx.link.tx)
+      session.log({ step: 'cleanup', event: 'funded', traders: topUps.map(line => line.trader), amount: funding.toString() })
+    }
     const res = await cleanupAll(ctx, w, active, opts.env, opts.rpcRps)
     const swept = res.reduce((s, r) => s + r.swept, 0n)
     console.log(`\n${ui.ok(`Swept ${fmtSol(swept)} to the funder.`)}`)

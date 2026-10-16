@@ -1,0 +1,1023 @@
+{
+ "rpc": "solana-mainnet.g.alchemy.com",
+ "name": "2026-10-16-10-12-composite-fractal-run trade session",
+ "title": "2026-10-16-10-12-composite-fractal-run",
+ "env": "staging",
+ "sim": {
+  "scenario": "/Users/igor/work/cowprotocol/solana-qos/scenarios/solver-validation/fractal-composite.json",
+  "traders": 109,
+  "rows": 185,
+  "solFundingPerTrader": 0.07
+ },
+ "composite": {
+  "name": "fractal-standard-load-and-tokens",
+  "solver": "fractal",
+  "breakSeconds": 30,
+  "scenarios": [
+   {
+    "id": 1,
+    "name": "solver-standard-pairs",
+    "path": "solver-standard-pairs.csv",
+    "sourceRows": [
+     {
+      "row": 1,
+      "sourceRow": 1,
+      "sourceTrader": 1
+     },
+     {
+      "row": 2,
+      "sourceRow": 2,
+      "sourceTrader": 2
+     },
+     {
+      "row": 3,
+      "sourceRow": 3,
+      "sourceTrader": 3
+     },
+     {
+      "row": 4,
+      "sourceRow": 4,
+      "sourceTrader": 1
+     },
+     {
+      "row": 5,
+      "sourceRow": 5,
+      "sourceTrader": 2
+     },
+     {
+      "row": 6,
+      "sourceRow": 6,
+      "sourceTrader": 3
+     }
+    ],
+    "phase": "finished",
+    "elapsed": 67.138,
+    "start": "2026-10-16T10:14:10.487Z",
+    "offset": 0,
+    "checkpointAt": 1792145717625,
+    "end": "2026-10-16T10:15:17.627Z",
+    "cleanupPending": [],
+    "pauseUntil": 1792145769175
+   },
+   {
+    "id": 2,
+    "name": "solver-same-direction-25",
+    "path": "solver-same-direction-25.csv",
+    "sourceRows": [
+     {
+      "row": 7,
+      "sourceRow": 1,
+      "sourceTrader": 1
+     },
+     {
+      "row": 8,
+      "sourceRow": 2,
+      "sourceTrader": 2
+     },
+     {
+      "row": 9,
+      "sourceRow": 3,
+      "sourceTrader": 3
+     },
+     {
+      "row": 10,
+      "sourceRow": 4,
+      "sourceTrader": 4
+     },
+     {
+      "row": 11,
+      "sourceRow": 5,
+      "sourceTrader": 5
+     },
+     {
+      "row": 12,
+      "sourceRow": 6,
+      "sourceTrader": 6
+     },
+     {
+      "row": 13,
+      "sourceRow": 7,
+      "sourceTrader": 7
+     },
+     {
+      "row": 14,
+      "sourceRow": 8,
+      "sourceTrader": 8
+     },
+     {
+      "row": 15,
+      "sourceRow": 9,
+      "sourceTrader": 9
+     },
+     {
+      "row": 16,
+      "sourceRow": 10,
+      "sourceTrader": 10
+     },
+     {
+      "row": 17,
+      "sourceRow": 11,
+      "sourceTrader": 11
+     },
+     {
+      "row": 18,
+      "sourceRow": 12,
+      "sourceTrader": 12
+     },
+     {
+      "row": 19,
+      "sourceRow": 13,
+      "sourceTrader": 13
+     },
+     {
+      "row": 20,
+      "sourceRow": 14,
+      "sourceTrader": 14
+     },
+     {
+      "row": 21,
+      "sourceRow": 15,
+      "sourceTrader": 15
+     },
+     {
+      "row": 22,
+      "sourceRow": 16,
+      "sourceTrader": 16
+     },
+     {
+      "row": 23,
+      "sourceRow": 17,
+      "sourceTrader": 17
+     },
+     {
+      "row": 24,
+      "sourceRow": 18,
+      "sourceTrader": 18
+     },
+     {
+      "row": 25,
+      "sourceRow": 19,
+      "sourceTrader": 19
+     },
+     {
+      "row": 26,
+      "sourceRow": 20,
+      "sourceTrader": 20
+     },
+     {
+      "row": 27,
+      "sourceRow": 21,
+      "sourceTrader": 21
+     },
+     {
+      "row": 28,
+      "sourceRow": 22,
+      "sourceTrader": 22
+     },
+     {
+      "row": 29,
+      "sourceRow": 23,
+      "sourceTrader": 23
+     },
+     {
+      "row": 30,
+      "sourceRow": 24,
+      "sourceTrader": 24
+     },
+     {
+      "row": 31,
+      "sourceRow": 25,
+      "sourceTrader": 25
+     }
+    ],
+    "phase": "finished",
+    "elapsed": 38.732,
+    "start": "2026-10-16T10:16:14.508Z",
+    "offset": 124.021,
+    "checkpointAt": 1792145813240,
+    "end": "2026-10-16T10:16:53.242Z",
+    "cleanupPending": [],
+    "pauseUntil": 1792145957259
+   },
+   {
+    "id": 3,
+    "name": "solver-burst-sell",
+    "path": "solver-burst-sell.csv",
+    "sourceRows": [
+     {
+      "row": 32,
+      "sourceRow": 1,
+      "sourceTrader": 1
+     },
+     {
+      "row": 33,
+      "sourceRow": 2,
+      "sourceTrader": 2
+     },
+     {
+      "row": 34,
+      "sourceRow": 3,
+      "sourceTrader": 3
+     },
+     {
+      "row": 35,
+      "sourceRow": 4,
+      "sourceTrader": 4
+     },
+     {
+      "row": 36,
+      "sourceRow": 5,
+      "sourceTrader": 1
+     },
+     {
+      "row": 37,
+      "sourceRow": 6,
+      "sourceTrader": 2
+     },
+     {
+      "row": 38,
+      "sourceRow": 7,
+      "sourceTrader": 3
+     },
+     {
+      "row": 39,
+      "sourceRow": 8,
+      "sourceTrader": 4
+     },
+     {
+      "row": 40,
+      "sourceRow": 9,
+      "sourceTrader": 5
+     },
+     {
+      "row": 41,
+      "sourceRow": 10,
+      "sourceTrader": 6
+     },
+     {
+      "row": 42,
+      "sourceRow": 11,
+      "sourceTrader": 7
+     },
+     {
+      "row": 43,
+      "sourceRow": 12,
+      "sourceTrader": 8
+     },
+     {
+      "row": 44,
+      "sourceRow": 13,
+      "sourceTrader": 1
+     },
+     {
+      "row": 45,
+      "sourceRow": 14,
+      "sourceTrader": 2
+     },
+     {
+      "row": 46,
+      "sourceRow": 15,
+      "sourceTrader": 3
+     },
+     {
+      "row": 47,
+      "sourceRow": 16,
+      "sourceTrader": 4
+     },
+     {
+      "row": 48,
+      "sourceRow": 17,
+      "sourceTrader": 5
+     },
+     {
+      "row": 49,
+      "sourceRow": 18,
+      "sourceTrader": 6
+     },
+     {
+      "row": 50,
+      "sourceRow": 19,
+      "sourceTrader": 7
+     },
+     {
+      "row": 51,
+      "sourceRow": 20,
+      "sourceTrader": 8
+     },
+     {
+      "row": 52,
+      "sourceRow": 21,
+      "sourceTrader": 9
+     },
+     {
+      "row": 53,
+      "sourceRow": 22,
+      "sourceTrader": 10
+     },
+     {
+      "row": 54,
+      "sourceRow": 23,
+      "sourceTrader": 11
+     },
+     {
+      "row": 55,
+      "sourceRow": 24,
+      "sourceTrader": 12
+     },
+     {
+      "row": 56,
+      "sourceRow": 25,
+      "sourceTrader": 13
+     },
+     {
+      "row": 57,
+      "sourceRow": 26,
+      "sourceTrader": 14
+     },
+     {
+      "row": 58,
+      "sourceRow": 27,
+      "sourceTrader": 15
+     },
+     {
+      "row": 59,
+      "sourceRow": 28,
+      "sourceTrader": 16
+     },
+     {
+      "row": 60,
+      "sourceRow": 29,
+      "sourceTrader": 1
+     },
+     {
+      "row": 61,
+      "sourceRow": 30,
+      "sourceTrader": 2
+     },
+     {
+      "row": 62,
+      "sourceRow": 31,
+      "sourceTrader": 3
+     },
+     {
+      "row": 63,
+      "sourceRow": 32,
+      "sourceTrader": 4
+     },
+     {
+      "row": 64,
+      "sourceRow": 33,
+      "sourceTrader": 5
+     },
+     {
+      "row": 65,
+      "sourceRow": 34,
+      "sourceTrader": 6
+     },
+     {
+      "row": 66,
+      "sourceRow": 35,
+      "sourceTrader": 7
+     },
+     {
+      "row": 67,
+      "sourceRow": 36,
+      "sourceTrader": 8
+     },
+     {
+      "row": 68,
+      "sourceRow": 37,
+      "sourceTrader": 9
+     },
+     {
+      "row": 69,
+      "sourceRow": 38,
+      "sourceTrader": 10
+     },
+     {
+      "row": 70,
+      "sourceRow": 39,
+      "sourceTrader": 11
+     },
+     {
+      "row": 71,
+      "sourceRow": 40,
+      "sourceTrader": 12
+     },
+     {
+      "row": 72,
+      "sourceRow": 41,
+      "sourceTrader": 13
+     },
+     {
+      "row": 73,
+      "sourceRow": 42,
+      "sourceTrader": 14
+     },
+     {
+      "row": 74,
+      "sourceRow": 43,
+      "sourceTrader": 15
+     },
+     {
+      "row": 75,
+      "sourceRow": 44,
+      "sourceTrader": 16
+     },
+     {
+      "row": 76,
+      "sourceRow": 45,
+      "sourceTrader": 17
+     },
+     {
+      "row": 77,
+      "sourceRow": 46,
+      "sourceTrader": 18
+     },
+     {
+      "row": 78,
+      "sourceRow": 47,
+      "sourceTrader": 19
+     },
+     {
+      "row": 79,
+      "sourceRow": 48,
+      "sourceTrader": 20
+     },
+     {
+      "row": 80,
+      "sourceRow": 49,
+      "sourceTrader": 21
+     },
+     {
+      "row": 81,
+      "sourceRow": 50,
+      "sourceTrader": 22
+     },
+     {
+      "row": 82,
+      "sourceRow": 51,
+      "sourceTrader": 23
+     },
+     {
+      "row": 83,
+      "sourceRow": 52,
+      "sourceTrader": 24
+     },
+     {
+      "row": 84,
+      "sourceRow": 53,
+      "sourceTrader": 1
+     },
+     {
+      "row": 85,
+      "sourceRow": 54,
+      "sourceTrader": 2
+     },
+     {
+      "row": 86,
+      "sourceRow": 55,
+      "sourceTrader": 3
+     },
+     {
+      "row": 87,
+      "sourceRow": 56,
+      "sourceTrader": 4
+     },
+     {
+      "row": 88,
+      "sourceRow": 57,
+      "sourceTrader": 5
+     },
+     {
+      "row": 89,
+      "sourceRow": 58,
+      "sourceTrader": 6
+     },
+     {
+      "row": 90,
+      "sourceRow": 59,
+      "sourceTrader": 7
+     },
+     {
+      "row": 91,
+      "sourceRow": 60,
+      "sourceTrader": 8
+     },
+     {
+      "row": 92,
+      "sourceRow": 61,
+      "sourceTrader": 9
+     },
+     {
+      "row": 93,
+      "sourceRow": 62,
+      "sourceTrader": 10
+     },
+     {
+      "row": 94,
+      "sourceRow": 63,
+      "sourceTrader": 11
+     },
+     {
+      "row": 95,
+      "sourceRow": 64,
+      "sourceTrader": 12
+     },
+     {
+      "row": 96,
+      "sourceRow": 65,
+      "sourceTrader": 13
+     },
+     {
+      "row": 97,
+      "sourceRow": 66,
+      "sourceTrader": 14
+     },
+     {
+      "row": 98,
+      "sourceRow": 67,
+      "sourceTrader": 15
+     },
+     {
+      "row": 99,
+      "sourceRow": 68,
+      "sourceTrader": 16
+     },
+     {
+      "row": 100,
+      "sourceRow": 69,
+      "sourceTrader": 17
+     },
+     {
+      "row": 101,
+      "sourceRow": 70,
+      "sourceTrader": 18
+     },
+     {
+      "row": 102,
+      "sourceRow": 71,
+      "sourceTrader": 19
+     },
+     {
+      "row": 103,
+      "sourceRow": 72,
+      "sourceTrader": 20
+     },
+     {
+      "row": 104,
+      "sourceRow": 73,
+      "sourceTrader": 21
+     },
+     {
+      "row": 105,
+      "sourceRow": 74,
+      "sourceTrader": 22
+     },
+     {
+      "row": 106,
+      "sourceRow": 75,
+      "sourceTrader": 23
+     },
+     {
+      "row": 107,
+      "sourceRow": 76,
+      "sourceTrader": 24
+     },
+     {
+      "row": 108,
+      "sourceRow": 77,
+      "sourceTrader": 25
+     },
+     {
+      "row": 109,
+      "sourceRow": 78,
+      "sourceTrader": 26
+     },
+     {
+      "row": 110,
+      "sourceRow": 79,
+      "sourceTrader": 27
+     },
+     {
+      "row": 111,
+      "sourceRow": 80,
+      "sourceTrader": 28
+     },
+     {
+      "row": 112,
+      "sourceRow": 81,
+      "sourceTrader": 29
+     },
+     {
+      "row": 113,
+      "sourceRow": 82,
+      "sourceTrader": 30
+     },
+     {
+      "row": 114,
+      "sourceRow": 83,
+      "sourceTrader": 31
+     },
+     {
+      "row": 115,
+      "sourceRow": 84,
+      "sourceTrader": 32
+     }
+    ],
+    "phase": "finished",
+    "elapsed": 441.199,
+    "start": "2026-10-16T10:19:25.666Z",
+    "offset": 315.179,
+    "checkpointAt": 1792146406865,
+    "end": "2026-10-16T10:26:46.871Z",
+    "cleanupPending": [],
+    "pauseUntil": 1792146571003
+   },
+   {
+    "id": 4,
+    "name": "solver-cow",
+    "path": "solver-cow.csv",
+    "sourceRows": [
+     {
+      "row": 116,
+      "sourceRow": 1,
+      "sourceTrader": 2
+     },
+     {
+      "row": 117,
+      "sourceRow": 2,
+      "sourceTrader": 4
+     },
+     {
+      "row": 118,
+      "sourceRow": 3,
+      "sourceTrader": 5
+     },
+     {
+      "row": 119,
+      "sourceRow": 4,
+      "sourceTrader": 6
+     },
+     {
+      "row": 120,
+      "sourceRow": 5,
+      "sourceTrader": 7
+     },
+     {
+      "row": 121,
+      "sourceRow": 6,
+      "sourceTrader": 8
+     },
+     {
+      "row": 122,
+      "sourceRow": 7,
+      "sourceTrader": 1
+     },
+     {
+      "row": 123,
+      "sourceRow": 8,
+      "sourceTrader": 2
+     },
+     {
+      "row": 124,
+      "sourceRow": 9,
+      "sourceTrader": 3
+     },
+     {
+      "row": 125,
+      "sourceRow": 10,
+      "sourceTrader": 4
+     },
+     {
+      "row": 126,
+      "sourceRow": 11,
+      "sourceTrader": 5
+     },
+     {
+      "row": 127,
+      "sourceRow": 12,
+      "sourceTrader": 6
+     },
+     {
+      "row": 128,
+      "sourceRow": 13,
+      "sourceTrader": 7
+     },
+     {
+      "row": 129,
+      "sourceRow": 14,
+      "sourceTrader": 8
+     },
+     {
+      "row": 130,
+      "sourceRow": 15,
+      "sourceTrader": 9
+     }
+    ],
+    "phase": "finished",
+    "elapsed": 193.475,
+    "start": "2026-10-16T10:29:34.452Z",
+    "offset": 923.965,
+    "checkpointAt": 1792146767927,
+    "end": "2026-10-16T10:32:47.935Z",
+    "cleanupPending": [],
+    "pauseUntil": 1792146810977
+   },
+   {
+    "id": 5,
+    "name": "solver-token-coverage",
+    "path": "solver-token-coverage.csv",
+    "sourceRows": [
+     {
+      "row": 131,
+      "sourceRow": 1,
+      "sourceTrader": 1
+     },
+     {
+      "row": 132,
+      "sourceRow": 3,
+      "sourceTrader": 2
+     },
+     {
+      "row": 133,
+      "sourceRow": 5,
+      "sourceTrader": 3
+     },
+     {
+      "row": 134,
+      "sourceRow": 7,
+      "sourceTrader": 4
+     },
+     {
+      "row": 135,
+      "sourceRow": 9,
+      "sourceTrader": 5
+     },
+     {
+      "row": 136,
+      "sourceRow": 11,
+      "sourceTrader": 6
+     },
+     {
+      "row": 137,
+      "sourceRow": 13,
+      "sourceTrader": 7
+     },
+     {
+      "row": 138,
+      "sourceRow": 15,
+      "sourceTrader": 8
+     },
+     {
+      "row": 139,
+      "sourceRow": 17,
+      "sourceTrader": 9
+     },
+     {
+      "row": 140,
+      "sourceRow": 19,
+      "sourceTrader": 10
+     },
+     {
+      "row": 141,
+      "sourceRow": 21,
+      "sourceTrader": 11
+     },
+     {
+      "row": 142,
+      "sourceRow": 23,
+      "sourceTrader": 12
+     },
+     {
+      "row": 143,
+      "sourceRow": 25,
+      "sourceTrader": 13
+     },
+     {
+      "row": 144,
+      "sourceRow": 27,
+      "sourceTrader": 14
+     },
+     {
+      "row": 145,
+      "sourceRow": 29,
+      "sourceTrader": 15
+     },
+     {
+      "row": 146,
+      "sourceRow": 31,
+      "sourceTrader": 16
+     },
+     {
+      "row": 147,
+      "sourceRow": 32,
+      "sourceTrader": 17
+     },
+     {
+      "row": 148,
+      "sourceRow": 33,
+      "sourceTrader": 18
+     },
+     {
+      "row": 149,
+      "sourceRow": 34,
+      "sourceTrader": 19
+     },
+     {
+      "row": 150,
+      "sourceRow": 35,
+      "sourceTrader": 20
+     },
+     {
+      "row": 151,
+      "sourceRow": 36,
+      "sourceTrader": 21
+     },
+     {
+      "row": 152,
+      "sourceRow": 37,
+      "sourceTrader": 22
+     },
+     {
+      "row": 153,
+      "sourceRow": 38,
+      "sourceTrader": 23
+     },
+     {
+      "row": 154,
+      "sourceRow": 39,
+      "sourceTrader": 24
+     },
+     {
+      "row": 155,
+      "sourceRow": 40,
+      "sourceTrader": 25
+     },
+     {
+      "row": 156,
+      "sourceRow": 41,
+      "sourceTrader": 26
+     },
+     {
+      "row": 157,
+      "sourceRow": 42,
+      "sourceTrader": 27
+     },
+     {
+      "row": 158,
+      "sourceRow": 43,
+      "sourceTrader": 28
+     },
+     {
+      "row": 159,
+      "sourceRow": 44,
+      "sourceTrader": 29
+     },
+     {
+      "row": 160,
+      "sourceRow": 45,
+      "sourceTrader": 30
+     },
+     {
+      "row": 161,
+      "sourceRow": 46,
+      "sourceTrader": 31
+     },
+     {
+      "row": 162,
+      "sourceRow": 47,
+      "sourceTrader": 32
+     },
+     {
+      "row": 163,
+      "sourceRow": 48,
+      "sourceTrader": 33
+     },
+     {
+      "row": 164,
+      "sourceRow": 49,
+      "sourceTrader": 34
+     },
+     {
+      "row": 165,
+      "sourceRow": 50,
+      "sourceTrader": 35
+     },
+     {
+      "row": 166,
+      "sourceRow": 51,
+      "sourceTrader": 36
+     },
+     {
+      "row": 167,
+      "sourceRow": 52,
+      "sourceTrader": 37
+     },
+     {
+      "row": 168,
+      "sourceRow": 53,
+      "sourceTrader": 38
+     },
+     {
+      "row": 169,
+      "sourceRow": 54,
+      "sourceTrader": 39
+     },
+     {
+      "row": 170,
+      "sourceRow": 55,
+      "sourceTrader": 40
+     },
+     {
+      "row": 171,
+      "sourceRow": 2,
+      "sourceTrader": 1
+     },
+     {
+      "row": 172,
+      "sourceRow": 4,
+      "sourceTrader": 2
+     },
+     {
+      "row": 173,
+      "sourceRow": 6,
+      "sourceTrader": 3
+     },
+     {
+      "row": 174,
+      "sourceRow": 8,
+      "sourceTrader": 4
+     },
+     {
+      "row": 175,
+      "sourceRow": 10,
+      "sourceTrader": 5
+     },
+     {
+      "row": 176,
+      "sourceRow": 12,
+      "sourceTrader": 6
+     },
+     {
+      "row": 177,
+      "sourceRow": 14,
+      "sourceTrader": 7
+     },
+     {
+      "row": 178,
+      "sourceRow": 16,
+      "sourceTrader": 8
+     },
+     {
+      "row": 179,
+      "sourceRow": 18,
+      "sourceTrader": 9
+     },
+     {
+      "row": 180,
+      "sourceRow": 20,
+      "sourceTrader": 10
+     },
+     {
+      "row": 181,
+      "sourceRow": 22,
+      "sourceTrader": 11
+     },
+     {
+      "row": 182,
+      "sourceRow": 24,
+      "sourceTrader": 12
+     },
+     {
+      "row": 183,
+      "sourceRow": 26,
+      "sourceTrader": 13
+     },
+     {
+      "row": 184,
+      "sourceRow": 28,
+      "sourceTrader": 14
+     },
+     {
+      "row": 185,
+      "sourceRow": 30,
+      "sourceTrader": 15
+     }
+    ],
+    "phase": "finished",
+    "elapsed": 87.058,
+    "start": "2026-10-16T10:33:39.460Z",
+    "offset": 1168.973,
+    "checkpointAt": 1792146906518,
+    "end": "2026-10-16T10:35:06.527Z",
+    "cleanupPending": [],
+    "pauseUntil": 1792147020392
+   }
+  ]
+ },
+ "start": "2026-10-16T10:14:10.487Z",
+ "trading_end": "2026-10-16T10:37:00.397Z",
+ "end": "2026-10-16T10:38:00.397Z",
+ "fetched_at": "2026-10-16T10:41:11+00:00"
+}

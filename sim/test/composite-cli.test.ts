@@ -25,6 +25,9 @@ it.each([
     override: ['--session', mode, '--defer-cleanup'], name: mode, cleanup: true, mode,
   })),
   { override: ['--session', 'cleanup-failure'], name: 'cleanup-failure', cleanup: true, mode: 'cleanup-failure' },
+  ...['end-recovery', 'end-single', 'end-resume', 'end-funding', 'end-limit', 'end-unknown-recovery'].map(mode => ({
+    override: ['--session', mode], name: mode, cleanup: true, mode,
+  })),
   ...['normal-unknown', 'normal-unknown-single', 'normal-unknown-no-cleanup', 'normal-unknown-last'].map(mode => ({
     override: ['--session', mode, ...(mode.endsWith('no-cleanup') ? ['--no-cleanup'] : [])],
     name: mode, cleanup: !mode.endsWith('no-cleanup'), mode,
@@ -54,8 +57,8 @@ it.each([
   let holdings = true
   let quoteOutage = true
   let funderBalance = mode === 'cleanup' ? 80_000_000n : mode === 'unsorted' ? 500_000_000n : cleanup ? 150_000_000n : 300_000_000n
-  const fresh = ['fresh', 'interrupt', 'unsorted', 'cleanup-failure'].includes(mode) || mode.startsWith('auto-defer') || mode.startsWith('normal-unknown')
-  if (mode.startsWith('auto-defer') || mode.startsWith('normal-unknown') || mode === 'cleanup-failure') funderBalance = 500_000_000n
+  const fresh = ['fresh', 'interrupt', 'unsorted', 'cleanup-failure'].includes(mode) || mode.startsWith('auto-defer') || mode.startsWith('normal-unknown') || mode.startsWith('end-')
+  if (mode.startsWith('auto-defer') || mode.startsWith('normal-unknown') || mode === 'cleanup-failure' || mode.startsWith('end-')) funderBalance = 500_000_000n
   const fund = vi.fn<typeof import('../src/wallets.js').fund>(async (_rpc, _w, plan) => {
     lifecycle.push(['fund', plan.map(line => line.trader), Date.now() / 1000])
     funderBalance -= plan.reduce((sum, line) => sum + line.topUp, 0n)
@@ -113,6 +116,16 @@ it.each([
         expect(ctx.maxRetries).toBe(0)
         lifecycle.push(['cleanup', [trader], Date.now() / 1000])
         await new Promise(resolve => setTimeout(resolve, 3000))
+        if (trader === 2 && mode.startsWith('end-')) {
+          const attempts = lifecycle.filter(event => event[0] === 'cleanup' && event[1][0] === 2).length
+          if (attempts === 1 || mode === 'end-resume' && attempts === 2 || mode === 'end-funding') {
+            balances.set(w.trader(2).publicKey.toBase58(), 0n)
+            if (mode === 'end-unknown-recovery') ctx.session.log({ step: 'cleanup', event: 'placed', trader, uid: 'uncertain-cleanup', validTo: 300 })
+            ctx.session.log({ step: 'cleanup', event: 'cleanup_done', trader, leftover: ['1 USDC'] })
+            return { trader, swept: 0n, leftover: ['1 USDC'] }
+          }
+          expect(balances.get(w.trader(2).publicKey.toBase58())).toBeGreaterThanOrEqual(20_000_000n)
+        }
         if (mode === 'cleanup' || mode === 'auto-defer-fees' && trader === 2) {
           const result = await actual.cleanupTrader(ctx, w, trader, env, finalAttempt)
           quoteOutage = false
@@ -122,11 +135,11 @@ it.each([
           if (mode === 'auto-defer-throw') throw new Error('cleanup RPC unavailable')
           if (mode === 'auto-defer-unknown' || mode === 'auto-defer-retry-unknown') ctx.session.log({ step: 'cleanup', event: 'placed', trader, uid: 'uncertain-cleanup', validTo: 300 })
           ctx.session.log({ step: 'cleanup', event: 'cleanup_done', trader, leftover: ['1 USDC'] })
-          return { swept: 0n, leftover: ['1 USDC'] }
+          return { trader, swept: 0n, leftover: ['1 USDC'] }
         }
         funderBalance += 70_000_000n
         ctx.session.log({ step: 'cleanup', event: 'cleanup_done', trader, leftover: [] })
-        return { swept: 70_000_000n, leftover: [] }
+        return { trader, swept: 70_000_000n, leftover: [] }
       },
     }
   })
@@ -141,8 +154,9 @@ it.each([
     const { Rpc } = await import('../src/rpc.js')
     const { Orders } = await import('../src/orders.js')
     vi.spyOn(Rpc.prototype, 'lamports').mockImplementation(async address =>
-      address.equals(funder) ? funderBalance : address.toBase58() === '11111111111111111111111111111111' ? 10_000_000_000n : balances.get(address.toBase58()) ?? 0n)
-    vi.spyOn(Orders.prototype, 'getOrder').mockImplementation(async uid => mode === 'unknown' || mode === 'defer-unknown' || mode === 'resume-reservations' && uid === 'interrupted-main' || mode.startsWith('normal-unknown') && uid === (mode === 'normal-unknown-last' ? 'order-3' : 'order-1') || mode === 'expired-unknown' && uid === 'interrupted-main' || ['auto-defer-unknown', 'auto-defer-retry-unknown'].includes(mode) && uid === 'uncertain-cleanup' ? null : ({
+      address.equals(funder) ? mode === 'end-funding' && starts.length === 7 ? 0n : funderBalance : address.toBase58() === '11111111111111111111111111111111' ? 10_000_000_000n : balances.get(address.toBase58()) ?? 0n)
+    vi.spyOn(Rpc.prototype, 'tokenAccounts').mockImplementation(async address => mode.startsWith('end-') && address.equals(w.trader(2).publicKey) ? Array.from({ length: mode === 'end-limit' ? 100 : 1 }, () => ({})) as never : [])
+    vi.spyOn(Orders.prototype, 'getOrder').mockImplementation(async uid => mode === 'unknown' || mode === 'defer-unknown' || mode === 'resume-reservations' && uid === 'interrupted-main' || mode.startsWith('normal-unknown') && uid === (mode === 'normal-unknown-last' ? 'order-3' : 'order-1') || mode === 'expired-unknown' && uid === 'interrupted-main' || ['auto-defer-unknown', 'auto-defer-retry-unknown'].includes(mode) && uid === 'uncertain-cleanup' || mode === 'end-unknown-recovery' && uid === 'uncertain-cleanup' && starts.length < 7 ? null : ({
       uid, status: Date.now() >= 15_000 ? 'fulfilled' : 'open', validTo: 300,
       executedSellAmount: '0', executedBuyAmount: '0', orderPda: '',
     }))
@@ -184,7 +198,7 @@ it.each([
   const errors = vi.spyOn(console, 'error').mockImplementation(() => {})
   const exit = vi.spyOn(process, 'exit').mockImplementation(() => undefined as never)
   const argv = vi.spyOn(process, 'argv', 'get').mockReturnValue([
-    process.execPath, 'sim', ...(mode === 'unsorted' || mode === 'auto-defer-single' || mode === 'normal-unknown-single' ? ['simulate-trade-session', singleCsv] : fresh ? ['simulate-composite-scenario', sample] : ['resume-session', name]), ...override, '--yes',
+    process.execPath, 'sim', ...(mode === 'unsorted' || mode === 'auto-defer-single' || mode === 'normal-unknown-single' || mode === 'end-single' ? ['simulate-trade-session', singleCsv] : fresh ? ['simulate-composite-scenario', sample] : ['resume-session', name]), ...override, '--yes',
   ])
   // Capture the CLI's completion without exporting an entry point only for tests.
   const parse = Command.prototype.parseAsync
@@ -257,11 +271,12 @@ it.each([
     await import('../src/cli/index.js')
     await vi.runAllTimersAsync()
     if (mode === 'cleanup-failure') {
-      await expect(completion).rejects.toThrow('Cleanup is unfinished')
-      expect(lifecycle.filter(event => event[0] === 'fund')).toHaveLength(1)
+      await completion
+      expect(starts).toHaveLength(7)
+      expect(lifecycle.filter(event => event[0] === 'cleanup').map(event => event[1][0])).toEqual([1, 2, 3, 4, 2])
       const saved = JSON.parse(readFileSync(join(root, 'sessions', name, 'sim', 'run.json'), 'utf8')) as SavedRun
-      expect(saved.scenarios[0].phase).toBe('cleanup')
-      expect(saved.scenarios[0].cleanupDeferred).toBeUndefined()
+      expect(saved.scenarios.every(scenario => scenario.phase === 'finished')).toBe(true)
+      expect(saved.scenarios[0].cleanupPending).toEqual([2])
       expect(saved.finished).not.toBe(true)
       return
     }
@@ -308,8 +323,40 @@ it.each([
     expect(exit).toHaveBeenCalledWith(0)
     const directory = join(root, 'sessions', name)
     const checkpoint = JSON.parse(readFileSync(join(directory, 'sim', 'run.json'), 'utf8')) as SavedRun
-    expect(checkpoint.finished).toBe(true)
+    expect(checkpoint.finished).toBe(!checkpoint.scenarios.some(scenario => scenario.cleanupDeferred))
     expect(new Set(checkpoint.results.map(result => result.row)).size).toBe(checkpoint.results.length)
+    if (mode.startsWith('end-')) {
+      const totalRows = mode === 'end-single' ? 3 : 7
+      expect(starts).toHaveLength(totalRows)
+      expect(checkpoint.options.deferCleanup).toBeFalsy()
+      const cleanups = lifecycle.filter(event => event[0] === 'cleanup')
+      const attempts = cleanups.filter(event => event[1][0] === 2)
+      expect(attempts).toHaveLength(['end-funding', 'end-limit'].includes(mode) ? 1 : 2)
+      if (!['end-funding', 'end-limit'].includes(mode)) {
+        expect(cleanups.at(-1)![1]).toEqual([2])
+        expect(attempts[1][2]).toBeGreaterThan(Math.max(...starts.map(([, time]) => time)))
+        expect(lifecycle.filter(event => event[0] === 'fund').at(-1)![1]).toEqual([2])
+      }
+      expect(checkpoint.finished).toBe(!['end-resume', 'end-funding', 'end-limit'].includes(mode))
+      if (mode === 'end-unknown-recovery') expect(checkpoint.unresolvedOrders).toEqual([])
+      if (mode === 'end-resume') {
+        expect(checkpoint.scenarios[0].cleanupPending).toEqual([2])
+        argv.mockReturnValue([process.execPath, 'sim', 'resume-session', name, '--yes'])
+        vi.resetModules()
+        await stubNetwork()
+        await import('../src/cli/index.js')
+        await vi.runAllTimersAsync()
+        await completion
+        expect(starts).toHaveLength(totalRows)
+        expect(lifecycle.filter(event => event[0] === 'cleanup' && event[1][0] === 2)).toHaveLength(3)
+        const resumed = JSON.parse(readFileSync(join(directory, 'sim', 'run.json'), 'utf8')) as SavedRun
+        expect(resumed.finished).toBe(true)
+        expect(resumed.scenarios[0].cleanupPending).toEqual([])
+      }
+      if (mode === 'end-funding') expect(logs.mock.calls.flat().join('\n')).toContain('Funder needs')
+      if (mode === 'end-limit') expect(logs.mock.calls.flat().join('\n')).toContain('over --max-total-sol')
+      return
+    }
     if (mode === 'resume-reservations') {
       expect(starts.map(([row]) => row)).toEqual([6, 7])
       expect(checkpoint.unresolvedOrders).toEqual([expect.objectContaining({ uid: 'interrupted-main', sellAmount: '10000000' })])
@@ -384,7 +431,7 @@ it.each([
         expect(lifecycle.find(event => event[0] === 'fund' && event[1].includes(3))![2]).toBeLessThan(60)
       }
       expect(lifecycle.filter(event => event[0] === 'cleanup').map(event => event[1][0])).toEqual(
-        mode === 'auto-defer-single' ? [1, 2, 3] : mode === 'auto-defer-retry' || mode === 'auto-defer-fees' ? [1, 2, 2, 3, 4] : [1, 2, 3, 4])
+        mode === 'auto-defer-single' ? [1, 2, 3, 2] : mode === 'auto-defer-retry' ? [1, 2, 2, 3, 4, 2, 2] : mode === 'auto-defer-fees' ? [1, 2, 2, 3, 4] : ['auto-defer-success', 'auto-defer-unknown', 'auto-defer-retry-unknown'].includes(mode) ? [1, 2, 3, 4] : [1, 2, 3, 4, 2])
       const events = readFileSync(join(directory, 'sim', 'journal.jsonl'), 'utf8').trim().split('\n').map(line => JSON.parse(line))
       expect(events.filter(event => event.event === 'cleanup_deferred')).toEqual(deferred ? [
         expect.objectContaining({ scenario: 1, traders: [2] }),
@@ -394,6 +441,7 @@ it.each([
         expect(lifecycle).toEqual([
           ['fund', [1, 2], 0], ['cleanup', [1], 16], ['cleanup', [2], 16],
           ['fund', [3, 4], 39], ['cleanup', [3], 47], ['cleanup', [4], 47],
+          ['cleanup', [2], 50],
         ])
         expect(checkpoint.scenarios[1].cleanupDeferred).toBeUndefined()
       }
@@ -426,9 +474,9 @@ it.each([
       if (mode === 'cleanup') expect(lifecycle.slice(0, 2)).toEqual([['fund', [2], 100], ['cleanup', [2], 100]])
       if (mode === 'pause' || mode === 'running') expect(lifecycle.filter(event => event[0] === 'cleanup').map(event => event[1][0])).toEqual([3, 4])
       if (mode === 'defer') {
-        expect(lifecycle).toEqual([['fund', [3, 4], 120], ['cleanup', [3], 128], ['cleanup', [4], 128]])
+        expect(lifecycle).toEqual([['fund', [3, 4], 120], ['cleanup', [3], 128], ['cleanup', [4], 128], ['cleanup', [2], 131]])
         expect(checkpoint.options.cleanup).toBe(true)
-        expect(checkpoint.scenarios[0].cleanupDeferred).toBe(true)
+        expect(checkpoint.scenarios[0].cleanupDeferred).toBeUndefined()
         expect(checkpoint.scenarios[1].cleanupDeferred).toBeUndefined()
         const events = readFileSync(join(directory, 'sim', 'journal.jsonl'), 'utf8').trim().split('\n').map(line => JSON.parse(line))
         expect(events.filter(event => event.event === 'cleanup_deferred')).toEqual([

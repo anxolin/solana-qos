@@ -93,7 +93,10 @@ export class Rpc {
         return result
       } catch (e) {
         if (isRateLimit(e)) this.limiter.pause(RATE_LIMIT_PAUSE_MS)
-        if (!transientRpcError(e)) throw e
+        // A healthy node can lack the index required by token-account scans.
+        // Try the other endpoint for scans only; transaction errors must still surface.
+        const missingIndex = heavy && (e as { code?: number })?.code === -32010
+        if (!missingIndex && !transientRpcError(e)) throw e
         endpoint.failureVersion++
         endpoint.cooldownUntil = Date.now() + 30_000
         if (this.endpoints.length > 1) console.warn(`RPC ${endpoint.label} unavailable; trying the other endpoint.`)

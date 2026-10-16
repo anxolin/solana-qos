@@ -149,6 +149,22 @@ describe('backup RPC', () => {
     expect(backup.calls.map((c) => c.method)).toEqual(['getTokenAccountsByOwner', 'getTokenAccountsByOwner'])
   })
 
+  it.each(['primary', 'backup'])('switches away from an unindexed %s for token-account scans', async (unindexed) => {
+    const excluded = { error: { code: -32010, message: `${owner.publicKey} excluded from account secondary indexes; this RPC method unavailable for key` } }
+    const empty = { result: { context: { slot: 1 }, value: [] } }
+    const primary = await endpoint((method) => method === 'getBalance'
+      ? { status: 503 }
+      : unindexed === 'primary' ? excluded : empty)
+    const backup = await endpoint((method) => method === 'getBalance'
+      ? { result: { context: { slot: 1 }, value: 42 } }
+      : unindexed === 'backup' ? excluded : empty)
+    const rpc = new Rpc(primary.url, 1000, backup.url)
+    if (unindexed === 'backup') await rpc.lamports(owner.publicKey)
+    expect(await rpc.tokenAccounts(owner.publicKey)).toEqual([])
+    const working = unindexed === 'primary' ? backup : primary
+    expect(working.calls.filter(c => c.method === 'getTokenAccountsByOwner')).toHaveLength(2)
+  })
+
   it.each([
     ['drops the connection', () => createServer((req) => req.socket.destroy())],
     ['stalls before headers', () => createServer(() => {})],
