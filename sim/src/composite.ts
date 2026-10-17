@@ -6,15 +6,17 @@ const minimums = {
   solFundingPerTrader: 0, maxTotalSol: 0, maxCreationSol: 0, maxRetries: 0,
   orderValidity: 120, fillTimeout: 0, quoteRps: 0, apiRps: 0, rpcRps: 0, slippageBps: 0,
 } as const
-const booleans = ['cancelOnTimeout', 'cleanup', 'report'] as const
+const booleans = ['cancelOnTimeout', 'cleanup', 'report', 'prepareTokenAccounts', 'freshAccounts'] as const
 type Settings = Partial<Record<keyof typeof minimums, number> & Record<typeof booleans[number], boolean>>
+type ScenarioSettings = Pick<Settings, 'freshAccounts' | 'slippageBps' | 'solFundingPerTrader'>
+type ScenarioSource = string | { path: string; options?: ScenarioSettings }
 
 export interface CompositeConfig {
   name: string
   solver: string
   env: 'staging' | 'prod'
   breakSeconds: number
-  scenarios: string[]
+  scenarios: ScenarioSource[]
   options: Settings
 }
 
@@ -24,6 +26,7 @@ export interface CompositeScenario {
   path: string
   rows: TradeRow[]
   sourceRows: { row: number; sourceRow: number; sourceTrader: number }[]
+  options?: ScenarioSettings
   /** Actual seconds from session start, set when this scenario begins. */
   offset?: number
   start?: string
@@ -48,8 +51,21 @@ export function parseComposite(value: unknown): CompositeConfig {
     throw new Error('Composite breakSeconds must be a non-negative number')
   }
   const scenarios = value.scenarios
-  if (!Array.isArray(scenarios) || !scenarios.length || scenarios.some(p => typeof p !== 'string' || !p.trim())) {
+  if (!Array.isArray(scenarios) || !scenarios.length || scenarios.some(p =>
+    typeof p === 'string' ? !p.trim() : !object(p) || typeof p.path !== 'string' || !p.path.trim())) {
     throw new Error('Composite scenarios must be a non-empty array of CSV paths')
+  }
+  for (const source of scenarios) {
+    if (typeof source === 'string') continue
+    if (Object.keys(source).some(key => !['path', 'options'].includes(key))) throw new Error('Unknown scenario field')
+    const options = source.options ?? {}
+    if (!object(options)) throw new Error('Scenario options must be an object')
+    for (const [key, setting] of Object.entries(options)) {
+      if (key === 'freshAccounts' && typeof setting === 'boolean') continue
+      if (key === 'solFundingPerTrader' && typeof setting === 'number' && Number.isFinite(setting) && setting > 0) continue
+      if (key === 'slippageBps' && typeof setting === 'number' && Number.isInteger(setting) && setting >= 0 && setting <= 10000) continue
+      throw new Error(`Invalid scenario option ${key}`)
+    }
   }
   const options = value.options ?? {}
   if (!object(options)) throw new Error('Composite options must be an object')
@@ -60,7 +76,8 @@ export function parseComposite(value: unknown): CompositeConfig {
       const min = minimums[key as keyof typeof minimums]
       if (typeof setting !== 'number' || !Number.isFinite(setting) || setting < min ||
           (['solFundingPerTrader', 'fillTimeout', 'quoteRps', 'apiRps', 'rpcRps'].includes(key) && setting === 0) ||
-          (['maxRetries', 'orderValidity', 'slippageBps'].includes(key) && !Number.isInteger(setting))) {
+          (['maxRetries', 'orderValidity', 'slippageBps'].includes(key) && !Number.isInteger(setting)) ||
+          (key === 'slippageBps' && setting > 10000)) {
         throw new Error(`Invalid composite option ${key}`)
       }
     } else throw new Error(`Unknown composite option: ${key}`)
@@ -72,7 +89,8 @@ export function readComposite(path: string) {
   const config = parseComposite(JSON.parse(readFileSync(path, 'utf8')))
   let nextTrader = 1
   let nextRow = 1
-  const scenarios: CompositeScenario[] = config.scenarios.map((file, index) => {
+  const scenarios: CompositeScenario[] = config.scenarios.map((entry, index) => {
+    const file = typeof entry === 'string' ? entry : entry.path
     const source = resolve(dirname(path), file)
     const original = readScenario(source)
     if (!original.length) throw new Error(`Composite scenario is empty: ${file}`)
@@ -83,7 +101,8 @@ export function readComposite(path: string) {
       sourceRows.push({ row, sourceRow: r.row, sourceTrader: r.trader })
       return { ...r, row, trader: traders.get(r.trader)! }
     })
-    return { id: index + 1, name: basename(file, '.csv'), path: file, rows, sourceRows }
+    return { id: index + 1, name: basename(file, '.csv'), path: file, rows, sourceRows,
+      ...(typeof entry === 'string' ? {} : { options: entry.options }) }
   })
   return { ...config, scenarios }
 }

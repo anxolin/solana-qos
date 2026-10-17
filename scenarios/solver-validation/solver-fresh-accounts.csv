@@ -1,0 +1,15 @@
+# Shared fresh-account test: receiving token accounts must be absent before quotes.
+# Each row uses its own wallet. Ordinary run setup must exclude these wallets.
+# Composite settings: 0.15 SOL per trader and 500 bps (5%) slippage for this scenario only.
+# Sell inputs are 0.1 SOL; exact buys target 10 stablecoins. Recheck affordability with current quotes.
+# 8 main + 0 acquisitions + 8 cleanup = 16 estimated creations (0.048 SOL before refunds).
+# More headroom does not guarantee settlement. Exact buys must still receive their signed output.
+trader,time,type,amount,token,other_token,mode,note
+1,0,sell,0.1,SOL,USDC,self,fresh USDC account; self-paid control
+2,0,sell,0.1,SOL,USDC,sponsored,fresh USDC account; sponsored
+3,0,buy,10,USDC,SOL,self,fresh USDC account; exact-buy self-paid control
+4,0,buy,10,USDC,SOL,sponsored,fresh USDC account; exact-buy sponsored
+5,0,sell,0.1,SOL,USDT,self,fresh USDT account; self-paid control
+6,0,sell,0.1,SOL,USDT,sponsored,fresh USDT account; sponsored
+7,0,buy,10,USDT,SOL,self,fresh USDT account; exact-buy self-paid control
+8,0,buy,10,USDT,SOL,sponsored,fresh USDT account; exact-buy sponsored

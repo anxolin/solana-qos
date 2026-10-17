@@ -5,7 +5,14 @@
   "breakSeconds": 30,
   "scenarios": [
     "solver-standard-pairs.csv",
-    "../jupiter/receiving-account-costs.csv",
+    {
+      "path": "solver-fresh-accounts.csv",
+      "options": {
+        "freshAccounts": true,
+        "solFundingPerTrader": 0.15,
+        "slippageBps": 500
+      }
+    },
     "../jupiter/native-vs-wrapped-payouts.csv",
     "../jupiter/amount-precision.csv",
     "../token-2022/token-2022-to-token-2022.csv",
@@ -16,7 +23,7 @@
   "options": {
     "solFundingPerTrader": 0.08,
     "maxTotalSol": 1.76,
-    "maxCreationSol": 0.981,
+    "maxCreationSol": 0.957,
     "maxRetries": 0,
     "orderValidity": 300,
     "fillTimeout": 60,

@@ -19,6 +19,7 @@ import { playScenarios } from '../runner.js'
 import { combinedRows, readComposite, type CompositeScenario } from '../composite.js'
 import { journal, readRun, recoverOrders, recoverRun, saveRun, type SavedRun, type UnresolvedOrder } from '../resume.js'
 import { cleanupTrader } from '../cleanup.js'
+import { planAccounts, prepareAccounts, selectFreshWallets, type AccountPlan } from '../accounts.js'
 import { loadUniverse, resolveToken, splMint, toRaw, fromRaw, usdPrices } from '../tokens.js'
 import { generate, MIN_GAP_S, MIXES } from '../generator.js'
 import { classify, listRows, loadTokenList, type ListToken } from '../tokenlist.js'
@@ -229,14 +230,14 @@ async function dryRun(ctx: FlowContext, w: ReturnType<typeof wallets>, rows: Tra
       const o = await resolveToken(ctx.rpc, r.otherToken)
       const [sell, buy] = r.type === 'sell' ? [t, o] : [o, t]
       const amount = toRaw(r.amount, r.type === 'sell' ? sell.decimals : buy.decimals)
-      const q = await ctx.orders.quote({ owner, sell, buy, kind: r.type, amount })
+      const q = await ctx.orders.quote({ owner, sell, buy, kind: r.type, amount, slippageBps: ctx.slippageBps })
       const { sellAmount, buyAmount } = q.solanaQuote.intent
       const key = (m: string) => `${r.trader}:${m}`
       if (sell.isSol) spend.set(r.trader, (spend.get(r.trader) ?? 0n) + sellAmount)
       else {
         const have = holdings.get(key(splMint(sell).toBase58())) ?? 0n
         if (have < sellAmount) {
-          const acq = await ctx.orders.quote({ owner, sell: sol, buy: sell, kind: 'buy', amount: sellAmount - have })
+          const acq = await ctx.orders.quote({ owner, sell: sol, buy: sell, kind: 'buy', amount: sellAmount - have, slippageBps: ctx.slippageBps })
           spend.set(r.trader, (spend.get(r.trader) ?? 0n) + acq.solanaQuote.intent.sellAmount)
           holdings.set(key(splMint(sell).toBase58()), sellAmount)
         }
@@ -297,6 +298,8 @@ function sessionCommand(name: string) {
     .option('--fill-timeout <s>', 'seconds to wait for a fill before giving up on the order (it then expires on its own)', (v) => parseInt(v, 10), 90)
     .option('--cancel-on-timeout', 'cancel the order on-chain when giving up, so it cannot fill late')
     .option('--slippage-bps <bps>', 'override the quoted slippage', (v) => parseInt(v, 10))
+    .option('--no-prepare-token-accounts', 'leave receiving token accounts to order creation')
+    .option('--fresh-accounts', 'require missing receiving token accounts; skip account preparation')
     .option('--quote-rps <n>', 'quotes per second (raise for stress tests)', parseFloat, 5)
     .option('--api-rps <n>', 'other orderbook calls per second: posting, polling', parseFloat, 8)
     .option('--rpc-rps <n>', 'Solana RPC calls per second (your RPC plan is the limit)', parseFloat, 10)
@@ -313,8 +316,6 @@ async function runSession(scenarioPath: string, opts: any, composite?: ReturnTyp
   const scenarios: CompositeScenario[] = resume?.scenarios ?? composite?.scenarios ?? [{
     id: 1, name: sessionSlug(scenarioPath), path: scenarioPath, rows: readScenario(scenarioPath), sourceRows: [],
   }]
-  const rows = composite ? combinedRows(scenarios, composite.breakSeconds) : scenarios[0].rows
-  const traders = tradersIn(rows)
   const stamp = new Date().toISOString().slice(0, 16).replace(/[T:]/g, '-')
   const slug = composite ? `composite-${composite.solver.replace(/[^a-zA-Z0-9_-]+/g, '-')}-run` : sessionSlug(scenarioPath)
   const session = new Session(opts.session ?? `${stamp}-${slug}`)
@@ -371,10 +372,49 @@ async function runSession(scenarioPath: string, opts: any, composite?: ReturnTyp
     }
     const target = solToLamports(opts.solFundingPerTrader)
     const unfinished = (scenario: CompositeScenario) => scenario.rows.filter(row => !resume?.results.some(result => result.row === row.row))
+    const freshAccounts = (scenario: CompositeScenario) => scenario.options?.freshAccounts ?? opts.freshAccounts ?? false
+    const reservedWallets = new Set(tradersIn(scenarios.flatMap(scenario => scenario.rows)))
+    if (!resume?.accountSetup?.prepared) {
+      for (const scenario of scenarios) {
+        if (freshAccounts(scenario) && !resume?.accountSetup?.freshChecked.includes(scenario.id)) {
+          await selectFreshWallets(rpc, w, scenario.rows, reservedWallets, log)
+        }
+      }
+    }
+    const rows = composite ? combinedRows(scenarios, composite.breakSeconds) : scenarios[0].rows
+    const traders = tradersIn(rows)
     const plan = await fundingPlan(rpc, w, resume ? tradersIn(scenarios.flatMap(unfinished)) : traders, target)
+    const budget = await checkCreationBudget(run, scenarios.map(scenario => ({ name: scenario.path, rows: unfinished(scenario) })), opts)
+    if (budget.issues.length && !opts.dryRun) throw new Error(budget.issues.join('; '))
+    const scenarioFunding = (scenario: CompositeScenario) => scenario.options?.solFundingPerTrader ?? opts.solFundingPerTrader
+    const scenarioContext = (scenario: CompositeScenario): FlowContext => ({ ...ctx, slippageBps: scenario.options?.slippageBps ?? opts.slippageBps })
+    const useAccountSetup = opts.prepareTokenAccounts === true || scenarios.some(freshAccounts)
+    const emptyPlan = (): AccountPlan => ({ accounts: [], rent: 0n, fees: 0n })
+    const accountPlans = useAccountSetup && !resume?.accountSetup?.prepared
+      ? await Promise.all(scenarios.map(scenario => opts.prepareTokenAccounts || freshAccounts(scenario) ? planAccounts(rpc, w, scenario.rows) : emptyPlan()))
+      : scenarios.map(emptyPlan)
+    const setup: AccountPlan = emptyPlan()
+    const allAccounts = new Map<string, { trader: number; address: string }>()
+    for (const [index, scenario] of scenarios.entries()) {
+      const accountPlan = accountPlans[index]
+      if (!freshAccounts(scenario) && opts.prepareTokenAccounts) {
+        setup.accounts.push(...accountPlan.accounts)
+        setup.rent += accountPlan.rent
+      }
+      for (const account of accountPlan.accounts) allAccounts.set(account.address.toBase58(), { trader: account.trader, address: account.address.toBase58() })
+    }
+    setup.fees = BigInt(Math.ceil(setup.accounts.filter(a => !a.exists).length / 6)) * TX_FEE_LAMPORTS
+    let setupCost = setup.rent + setup.fees
+    const setupAddresses = new Set(setup.accounts.map(a => a.address.toBase58()))
+    for (const [index, scenario] of scenarios.entries()) {
+      if (freshAccounts(scenario) && accountPlans[index].accounts.some(a => setupAddresses.has(a.address.toBase58()))) {
+        throw new Error('Fresh-account scenarios must use wallets separate from prepared-account scenarios')
+      }
+    }
     const scenarioPlans = scenarios.map(scenario => {
       const ids = new Set(tradersIn(scenario.rows))
-      return plan.filter(line => ids.has(line.trader))
+      const target = solToLamports(scenarioFunding(scenario))
+      return plan.filter(line => ids.has(line.trader)).map(line => ({ ...line, topUp: line.balance < target ? target - line.balance : 0n }))
     })
     const totals = scenarioPlans.map(lines => lines.reduce((sum, line) => sum + line.topUp, 0n))
     const total = totals.reduce((peak, amount) => amount > peak ? amount : peak, 0n)
@@ -400,6 +440,7 @@ async function runSession(scenarioPath: string, opts: any, composite?: ReturnTyp
       ['Session', opts.dryRun ? c.dim('none (dry run)') : c.cyan(session.name)],
       ['Funder', `${w.funder.publicKey.toBase58()}  ${c.green(fmtSol(funderBalance))}`],
       ['Per trader', `${opts.solFundingPerTrader} SOL`],
+      ['Token-account setup', `${setup.accounts.filter(a => !a.exists).length} accounts; ${fmtSol(setup.rent)} refundable rent + ${fmtSol(setup.fees)} fees; ${opts.cleanup ? 'close at run end' : 'leave open (--no-cleanup)'}`],
       ['Top-ups', `${c.bold(fmtSol(total))} ${c.dim(composite ? 'at most per scenario; fund before each run' : `to ${plan.filter((l) => l.topUp > 0n).length} of ${traders.length} traders`)}`],
       ['Max total', `${opts.maxTotalSol} SOL${composite ? ' per scenario' : ''}`],
       ['Retries', String(opts.maxRetries)],
@@ -415,13 +456,12 @@ async function runSession(scenarioPath: string, opts: any, composite?: ReturnTyp
           : ui.warn(`not configured, the report will be basic. Set ${LOG_ENV_HINT}`),
       ],
     ])
-    const budget = await checkCreationBudget(run, scenarios.map(scenario => ({ name: scenario.path, rows: unfinished(scenario) })), opts)
     const fundingIssues = (lines: typeof plan, balance: bigint, sponsored: bigint, checkBalance = true) => {
       const amount = lines.reduce((sum, line) => sum + line.topUp, 0n)
       return [
         ...(amount > solToLamports(opts.maxTotalSol) ? [`Funding ${fmtSol(amount)} is over --max-total-sol ${opts.maxTotalSol}`] : []),
-        ...(checkBalance && amount + 100_000n > balance ? [`The funder can't cover ${fmtSol(amount)}`] : []),
-        ...(checkBalance && budget.sponsor?.equals(w.funder.publicKey) && amount + sponsored + 100_000n > balance
+        ...(checkBalance && amount + setupCost + 100_000n > balance ? [`The funder can't cover ${fmtSol(amount + setupCost)} including token-account setup`] : []),
+        ...(checkBalance && budget.sponsor?.equals(w.funder.publicKey) && amount + setupCost + sponsored + 100_000n > balance
           ? ['The shared funder cannot cover both trader top-ups and sponsored creations'] : []),
         ...lines.filter(line => budget.estimates.some(estimate => (estimate.selfCosts.get(line.trader) ?? 0n) > line.balance + line.topUp))
           .map((line) => `Trader ${line.trader} cannot cover its estimated self-paid creation costs after funding`),
@@ -429,6 +469,7 @@ async function runSession(scenarioPath: string, opts: any, composite?: ReturnTyp
     }
     const issues = [
       ...budget.issues,
+      ...(setup.rent + setup.fees > solToLamports(opts.maxTotalSol) ? ['Token-account setup exceeds --max-total-sol'] : []),
       ...scenarioPlans.flatMap(lines => fundingIssues(lines, funderBalance, budget.sponsored, !resume)),
     ]
     if (issues.length && !opts.dryRun) throw new Error(issues.join('; '))
@@ -437,11 +478,11 @@ async function runSession(scenarioPath: string, opts: any, composite?: ReturnTyp
     if (opts.dryRun) {
       for (const scenario of scenarios) {
         if (composite) log(c.bold(`▶ Scenario ${scenario.id}/${scenarios.length}: ${scenario.name}`))
-        await dryRun(ctx, w, scenario.rows, opts.solFundingPerTrader)
+        await dryRun(scenarioContext(scenario), w, scenario.rows, scenarioFunding(scenario))
       }
       return
     }
-    if (!resume) await confirm(`Fund up to ${fmtSol(total)}${composite ? ' per scenario' : ''} on ${opts.env}?`, opts.yes)
+    if (!resume) await confirm(`Fund up to ${fmtSol(total)}${composite ? ' per scenario' : ''} plus ${fmtSol(setup.rent + setup.fees)} for token-account setup on ${opts.env}?`, opts.yes)
     release ??= session.lock()
     if (!resume && existsSync(resolve(session.dir, 'sim', 'run.json'))) throw new Error('Session already exists. Use resume-session.')
     const { yes: _yes, session: _session, dryRun: _dryRun, deferCleanupScenario: _deferCleanupScenario, ...settings } = opts
@@ -450,6 +491,17 @@ async function runSession(scenarioPath: string, opts: any, composite?: ReturnTyp
       program: orders.programId.toBase58(), api: env.apiBase,
       ...(composite ? { composite: { name: composite.name, solver: composite.solver, breakSeconds: composite.breakSeconds } } : {}),
       scenarios: scenarios.map(scenario => ({ ...scenario, phase: 'pending', elapsed: 0 })), results: [], times: {},
+    }
+    if (useAccountSetup) {
+      saved.accountSetup ??= { prepared: false, accounts: [...allAccounts.values()], cleanupPending: [...new Set([...allAccounts.values()].map(a => a.trader))], freshChecked: [] }
+      ctx.keepTokenAccounts = new Set(saved.accountSetup.accounts.map(a => a.address))
+      saveRun(session, saved)
+      if (!saved.accountSetup.prepared) {
+        await prepareAccounts(ctx, w, setup)
+        saved.accountSetup.prepared = true
+        saveRun(session, saved)
+      }
+      setupCost = 0n
     }
     if (!resume) {
       session.writeMeta({ rpc: rpcHost(env.rpcUrl), name: `${session.name} trade session`, title: session.name, env: opts.env,
@@ -504,7 +556,21 @@ async function runSession(scenarioPath: string, opts: any, composite?: ReturnTyp
         const scenarioLog = composite ? (message: string) => log(`[${scenario.name}] ${message}`) : log
         if (['pending', 'running'].includes(scenario.phase)) {
           const pendingRows = scenario.rows.filter(row => !results.some(result => result.row === row.row))
-          const lines = await fundingPlan(rpc, w, tradersIn(pendingRows), target)
+          if (freshAccounts(scenario) && pendingRows.length && !saved.accountSetup?.freshChecked.includes(scenario.id)) {
+            const replacements = await selectFreshWallets(rpc, w, pendingRows, reservedWallets, scenarioLog)
+            const fresh = await planAccounts(rpc, w, pendingRows)
+            if (replacements.size) {
+              const setup = saved.accountSetup!
+              setup.accounts = setup.accounts.filter(a => !replacements.has(a.trader)).concat(fresh.accounts.map(a => ({ trader: a.trader, address: a.address.toBase58() })))
+              setup.cleanupPending = setup.cleanupPending.map(trader => replacements.get(trader) ?? trader)
+              ctx.keepTokenAccounts = new Set(setup.accounts.map(a => a.address))
+              budget.estimates[scenario.id - 1] = { name: scenario.path, ...creationBudget(pendingRows, opts.maxRetries, opts.cleanup) }
+            }
+            session.log({ step: 'setup', event: 'fresh_accounts_checked', scenario: scenario.id, accounts: fresh.accounts.map(a => a.address.toBase58()) })
+            saved.accountSetup!.freshChecked.push(scenario.id)
+            saveRun(session, saved)
+          }
+          const lines = await fundingPlan(rpc, w, tradersIn(pendingRows), solToLamports(scenarioFunding(scenario)))
           const balance = await rpc.lamports(w.funder.publicKey)
           const estimate = budget.estimates[scenario.id - 1]
           const issues = pendingRows.length ? fundingIssues(lines, balance, estimate.sponsoredCost) : []
@@ -544,7 +610,7 @@ async function runSession(scenarioPath: string, opts: any, composite?: ReturnTyp
               playRow: async row => {
                 const played = { ...row, time: saved.times[row.row] }
                 scenarioLog(`${tag(row.row, row.trader)} ${ui.kind(row.type)} ${c.bold(`${row.amount} ${row.token}`)} ${row.type === 'sell' ? '→' : '←'} ${c.bold(row.otherToken)} ${c.dim('[')}${ui.mode(row.mode)}${c.dim(']')}${row.note ? ' ' + c.dim(row.note) : ''}`)
-                const result = await runRow({ ...ctx, log: scenarioLog }, w.trader(row.trader), played)
+                const result = await runRow({ ...scenarioContext(scenario), log: scenarioLog }, w.trader(row.trader), played)
                 result.orders += priorOrders.get(row.row)?.size ?? 0
                 results.push(result)
                 checkpoint()
@@ -586,12 +652,12 @@ async function runSession(scenarioPath: string, opts: any, composite?: ReturnTyp
             }
             const todo = (scenario.cleanupPending ?? tradersIn(scenario.rows).filter(trader => !cleaned.has(trader))).filter(trader => !blocked.includes(trader))
             if (resumingCleanup && todo.length) {
-              const lines = await fundingPlan(rpc, w, todo, target)
+              const lines = await fundingPlan(rpc, w, todo, solToLamports(scenarioFunding(scenario)))
               const issues = fundingIssues(lines, await rpc.lamports(w.funder.publicKey), 0n)
               if (issues.length) throw new Error(issues.join('; '))
               await fundScenario(scenario, lines)
             }
-            const cleanedUp = await cleanupAll({ ...ctx, log: scenarioLog }, w, todo, opts.env, opts.rpcRps)
+            const cleanedUp = await cleanupAll({ ...scenarioContext(scenario), log: scenarioLog }, w, todo, opts.env, opts.rpcRps)
             await recoverOutstanding(saved, scenarioLog, new Set(todo))
             const unfinished = todo.filter(trader => !cleanedUp.some(result => result.trader === trader && !result.leftover.length))
             scenario.cleanupPending = [...new Set([...blocked, ...unfinished])]
@@ -620,18 +686,27 @@ async function runSession(scenarioPath: string, opts: any, composite?: ReturnTyp
         }
       }
       if (opts.cleanup) {
+        if (saved.accountSetup) {
+          const pending = new Set(saved.accountSetup.cleanupPending)
+          for (const scenario of saved.scenarios) {
+            const traders = tradersIn(scenario.rows).filter(trader => pending.has(trader))
+            if (!traders.length) continue
+            scenario.cleanupPending = [...new Set([...(scenario.cleanupPending ?? []), ...traders])]
+            scenario.cleanupDeferred = true
+          }
+        }
         const queued = saved.scenarios.filter(scenario => scenario.cleanupDeferred)
         for (const scenario of queued) {
           scenario.cleanupPending ??= tradersIn(scenario.rows)
         }
         const pending = [...new Set(queued.flatMap(scenario => scenario.cleanupPending!))].sort((a, b) => a - b)
         if (pending.length) {
-          log(c.bold(`🧹 Retrying unfinished cleanup at the end for traders ${pending.join(', ')}`))
+          log(c.bold(`🧹 Final cleanup and account closure for traders ${pending.join(', ')}`))
           await recoverOutstanding(saved, log, new Set(pending))
           const todo = pending.filter(trader => !liveUnresolvedOrders(saved, trader).length)
           if (todo.length) {
             try {
-              const balances = await Promise.all(todo.map(async trader => [trader, await rpc.lamports(w.trader(trader).publicKey), (await rpc.tokenAccounts(w.trader(trader).publicKey)).length] as const))
+              const balances = await cleanupBalances(rpc, w, todo)
               const lines = cleanupFundingPlan(w, balances)
               const topUps = lines.filter(line => line.topUp > 0n)
               const amount = topUps.reduce((sum, line) => sum + line.topUp, 0n)
@@ -645,8 +720,14 @@ async function runSession(scenarioPath: string, opts: any, composite?: ReturnTyp
                 await fund(rpc, w, lines, log, ctx.link.tx)
                 session.log({ step: 'cleanup', event: 'funded', traders: topUps.map(line => line.trader), amount: amount.toString() })
               }
-              const cleaned = await cleanupAll(ctx, w, todo, opts.env, opts.rpcRps)
+              const cleaned: Awaited<ReturnType<typeof cleanupAll>> = []
+              const remaining = new Set(todo)
+              for (const scenario of queued) {
+                const traders = scenario.cleanupPending!.filter(trader => remaining.delete(trader))
+                if (traders.length) cleaned.push(...await cleanupAll({ ...scenarioContext(scenario), keepTokenAccounts: undefined }, w, traders, opts.env, opts.rpcRps))
+              }
               const completed = new Set(todo.filter(trader => cleaned.some(result => result.trader === trader && !result.leftover.length)))
+              if (saved.accountSetup) saved.accountSetup.cleanupPending = saved.accountSetup.cleanupPending.filter(trader => !completed.has(trader))
               for (const scenario of queued) {
                 scenario.cleanupPending = scenario.cleanupPending!.filter(trader => !completed.has(trader))
                 scenario.cleanupDeferred = scenario.cleanupPending.length ? true : undefined
@@ -709,12 +790,18 @@ function assertCleanupCanBeDeferred(scenarios: SavedRun['scenarios'], deferred: 
   }
 }
 
-function cleanupFundingPlan(w: ReturnType<typeof wallets>, balances: readonly (readonly [number, bigint, number])[]) {
+async function cleanupBalances(rpc: Rpc, w: ReturnType<typeof wallets>, traders: number[]) {
+  return Promise.all(traders.map(async trader => [trader, await rpc.lamports(w.trader(trader).publicKey), await rpc.tokenAccounts(w.trader(trader).publicKey)] as const))
+}
+
+function cleanupFundingPlan(w: ReturnType<typeof wallets>, balances: Awaited<ReturnType<typeof cleanupBalances>>) {
   return balances.map(([trader, balance, accounts]) => {
-    const creationReserve = BigInt(accounts) * ORDER_CREATION_LAMPORTS + TX_FEE_LAMPORTS * 2n
+    const sales = accounts.filter(a => a.amount > 0n && !a.mint.equals(WSOL_MINT)).length
+    const closeFees = BigInt(Math.ceil(accounts.length / 6) + 1) * TX_FEE_LAMPORTS
+    const creationReserve = BigInt(sales) * ORDER_CREATION_LAMPORTS + closeFees
     const reserve = solToLamports(TRADER_RESERVE_SOL)
-    const target = creationReserve > reserve ? creationReserve : reserve
-    return { trader, address: w.trader(trader).publicKey, balance, topUp: accounts > 0 && balance < target ? target - balance : 0n }
+    const target = sales ? creationReserve > reserve ? creationReserve : reserve : closeFees
+    return { trader, address: w.trader(trader).publicKey, balance, topUp: accounts.length > 0 && balance < target ? target - balance : 0n }
   })
 }
 
@@ -762,8 +849,8 @@ sessionCommand('simulate-composite-scenario')
         const rest = Number((seconds % 60).toFixed(3))
         return minutes ? `${minutes}m${rest ? ` ${rest}s` : ''}` : `${rest}s`
       }
-      const peakWallets = Math.max(...composite.scenarios.map(scenario => tradersIn(scenario.rows).length))
-      const wallets = settings.cleanup ? peakWallets : tradersIn(rows).length
+      const funding = composite.scenarios.map(scenario => solToLamports(scenario.options?.solFundingPerTrader ?? settings.solFundingPerTrader) * BigInt(tradersIn(scenario.rows).length))
+      const totalFunding = settings.cleanup ? funding.reduce((peak, amount) => amount > peak ? amount : peak, 0n) : funding.reduce((sum, amount) => sum + amount, 0n)
       console.log(`\nComposite scenario: ${composite.name}`)
       console.log('Preview only: no network calls, funding, or trades.')
       console.log('Results: not available — use the command without --preview to run the scenarios.')
@@ -773,6 +860,9 @@ sessionCommand('simulate-composite-scenario')
       console.table(composite.scenarios.map((scenario, index) => ({
         Scenario: scenario.path, Trades: scenario.rows.length, Completion: 'Not run',
         'Pause after running': index < composite.scenarios.length - 1 ? duration(composite.breakSeconds) : 'None',
+        Accounts: (scenario.options?.freshAccounts ?? settings.freshAccounts) ? 'Fresh' : settings.prepareTokenAccounts ? 'Prepared' : 'Unprepared',
+        'SOL per trader': scenario.options?.solFundingPerTrader ?? settings.solFundingPerTrader,
+        'Slippage (bps)': scenario.options?.slippageBps ?? settings.slippageBps ?? 'Default',
       })))
       console.log('')
       console.log('Breaks start after all trades, outstanding orders, and cleanup finish.')
@@ -783,8 +873,9 @@ sessionCommand('simulate-composite-scenario')
           : '\nCleanup: after each scenario; return remaining funds before funding the next.'
         : '\nCleanup: disabled; funds stay in the trader wallets.')
       console.log(settings.report ? 'Report: one combined report with results for each scenario.' : 'Report: disabled.')
+      if (settings.prepareTokenAccounts) console.log('Token accounts: prepare once before trading, keep open between scenarios, close during final cleanup when enabled. Fresh-account scenarios skip preparation. Refundable rent is checked during live preflight.')
       const fundingScope = settings.cleanup ? settings.deferCleanup ? ' per scenario; deferred cleanup can retain earlier funding' : ' at a time' : ' across all scenarios'
-      console.log(`\nFunding: up to ${fmtSol(solToLamports(settings.solFundingPerTrader) * BigInt(wallets))}${fundingScope}; cap ${settings.maxTotalSol} SOL per scenario. Existing balances reduce top-ups.`)
+      console.log(`\nFunding: up to ${fmtSol(totalFunding)}${fundingScope}; cap ${settings.maxTotalSol} SOL per scenario. Existing balances reduce top-ups.`)
       console.log('Keep extra SOL for fees and trading losses; balances are checked before funding each scenario.')
       console.log(`Estimated order creation fees/rent: ${fmtSol(budget.total)} before refunds; excludes trade amounts and other fees.`)
       return
@@ -807,8 +898,8 @@ program
     const session = new Session(opts.session)
     const { rpc, ctx, w } = context(opts, session)
     const traders = parseTraders(opts.traders)
-    const balances = await Promise.all(traders.map(async (n) => [n, await rpc.lamports(w.trader(n).publicKey), (await rpc.tokenAccounts(w.trader(n).publicKey)).length] as const))
-    const active = balances.filter(([, l, a]) => l > 0n || a > 0).map(([n]) => n)
+    const balances = await cleanupBalances(rpc, w, traders)
+    const active = balances.filter(([, l, a]) => l > 0n || a.length > 0).map(([n]) => n)
     console.log(`${c.bold(active.length)} of ${traders.length} traders hold SOL or token accounts.`)
     if (!active.length) return
     const plan = cleanupFundingPlan(w, balances)

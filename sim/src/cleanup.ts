@@ -55,7 +55,7 @@ async function sendBatches(ctx: FlowContext, items: Item[], signer: Keypair, siz
     ctx.session.log({ trader: n, step: 'cleanup', event: what === 'reclaim' ? 'reclaimed' : 'closed_accounts', signature: sig, items: batch.map((b) => b.meta) })
     ctx.log(
       `  ${c.blue(`t${n}`)} ${c.blue('cleanup')}: ${what === 'reclaim' ? 'reclaimed' : 'closed'} ${batch.length} ` +
-        `${what === 'reclaim' ? 'order' : 'account'}${batch.length === 1 ? '' : 's'} ${c.dim(batch.map((b) => b.label).join(' '))}\n` +
+        `${what === 'reclaim' ? 'order record' : 'token account'}${batch.length === 1 ? '' : 's'} ${c.dim(batch.map((b) => b.label).join(' '))}\n` +
         `      ${c.dim('tx')} ${c.dim(ctx.link.tx(sig))}`,
     )
   }
@@ -110,7 +110,7 @@ export async function cleanupTrader(ctx: FlowContext, w: Wallets, n: number, env
   const plans = await Promise.all(
     holdings.map(async (a) => {
       try {
-        const q = await ctx.orders.quote({ owner: kp, sell: tokenOf(a), buy: sol, kind: 'sell', amount: a.amount }, ctx.maxRetries)
+        const q = await ctx.orders.quote({ owner: kp, sell: tokenOf(a), buy: sol, kind: 'sell', amount: a.amount, slippageBps: ctx.slippageBps }, ctx.maxRetries)
         return { a, burn: q.solanaQuote.intent.buyAmount < BigInt(a.lamports) }
       } catch (e) {
         // Even "no route" can be temporary. A failed quote never proves the tokens are dust.
@@ -142,6 +142,7 @@ export async function cleanupTrader(ctx: FlowContext, w: Wallets, n: number, env
   const closes: Item[] = []
   for (const a of after) {
     const addr = a.address.toBase58()
+    if (ctx.keepTokenAccounts?.has(addr)) continue
     const close = createCloseAccountInstruction(a.address, owner, owner, [], a.programId)
     const label = a.mint.equals(WSOL_MINT) ? 'wSOL' : a.mint.toBase58().slice(0, 6)
     if (a.mint.equals(WSOL_MINT) || a.amount === 0n) {
@@ -156,6 +157,7 @@ export async function cleanupTrader(ctx: FlowContext, w: Wallets, n: number, env
     }
   }
   result.closedAccounts = await sendBatches(ctx, closes, kp, 6, n, 'close')
+  if (result.closedAccounts < closes.length) result.leftover.push(`${closes.length - result.closedAccounts} token accounts could not be closed`)
 
   // 3. Reclaim finished orders: filled and cancelled ones right away, expired ones once past their validTo.
   const programId = ctx.orders.programId
@@ -203,7 +205,7 @@ export async function cleanupTrader(ctx: FlowContext, w: Wallets, n: number, env
   ctx.log(
     `  ${c.blue(`t${n}`)} ${c.blue('cleanup')}: sold ${c.green(result.sold.length)}, burned ${result.burned.length} dust, ` +
       `left ${result.leftover.length ? c.yellow(result.leftover.length) : 0}, ` +
-      `closed ${result.closedAccounts} accounts, reclaimed ${result.reclaimed} orders, swept ${c.bold(fmtSol(result.swept))}`,
+      `closed ${result.closedAccounts} token accounts, reclaimed ${result.reclaimed} order records, swept ${c.bold(fmtSol(result.swept))}`,
   )
   return result
 }

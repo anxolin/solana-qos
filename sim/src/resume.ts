@@ -31,6 +31,12 @@ export interface SavedRun {
   start?: number
   finished?: boolean
   unresolvedOrders?: UnresolvedOrder[]
+  accountSetup?: {
+    prepared: boolean
+    accounts: { trader: number; address: string }[]
+    cleanupPending: number[]
+    freshChecked: number[]
+  }
 }
 
 export interface UnresolvedOrder {

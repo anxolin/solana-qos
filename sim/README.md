@@ -56,7 +56,14 @@ pnpm sim cleanup-trade-session --traders 1-25
 pnpm sim wallets --traders 1-25
 ```
 
-Standalone cleanup shows any SOL top-ups needed for fees and order rent before asking for confirmation. After confirmation, it tops up token-holding traders from the funder to at least the usual 0.02 SOL reserve (more for wallets with many token accounts), then cleans them up. It stops before sending if the funder cannot cover the top-ups and transfer fees. This lets cleanup retry wallets whose SOL was already swept while tokens remained. Cleanup still returns remaining SOL to the funder, including on its final attempt when some tokens could not be sold.
+Standalone cleanup shows any SOL top-ups needed for fees and order rent before asking for confirmation. Wallets with tokens to sell receive at least the usual 0.02 SOL reserve; wallets with only empty accounts or wSOL receive just enough for closure fees. It stops before sending if the funder cannot cover the top-ups and transfer fees. This lets cleanup retry wallets whose SOL was already swept while tokens remained. Cleanup still returns remaining SOL to the funder, including on its final attempt when some tokens could not be sold.
+
+By default, single and composite runs create missing receiving token accounts once before trading. Composites keep those accounts open between scenarios while selling tokens and recycling available SOL. Final cleanup closes the accounts and returns their rent. Existing accounts are reused. Rent is a temporary deposit, checked against the funder's balance during preflight; transaction fees and trading costs are spent. Receiving wSOL accounts can also retain wrapped SOL until final cleanup. `--no-cleanup` leaves accounts and funds in the wallets. Dry runs never create accounts.
+
+Cleanup logs refer to two different kinds of account:
+
+- **Token accounts** hold tokens, such as USDC. Prepared receiving accounts stay open until the whole run ends. Other token accounts can close between scenarios, including temporary wrapped SOL accounts; closing those converts wrapped SOL back into ordinary SOL.
+- **Order records** store trade instructions, such as “sell SOL for at least 10 USDC.” `reclaimed 3 order records` means three finished order records were closed and their refundable deposits returned to whoever paid them. It does not mean three receiving token accounts were closed.
 
 Main flags of `simulate-trade-session`:
 
@@ -73,6 +80,9 @@ Main flags of `simulate-trade-session`:
 | `--dry-run`, `--no-cleanup`, `-y` | | Quote only; keep the funds in the traders; skip the prompt |
 | `--defer-cleanup` | automatic | Compatibility flag; unfinished cleanup now continues and retries at the end by default |
 | `--max-creation-sol` | off | Refuses a run whose estimated creation cost (acquisitions, retries, cleanup) is above this |
+| `--no-prepare-token-accounts` | preparation on | Skip receiving-account setup before trading |
+| `--fresh-accounts` | off | Skip preparation and require missing receiving accounts for a dedicated fresh-account test |
+| `--slippage-bps` | SDK default | Quote slippage in basis points; 500 means 5% |
 | `--env` | staging | `prod` must be passed explicitly |
 
 `--fill-timeout` starts after placement. `--max-retries N` allows at most N further attempts after placement errors or fill failures, shared across both kinds of failure. The SDK makes each request once, so its retries cannot multiply that budget. Standalone preparation and cleanup quotes also use `maxRetries`, with quote retry delays capped at one second. With `maxRetries: 0`, each quote, placement and cleanup stage gets one attempt, including no fresh quotes after a validity rejection or self-paid fallback after a native-SOL rejection. A run still has a separate final cleanup stage for unfinished wallets. A failed sponsored submission may still have been accepted, so outstanding-order recovery checks its UID before cleanup or the next scenario. Recovery polling and RPC transport handling remain separate from trade retries.
@@ -82,8 +92,10 @@ Main flags of `simulate-trade-session`:
 A composite scenario combines existing CSV scenarios into one solver validation session. Add the CSV paths to a JSON config in the order you want to run them:
 
 ```text
-Fund Burst → run → wait for outstanding orders → cleanup → 60s pause
-Fund CoW → run → wait for outstanding orders → cleanup → one report
+Prepare receiving accounts once
+Fund Burst → run → wait for outstanding orders → sell tokens and sweep SOL → 60s pause
+Fund CoW → run → wait for outstanding orders → sell tokens and sweep SOL
+Close retained accounts → return rent → one report
 ```
 
 The command is `simulate-composite-scenario`. It uses the same trading flow and flags as `simulate-trade-session`.
@@ -102,7 +114,7 @@ Funding is money moved to trader wallets, with leftovers returned during cleanup
 
 ### Make your own config
 
-For the five scenarios previously run for Grafiks, use [grafiks-composite.json](../scenarios/solver-validation/grafiks-composite.json). It runs 189 trades with a 3 SOL funding cap per scenario (at most 2.8 SOL in trader top-ups at a time). The solver validation configs use 30-second pauses between scenarios; the sample and omitted-setting default remain 60 seconds. Shared functional and burst CSVs use shorter schedules for new runs; see [timing details](../scenarios/solver-validation/README.md#faster-schedules).
+For Grafiks, use [grafiks-composite.json](../scenarios/solver-validation/grafiks-composite.json). It runs the original five scenarios plus the shared fresh-account test: 197 trades across 122 wallets, with a 3 SOL funding cap per scenario (at most 2.8 SOL in trader top-ups at a time, plus upfront account rent). Its creation allowance is 0.987 SOL before refunds. The solver validation configs use 30-second pauses between scenarios; the sample and omitted-setting default remain 60 seconds. Shared functional and burst CSVs use shorter schedules for new runs; see [timing details](../scenarios/solver-validation/README.md#faster-schedules).
 
 Save this JSON beside the two CSV files:
 
@@ -128,12 +140,24 @@ Save this JSON beside the two CSV files:
 |---|---|
 | `name` | Required composite label, shown in settings and saved in metadata. |
 | `solver` | Required report label. It does not select, enable, or route orders to a solver; enable the target solver in staging before testing. |
-| `scenarios` | Required non-empty list of CSV paths. Paths are relative to the JSON file. Each entry runs in order. |
+| `scenarios` | Required non-empty list of CSV paths or objects with `path` and `options`. Paths are relative to the JSON file. Each entry runs in order. |
 | `env` | `staging` by default. Set `prod` explicitly to use production. |
 | `breakSeconds` | Full pause after trades, outstanding orders, and cleanup finish; defaults to `60`. Set `0` to skip the pause. |
 | `options` | Optional existing run settings in camelCase. Explicit CLI flags override the config. |
 
-Supported `options`: `solFundingPerTrader`, `maxTotalSol`, `maxCreationSol`, `maxRetries`, `orderValidity`, `fillTimeout`, `cancelOnTimeout`, `slippageBps`, `quoteRps`, `apiRps`, `rpcRps`, `cleanup`, and `report`. Omitted settings use the existing run defaults. Unknown fields and invalid settings are rejected before funding. Confirmation can only be skipped with the CLI's `--yes` flag. `maxTotalSol` caps each scenario's funding pass; `maxCreationSol` caps the whole composite's estimated creation fees/rent before refunds.
+Supported `options`: `solFundingPerTrader`, `maxTotalSol`, `maxCreationSol`, `maxRetries`, `orderValidity`, `fillTimeout`, `cancelOnTimeout`, `slippageBps`, `quoteRps`, `apiRps`, `rpcRps`, `cleanup`, `report`, `prepareTokenAccounts`, and `freshAccounts`. Omitted settings use the existing run defaults. Unknown fields and invalid settings are rejected before funding. Confirmation can only be skipped with the CLI's `--yes` flag. `maxTotalSol` caps each scenario's funding pass and separately limits upfront token-account setup; `maxCreationSol` caps the whole composite's estimated order creation fees/rent before refunds, excluding receiving-account setup.
+
+A scenario object can override only `freshAccounts`, `solFundingPerTrader`, and `slippageBps`. These per-scenario values take precedence over shared config and CLI settings. All five main solver composites include this shared exception:
+
+```json
+{"path": "solver-fresh-accounts.csv", "options": {"freshAccounts": true, "solFundingPerTrader": 0.15, "slippageBps": 500}}
+```
+
+The runner excludes those wallets from preparation and checks their receiving accounts are missing before their first quotes. Each fresh-account row uses a separate wallet. If a receiving account already exists, the runner selects another seed-derived wallet outside the run’s reserved wallet range and checks it on-chain. It logs the replacement and saves the selected trader number in the checkpoint and effective scenario CSV, so resume and cleanup use the same wallet. Previously occupied wallets are left untouched. Resuming a partial scenario does not require accounts created by earlier rows to be missing again. Larger amounts and 5% slippage give account-opening costs more room; they do not guarantee a fill, and exact buys still require their signed output. Test the shared scenario alone with:
+
+```sh
+pnpm sim simulate-trade-session ../scenarios/solver-validation/solver-fresh-accounts.csv --fresh-accounts --sol-funding-per-trader 0.15 --slippage-bps 500
+```
 
 ### Timing and wallets
 
@@ -155,7 +179,7 @@ pnpm sim simulate-composite-scenario test/fixtures/composite/composite.json
 
 `--preview` is the fully offline check. `--dry-run` uses RPC and quotes to check the rows but does not fund or trade. A live run uses the usual wallet/RPC settings described above.
 
-Both `simulate-trade-session` and `simulate-composite-scenario` try cleanup normally after each scenario. If cleanup cannot finish, they record the unfinished wallets and continue trading. After all trading and the last scenario's normal cleanup finish, they retry only those wallets. No flag is needed:
+Both `simulate-trade-session` and `simulate-composite-scenario` try cleanup after each scenario, keeping managed token accounts open. If cleanup cannot finish, they record the unfinished wallets and continue trading. After all trading, final cleanup retries those wallets and closes retained token accounts. No flag is needed:
 
 ```sh
 pnpm sim simulate-composite-scenario ../scenarios/solver-validation/fractal-composite.json --env staging

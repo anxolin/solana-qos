@@ -8,12 +8,20 @@
     "solver-same-direction-25.csv",
     "solver-burst-sell.csv",
     "solver-cow.csv",
-    "solver-token-coverage.csv"
+    "solver-token-coverage.csv",
+    {
+      "path": "solver-fresh-accounts.csv",
+      "options": {
+        "freshAccounts": true,
+        "solFundingPerTrader": 0.15,
+        "slippageBps": 500
+      }
+    }
   ],
   "options": {
     "solFundingPerTrader": 0.07,
     "maxTotalSol": 3,
-    "maxCreationSol": 0.921,
+    "maxCreationSol": 0.969,
     "maxRetries": 0,
     "orderValidity": 300,
     "fillTimeout": 60,

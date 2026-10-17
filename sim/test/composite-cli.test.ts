@@ -7,6 +7,8 @@ import { fileURLToPath } from 'node:url'
 import type { FlowContext } from '../src/flow.js'
 import type { TradeRow } from '../src/scenario.js'
 import type { SavedRun } from '../src/resume.js'
+import { PublicKey } from '@solana/web3.js'
+import { TOKEN_PROGRAM_ID } from '@solana/spl-token'
 
 afterEach(() => {
   vi.useRealTimers()
@@ -155,7 +157,10 @@ it.each([
     const { Orders } = await import('../src/orders.js')
     vi.spyOn(Rpc.prototype, 'lamports').mockImplementation(async address =>
       address.equals(funder) ? mode === 'end-funding' && starts.length === 7 ? 0n : funderBalance : address.toBase58() === '11111111111111111111111111111111' ? 10_000_000_000n : balances.get(address.toBase58()) ?? 0n)
-    vi.spyOn(Rpc.prototype, 'tokenAccounts').mockImplementation(async address => mode.startsWith('end-') && address.equals(w.trader(2).publicKey) ? Array.from({ length: mode === 'end-limit' ? 100 : 1 }, () => ({})) as never : [])
+    vi.spyOn(Rpc.prototype, 'tokenAccounts').mockImplementation(async address => mode.startsWith('end-') && address.equals(w.trader(2).publicKey) ? Array.from({ length: mode === 'end-limit' ? 100 : 1 }, () => ({
+      address: PublicKey.default, mint: new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'),
+      amount: 1_000_000n, decimals: 6, lamports: 2_039_280, programId: TOKEN_PROGRAM_ID,
+    })) : [])
     vi.spyOn(Orders.prototype, 'getOrder').mockImplementation(async uid => mode === 'unknown' || mode === 'defer-unknown' || mode === 'resume-reservations' && uid === 'interrupted-main' || mode.startsWith('normal-unknown') && uid === (mode === 'normal-unknown-last' ? 'order-3' : 'order-1') || mode === 'expired-unknown' && uid === 'interrupted-main' || ['auto-defer-unknown', 'auto-defer-retry-unknown'].includes(mode) && uid === 'uncertain-cleanup' || mode === 'end-unknown-recovery' && uid === 'uncertain-cleanup' && starts.length < 7 ? null : ({
       uid, status: Date.now() >= 15_000 ? 'fulfilled' : 'open', validTo: 300,
       executedSellAmount: '0', executedBuyAmount: '0', orderPda: '',
@@ -198,7 +203,7 @@ it.each([
   const errors = vi.spyOn(console, 'error').mockImplementation(() => {})
   const exit = vi.spyOn(process, 'exit').mockImplementation(() => undefined as never)
   const argv = vi.spyOn(process, 'argv', 'get').mockReturnValue([
-    process.execPath, 'sim', ...(mode === 'unsorted' || mode === 'auto-defer-single' || mode === 'normal-unknown-single' || mode === 'end-single' ? ['simulate-trade-session', singleCsv] : fresh ? ['simulate-composite-scenario', sample] : ['resume-session', name]), ...override, '--yes',
+    process.execPath, 'sim', ...(mode === 'unsorted' || mode === 'auto-defer-single' || mode === 'normal-unknown-single' || mode === 'end-single' ? ['simulate-trade-session', singleCsv] : fresh ? ['simulate-composite-scenario', sample] : ['resume-session', name]), ...(fresh ? ['--no-prepare-token-accounts'] : []), ...override, '--yes',
   ])
   // Capture the CLI's completion without exporting an entry point only for tests.
   const parse = Command.prototype.parseAsync

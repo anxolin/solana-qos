@@ -2,15 +2,16 @@
 
 Run with only the target solver enabled in staging. These are new files; existing scenarios and remote changes are preserved. No live trades were placed while preparing them.
 
-| Run | CSV | Main | Possible acquisitions | Cleanup | Total estimate | Creation allowance before refunds |
-|---|---|---:|---:|---:|---:|---:|
-| 1. Batch remainder | [solver-same-direction-25.csv](solver-same-direction-25.csv) | 25 | 0 | 25 | 50 | 0.150 SOL |
-| 2. Increasing load | [solver-burst-sell.csv](solver-burst-sell.csv) | 84 | 0 | 32 | 116 | 0.348 SOL |
-| 3. Opposing orders | [solver-cow.csv](solver-cow.csv) | 15 | 6 | 13 | 34 | 0.102 SOL |
-| 4. Token coverage | [solver-token-coverage.csv](solver-token-coverage.csv) | 55 | 0 | 40 | 95 | 0.285 SOL |
-| 5. Large route candidates | [solver-transaction-size.csv](solver-transaction-size.csv) | 10 | 0 | 8 | 18 | 0.054 SOL |
+| Run                         | CSV                                                          | Main | Possible acquisitions | Cleanup | Total estimate | Creation allowance before refunds |
+| --------------------------- | ------------------------------------------------------------ | ---: | --------------------: | ------: | -------------: | --------------------------------: |
+| 1. Batch remainder          | [solver-same-direction-25.csv](solver-same-direction-25.csv) |   25 |                     0 |      25 |             50 |                         0.150 SOL |
+| 2. Increasing load          | [solver-burst-sell.csv](solver-burst-sell.csv)               |   84 |                     0 |      32 |            116 |                         0.348 SOL |
+| 3. Opposing orders          | [solver-cow.csv](solver-cow.csv)                             |   15 |                     6 |      13 |             34 |                         0.102 SOL |
+| 4. Token coverage           | [solver-token-coverage.csv](solver-token-coverage.csv)       |   55 |                     0 |      40 |             95 |                         0.285 SOL |
+| 5. Large route candidates   | [solver-transaction-size.csv](solver-transaction-size.csv)   |   10 |                     0 |       8 |             18 |                         0.054 SOL |
+| 6. Fresh receiving accounts | [solver-fresh-accounts.csv](solver-fresh-accounts.csv)       |    8 |                     0 |       8 |             16 |                         0.048 SOL |
 
-The first round allows 313 orders conservatively, or 0.939 SOL at the planning rate of 0.003 SOL/order before refunds. Counts assume no main-order retries, no unrelated tokens in wallets and one cleanup pass. Cleanup can retry after a failure, so estimates are not hard order ceilings. The complete burst sequence exceeds the earlier 100-order cap with the user's approval; the other files stay below 100. Trading amounts and other fees are separate from the creation allowance.
+The original five runs allowed 313 orders conservatively, or 0.939 SOL at the planning rate of 0.003 SOL/order before refunds. The current Grafiks composite adds the shared fresh-account test: 197 main rows across 122 wallets, 329 estimated creations and a 0.987 SOL creation allowance. Counts assume no main-order retries, no unrelated tokens in wallets and one cleanup pass. Cleanup can retry after a failure, so estimates are not hard order ceilings. The complete burst sequence exceeds the earlier 100-order cap with the user's approval; the other files stay below 100. Trading amounts, upfront receiving-account rent and other fees are separate from the creation allowance.
 
 ## What to check
 
@@ -26,10 +27,10 @@ Measure the solver's quote and competition response times from its logs; order f
 
 Read-only Jupiter quote and swap builds on October 9 used 0.005 SOL, ExactIn, maxAccounts=64, wrapping enabled and dynamic compute estimation disabled. The API returned base64 transactions, whose decoded byte length matched Solana SDK serialization, including signature slots and lookup-table metadata.
 
-| Pair | Swap bytes at 0.005 SOL | Route | Swap bytes at 0.02 SOL |
-|---|---:|---|---:|
-| SOL → EURC | 1109 | Meteora DLMM → AlphaQ → DefiTuna | 951 |
-| SOL → JLP | 1104 | Meteora DLMM → GoonFi V2 → Raydium CLMM | 875 |
+| Pair       | Swap bytes at 0.005 SOL | Route                                   | Swap bytes at 0.02 SOL |
+| ---------- | ----------------------: | --------------------------------------- | ---------------------: |
+| SOL → EURC |                    1109 | Meteora DLMM → AlphaQ → DefiTuna        |                    951 |
+| SOL → JLP  |                    1104 | Meteora DLMM → GoonFi V2 → Raydium CLMM |                    875 |
 
 These are ordinary Jupiter swaps, not Grafiks's final CoW settlements. Aggregating four orders changes the amount and can select a smaller route. Routes change with liquidity, and this solver may choose Titan instead. EURC and JLP aliases resolve to the exact mints in the repository's token labels.
 
@@ -41,7 +42,7 @@ For an exact CoW boundary test, use a solver test hook or isolated replay to add
 
 A composite runs several scenario CSVs in order as one session. Create a JSON config with a name, solver label, CSV filenames, and shared run options. Paths are relative to the JSON file, so a CSV beside it needs only its filename. See the [config format](../../sim/README.md#make-your-own-config).
 
-For example, [grafiks-composite.json](grafiks-composite.json) lists the five scenarios previously run for Grafiks. From `sim/`:
+For example, [grafiks-composite.json](grafiks-composite.json) lists the five scenarios previously run for Grafiks plus the shared fresh-account test. From `sim/`:
 
 ```sh
 # Preview the scenario table and budget without credentials or network calls.
@@ -51,15 +52,33 @@ pnpm sim simulate-composite-scenario ../scenarios/solver-validation/grafiks-comp
 pnpm sim simulate-composite-scenario ../scenarios/solver-validation/grafiks-composite.json
 ```
 
-The runner funds one scenario, runs its trades, waits for outstanding orders, and cleans up its wallets. The solver composite configs pause for 30 seconds before funding the next scenario; the simulator still defaults to 60 seconds when a config omits `breakSeconds`. Remaining SOL returns to the funder for reuse. Allow extra SOL for fees and trading losses; balances are checked before each funding pass. `maxTotalSol` caps funding per scenario, while `maxCreationSol` covers the whole composite's estimated creation fees/rent before refunds.
+The runner creates missing receiving token accounts once before the composite starts. Between scenarios it sells tokens and returns available SOL, keeping those accounts open. Final cleanup closes them and recovers rent. Single runs use the same setup at the beginning and closure at the end. Existing accounts are reused. Account rent is a refundable deposit; transaction fees, trading losses and burned dust are spent. Receiving wSOL accounts can retain wrapped SOL until final cleanup. `--no-cleanup` keeps accounts and funds in the wallets.
 
-All scenarios share the config's `options`; explicit CLI flags override them. Use `--dry-run` to check quotes without trading. The solver name is a label: enable the target solver in the chosen environment before an isolated test. Each scenario keeps its own CSV timings and gets separate wallets. The session has prefixed trade logs, a results table, and one combined report when enabled.
+The solver composite configs pause for 30 seconds before funding the next scenario; the simulator still defaults to 60 seconds when a config omits `breakSeconds`. Allow extra SOL for fees, trading losses and upfront account rent; balances are checked before each funding pass. `maxTotalSol` caps funding per scenario and separately limits account setup. `maxCreationSol` covers the whole composite's estimated order creation fees/rent before refunds, excluding receiving-account setup.
+
+Scenarios inherit the config's `options`; explicit CLI flags override shared settings. A scenario object can override `freshAccounts`, `solFundingPerTrader` and `slippageBps` for its own rows, taking precedence over shared settings. Use `--dry-run` to check quotes without trading or creating accounts. The solver name is a label: enable the target solver in the chosen environment before an isolated test. Each scenario keeps its own CSV timings and gets separate wallets. The session has prefixed trade logs, a results table, and one combined report when enabled.
 
 Continue an interrupted run with `pnpm sim resume-session <session-name>`. It uses the saved settings and skips finished rows. See [interrupted runs](../../sim/README.md#interrupted-runs) for order checks and recovery details.
+
+## Shared fresh-account test
+
+All five main solver composites include [solver-fresh-accounts.csv](solver-fresh-accounts.csv). Its eight separate wallets cover SOL→USDC and SOL→USDT, sell and exact-buy orders, and self-paid and sponsored creation. These wallets skip preparation, and the runner verifies the receiving token accounts are missing before quoting. Ordinary test amounts stay unchanged.
+
+This scenario alone uses 0.1 SOL sells, exact buys of 10 USDC/USDT, 0.15 SOL funding per wallet and 500 bps (5%) slippage. Its maximum wallet top-ups are 1.2 SOL, with a separate 0.048 SOL order creation allowance. Larger amounts and slippage reduce the relative impact of account-opening costs; they cannot guarantee settlement or relax the required output of an exact buy. Check current quotes with `--dry-run` before live trading.
+
+From `sim/`, run it alone with:
+
+```sh
+pnpm sim simulate-trade-session ../scenarios/solver-validation/solver-fresh-accounts.csv --fresh-accounts --sol-funding-per-trader 0.15 --slippage-bps 500
+```
+
+If a receiving account already exists, the runner continues with another seed-derived wallet whose receiving accounts are missing. It avoids wallets reserved for other scenarios, logs the replacement and saves the selected trader number for resume and cleanup. The previous wallet and its funds are left untouched. On resume, the saved check allows accounts created by earlier rows to remain. The quote endpoint is unchanged.
 
 ## SOL returned by cleanup
 
 The creation allowance includes fees and rent before refunds. Cleanup sells worthwhile balances, unwraps wSOL, closes token accounts to recover rent, reclaims finished order rent to its creator, and sweeps remaining trader SOL to the test funder. Sponsored order rent can return to the sponsor. Network and priority fees, trading fees, price changes and burned dust reduce the return; unsold balances or unsuccessful reclaims remain outstanding. Include funder and sponsor balances when measuring actual net cost.
+
+In cleanup logs, **order records store trade instructions; receiving token accounts hold the tokens bought**. `reclaimed 3 order records` recovers deposits from three finished trade records, without closing receiving accounts. Between scenarios, prepared receiving accounts stay open; temporary wrapped SOL accounts can close to recover ordinary SOL. Prepared receiving accounts close during final cleanup at the end of the whole run. See [the cleanup log explanation](../../sim/README.md#commands) for more detail.
 
 The broader top250 scenario is outside this first round. Its earlier version had 500 scheduled orders, plus 250 possible acquisitions and 250 cleanup sells: 1000 total, not 1000 cleanup orders. Actual acquisitions and cleanup sales can be fewer. Its remote version has since changed; recount before planning that campaign.
 
@@ -75,13 +94,13 @@ CSV timestamps start each trade flow; inspect actual placement times and auction
 
 All solver composite configs use a 30-second pause after cleanup, a 60-second fill timeout and no trade retries. Standard pairs and focused Jupiter account, payout, precision and general-asset checks start every independent wallet at 0 seconds. Later rows use 1-second stage offsets and wait only for the preceding flow on their own wallet. These offsets are relative to scenario start, not extra pauses after a fill. A previous flow must finish but need not succeed. Unknown outcomes are checked and reported without blocking or skipping later rows; only cleanup is deferred for wallets with potentially live orders.
 
-| Functional check | Last scheduled start before this review | Last scheduled start now |
-|---|---:|---:|
-| Standard pairs | 15s | 1s |
-| Receiving-account costs | 270s | 1s |
-| Native/wrapped payouts | 185s | 2s |
-| Amount precision | 165s | 1s |
-| General asset gaps | 180s | 1s |
+| Functional check        | Last scheduled start before this review | Last scheduled start now |
+| ----------------------- | --------------------------------------: | -----------------------: |
+| Standard pairs          |                                     15s |                       1s |
+| Receiving-account costs |                                    270s |                       1s |
+| Native/wrapped payouts  |                                    185s |                       2s |
+| Amount precision        |                                    165s |                       1s |
+| General asset gaps      |                                    180s |                       1s |
 
 Sell and optional buy bursts now both use 90-second wave gaps. Every order within a wave has the same timestamp. The standalone 8/16/24/32 burst also uses 90-second gaps instead of 180 seconds. This leaves room for the 60-second fill window plus preparation and cancellation; it does not guarantee slow earlier flows have finished. Baselines for the two independent transaction-size pairs start together at 0 seconds, followed by both four-order groups at 90 seconds, instead of four phases ending at 180 seconds.
 

@@ -19,6 +19,9 @@ export interface FlowContext {
   /** Extra margin acquired for buy rows, on top of the quoted max sell amount. */
   acquireBufferBps: number
   log: (m: string) => void
+  /** Run setup accounts stay open until final cleanup. */
+  keepTokenAccounts?: ReadonlySet<string>
+  slippageBps?: number
 }
 
 export interface RowResult {
@@ -49,7 +52,7 @@ export async function placeAndWait(
   for (let attempt = 0; attempt <= ctx.maxRetries; attempt++) {
     attempts++
     try {
-      last = await ctx.orders.place({ ...p, mode }, (order, event) => ctx.session.log({ ...meta, ...order, event, attempt }))
+      last = await ctx.orders.place({ ...p, mode, slippageBps: ctx.slippageBps ?? p.slippageBps }, (order, event) => ctx.session.log({ ...meta, ...order, event, attempt }))
       last.forcedSelf = p.mode === 'sponsored' && mode === 'self'
     } catch (e) {
       const error = errorDetail(e)
@@ -149,7 +152,7 @@ async function playRow(ctx: FlowContext, owner: Keypair, row: TradeRow): Promise
   let need = amount
   if (row.type === 'buy') {
     try {
-      const q = await ctx.orders.quote(main)
+      const q = await ctx.orders.quote({ ...main, slippageBps: ctx.slippageBps })
       need = (q.solanaQuote.intent.sellAmount * BigInt(10_000 + ctx.acquireBufferBps)) / 10_000n
     } catch (e) {
       return fail(`quote failed: ${errorDetail(e)}`)
@@ -183,7 +186,7 @@ async function playRow(ctx: FlowContext, owner: Keypair, row: TradeRow): Promise
       const sol = await resolveToken(ctx.rpc, 'SOL')
       let solIn: bigint
       try {
-        solIn = await ctx.orders.solFor(owner, sol, sell, need - have, ctx.acquireBufferBps)
+        solIn = await ctx.orders.solFor(owner, sol, sell, need - have, ctx.acquireBufferBps, { slippageBps: ctx.slippageBps })
       } catch (e) {
         return fail(`acquire ${sell.symbol} quote failed: ${errorDetail(e)}`)
       }

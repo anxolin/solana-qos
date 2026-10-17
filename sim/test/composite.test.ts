@@ -16,23 +16,34 @@ const sample = fileURLToPath(new URL('./fixtures/composite/composite.json', impo
 afterEach(() => vi.useRealTimers())
 
 describe('composite scenarios', () => {
-  it('composes the five recorded Grafiks scenarios within their configured budgets', () => {
+  it('loads per-scenario funding, slippage and fresh-account settings', () => {
+    const directory = mkdtempSync(join(tmpdir(), 'fresh-composite-'))
+    try {
+      const path = join(directory, 'composite.json')
+      const csv = fileURLToPath(new URL('./fixtures/composite/burst.csv', import.meta.url))
+      const options = { freshAccounts: true, slippageBps: 500, solFundingPerTrader: 0.15 }
+      writeFileSync(path, JSON.stringify({ name: 'fresh', solver: 'test', scenarios: [{ path: csv, options }] }))
+      expect(readComposite(path).scenarios[0]).toMatchObject({ path: csv, options })
+      expect(() => parseComposite({ name: 'fresh', solver: 'test', scenarios: [{ path: csv, options: { slippageBps: 10001 } }] })).toThrow(/slippageBps/)
+    } finally { rmSync(directory, { recursive: true, force: true }) }
+  })
+  it('composes Grafiks scenarios and the shared fresh-account test within their budgets', () => {
     const config = fileURLToPath(new URL('../../scenarios/solver-validation/grafiks-composite.json', import.meta.url))
     const composite = readComposite(config)
     const rows = combinedRows(composite.scenarios, composite.breakSeconds)
     expect(composite.scenarios.map(scenario => [scenario.path, scenario.rows.length])).toEqual([
       ['solver-same-direction-25.csv', 25], ['solver-burst-sell.csv', 84], ['solver-cow.csv', 15],
-      ['solver-token-coverage.csv', 55], ['solver-transaction-size.csv', 10],
+      ['solver-token-coverage.csv', 55], ['solver-transaction-size.csv', 10], ['solver-fresh-accounts.csv', 8],
     ])
     expect(composite.solver).toBe('grafiks')
     expect(composite.breakSeconds).toBe(30)
-    expect(new Set(rows.map(row => row.row)).size).toBe(189)
+    expect(new Set(rows.map(row => row.row)).size).toBe(197)
     const walletCount = new Set(rows.map(row => row.trader)).size
-    expect(walletCount).toBe(114)
+    expect(walletCount).toBe(122)
     const peakWallets = Math.max(...composite.scenarios.map(scenario => tradersIn(scenario.rows).length))
     expect(peakWallets * composite.options.solFundingPerTrader!).toBeLessThanOrEqual(composite.options.maxTotalSol!)
     const budget = creationBudget(rows, composite.options.maxRetries, composite.options.cleanup)
-    expect(budget.creations).toBe(313)
+    expect(budget.creations).toBe(329)
     expect(Number(budget.total) / 1e9).toBeLessThanOrEqual(composite.options.maxCreationSol!)
   })
   it('defaults to a 60-second pause and keeps an explicitly configured pause', () => {

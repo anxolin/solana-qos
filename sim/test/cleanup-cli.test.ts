@@ -3,7 +3,8 @@ import { Command } from 'commander'
 import { mkdtempSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { SystemInstruction } from '@solana/web3.js'
+import { PublicKey, SystemInstruction } from '@solana/web3.js'
+import { TOKEN_PROGRAM_ID } from '@solana/spl-token'
 
 afterEach(() => {
   vi.restoreAllMocks()
@@ -34,7 +35,10 @@ it.each([
   const w = wallets(mnemonic)
   let native = balance
   vi.spyOn(Rpc.prototype, 'lamports').mockImplementation(async owner => owner.equals(w.funder.publicKey) ? funder : native)
-  vi.spyOn(Rpc.prototype, 'tokenAccounts').mockResolvedValue(holdings ? [{}] as never : [])
+  vi.spyOn(Rpc.prototype, 'tokenAccounts').mockResolvedValue(holdings ? [{
+    address: PublicKey.default, mint: new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'),
+    amount: 1_000_000n, decimals: 6, lamports: 2_039_280, programId: TOKEN_PROGRAM_ID,
+  }] : [])
   const send = vi.spyOn(Rpc.prototype, 'sendAndConfirm').mockImplementation(async (ixs, signers) => {
     expect(signers).toEqual([w.funder])
     const transfer = SystemInstruction.decodeTransfer(ixs[0])

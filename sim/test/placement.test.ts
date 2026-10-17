@@ -41,6 +41,18 @@ async function fixture(maxRetries = 0) {
 }
 
 describe('placement reliability', () => {
+  it('passes scenario slippage to the SDK quote and leaves ordinary quotes at their default', async () => {
+    const { orders, owner, sell, buy } = await fixture()
+    vi.useFakeTimers()
+    const quote = vi.spyOn(orders.sdk, 'getQuote').mockRejectedValue(new Error('stop after quote boundary'))
+    const params = { owner, sell, buy, kind: 'sell' as const, amount: 1_000_000n }
+    const results = Promise.allSettled([orders.quote({ ...params, slippageBps: 500 }), orders.quote(params)])
+    await vi.runAllTimersAsync()
+    await results
+    expect(quote.mock.calls[0][0]).toMatchObject({ slippageBps: 500 })
+    expect(quote.mock.calls[1][0]).not.toHaveProperty('slippageBps')
+  })
+
   it('adds a resumed live reservation to the next approval and releases it after expiry', async () => {
     vi.useFakeTimers()
     vi.setSystemTime(0)

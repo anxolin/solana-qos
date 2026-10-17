@@ -35,6 +35,7 @@ export interface PlaceParams {
   /** Raw amount of the sell token (sell orders) or buy token (buy orders). */
   amount: bigint
   mode: Mode
+  slippageBps?: number
 }
 
 export interface Placed {
@@ -209,7 +210,7 @@ export class Orders {
       sellTokenProgramId: p.sell.programId,
       buyTokenProgramId: p.buy.programId,
       validForSeconds: this.opts.validFor + PLACEMENT_MARGIN_S,
-      ...(this.opts.slippageBps !== undefined ? { slippageBps: this.opts.slippageBps } : {}),
+      ...((p.slippageBps ?? this.opts.slippageBps) !== undefined ? { slippageBps: p.slippageBps ?? this.opts.slippageBps } : {}),
     }
     const q = await stage('quote', { ...params, ownerAddress: params.ownerAddress.toBase58() }, () => this.sdk.getQuote(params))
     // buildOrder() reuses solanaQuote's uid/PDA when given no overrides, so they must match the new intent.
@@ -227,8 +228,9 @@ export class Orders {
    * SOL to sell for at least `amount` of `buy`, plus `bufferBps`, priced from a small sell quote. Sells only need an
    * exact-in route, which far more tokens have than the exact-out route a buy needs.
    */
-  async solFor(owner: Keypair, sol: Token, buy: Token, amount: bigint, bufferBps: number, probe = 5_000_000n): Promise<bigint> {
-    const q = await this.quote({ owner, sell: sol, buy, kind: 'sell', amount: probe })
+  async solFor(owner: Keypair, sol: Token, buy: Token, amount: bigint, bufferBps: number, options: { probe?: bigint; slippageBps?: number } = {}): Promise<bigint> {
+    const { probe = 5_000_000n, slippageBps } = options
+    const q = await this.quote({ owner, sell: sol, buy, kind: 'sell', amount: probe, slippageBps })
     const out = q.solanaQuote.intent.buyAmount // the signed minimum: a conservative price
     if (out <= 0n) throw new Error(`quote for ${buy.symbol} returned nothing`)
     return (amount * probe * BigInt(10_000 + bufferBps)) / (out * 10_000n) + 1n
