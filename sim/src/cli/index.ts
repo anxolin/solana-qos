@@ -707,7 +707,7 @@ async function runSession(scenarioPath: string, opts: any, composite?: ReturnTyp
           if (todo.length) {
             try {
               const balances = await cleanupBalances(rpc, w, todo)
-              const lines = cleanupFundingPlan(w, balances)
+              const lines = await cleanupFundingPlan(rpc, w, balances)
               const topUps = lines.filter(line => line.topUp > 0n)
               const amount = topUps.reduce((sum, line) => sum + line.topUp, 0n)
               if (amount > 0n) {
@@ -794,13 +794,18 @@ async function cleanupBalances(rpc: Rpc, w: ReturnType<typeof wallets>, traders:
   return Promise.all(traders.map(async trader => [trader, await rpc.lamports(w.trader(trader).publicKey), await rpc.tokenAccounts(w.trader(trader).publicKey)] as const))
 }
 
-function cleanupFundingPlan(w: ReturnType<typeof wallets>, balances: Awaited<ReturnType<typeof cleanupBalances>>) {
+async function cleanupFundingPlan(rpc: Rpc, w: ReturnType<typeof wallets>, balances: Awaited<ReturnType<typeof cleanupBalances>>) {
+  const walletRent = balances.some(([, , accounts]) => accounts.length > 0)
+    ? BigInt(await rpc.call(c => c.getMinimumBalanceForRentExemption(0))) : 0n
   return balances.map(([trader, balance, accounts]) => {
     const sales = accounts.filter(a => a.amount > 0n && !a.mint.equals(WSOL_MINT)).length
     const closeFees = BigInt(Math.ceil(accounts.length / 6) + 1) * TX_FEE_LAMPORTS
     const creationReserve = BigInt(sales) * ORDER_CREATION_LAMPORTS + closeFees
     const reserve = solToLamports(TRADER_RESERVE_SOL)
-    const target = sales ? creationReserve > reserve ? creationReserve : reserve : closeFees
+    const cleanupReserve = sales ? creationReserve > reserve ? creationReserve : reserve : closeFees
+    // A swept wallet's SOL account may no longer exist, even while its token accounts remain.
+    const rentAndFees = walletRent + closeFees
+    const target = cleanupReserve > rentAndFees ? cleanupReserve : rentAndFees
     return { trader, address: w.trader(trader).publicKey, balance, topUp: accounts.length > 0 && balance < target ? target - balance : 0n }
   })
 }
@@ -902,7 +907,7 @@ program
     const active = balances.filter(([, l, a]) => l > 0n || a.length > 0).map(([n]) => n)
     console.log(`${c.bold(active.length)} of ${traders.length} traders hold SOL or token accounts.`)
     if (!active.length) return
-    const plan = cleanupFundingPlan(w, balances)
+    const plan = await cleanupFundingPlan(rpc, w, balances)
     const topUps = plan.filter(line => line.topUp > 0n)
     const funding = topUps.reduce((sum, line) => sum + line.topUp, 0n)
     if (funding > 0n) {
@@ -910,7 +915,7 @@ program
       if (await rpc.lamports(w.funder.publicKey) < needed) {
         throw new Error(`Funder needs ${fmtSol(needed)} for cleanup top-ups and transfer fees. Fund it before retrying cleanup.`)
       }
-      console.log(`Cleanup funding: top up ${topUps.length} traders with ${fmtSol(funding)} total from the funder for fees and order rent.`)
+      console.log(`Cleanup funding: top up ${topUps.length} traders with ${fmtSol(funding)} total from the funder for fees, wallet rent and order rent.`)
     }
     await confirm(`Clean up traders ${active.join(', ')}?`, opts.yes)
     if (funding > 0n) {

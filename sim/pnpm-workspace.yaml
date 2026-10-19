@@ -1,0 +1,3 @@
+allowBuilds:
+  bigint-buffer: false
+  bufferutil: false

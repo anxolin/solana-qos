@@ -155,6 +155,7 @@ it.each([
   const stubNetwork = async () => {
     const { Rpc } = await import('../src/rpc.js')
     const { Orders } = await import('../src/orders.js')
+    vi.spyOn(Rpc.prototype, 'call').mockImplementation(async fn => fn({ getMinimumBalanceForRentExemption: async () => 650_240 } as never))
     vi.spyOn(Rpc.prototype, 'lamports').mockImplementation(async address =>
       address.equals(funder) ? mode === 'end-funding' && starts.length === 7 ? 0n : funderBalance : address.toBase58() === '11111111111111111111111111111111' ? 10_000_000_000n : balances.get(address.toBase58()) ?? 0n)
     vi.spyOn(Rpc.prototype, 'tokenAccounts').mockImplementation(async address => mode.startsWith('end-') && address.equals(w.trader(2).publicKey) ? Array.from({ length: mode === 'end-limit' ? 100 : 1 }, () => ({

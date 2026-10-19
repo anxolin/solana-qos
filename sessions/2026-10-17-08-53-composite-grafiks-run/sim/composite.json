@@ -1,0 +1,32 @@
+{
+  "name": "grafiks-five-scenarios",
+  "solver": "grafiks",
+  "env": "staging",
+  "breakSeconds": 30,
+  "scenarios": [
+    "solver-same-direction-25.csv",
+    "solver-burst-sell.csv",
+    "solver-cow.csv",
+    "solver-token-coverage.csv",
+    "solver-transaction-size.csv",
+    {
+      "path": "solver-fresh-accounts.csv",
+      "options": {
+        "freshAccounts": true,
+        "solFundingPerTrader": 0.15,
+        "slippageBps": 500
+      }
+    }
+  ],
+  "options": {
+    "solFundingPerTrader": 0.07,
+    "maxTotalSol": 3,
+    "maxCreationSol": 0.987,
+    "maxRetries": 0,
+    "orderValidity": 300,
+    "fillTimeout": 60,
+    "cancelOnTimeout": true,
+    "cleanup": true,
+    "report": true
+  }
+}

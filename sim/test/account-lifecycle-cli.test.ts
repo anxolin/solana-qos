@@ -68,7 +68,7 @@ it.each(['single', 'composite', 'resume', 'limited-funder', 'setup-resume', 'fre
   vi.spyOn(Rpc.prototype, 'mintInfo').mockResolvedValue({ decimals: 6, programId: TOKEN_PROGRAM_ID })
   vi.spyOn(Rpc.prototype, 'call').mockImplementation(async fn => fn({
     getMultipleAccountsInfo: async (addresses: PublicKey[]) => addresses.map(a => accounts.has(a.toBase58()) ? { owner: TOKEN_PROGRAM_ID } : null),
-    getMinimumBalanceForRentExemption: async () => 2_039_280,
+    getMinimumBalanceForRentExemption: async (size: number) => size === 0 ? 650_240 : 2_039_280,
   } as never))
   vi.spyOn(Rpc.prototype, 'lamports').mockImplementation(async owner => owner.toBase58() === '11111111111111111111111111111111' ? 10_000_000_000n : balances.get(owner.toBase58()) ?? 0n)
   vi.spyOn(Rpc.prototype, 'tokenAccounts').mockImplementation(async owner => [...accounts].filter(([, a]) => a.owner.equals(owner)).map(([address, a]) => ({
@@ -93,6 +93,9 @@ it.each(['single', 'composite', 'resume', 'limited-funder', 'setup-resume', 'fre
         }
       } else if (ix.programId.equals(SystemProgram.programId)) {
         const transfer = SystemInstruction.decodeTransfer(ix)
+        if ((balances.get(transfer.toPubkey.toBase58()) ?? 0n) === 0n && !transfer.toPubkey.equals(w.funder.publicKey)) {
+          expect(transfer.lamports).toBeGreaterThanOrEqual(650_240n)
+        }
         setBalance(transfer.fromPubkey, -transfer.lamports)
         setBalance(transfer.toPubkey, transfer.lamports)
       } else {

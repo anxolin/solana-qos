@@ -20,7 +20,11 @@ it.each([
   { name: 'SOL-only trader', balance: 1_000_000n, holdings: false, funder: 0n, topUp: 0n },
   { name: 'insufficient funder', balance: 0n, holdings: true, funder: 20_000_000n, topUp: 20_000_000n, fails: true },
   { name: 'fully cleaned trader', balance: 0n, holdings: false, funder: 100_000_000n, topUp: 0n },
-])('funds cleanup before self-paid transactions: $name', async ({ balance, holdings, funder, topUp, fails }) => {
+  { name: 'zero-SOL trader with an empty token account', balance: 0n, holdings: true, empty: true, funder: 100_000_000n, topUp: 660_240n },
+  { name: 'zero-SOL trader with wrapped SOL', balance: 0n, holdings: true, wrapped: true, funder: 100_000_000n, topUp: 660_240n },
+  { name: 'closure fees above the wallet rent floor', balance: 650_240n, holdings: true, empty: true, funder: 100_000_000n, topUp: 10_000n },
+  { name: 'insufficient funder for wallet rent and transfer fee', balance: 0n, holdings: true, empty: true, funder: 660_240n, topUp: 660_240n, fails: true },
+].map(test => ({ empty: false, wrapped: false, ...test })))('funds cleanup before self-paid transactions: $name', async ({ balance, holdings, funder, topUp, fails, empty, wrapped }) => {
   vi.resetModules()
   const root = mkdtempSync(join(tmpdir(), 'cleanup-cli-'))
   const mnemonic = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about'
@@ -31,23 +35,25 @@ it.each([
       urls: { label: 'Offline', debug: '', solscan: '' } }),
   }))
   const { wallets } = await import('../src/wallets.js')
-  const { Rpc } = await import('../src/rpc.js')
+  const { Rpc, WSOL_MINT } = await import('../src/rpc.js')
   const w = wallets(mnemonic)
   let native = balance
   vi.spyOn(Rpc.prototype, 'lamports').mockImplementation(async owner => owner.equals(w.funder.publicKey) ? funder : native)
+  vi.spyOn(Rpc.prototype, 'call').mockImplementation(async fn => fn({ getMinimumBalanceForRentExemption: async () => 650_240 } as never))
   vi.spyOn(Rpc.prototype, 'tokenAccounts').mockResolvedValue(holdings ? [{
-    address: PublicKey.default, mint: new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'),
-    amount: 1_000_000n, decimals: 6, lamports: 2_039_280, programId: TOKEN_PROGRAM_ID,
+    address: PublicKey.default, mint: wrapped ? WSOL_MINT : new PublicKey('EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'),
+    amount: empty ? 0n : 1_000_000n, decimals: 6, lamports: 2_039_280, programId: TOKEN_PROGRAM_ID,
   }] : [])
   const send = vi.spyOn(Rpc.prototype, 'sendAndConfirm').mockImplementation(async (ixs, signers) => {
     expect(signers).toEqual([w.funder])
     const transfer = SystemInstruction.decodeTransfer(ixs[0])
     expect(transfer.toPubkey).toEqual(w.trader(1).publicKey)
+    if (native === 0n) expect(transfer.lamports).toBeGreaterThanOrEqual(650_240n)
     native += transfer.lamports
     return 'funding-signature'
   })
   const cleanup = vi.fn(async () => {
-    if (holdings) expect(native).toBeGreaterThanOrEqual(20_000_000n)
+    if (holdings) expect(native).toBeGreaterThanOrEqual(empty || wrapped ? 660_240n : 20_000_000n)
     return { trader: 1, sold: [], burned: [], leftover: [], closedAccounts: 0, reclaimed: 0, swept: 0n }
   })
   vi.doMock('../src/cleanup.js', () => ({ cleanupTrader: cleanup }))
