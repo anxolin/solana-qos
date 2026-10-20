@@ -11,15 +11,25 @@ Quality-of-service report for CoW Protocol Solana test sessions on barn. It cove
 report reads. See [`sim/README.md`](sim/README.md). Scenarios you can replay are in `scenarios/` (start with
 `smoke.csv`).
 
-## Combined scenario reports
+## Solver test reports
 
-In Codex, use the repo’s [solver-test-report skill](.agents/skills/solver-test-report/SKILL.md) to combine existing scenario reports:
+Use the repo’s [solver-test-report skill](.agents/skills/solver-test-report/SKILL.md) to generate or update test reports from completed scenarios:
 
 ```text
 $solver-test-report Combine completed scenarios for <run prefix>; use <timestamp> and <solverName> for the report filenames.
 ```
 
 Creates `<timestamp>_<solverName>_solver_test_report.md` for solver results and `<timestamp>_<solverName>_solver_test_report_for_cow.md` for the complete results, including service errors. Both have outcomes, next checks and order tables within each scenario. Unknown error ownership stays marked as unknown. Edits are left unstaged for review.
+
+## Notion solver trackers
+
+Use the repo’s [solver-notion-sync skill](.agents/skills/solver-notion-sync/SKILL.md) to update the Notion solver directory and test-run tracker:
+
+```text
+$solver-notion-sync
+```
+
+Syncs completed runs, fill rates, status notes, full reports and debug links. Updates existing entries without duplicating them and preserves manually set rollout states. Run it when you want a refresh.
 
 ## Token universe
 

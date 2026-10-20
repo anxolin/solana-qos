@@ -1,3 +1,5 @@
+> **Adjusted composite results (20 October): 24/189 eligible flows filled (12.70%). 0 unsupported transfer-fee rows excluded.** The detailed report below retains historical raw counts. Use the [recalculated full report](../sessions/2026-10-17-12-04-composite-jupiter-run/solver_test_report.md) for scoring.
+
 # Jupiter solver test report
 
 17 October 2026 · Staging / Barn on Solana mainnet · 12:05:19–12:45:12 UTC · Session: `2026-10-17-12-04-composite-jupiter-run`; snapshot 12:45:54 UTC.

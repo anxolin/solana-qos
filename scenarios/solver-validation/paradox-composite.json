@@ -20,7 +20,7 @@
   "options": {
     "solFundingPerTrader": 0.07,
     "maxTotalSol": 3,
-    "maxCreationSol": 0.867,
+    "maxCreationSol": 0.849,
     "maxRetries": 0,
     "orderValidity": 300,
     "fillTimeout": 60,

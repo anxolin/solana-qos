@@ -16,8 +16,22 @@ import { TRADER_RESERVE_SOL } from '../src/config.js'
 import { creationBudget } from '../src/budget.js'
 import { APP_DATA_DOC, APP_DATA_HEX } from '../src/appData.js'
 import { barnStatus, buildRows, buildSequence, describeExtension, sampleLongTail, supported, type Routed, type UniverseRow } from '../src/universe.js'
+import { listRows, type Verdict } from '../src/tokenlist.js'
 
 const TEST_MNEMONIC = 'abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about'
+
+it('excludes unsupported transfer-fee probes while keeping zero-fee tokens and other rejection cases', () => {
+  const tokens = ['fee', 'zero-fee', 'other-rejection'].map(symbol => ({ symbol, mint: symbol, decimals: 6 }))
+  const verdicts = new Map<string, Verdict>([
+    ['fee', { kind: 'unsupported', reason: 'Token-2022 transfer fee', extensions: ['transferFeeConfig'] }],
+    ['zero-fee', { kind: 'tradable', program: 'token-2022', extensions: ['transferFeeConfig'], quotedOut: 1000000n }],
+    ['other-rejection', { kind: 'unsupported', reason: 'non-transferable', extensions: ['nonTransferable'] }],
+  ])
+  const rows = listRows(tokens, verdicts, { solPerToken: 0.01, traders: 1, sellBackShare: 0.6, mode: 'self' })
+  expect(rows.tradable).toHaveLength(2)
+  expect(rows.tradable.every(row => [row.token, row.otherToken].includes('zero-fee'))).toBe(true)
+  expect(rows.unsupported.map(row => row.otherToken)).toEqual(['other-rejection'])
+})
 
 describe('wallet derivation', () => {
   // Reference addresses from `solana-keygen pubkey "prompt://?key=<i>/0"` with the same mnemonic.

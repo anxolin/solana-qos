@@ -1,5 +1,5 @@
 # Token-2022: smoke test across every extension.
-# What it is: The two most traded tokens of each extension file (each token once), plus three tokens with a transfer fee that barn should reject. See README.md.
+# What it is: The two most traded tokens of each extension file (each token once), excluding unsupported non-zero transfer-fee tokens. See README.md.
 # Read more: https://solana.com/docs/tokens/extensions
 # Barn: See each extension's file.
 # Tokens: 16 of 140 relevant ones, by 30-day volume. Relevant: 90-day DEX volume >= $1.0M, last 30 days >= 5% of it (still traded), liquidity >= $50k, barn quotes it, Jupiter price > 0.
@@ -55,6 +55,3 @@ trader,time,type,amount,token,other_token,mode,note
 16,0,sell,0.01,SOL,Xsa62P5mvPszXL1krVUnU5ar38bBSVcWAB6fmPCo5Zu,self,scaled-ui-amount: METAx $47.0M/30d: SOL to token [permanentDelegate(set) defaultAccountState(initialized) scaledUiAmountConfig pausableConfig(running) confidentialTransferMint transferHook(none)]
 16,1,sell,0.000919,Xsa62P5mvPszXL1krVUnU5ar38bBSVcWAB6fmPCo5Zu,SOL,self,scaled-ui-amount: METAx $47.0M/30d: 60% back to SOL
 16,2,buy,0.000613,Xsa62P5mvPszXL1krVUnU5ar38bBSVcWAB6fmPCo5Zu,SOL,self,scaled-ui-amount: METAx $47.0M/30d: BUY (exact-out) paying SOL
-17,0,sell,0.005,SOL,DEW9dSN6QpWyNthphCpMmAbZP1Q4cEKR9xQXAri98WDP,sponsored,transfer-fee-rejected: SI [transferFeeConfig(100bps)]: expected UnsupportedToken
-18,0,sell,0.005,SOL,HcRLc9VDgjLeK154xDawfb1dmVJ98DoSqcwTHGqiDeJR,sponsored,transfer-fee-rejected: ZCAT [transferFeeConfig(300bps)]: expected UnsupportedToken
-19,0,sell,0.005,SOL,HTmQz7My6MehV7bjhJ6jde8nDND1yvsz68d24LP7YgUQ,sponsored,transfer-fee-rejected: GP [transferFeeConfig(300bps)]: expected UnsupportedToken

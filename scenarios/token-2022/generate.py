@@ -108,14 +108,6 @@ EXTENSIONS = [
         "barn": "Tradable since early Oct 2026 (rejected before). A fee raised later would make the token unsupported.",
     },
 ]
-REJECTED = {
-    "file": "transfer-fee-rejected", "title": "Transfer fee above 0 bps (expected rejections)",
-    "match": lambda exts: any(e.startswith("transferFeeConfig(") and e != "transferFeeConfig(0bps)" for e in exts),
-    "what": "Each transfer withholds a fee (in bps, up to a cap) in the recipient's account for the issuer to harvest. "
-            "A settlement transfer would deliver less than the order was signed for.",
-    "link": DOCS + "transfer-fees",
-    "barn": "Rejected at the quote with UnsupportedToken. Every row is expected to fail, so nothing is spent.",
-}
 UNUSED = [  # extensions no relevant token carries: documented, nothing to test
     ("Interest-bearing", DOCS + "interest-bearing-tokens",
      "Displayed balance accrues interest at a rate the issuer sets; raw amounts don't change."),
@@ -141,6 +133,8 @@ def load(min_volume: float) -> tuple[list[dict], dict]:
         r["vol"], r["liq"] = float(r["volume_90d_usd"] or 0), float(r["liquidity_usd"] or 0)
         r["vol30"] = float(r["volume_30d_usd"] or 0)
         r["exts"] = r["extensions"].split()
+        if any(e.startswith("transferFeeConfig(") and e != "transferFeeConfig(0bps)" for e in r["exts"]):
+            continue
         rows.append(r)
     rows.sort(key=lambda r: -r["vol30"])  # most traded now first; 90-day volume favours launches that have since faded
     relevant = [r for r in rows if r["vol"] >= min_volume and r["liq"] >= MIN_LIQUIDITY and r["vol30"] >= MIN_RECENT_SHARE * r["vol"]]
@@ -237,18 +231,6 @@ def main() -> None:
         index.append((ext, len(candidates), len(ok), picked))
         print(f"{ext['file']}.csv: {len(picked)} tokens ({len(ok)} qualify, {len(candidates)} relevant carry it)")
 
-    # Expected rejections: every relevant token with a non-zero fee, quote-only, so all of them.
-    rej = [r for r in relevant if REJECTED["match"](r["exts"])]
-    lines = [(1, 0, "sell", 0.005, "SOL", r["mint"], "sponsored",
-              f"{r['symbol']} {usd(r['vol30'])}/30d [{' '.join(r['exts'])}]: expected UnsupportedToken")
-             for r in rej]
-    body = "One trader quotes each token in turn. A row that gets past the quote means barn stopped rejecting that fee.\n" \
-           "Fund with --sol-funding-per-trader 0.03."
-    write(REJECTED["file"], header(REJECTED, rej, len(rej), a.min_volume, sol_usd, body).replace(
-        ", barn quotes it, Jupiter price > 0", ""), lines)
-    index.append((REJECTED, len(rej), 0, rej))
-    print(f"{REJECTED['file']}.csv: {len(rej)} tokens")
-
     # Token-2022 on both sides: sell one tradable Token-2022 token straight into another.
     t22 = [r for r in relevant if tradable(r, px)]
     pairs = [(t22[i], t22[i + 1]) for i in range(0, min(len(t22) - 1, 10), 2)]
@@ -266,24 +248,21 @@ def main() -> None:
           "Fund with --sol-funding-per-trader 0.04."), lines)
     print(f"token-2022-to-token-2022.csv: {len(pairs)} pairs")
 
-    # Smoke test: the two most traded tokens per extension, deduplicated, plus three expected rejections.
+    # Smoke test: the two most traded supported tokens per extension, deduplicated.
     seen, smoke = set(), []
-    for ext, _, _, picked in index[:-1]:
+    for ext, _, _, picked in index:
         for r in [r for r in picked if r["mint"] not in seen][:2]:
             seen.add(r["mint"])
             smoke.append((ext["file"], r))
     lines = [l for i, (file, r) in enumerate(smoke, start=1) for l in round_trips([r], px, first=i, prefix=f"{file}: ")]
     n = len(smoke)
-    for j, r in enumerate(rej[:3], start=n + 1):
-        lines.append((j, 0, "sell", 0.005, "SOL", r["mint"], "sponsored",
-                      f"transfer-fee-rejected: {r['symbol']} [{' '.join(r['exts'])}]: expected UnsupportedToken"))
     smoke_ext = {"title": "smoke test across every extension", "what": "The two most traded tokens of each extension file "
-                 "(each token once), plus three tokens with a transfer fee that barn should reject. See README.md.",
+                 "(each token once), excluding unsupported non-zero transfer-fee tokens. See README.md.",
                  "link": DOCS.rstrip("/"), "barn": "See each extension's file."}
     write("all", header(smoke_ext, [r for _, r in smoke], len(t22), a.min_volume, sol_usd,
           f"One trader per token: sell {SOL_IN} SOL in, {SELL_BACK:.0%} back, plus a BUY row where barn has a buy route.\n"
           "Fund with --sol-funding-per-trader 0.05."), lines)
-    print(f"all.csv: {n} tokens + {min(3, len(rej))} expected rejections")
+    print(f"all.csv: {n} supported tokens")
 
     readme(index, a.min_volume, sol_usd, len(relevant))
 
@@ -298,6 +277,8 @@ def readme(index: list, min_volume: float, sol_usd: float, relevant: int) -> Non
            "Tokens carry extensions as bundles, so one token can show up in several files: xStocks carry pausable, "
            "scaled UI amount, default account state, permanent delegate, confidential transfers and an empty transfer "
            "hook; the stablecoins (USDG, PYUSD, CASH) add mint close authority and a 0-bps transfer fee.", "",
+           "Non-zero transfer-fee tokens are excluded from scenarios and solver performance results. "
+           "Zero-fee configurations remain covered.", "",
            "| Extension | What it does | Barn | Relevant tokens | Tested | File |", "|---|---|---|---:|---:|---|"]
     for ext, carry, ok, picked in index:
         out.append(f"| [{ext['title']}]({ext['link']}) | {ext['what']} | {ext['barn']} | {carry} | {len(picked)} | "

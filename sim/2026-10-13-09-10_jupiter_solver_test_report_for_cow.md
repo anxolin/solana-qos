@@ -1,3 +1,5 @@
+> **Adjusted composite results (20 October): 145/197 eligible flows filled (73.60%). 0 unsupported transfer-fee rows excluded.** The detailed report below retains historical raw counts. Use the [recalculated full report](../sessions/2026-10-13-09-10-composite-jupiter-run/solver_test_report.md) for scoring.
+
 # Jupiter test errors
 
 2026-10-13 · Production · 09:10–10:04 UTC · Session: `2026-10-13-09-10-composite-jupiter-run`.

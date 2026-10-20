@@ -1,3 +1,4 @@
+# Updated 2026-10-20: non-zero transfer-fee tokens excluded; 44 runnable rows. Older coverage figures below describe the original universe.
 # Retry of session 2026-10-09-11-30-token-universe__top250 (/Users/anxo/Bunker/code/cow/solana-qos/scenarios/token-universe/top250.csv): 40 rows that failed on the sim's RPC (429s, timeouts) and 24 later rows that failed because of them. Same traders, amounts and modes.
 # Not included: rows 9, 55, 77, 111, 123, 295, 421 failed before the journal logged them, and the scenario as it ran is gone.
 # Regenerate: pnpm sim retry-session 2026-10-09-11-30-token-universe__top250
@@ -46,16 +47,3 @@ trader,time,type,amount,token,other_token,mode,note
 17,0,sell,0.00298,AavE1kKKnesPw4MuRJmJ9jZs9QzEE8CPxQ3ViczUDfc1,SOL,sponsored,retry of row 394
 7,0,sell,0.005,SOL,G5W6LwkLeoj6rZqBP1y3KT8k6Cz6rXGJmMNU3TArXtXw,sponsored,retry of row 433
 15,0,sell,0.005,SOL,hntyVP6YFm1Hg25TN9WGLqM12b8TQmcknKrdu1oxWux,sponsored,retry of row 449
-4,0,sell,0.005,SOL,4MMQY9bwkxxTtsK3W227Q5ABT6yFY8Pmn9Ze7wmAXKY8,sponsored,retry of row 462
-6,0,sell,0.005,SOL,HuAXPyDWDaMYFKuwQHpqL1oPnj93zdzWmtvFGzCeCUa7,sponsored,retry of row 464
-7,0,sell,0.005,SOL,6UtY9iTZMQQ5QZVrbzFnNaJntV7oySm9k97mvwnuZcxr,sponsored,retry of row 465
-8,0,sell,0.005,SOL,Pren1FvFX6J3E4kXhJuCiAD5aDmGEb7qJRncwA8Lkhw,sponsored,retry of row 466
-9,0,sell,0.005,SOL,AGi2s9zPRPHs3zEDPhPTroumTEXK5ufymYSfEFndCSSW,sponsored,retry of row 467
-12,0,sell,0.005,SOL,PreweJYECqtQwBtpxHL171nL2K6umo692gTm7Q3rpgF,sponsored,retry of row 470
-15,0,sell,0.005,SOL,72yxYmhLgDGwdyi2b9GjDynBB6VuG3kDxNKqDbzXh5bi,sponsored,retry of row 473
-16,0,sell,0.005,SOL,8t5C4AWDg4CroMChxdo7rG2e8nJM31QG2GG7Czx9X7x2,sponsored,retry of row 474
-17,0,sell,0.005,SOL,E4Ap4icMLwKot8rkkTbq5JkS5kZxt5XCE3yfxbzYBjHx,sponsored,retry of row 475
-18,0,sell,0.005,SOL,7MCgYMzq3fov6oERdtTMAYbN2U9LZrrSYS1MBhjixZFr,sponsored,retry of row 476
-19,0,sell,0.005,SOL,7ioeSgzfSKHMnpgfPpgRFsekMBGiu9oi6t6GeqYtNbbh,sponsored,retry of row 477
-20,0,sell,0.005,SOL,FjTfaSH861nVcbAxdFAHTvhoSL4kyR6wgTWynuJkapht,sponsored,retry of row 478
-21,0,sell,0.005,SOL,Pre8AREmFPtoJFT8mQSXQLh56cwJmM7CFDRuoGBZiUP,sponsored,retry of row 479

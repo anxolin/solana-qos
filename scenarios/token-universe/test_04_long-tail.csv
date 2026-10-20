@@ -1,3 +1,4 @@
+# Updated 2026-10-20: non-zero transfer-fee tokens excluded; 60 runnable rows. Older coverage figures below describe the original universe.
 # test_04_long-tail: Long-tail sample (50 tokens, universe of 2026-10-07) (token-universe/sequence/test_04_long-tail.json), classified on staging on 2026-10-09.
 # Token criteria: random sample of 50 tokens outside the ~2,200 the universe checked (>= $100k over 90 days); not relevance-filtered.
 # Coverage: 0.0% Jupiter-routed, 0.0% DFlow-routed, 0.0% Titan-routed (label unconfirmed), 0.0% direct DEX, 0.0% of all DEX volume ($11M of $71.8B) over 30 days; SOL excluded.
@@ -29,7 +30,6 @@ trader,time,type,amount,token,other_token,mode,note
 10,0,sell,176000,9shma1ut5DwsGHg1CG1R3UdvcR61XyWMN99eBeFNpump,SOL,sponsored,Neuralnauts (token-2022): token to SOL
 11,0,sell,0.005,SOL,ED92dgDp91SuGaXJ1UTyxy8NwTENwyAq9mER4e8gbonk,sponsored,Milho (classic): SOL to token
 11,0,sell,181000,ED92dgDp91SuGaXJ1UTyxy8NwTENwyAq9mER4e8gbonk,SOL,sponsored,Milho (classic): token to SOL
-1,0,sell,0.005,SOL,EKBA2KrSya8FGd89jNhNh7wg3mZmADVVJu4YHCF4uAfQ,sponsored,SOLANALIFE: expected UnsupportedToken (Token-2022 transfer fee)
 2,0,sell,0.005,SOL,7TyrdKJC458BxCLWzzYCt1QDahuGV3bUyxQYUtuF27nz,sponsored,AATF (classic): no route on 2026-10-09 (NoLiquidity)
 3,0,sell,0.005,SOL,GTWaP7vQGsUcsua9sJkS6JHhvxwReQeETvuEby6RW8nv,sponsored,NTFS (classic): no route on 2026-10-09 (NoLiquidity)
 4,0,sell,0.005,SOL,Gv48znCBmgN9wFixuKw4ABgSjnPPQUPypTBBvdmepump,sponsored,ACORN (token-2022): no route on 2026-10-09 (NoLiquidity)

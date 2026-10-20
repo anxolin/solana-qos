@@ -7,18 +7,18 @@ Run with only the target solver enabled in staging. These are new files; existin
 | 1. Batch remainder          | [solver-same-direction-25.csv](solver-same-direction-25.csv) |   25 |                     0 |      25 |             50 |                         0.150 SOL |
 | 2. Increasing load          | [solver-burst-sell.csv](solver-burst-sell.csv)               |   84 |                     0 |      32 |            116 |                         0.348 SOL |
 | 3. Opposing orders          | [solver-cow.csv](solver-cow.csv)                             |   15 |                     6 |      13 |             34 |                         0.102 SOL |
-| 4. Token coverage           | [solver-token-coverage.csv](solver-token-coverage.csv)       |   55 |                     0 |      40 |             95 |                         0.285 SOL |
+| 4. Token coverage           | [solver-token-coverage.csv](solver-token-coverage.csv)       |   52 |                     0 |      37 |             89 |                         0.267 SOL |
 | 5. Large route candidates   | [solver-transaction-size.csv](solver-transaction-size.csv)   |   10 |                     0 |       8 |             18 |                         0.054 SOL |
 | 6. Fresh receiving accounts | [solver-fresh-accounts.csv](solver-fresh-accounts.csv)       |    8 |                     0 |       8 |             16 |                         0.048 SOL |
 
-The original five runs allowed 313 orders conservatively, or 0.939 SOL at the planning rate of 0.003 SOL/order before refunds. The current Grafiks composite adds the shared fresh-account test: 197 main rows across 122 wallets, 329 estimated creations and a 0.987 SOL creation allowance. Counts assume no main-order retries, no unrelated tokens in wallets and one cleanup pass. Cleanup can retry after a failure, so estimates are not hard order ceilings. The complete burst sequence exceeds the earlier 100-order cap with the user's approval; the other files stay below 100. Trading amounts, upfront receiving-account rent and other fees are separate from the creation allowance.
+The five ordinary checks allow 307 orders conservatively, or 0.921 SOL at the planning rate of 0.003 SOL/order before refunds. The current Grafiks composite adds the shared fresh-account test: 194 main rows across 119 wallets, 323 estimated creations and a 0.969 SOL creation allowance. Counts assume no main-order retries, no unrelated tokens in wallets and one cleanup pass. Cleanup can retry after a failure, so estimates are not hard order ceilings. The complete burst sequence exceeds the earlier 100-order cap with the user's approval; the other files stay below 100. Trading amounts, upfront receiving-account rent and other fees are separate from the creation allowance.
 
 ## What to check
 
 1. **25 sells:** all wallets spend SOL for JUP at time zero. This uses sell orders because the solver promises batches of up to four sells. Check how 25 orders split into groups and how the last order clears. One timestamp starts the flows; actual placement times determine which orders share an auction.
 2. **Sell bursts:** 4, 8, 16, 24 and 32 wallets start at 0, 90, 180, 270 and 360 seconds. Wallets are reused, with unequal SOL inputs of 0.0025–0.004. Check batch sizes, one swap per sell batch, proportional output, single-order price protection and time to clear the backlog. This measures bursts, not a sustainable continuous arrival rate.
 3. **CoW:** a copy of the existing perfect and imperfect opposing-order cases, including preparation and a control. It retains sponsored creation, so record creation failures separately. Verify both sides reached the same auction. A shared transaction proves batching; inspect DEX instructions to establish direct CoW. Unequal demand or the solver's DEX-price guard can make a swap or separate execution reasonable.
-4. **Tokens:** 40 distinct token/SOL pairs, including Token-2022, memecoins, LSTs, Bitcoin, bridged assets, gold, stocks, stablecoins and pool tokens. The 15 original positive Token-2022 candidates retain inbound sells and exact-output buys; explicit return sells were removed because cleanup provides that direction. The 25 added controls each get one inbound sell and cleanup return. Three expected unsupported-token rows test the backend. Original PAID and SI probes are outside the frontend list. Original fixed buy amounts need fresh quote checks.
+4. **Tokens:** 37 distinct token/SOL pairs, including Token-2022, memecoins, LSTs, Bitcoin, bridged assets, gold, stocks, stablecoins and pool tokens. The 15 original positive Token-2022 candidates retain inbound sells and exact-output buys; explicit return sells were removed because cleanup provides that direction. The 22 supported added controls each get one inbound sell and cleanup return. Non-zero transfer-fee tokens are excluded because autopilot does not support them. Supported zero-fee Token-2022 tokens remain. Original PAID is outside the frontend list. Original fixed buy amounts need fresh quote checks.
 5. **Size:** SOL → EURC and SOL → JLP each have one baseline followed by four sells together, using self paid creation. Check account setup, lookup tables, chosen routes and final settlement bytes. The file is a large-route candidate test, not a proven byte-boundary test.
 
 Measure the solver's quote and competition response times from its logs; order fill time measures a different part of the flow. Record version, auction participation, placement times, fills, errors, batches, DEX calls, payouts and transaction bytes. Passing a case proves that case, not production readiness. A separate buy burst can be considered later; buy batching was not part of the solver's promise.
@@ -60,9 +60,22 @@ Scenarios inherit the config's `options`; explicit CLI flags override shared set
 
 Continue an interrupted run with `pnpm sim resume-session <session-name>`. It uses the saved settings and skips finished rows. See [interrupted runs](../../sim/README.md#interrupted-runs) for order checks and recovery details.
 
+## Rizzolver and Helixbox
+
+[rizzolver-composite.json](rizzolver-composite.json) and [helixbox-composite.json](helixbox-composite.json) use the same seven checks: standard pairs, 25 same-direction sells, sell bursts, opposing orders, token coverage, transaction-size candidates and the shared eight fresh-account cases. Each runs 200 planned trades across 122 wallets. They retain the Fractal/Grafiks settings: 30-second pauses, 60-second fill timeout, no retries, upfront receiving-account setup for ordinary wallets and final account closure. Each allows 1.005 SOL for 335 estimated order creations before refunds and caps each scenario's funding at 3 SOL. The expanded 30-case fresh-account scenario remains separate.
+
+From `sim/`, preview either config offline:
+
+```sh
+pnpm sim simulate-composite-scenario ../scenarios/solver-validation/rizzolver-composite.json --preview
+pnpm sim simulate-composite-scenario ../scenarios/solver-validation/helixbox-composite.json --preview
+```
+
+Enable only the target solver in staging before testing; the config's solver label does not isolate it. Replace `--preview` with `--dry-run` to check live quotes without funding or trading, then remove that flag for a live run.
+
 ## Shared fresh-account test
 
-All five main solver composites include [solver-fresh-accounts.csv](solver-fresh-accounts.csv). Its eight separate wallets cover SOL→USDC and SOL→USDT, sell and exact-buy orders, and self-paid and sponsored creation. These wallets skip preparation, and the runner verifies the receiving token accounts are missing before quoting. Ordinary test amounts stay unchanged.
+The main solver composites include [solver-fresh-accounts.csv](solver-fresh-accounts.csv). Its eight separate wallets cover SOL→USDC and SOL→USDT, sell and exact-buy orders, and self-paid and sponsored creation. These wallets skip preparation, and the runner verifies the receiving token accounts are missing before quoting. Ordinary test amounts stay unchanged.
 
 This scenario alone uses 0.1 SOL sells, exact buys of 10 USDC/USDT, 0.15 SOL funding per wallet and 500 bps (5%) slippage. Its maximum wallet top-ups are 1.2 SOL, with a separate 0.048 SOL order creation allowance. Larger amounts and slippage reduce the relative impact of account-opening costs; they cannot guarantee settlement or relax the required output of an exact buy. Check current quotes with `--dry-run` before live trading.
 
@@ -86,7 +99,7 @@ The broader top250 scenario is outside this first round. Its earlier version had
 
 [solver-burst-buy.csv](solver-burst-buy.csv) adds the same bursts of 4, 8, 16, 24 and 32 orders at 0, 90, 180, 270 and 360 seconds. Both burst files spend SOL and receive USDC: sells fix the SOL input; buys fix the USDC output. The buy file uses self paid creation and unequal output amounts of 0.25–0.40 USDC. Buy batching is outside the solver's stated promise, so use it as an optional comparison of order types.
 
-It allows 84 main orders, no acquisitions and 32 cleanup orders: 116 estimated orders and 0.348 SOL before refunds. Adding it to the five first-round runs gives 429 estimated orders and a 1.287 SOL creation allowance. Use the run settings above with 0.06 SOL per trader, a maximum of 1.92 funded SOL and a 0.348 SOL creation allowance. Dry-run first to check the fixed USDC amounts against current quotes.
+It allows 84 main orders, no acquisitions and 32 cleanup orders: 116 estimated orders and 0.348 SOL before refunds. Adding it to the five first-round runs gives 423 estimated orders and a 1.269 SOL creation allowance. Use the run settings above with 0.06 SOL per trader, a maximum of 1.92 funded SOL and a 0.348 SOL creation allowance. Dry-run first to check the fixed USDC amounts against current quotes.
 
 CSV timestamps start each trade flow; inspect actual placement times and auction membership before judging missed batching opportunities. A wallet waits for its earlier flow to finish, so check actual starts if a burst overruns its gap: 90 seconds for both sells and buys. Retain individual bids from the same auction when checking the single-order price guard.
 
@@ -111,3 +124,7 @@ All 49 scenario CSVs were reviewed. Token-2022, xStock, token-universe, retry an
 Funding, fills, cancellation and cleanup still take their actual time. Any caller of these shared CSVs uses the new timings, including standalone runs; standalone runs should explicitly use `--fill-timeout 60 --cancel-on-timeout` for the shorter burst gaps. Composite configs already set these options.
 
 A live or resumed session uses its saved config, rows and timings. These changes apply to new sessions; they do not accelerate an already-running session.
+
+## Historical composite results
+
+[All saved composite runs](../../sim/composite-test-runs.md) have adjusted reports that exclude unsupported non-zero transfer-fee rows from both the numerator and denominator. Keep the original session files as evidence. Older report details can retain their original raw counts; use the recalculated summary for solver performance.

@@ -53,7 +53,7 @@ The full [Token-2022 pair scenario](../token-2022/token-2022-to-token-2022.csv) 
 
 [General asset gaps](token-coverage-gaps.csv) adds 20 sell/buy pairs, one missing CATE buy and a PAXG sell/buy pair. It covers JitoSOL, mSOL, JupSOL, INF, hyloSOL, PSOL, cbBTC, ETH, BNB, USDe, EURC, EUROP, USDY, JLP, XAUt0, PAXG and five meme-token controls. Each pair shares a wallet; cleanup supplies the return sell. This adapts 20 of 55 token-coverage rows and 22 buys from the large buy sweep, both below the user's 50% threshold for reusing a whole scenario. Notes record source row IDs. No runner changes or row-filtering config are needed.
 
-The full token-coverage file is excluded: 12 of its mints repeat the pair/stock files and three rows are fee-token rejection probes. Four other issuer mints (USDv, SKHY, MU and SPCX) add no new extension configurations here; BONK already appears in precision checks. SPYx and CRCLx remain in both reused files because the two-leg transfers are a different condition. Active fee-on-transfer mints are excluded. USDG, PYUSD, EUROP and PAXG had zero older and newer transfer-fee configurations when checked.
+The full token-coverage file is excluded: 12 of its mints repeat the pair/stock files. Its former fee-token rejection probes have been removed. Four other issuer mints (USDv, SKHY, MU and SPCX) add no new extension configurations here; BONK already appears in precision checks. SPYx and CRCLx remain in both reused files because the two-leg transfers are a different condition. Active fee-on-transfer mints are excluded. USDG, PYUSD, EUROP and PAXG had zero older and newer transfer-fee configurations when checked.
 
 | Extension/configuration | Examples | What is exercised |
 |---|---|---|

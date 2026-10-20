@@ -1,3 +1,5 @@
+> **Adjusted composite results (20 October): 190/190 eligible flows filled (100.00%). 3 unsupported transfer-fee rows excluded.** The detailed report below retains historical raw counts. Use the [recalculated full report](../sessions/2026-10-17-09-36-composite-fractal-run/solver_test_report.md) for scoring.
+
 # Fractal solver test report
 
 Date: 17 October 2026. Environment: staging / Barn on Solana mainnet. Selected completed run: `2026-10-17-09-36-composite-fractal-run`, 09:37:27–10:08:00 UTC including cleanup; observation ended 10:09:00 UTC; fetched 10:13:37 UTC.

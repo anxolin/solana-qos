@@ -1,3 +1,5 @@
+> **Adjusted composite results (20 October): 33/167 eligible flows filled (19.76%). 3 unsupported transfer-fee rows excluded.** The detailed report below retains historical raw counts. Use the [recalculated full report](../sessions/2026-10-12-09-43-composite-paradox-run/solver_test_report.md) for scoring.
+
 # Paradox solver test report
 
 12 October 2026 · Staging · 09:43–11:06 UTC

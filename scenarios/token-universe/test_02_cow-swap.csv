@@ -1,3 +1,4 @@
+# Updated 2026-10-20: non-zero transfer-fee tokens excluded; 558 runnable rows. Older coverage figures below describe the original universe.
 # test_02_cow-swap: The rest of the CoW Swap lists (288 tokens, universe of 2026-10-07) (token-universe/sequence/test_02_cow-swap.json), classified on staging on 2026-10-09.
 # Token criteria: liquidity >= $50k and the last 30 days carry >= 5% of the 90-day DEX volume. CoW support is not required: tokens barn rejects or has no route for stay in; in SolanaDefault or NearSolana; ranked by Jupiter-routed volume.
 # Coverage: 4.1% Jupiter-routed, 2.4% DFlow-routed, 7.0% Titan-routed (label unconfirmed), 5.2% direct DEX, 4.3% of all DEX volume ($3.1B of $71.8B) over 30 days; SOL excluded.
@@ -565,12 +566,3 @@ trader,time,type,amount,token,other_token,mode,note
 8,0,sell,5050,6n7Janary9fqzxKaJVrhL9TG2F61VbAtwUMu1YZscaQS,SOL,sponsored,Hobbes (classic): token to SOL
 9,0,sell,0.005,SOL,AujTJJ7aMS8LDo3bFzoyXDwT3jBALUbu4VZhzZdTZLmG,sponsored,$BEER (classic): SOL to token
 9,0,sell,596000,AujTJJ7aMS8LDo3bFzoyXDwT3jBALUbu4VZhzZdTZLmG,SOL,sponsored,$BEER (classic): token to SOL
-1,0,sell,0.005,SOL,Pren1FvFX6J3E4kXhJuCiAD5aDmGEb7qJRncwA8Lkhw,sponsored,ANTHROPIC: expected UnsupportedToken (Token-2022 transfer fee)
-2,0,sell,0.005,SOL,AGi2s9zPRPHs3zEDPhPTroumTEXK5ufymYSfEFndCSSW,sponsored,LEVERCAT: expected UnsupportedToken (Token-2022 transfer fee)
-3,0,sell,0.005,SOL,oPAiAikWTaFj9RYoRFD35ccfwhnMcB3ThgBZRHSkjTZ,sponsored,tOpenAI: expected UnsupportedToken (Token-2022 transfer fee)
-4,0,sell,0.005,SOL,HgcxVs6kJhPAaGqnPNGaa7zYgNT49hJrLufiqcNMuYZT,sponsored,FEELSGOOD: expected UnsupportedToken (Token-2022 transfer fee)
-5,0,sell,0.005,SOL,PreweJYECqtQwBtpxHL171nL2K6umo692gTm7Q3rpgF,sponsored,OPENAI: expected UnsupportedToken (Token-2022 transfer fee)
-6,0,sell,0.005,SOL,Pre8AREmFPtoJFT8mQSXQLh56cwJmM7CFDRuoGBZiUP,sponsored,POLYMARKET: expected UnsupportedToken (Token-2022 transfer fee)
-7,0,sell,0.005,SOL,PresTj4Yc2bAR197Er7wz4UUKSfqt6FryBEdAriBoQB,sponsored,ANDURIL: expected UnsupportedToken (Token-2022 transfer fee)
-8,0,sell,0.005,SOL,TKLSidmLVt3cqGaaodG8tyRzoANfQwoh67AccjmubeZ,sponsored,tKalshi: expected UnsupportedToken (Token-2022 transfer fee)
-9,0,sell,0.005,SOL,PreLWGkkeqG1s4HEfFZSy9moCrJ7btsHuUtfcCeoRua,sponsored,KALSHI: expected UnsupportedToken (Token-2022 transfer fee)

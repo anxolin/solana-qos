@@ -169,6 +169,7 @@ export function listRows(tokens: ListToken[], verdicts: Map<string, Verdict>, o:
   for (const t of tokens) {
     const v = verdicts.get(t.mint)
     if (!v) continue
+    if (v.kind === 'unsupported' && /transfer fee/i.test(v.reason)) continue
     if (v.kind === 'missing') {
       missing.push({ trader: 1, time: 0, type: 'sell', amount: o.solPerToken, token: 'SOL', otherToken: t.mint, mode: o.mode, note: `${t.symbol}: not a token mint on chain (${v.reason})` })
       continue

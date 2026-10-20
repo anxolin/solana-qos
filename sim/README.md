@@ -147,7 +147,7 @@ Save this JSON beside the two CSV files:
 
 Supported `options`: `solFundingPerTrader`, `maxTotalSol`, `maxCreationSol`, `maxRetries`, `orderValidity`, `fillTimeout`, `cancelOnTimeout`, `slippageBps`, `quoteRps`, `apiRps`, `rpcRps`, `cleanup`, `report`, `prepareTokenAccounts`, and `freshAccounts`. Omitted settings use the existing run defaults. Unknown fields and invalid settings are rejected before funding. Confirmation can only be skipped with the CLI's `--yes` flag. `maxTotalSol` caps each scenario's funding pass and separately limits upfront token-account setup; `maxCreationSol` caps the whole composite's estimated order creation fees/rent before refunds, excluding receiving-account setup.
 
-A scenario object can override only `freshAccounts`, `solFundingPerTrader`, and `slippageBps`. These per-scenario values take precedence over shared config and CLI settings. All five main solver composites include this shared exception:
+A scenario object can override only `freshAccounts`, `solFundingPerTrader`, and `slippageBps`. These per-scenario values take precedence over shared config and CLI settings. The main solver composites include this shared exception:
 
 ```json
 {"path": "solver-fresh-accounts.csv", "options": {"freshAccounts": true, "solFundingPerTrader": 0.15, "slippageBps": 500}}
@@ -323,7 +323,7 @@ In `../scenarios/`. Run `smoke.csv` first.
 | `cow-simple.csv` | Coincidences of wants: perfect and imperfect matches placed in the same second, plus a control. Fund 0.07 |
 | `same-direction-25x1.csv` | 25 traders buy JUP at the same moment. Fund 0.06 |
 | `longtail-25x6.csv` | The Kaffeekränzchen's long-tail tokens |
-| `token-2022/` | One file per Token-2022 extension, plus expected rejections. See its [README](../scenarios/token-2022/README.md) |
+| `token-2022/` | One file per supported Token-2022 extension; non-zero transfer-fee tokens are excluded. See its [README](../scenarios/token-2022/README.md) |
 | `token-universe/` | **Token coverage sequence**, run in order, each token in one file only: `test_01_cow-swap-top` (the 50 most traded CoW Swap tokens with a CoinGecko price: a quick health check), `test_02_cow-swap` (the rest of the app lists), `test_03_jupiter` (other relevant tokens), `test_04_long-tail` (a 50-token sample), `test_05_buy-vs-jupiter` (buys). `expected.csv` holds every row that should work today, as a regression suite. See its [README](../scenarios/token-universe/README.md) |
 | `experiments/` | One-off probes from the token universe: `buy-gap-classic.csv`, `liquidity-ladder.csv`, `no-coingecko-price.csv`, `volume-weighted-20x10.csv` |
 | `unsupported.csv` | `SolanaDefault` tokens CoW can't trade. Every row should fail at the quote |

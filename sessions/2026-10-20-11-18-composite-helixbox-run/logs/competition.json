@@ -1,0 +1,23 @@
+{
+ "_source": "VictoriaLogs via Grafana, container solana-autopilot-staging",
+ "drivers": {
+  "helixbox": {
+   "wins": 108,
+   "solver": "9CHj22k5bdA4PiojGnVM7okS1UienkhCbn4wjnURRb7v",
+   "observed_on_chain": 105,
+   "proposed": 803,
+   "settlement_missed_deadline": 3,
+   "submitted": 105,
+   "settlement_failed": {
+    "FailedToSubmit": 3
+   }
+  }
+ },
+ "autopilot": {
+  "winner_skipped_creation_blockhash_expired": 0,
+  "sponsored_creation_expired_orders": 4,
+  "filtered": {
+   "unfunded_sell_token_account": 347
+  }
+ }
+}

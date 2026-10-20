@@ -1,10 +1,10 @@
 # Token coverage: Token-2022 extensions, memecoins, LSTs, Bitcoin, synthetic dollar, euro stablecoin, treasury and liquidity pool tokens.
-# First-round coverage sample prepared from the October 7 extension sample plus frontend-listed controls checked on October 9. Existing token-2022/all.csv is preserved.
-# 40 distinct tokens; original Token-2022 sell and buy order types retained. Expected rejection rows are backend probes.
+# First-round coverage sample prepared from the October 7 extension sample plus frontend-listed controls checked on October 9. Unsupported non-zero transfer-fee tokens are excluded.
+# 37 distinct tokens; original supported Token-2022 sell and buy order types retained. Non-zero transfer-fee tokens are excluded.
 # Read more: https://solana.com/docs/tokens/extensions
 # Fund with --sol-funding-per-trader 0.05.
 # Token-2022 rows: SOL-to-token sell and exact-output buy; cleanup covers token-to-SOL. Explicit return sells removed to avoid repeating cleanup.
-# No main-order retries: 55 main + 0 acquisitions + 40 cleanup = 95 estimated orders (0.285 SOL at 0.003/order, before refunds).
+# No main-order retries: 52 main + 0 acquisitions + 37 cleanup = 89 estimated orders (0.267 SOL at 0.003/order, before refunds).
 trader,time,type,amount,token,other_token,mode,note
 1,0,sell,0.01,SOL,9cRCn9rGT8V2imeM2BaKs13yhMEais3ruM3rPvTGpump,sponsored,metadata-only: ANSEM rank 10 $984.4M/90d: SOL to token [metadata only]
 1,2,buy,3.26,9cRCn9rGT8V2imeM2BaKs13yhMEais3ruM3rPvTGpump,SOL,sponsored,metadata-only: ANSEM rank 10 $984.4M/90d: BUY (exact-out) paying SOL
@@ -36,9 +36,6 @@ trader,time,type,amount,token,other_token,mode,note
 14,2,buy,0.00277,Xs3oZwbHvqis4NYcf4YKWmEia2eC84wSiVrcYcTqpH8,SOL,sponsored,scaled-ui-amount: SPCXx rank 50 $162.8M/90d: BUY (exact-out) paying SOL
 15,0,sell,0.01,SOL,XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB,sponsored,scaled-ui-amount: TSLAx rank 60 $113.4M/90d: SOL to token [permanentDelegate(set) defaultAccountState(initialized) scaledUiAmountConfig pausableConfig(running) confidentialTransferMint transferHook(none)]
 15,2,buy,0.00123,XsDoVfqeBukxuZHWhdvWHBhgEHjGNst4MLodqsJHzoB,SOL,sponsored,scaled-ui-amount: TSLAx rank 60 $113.4M/90d: BUY (exact-out) paying SOL
-16,0,sell,0.005,SOL,DEW9dSN6QpWyNthphCpMmAbZP1Q4cEKR9xQXAri98WDP,sponsored,transfer-fee-rejected: SI [transferFeeConfig(100bps)]: expected UnsupportedToken
-17,0,sell,0.005,SOL,HcRLc9VDgjLeK154xDawfb1dmVJ98DoSqcwTHGqiDeJR,sponsored,transfer-fee-rejected: ZCAT [transferFeeConfig(300bps)]: expected UnsupportedToken
-18,0,sell,0.005,SOL,Pren1FvFX6J3E4kXhJuCiAD5aDmGEb7qJRncwA8Lkhw,sponsored,transfer-fee-rejected: ANTHROPIC [permanentDelegate(set) defaultAccountState(initialized) transferFeeConfig(100bps) confidentialTransferMint confidentialTransferFeeConfig transferHook(none) scaledUiAmountConfig pausableConfig(running)]: expected UnsupportedToken
 19,0,sell,0.005,SOL,DezXAZ8z7PnrnRJjz3wXBoRgixCa6xjnB7YaB1pPB263,self,memecoin: BONK; classic control; cleanup sells back
 20,0,sell,0.005,SOL,EKpQGSJtjMFqKZ9KQanSqYXRcF8fBopzLHYxdM65zcjm,self,memecoin: WIF; classic control; cleanup sells back
 21,0,sell,0.005,SOL,7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr,self,memecoin: POPCAT; classic control; cleanup sells back

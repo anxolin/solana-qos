@@ -33,17 +33,17 @@ describe('composite scenarios', () => {
     const rows = combinedRows(composite.scenarios, composite.breakSeconds)
     expect(composite.scenarios.map(scenario => [scenario.path, scenario.rows.length])).toEqual([
       ['solver-same-direction-25.csv', 25], ['solver-burst-sell.csv', 84], ['solver-cow.csv', 15],
-      ['solver-token-coverage.csv', 55], ['solver-transaction-size.csv', 10], ['solver-fresh-accounts.csv', 8],
+      ['solver-token-coverage.csv', 52], ['solver-transaction-size.csv', 10], ['solver-fresh-accounts.csv', 8],
     ])
     expect(composite.solver).toBe('grafiks')
     expect(composite.breakSeconds).toBe(30)
-    expect(new Set(rows.map(row => row.row)).size).toBe(197)
+    expect(new Set(rows.map(row => row.row)).size).toBe(194)
     const walletCount = new Set(rows.map(row => row.trader)).size
-    expect(walletCount).toBe(122)
+    expect(walletCount).toBe(119)
     const peakWallets = Math.max(...composite.scenarios.map(scenario => tradersIn(scenario.rows).length))
     expect(peakWallets * composite.options.solFundingPerTrader!).toBeLessThanOrEqual(composite.options.maxTotalSol!)
     const budget = creationBudget(rows, composite.options.maxRetries, composite.options.cleanup)
-    expect(budget.creations).toBe(329)
+    expect(budget.creations).toBe(323)
     expect(Number(budget.total) / 1e9).toBeLessThanOrEqual(composite.options.maxCreationSol!)
   })
   it('defaults to a 60-second pause and keeps an explicitly configured pause', () => {

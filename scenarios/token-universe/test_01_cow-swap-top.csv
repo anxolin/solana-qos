@@ -1,3 +1,4 @@
+# Updated 2026-10-20: non-zero transfer-fee tokens excluded; 94 runnable rows. Older coverage figures below describe the original universe.
 # test_01_cow-swap-top: Top 50 CoW Swap tokens (50 tokens, universe of 2026-10-07) (token-universe/sequence/test_01_cow-swap-top.json), classified on staging on 2026-10-09.
 # Token criteria: liquidity >= $50k and the last 30 days carry >= 5% of the 90-day DEX volume. CoW support is not required: tokens barn rejects or has no route for stay in; in SolanaDefault or NearSolana, with a CoinGecko price; the 50 with the most Jupiter-routed volume.
 # Coverage: 82.2% Jupiter-routed, 72.5% DFlow-routed, 86.1% Titan-routed (label unconfirmed), 57.3% direct DEX, 56.9% of all DEX volume ($40.9B of $71.8B) over 30 days; SOL excluded.
@@ -101,6 +102,3 @@ trader,time,type,amount,token,other_token,mode,note
 16,0,sell,3.04,9BB6NFEcjBCtnNLFko2FqVQBq8HHM13kCyYcdQbgpump,SOL,sponsored,Fartcoin (classic): token to SOL
 17,0,sell,0.005,SOL,D1YZZg9dBZ7AbfknZVbaeVLto36eySwoFYEVhZrD4F4n,sponsored,GO (classic): SOL to token
 17,0,sell,3000,D1YZZg9dBZ7AbfknZVbaeVLto36eySwoFYEVhZrD4F4n,SOL,sponsored,GO (classic): token to SOL
-1,0,sell,0.005,SOL,HcRLc9VDgjLeK154xDawfb1dmVJ98DoSqcwTHGqiDeJR,sponsored,ZCAT: expected UnsupportedToken (Token-2022 transfer fee)
-2,0,sell,0.005,SOL,8RVBk8vxLiUHueLUW1f4izFVqN3nWippLhkohKg6EGkS,sponsored,KNOTS: expected UnsupportedToken (Token-2022 transfer fee)
-3,0,sell,0.005,SOL,6UtY9iTZMQQ5QZVrbzFnNaJntV7oySm9k97mvwnuZcxr,sponsored,NEARKAT: expected UnsupportedToken (Token-2022 transfer fee)

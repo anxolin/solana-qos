@@ -1,3 +1,4 @@
+# Updated 2026-10-20: non-zero transfer-fee tokens excluded; 234 runnable rows. Older coverage figures below describe the original universe.
 # test_03_jupiter: Every other relevant token (130 tokens, universe of 2026-10-07) (token-universe/sequence/test_03_jupiter.json), classified on staging on 2026-10-09.
 # Token criteria: liquidity >= $50k and the last 30 days carry >= 5% of the 90-day DEX volume. CoW support is not required: tokens barn rejects or has no route for stay in; not in the app lists; ranked by Jupiter-routed volume.
 # Coverage: 6.0% Jupiter-routed, 9.0% DFlow-routed, 5.2% Titan-routed (label unconfirmed), 1.4% direct DEX, 4.3% of all DEX volume ($3.1B of $71.8B) over 30 days; SOL excluded.
@@ -241,16 +242,3 @@ trader,time,type,amount,token,other_token,mode,note
 26,0,sell,0.896,4SoQ8UkWfeDH47T56PA53CZCeW4KytYCiU65CwBWoJUt,SOL,sponsored,MNT (classic): token to SOL
 27,0,sell,0.005,SOL,D6xWgRCSHoMEB5fqPwk3p6Stxirn5ytm2WwboSTTx4oE,sponsored,PYBOBO (classic): SOL to token
 27,0,sell,709,D6xWgRCSHoMEB5fqPwk3p6Stxirn5ytm2WwboSTTx4oE,SOL,sponsored,PYBOBO (classic): token to SOL
-1,0,sell,0.005,SOL,DEW9dSN6QpWyNthphCpMmAbZP1Q4cEKR9xQXAri98WDP,sponsored,SI: expected UnsupportedToken (Token-2022 transfer fee)
-2,0,sell,0.005,SOL,HTmQz7My6MehV7bjhJ6jde8nDND1yvsz68d24LP7YgUQ,sponsored,GP: expected UnsupportedToken (Token-2022 transfer fee)
-3,0,sell,0.005,SOL,4MMQY9bwkxxTtsK3W227Q5ABT6yFY8Pmn9Ze7wmAXKY8,sponsored,ALLINU: expected UnsupportedToken (Token-2022 transfer fee)
-4,0,sell,0.005,SOL,HuAXPyDWDaMYFKuwQHpqL1oPnj93zdzWmtvFGzCeCUa7,sponsored,MASK: expected UnsupportedToken (Token-2022 transfer fee)
-5,0,sell,0.005,SOL,8RNUw4N655VSrZKuhGdywhbSMDTrheguFPfxbpE2NZHQ,sponsored,PURR: expected UnsupportedToken (Token-2022 transfer fee)
-6,0,sell,0.005,SOL,ZesMGYmokFiEuDvNzWeMhB7jxF6eUW8c512vwSKSTNK,sponsored,🎒: expected UnsupportedToken (Token-2022 transfer fee)
-7,0,sell,0.005,SOL,72yxYmhLgDGwdyi2b9GjDynBB6VuG3kDxNKqDbzXh5bi,sponsored,WOW: expected UnsupportedToken (Token-2022 transfer fee)
-8,0,sell,0.005,SOL,8t5C4AWDg4CroMChxdo7rG2e8nJM31QG2GG7Czx9X7x2,sponsored,SNDK: expected UnsupportedToken (Token-2022 transfer fee)
-9,0,sell,0.005,SOL,E4Ap4icMLwKot8rkkTbq5JkS5kZxt5XCE3yfxbzYBjHx,sponsored,BTC: expected UnsupportedToken (Token-2022 transfer fee)
-10,0,sell,0.005,SOL,7MCgYMzq3fov6oERdtTMAYbN2U9LZrrSYS1MBhjixZFr,sponsored,POLLY: expected UnsupportedToken (Token-2022 transfer fee)
-11,0,sell,0.005,SOL,7ioeSgzfSKHMnpgfPpgRFsekMBGiu9oi6t6GeqYtNbbh,sponsored,CURVE: expected UnsupportedToken (Token-2022 transfer fee)
-12,0,sell,0.005,SOL,FjTfaSH861nVcbAxdFAHTvhoSL4kyR6wgTWynuJkapht,sponsored,DIVI: expected UnsupportedToken (Token-2022 transfer fee)
-13,0,sell,0.005,SOL,PrekqLJvJ3qVdXmBGDiexvwUTF4rLFDa6HWS4HJbw9S,sponsored,NEURALINK: expected UnsupportedToken (Token-2022 transfer fee)

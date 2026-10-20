@@ -1,3 +1,5 @@
+> **Adjusted composite results (20 October): 48/203 eligible flows filled (23.65%). 3 unsupported transfer-fee rows excluded.** The detailed report below retains historical raw counts. Use the [recalculated full report](../sessions/2026-10-17-07-54-composite-kaisersolver-run/solver_test_report.md) for scoring.
+
 # Kaisersolver solver test report
 
 Date: 17 October 2026. Environment: staging / Barn, on Solana mainnet. Scenario trading: 07:55:09–08:10:28 UTC; run observation ended 08:14:26 UTC; snapshot fetched 08:15:21 UTC.

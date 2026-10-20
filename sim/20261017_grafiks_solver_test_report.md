@@ -1,3 +1,5 @@
+> **Adjusted composite results (20 October): 190/194 eligible flows filled (97.94%). 3 unsupported transfer-fee rows excluded.** The detailed report below retains historical raw counts. Use the [recalculated full report](../sessions/2026-10-17-08-53-composite-grafiks-run/solver_test_report.md) for scoring.
+
 # Grafiks solver test report
 
 Date: 17 October 2026. Environment: staging / Barn, Solana mainnet. Scenario trading: 08:54:44–09:19:12 UTC. Snapshot fetched 09:34:42 UTC.
