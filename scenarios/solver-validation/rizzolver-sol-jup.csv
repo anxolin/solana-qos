@@ -1,0 +1,8 @@
+# Check SOL/JUP quotes and sponsored creation without a load or batching target.
+# Each row uses its own wallet; both sell and exact-buy orders have a self-paid control.
+# 4 main + 0 acquisitions + 4 cleanup = 8 estimated creations (0.024 SOL before refunds).
+trader,time,type,amount,token,other_token,mode,note
+1,0,sell,0.01,SOL,JUP,self,SOL/JUP fixed-input sell; self-paid control
+2,0,sell,0.01,SOL,JUP,sponsored,SOL/JUP fixed-input sell; sponsored creation
+3,0,buy,1,JUP,SOL,self,SOL/JUP exact JUP output; self-paid control
+4,0,buy,1,JUP,SOL,sponsored,SOL/JUP exact JUP output; sponsored creation

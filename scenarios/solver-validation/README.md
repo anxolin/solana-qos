@@ -62,7 +62,13 @@ Continue an interrupted run with `pnpm sim resume-session <session-name>`. It us
 
 ## Rizzolver and Helixbox
 
-[rizzolver-composite.json](rizzolver-composite.json) and [helixbox-composite.json](helixbox-composite.json) use the same seven checks: standard pairs, 25 same-direction sells, sell bursts, opposing orders, token coverage, transaction-size candidates and the shared eight fresh-account cases. Each runs 200 planned trades across 122 wallets. They retain the Fractal/Grafiks settings: 30-second pauses, 60-second fill timeout, no retries, upfront receiving-account setup for ordinary wallets and final account closure. Each allows 1.005 SOL for 335 estimated order creations before refunds and caps each scenario's funding at 3 SOL. The expanded 30-case fresh-account scenario remains separate.
+[rizzolver-composite.json](rizzolver-composite.json) checks Wintermute's supported staging tokens only: SOL, USDC, USDT and JUP. It runs 127 planned trades across 72 wallets: 6 standard-pair cases, 4 [SOL/JUP cases](rizzolver-sol-jup.csv) covering self-paid and sponsored sells and exact buys, 25 same-direction SOL/JUP sells, 84 burst sells and the 8 shared fresh-account cases. This retests JUP quoting, sponsored creation and completion under concurrent load. The creation allowance is 0.65 SOL, covering 202 estimated order creations (0.606 SOL before refunds).
+
+Batching is a known current limitation: interpret the shared 25-sell and burst scenarios as completion and timing checks, despite their batching-oriented CSV notes. Record actual batch sizes without expecting four-order batches. The run uses a 180-second fill timeout to allow serial fills; its timeout-sensitive results are not directly comparable with earlier 60-second runs. CoW matching, unsupported-token coverage and transaction-size checks are excluded. Production eligibility is not determined by this config.
+
+[helixbox-composite.json](helixbox-composite.json) keeps the seven checks: standard pairs, 25 same-direction sells, sell bursts, opposing orders, token coverage, transaction-size candidates and the shared eight fresh-account cases. It runs 200 planned trades across 122 wallets, with a 1.005 SOL allowance for 335 estimated order creations before refunds.
+
+Both configs retain 30-second pauses, no retries, upfront receiving-account setup for ordinary wallets, final account closure and a 3 SOL funding cap per scenario. Helixbox retains its 60-second fill timeout; Rizzolver uses 180 seconds. The shared fresh-account cases retain 0.15 SOL funding per trader and 500 bps slippage. The expanded 30-case fresh-account scenario remains separate.
 
 From `sim/`, preview either config offline:
 

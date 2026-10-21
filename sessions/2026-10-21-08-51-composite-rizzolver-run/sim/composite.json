@@ -1,0 +1,31 @@
+{
+  "name": "rizzolver-supported-pairs-and-creations",
+  "solver": "rizzolver",
+  "env": "staging",
+  "breakSeconds": 30,
+  "scenarios": [
+    "solver-standard-pairs.csv",
+    "rizzolver-sol-jup.csv",
+    "solver-same-direction-25.csv",
+    "solver-burst-sell.csv",
+    {
+      "path": "solver-fresh-accounts.csv",
+      "options": {
+        "freshAccounts": true,
+        "solFundingPerTrader": 0.15,
+        "slippageBps": 500
+      }
+    }
+  ],
+  "options": {
+    "solFundingPerTrader": 0.07,
+    "maxTotalSol": 3,
+    "maxCreationSol": 0.65,
+    "maxRetries": 0,
+    "orderValidity": 300,
+    "fillTimeout": 180,
+    "cancelOnTimeout": true,
+    "cleanup": true,
+    "report": true
+  }
+}

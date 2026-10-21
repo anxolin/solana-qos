@@ -1,7 +1,7 @@
 {
  "rpc": "solana-mainnet.g.alchemy.com",
- "name": "2026-10-20-13-38-composite-kaisersolver-run trade session",
- "title": "2026-10-20-13-38-composite-kaisersolver-run",
+ "name": "2026-10-20-14-05-composite-kaisersolver-run trade session",
+ "title": "2026-10-20-14-05-composite-kaisersolver-run",
  "env": "staging",
  "sim": {
   "scenario": "/Users/igor/work/cowprotocol/solana-qos/scenarios/solver-validation/kaisersolver-composite.json",
@@ -51,13 +51,16 @@
      }
     ],
     "phase": "finished",
-    "elapsed": 87.474,
-    "start": "2026-10-20T13:39:51.815Z",
+    "elapsed": 49.965,
+    "start": "2026-10-20T14:06:08.169Z",
     "offset": 0,
-    "checkpointAt": 1792503679289,
-    "end": "2026-10-20T13:41:19.291Z",
-    "cleanupPending": [],
-    "pauseUntil": 1792503729062
+    "checkpointAt": 1792505218134,
+    "end": "2026-10-20T14:06:58.137Z",
+    "cleanupPending": [
+     3
+    ],
+    "cleanupDeferred": true,
+    "pauseUntil": 1792505265797
    },
    {
     "id": 2,
@@ -146,13 +149,13 @@
      }
     ],
     "phase": "finished",
-    "elapsed": 36.985,
-    "start": "2026-10-20T13:42:11.417Z",
-    "offset": 139.602,
-    "checkpointAt": 1792503768402,
-    "end": "2026-10-20T13:42:48.405Z",
+    "elapsed": 40.932,
+    "start": "2026-10-20T14:07:48.083Z",
+    "offset": 99.914,
+    "checkpointAt": 1792505309014,
+    "end": "2026-10-20T14:08:29.016Z",
     "cleanupPending": [],
-    "pauseUntil": 1792503842788
+    "pauseUntil": 1792505373378
    },
    {
     "id": 3,
@@ -221,13 +224,13 @@
      }
     ],
     "phase": "finished",
-    "elapsed": 52.733,
-    "start": "2026-10-20T13:44:04.677Z",
-    "offset": 252.862,
-    "checkpointAt": 1792503897410,
-    "end": "2026-10-20T13:44:57.412Z",
+    "elapsed": 141.7,
+    "start": "2026-10-20T14:09:35.265Z",
+    "offset": 207.096,
+    "checkpointAt": 1792505516965,
+    "end": "2026-10-20T14:11:56.969Z",
     "cleanupPending": [],
-    "pauseUntil": 1792503955922
+    "pauseUntil": 1792505603244
    },
    {
     "id": 4,
@@ -361,20 +364,13 @@
      }
     ],
     "phase": "finished",
-    "elapsed": 51.275,
-    "start": "2026-10-20T13:46:01.252Z",
-    "offset": 369.437,
-    "checkpointAt": 1792504012527,
-    "end": "2026-10-20T13:46:52.531Z",
-    "cleanupPending": [
-     24,
-     26,
-     27,
-     29,
-     30
-    ],
-    "cleanupDeferred": true,
-    "pauseUntil": 1792504155214
+    "elapsed": 53.462,
+    "start": "2026-10-20T14:13:28.682Z",
+    "offset": 440.513,
+    "checkpointAt": 1792505662144,
+    "end": "2026-10-20T14:14:22.147Z",
+    "cleanupPending": [],
+    "pauseUntil": 1792505828770
    },
    {
     "id": 5,
@@ -802,10 +798,14 @@
       "sourceTrader": 32
      }
     ],
-    "phase": "running",
-    "elapsed": 0,
-    "start": "2026-10-20T13:49:26.955Z",
-    "offset": 575.14
+    "phase": "finished",
+    "elapsed": 422.217,
+    "start": "2026-10-20T14:17:16.349Z",
+    "offset": 668.18,
+    "checkpointAt": 1792506258566,
+    "end": "2026-10-20T14:24:18.574Z",
+    "cleanupPending": [],
+    "pauseUntil": 1792506449460
    },
    {
     "id": 6,
@@ -1073,8 +1073,14 @@
       "sourceTrader": 15
      }
     ],
-    "phase": "pending",
-    "elapsed": 0
+    "phase": "finished",
+    "elapsed": 32.514,
+    "start": "2026-10-20T14:27:37.484Z",
+    "offset": 1289.315,
+    "checkpointAt": 1792506489998,
+    "end": "2026-10-20T14:28:10.005Z",
+    "cleanupPending": [],
+    "pauseUntil": 1792506689876
    },
    {
     "id": 7,
@@ -1127,10 +1133,19 @@
      "solFundingPerTrader": 0.15,
      "slippageBps": 500
     },
-    "phase": "pending",
-    "elapsed": 0
+    "phase": "finished",
+    "elapsed": 15.503,
+    "start": "2026-10-20T14:31:32.676Z",
+    "offset": 1524.507,
+    "checkpointAt": 1792506708179,
+    "end": "2026-10-20T14:31:48.188Z",
+    "cleanupPending": [],
+    "pauseUntil": 1792506781207
    }
   ]
  },
- "start": "2026-10-20T13:39:51.815Z"
+ "start": "2026-10-20T14:06:08.169Z",
+ "trading_end": "2026-10-20T14:39:49.771Z",
+ "end": "2026-10-20T14:40:49.771Z",
+ "fetched_at": "2026-10-20T14:47:10+00:00"
 }

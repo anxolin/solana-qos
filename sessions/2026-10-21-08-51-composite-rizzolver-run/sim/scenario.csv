@@ -1,0 +1,128 @@
+trader,time,type,amount,token,other_token,mode,note
+1,0,sell,0.005,SOL,USDC,self,standard SOL/USDC: fixed SOL input
+2,0,sell,0.005,SOL,USDT,self,standard SOL/USDT: fixed SOL input
+3,0,sell,0.5,JUP,USDC,self,standard JUP/USDC: fixed JUP input; automatic acquisition if needed
+1,1,buy,0.25,USDC,SOL,sponsored,standard SOL/USDC: exact USDC output
+2,1,buy,0.25,USDT,SOL,sponsored,standard SOL/USDT: exact USDT output
+3,1,buy,0.25,USDC,JUP,sponsored,standard JUP/USDC: exact USDC output; automatic acquisition if needed
+4,104.902,sell,0.01,SOL,JUP,self,SOL/JUP fixed-input sell; self-paid control
+5,104.902,sell,0.01,SOL,JUP,sponsored,SOL/JUP fixed-input sell; sponsored creation
+6,104.902,buy,1,JUP,SOL,self,SOL/JUP exact JUP output; self-paid control
+7,104.902,buy,1,JUP,SOL,sponsored,SOL/JUP exact JUP output; sponsored creation
+8,186.35,sell,0.005,SOL,JUP,self,25 same-direction sell orders; four-order batching plus remainder
+9,186.35,sell,0.005,SOL,JUP,self,25 same-direction sell orders; four-order batching plus remainder
+10,186.35,sell,0.005,SOL,JUP,self,25 same-direction sell orders; four-order batching plus remainder
+11,186.35,sell,0.005,SOL,JUP,self,25 same-direction sell orders; four-order batching plus remainder
+12,186.35,sell,0.005,SOL,JUP,self,25 same-direction sell orders; four-order batching plus remainder
+13,186.35,sell,0.005,SOL,JUP,self,25 same-direction sell orders; four-order batching plus remainder
+14,186.35,sell,0.005,SOL,JUP,self,25 same-direction sell orders; four-order batching plus remainder
+15,186.35,sell,0.005,SOL,JUP,self,25 same-direction sell orders; four-order batching plus remainder
+16,186.35,sell,0.005,SOL,JUP,self,25 same-direction sell orders; four-order batching plus remainder
+17,186.35,sell,0.005,SOL,JUP,self,25 same-direction sell orders; four-order batching plus remainder
+18,186.35,sell,0.005,SOL,JUP,self,25 same-direction sell orders; four-order batching plus remainder
+19,186.35,sell,0.005,SOL,JUP,self,25 same-direction sell orders; four-order batching plus remainder
+20,186.35,sell,0.005,SOL,JUP,self,25 same-direction sell orders; four-order batching plus remainder
+21,186.35,sell,0.005,SOL,JUP,self,25 same-direction sell orders; four-order batching plus remainder
+22,186.35,sell,0.005,SOL,JUP,self,25 same-direction sell orders; four-order batching plus remainder
+23,186.35,sell,0.005,SOL,JUP,self,25 same-direction sell orders; four-order batching plus remainder
+24,186.35,sell,0.005,SOL,JUP,self,25 same-direction sell orders; four-order batching plus remainder
+25,186.35,sell,0.005,SOL,JUP,self,25 same-direction sell orders; four-order batching plus remainder
+26,186.35,sell,0.005,SOL,JUP,self,25 same-direction sell orders; four-order batching plus remainder
+27,186.35,sell,0.005,SOL,JUP,self,25 same-direction sell orders; four-order batching plus remainder
+28,186.35,sell,0.005,SOL,JUP,self,25 same-direction sell orders; four-order batching plus remainder
+29,186.35,sell,0.005,SOL,JUP,self,25 same-direction sell orders; four-order batching plus remainder
+30,186.35,sell,0.005,SOL,JUP,self,25 same-direction sell orders; four-order batching plus remainder
+31,186.35,sell,0.005,SOL,JUP,self,25 same-direction sell orders; four-order batching plus remainder
+32,186.35,sell,0.005,SOL,JUP,self,25 same-direction sell orders; four-order batching plus remainder
+33,490.712,sell,0.0025,SOL,USDC,self,burst 4; amount group 1
+34,490.712,sell,0.003,SOL,USDC,self,burst 4; amount group 2
+35,490.712,sell,0.0035,SOL,USDC,self,burst 4; amount group 3
+36,490.712,sell,0.004,SOL,USDC,self,burst 4; amount group 4
+33,580.712,sell,0.0025,SOL,USDC,self,burst 8; amount group 1
+34,580.712,sell,0.003,SOL,USDC,self,burst 8; amount group 2
+35,580.712,sell,0.0035,SOL,USDC,self,burst 8; amount group 3
+36,580.712,sell,0.004,SOL,USDC,self,burst 8; amount group 4
+37,580.712,sell,0.0025,SOL,USDC,self,burst 8; amount group 1
+38,580.712,sell,0.003,SOL,USDC,self,burst 8; amount group 2
+39,580.712,sell,0.0035,SOL,USDC,self,burst 8; amount group 3
+40,580.712,sell,0.004,SOL,USDC,self,burst 8; amount group 4
+33,670.712,sell,0.0025,SOL,USDC,self,burst 16; amount group 1
+34,670.712,sell,0.003,SOL,USDC,self,burst 16; amount group 2
+35,670.712,sell,0.0035,SOL,USDC,self,burst 16; amount group 3
+36,670.712,sell,0.004,SOL,USDC,self,burst 16; amount group 4
+37,670.712,sell,0.0025,SOL,USDC,self,burst 16; amount group 1
+38,670.712,sell,0.003,SOL,USDC,self,burst 16; amount group 2
+39,670.712,sell,0.0035,SOL,USDC,self,burst 16; amount group 3
+40,670.712,sell,0.004,SOL,USDC,self,burst 16; amount group 4
+41,670.712,sell,0.0025,SOL,USDC,self,burst 16; amount group 1
+42,670.712,sell,0.003,SOL,USDC,self,burst 16; amount group 2
+43,670.712,sell,0.0035,SOL,USDC,self,burst 16; amount group 3
+44,670.712,sell,0.004,SOL,USDC,self,burst 16; amount group 4
+45,670.712,sell,0.0025,SOL,USDC,self,burst 16; amount group 1
+46,670.712,sell,0.003,SOL,USDC,self,burst 16; amount group 2
+47,670.712,sell,0.0035,SOL,USDC,self,burst 16; amount group 3
+48,670.712,sell,0.004,SOL,USDC,self,burst 16; amount group 4
+33,760.712,sell,0.0025,SOL,USDC,self,burst 24; amount group 1
+34,760.712,sell,0.003,SOL,USDC,self,burst 24; amount group 2
+35,760.712,sell,0.0035,SOL,USDC,self,burst 24; amount group 3
+36,760.712,sell,0.004,SOL,USDC,self,burst 24; amount group 4
+37,760.712,sell,0.0025,SOL,USDC,self,burst 24; amount group 1
+38,760.712,sell,0.003,SOL,USDC,self,burst 24; amount group 2
+39,760.712,sell,0.0035,SOL,USDC,self,burst 24; amount group 3
+40,760.712,sell,0.004,SOL,USDC,self,burst 24; amount group 4
+41,760.712,sell,0.0025,SOL,USDC,self,burst 24; amount group 1
+42,760.712,sell,0.003,SOL,USDC,self,burst 24; amount group 2
+43,760.712,sell,0.0035,SOL,USDC,self,burst 24; amount group 3
+44,760.712,sell,0.004,SOL,USDC,self,burst 24; amount group 4
+45,760.712,sell,0.0025,SOL,USDC,self,burst 24; amount group 1
+46,760.712,sell,0.003,SOL,USDC,self,burst 24; amount group 2
+47,760.712,sell,0.0035,SOL,USDC,self,burst 24; amount group 3
+48,760.712,sell,0.004,SOL,USDC,self,burst 24; amount group 4
+49,760.712,sell,0.0025,SOL,USDC,self,burst 24; amount group 1
+50,760.712,sell,0.003,SOL,USDC,self,burst 24; amount group 2
+51,760.712,sell,0.0035,SOL,USDC,self,burst 24; amount group 3
+52,760.712,sell,0.004,SOL,USDC,self,burst 24; amount group 4
+53,760.712,sell,0.0025,SOL,USDC,self,burst 24; amount group 1
+54,760.712,sell,0.003,SOL,USDC,self,burst 24; amount group 2
+55,760.712,sell,0.0035,SOL,USDC,self,burst 24; amount group 3
+56,760.712,sell,0.004,SOL,USDC,self,burst 24; amount group 4
+33,850.712,sell,0.0025,SOL,USDC,self,burst 32; amount group 1
+34,850.712,sell,0.003,SOL,USDC,self,burst 32; amount group 2
+35,850.712,sell,0.0035,SOL,USDC,self,burst 32; amount group 3
+36,850.712,sell,0.004,SOL,USDC,self,burst 32; amount group 4
+37,850.712,sell,0.0025,SOL,USDC,self,burst 32; amount group 1
+38,850.712,sell,0.003,SOL,USDC,self,burst 32; amount group 2
+39,850.712,sell,0.0035,SOL,USDC,self,burst 32; amount group 3
+40,850.712,sell,0.004,SOL,USDC,self,burst 32; amount group 4
+41,850.712,sell,0.0025,SOL,USDC,self,burst 32; amount group 1
+42,850.712,sell,0.003,SOL,USDC,self,burst 32; amount group 2
+43,850.712,sell,0.0035,SOL,USDC,self,burst 32; amount group 3
+44,850.712,sell,0.004,SOL,USDC,self,burst 32; amount group 4
+45,850.712,sell,0.0025,SOL,USDC,self,burst 32; amount group 1
+46,850.712,sell,0.003,SOL,USDC,self,burst 32; amount group 2
+47,850.712,sell,0.0035,SOL,USDC,self,burst 32; amount group 3
+48,850.712,sell,0.004,SOL,USDC,self,burst 32; amount group 4
+49,850.712,sell,0.0025,SOL,USDC,self,burst 32; amount group 1
+50,850.712,sell,0.003,SOL,USDC,self,burst 32; amount group 2
+51,850.712,sell,0.0035,SOL,USDC,self,burst 32; amount group 3
+52,850.712,sell,0.004,SOL,USDC,self,burst 32; amount group 4
+53,850.712,sell,0.0025,SOL,USDC,self,burst 32; amount group 1
+54,850.712,sell,0.003,SOL,USDC,self,burst 32; amount group 2
+55,850.712,sell,0.0035,SOL,USDC,self,burst 32; amount group 3
+56,850.712,sell,0.004,SOL,USDC,self,burst 32; amount group 4
+57,850.712,sell,0.0025,SOL,USDC,self,burst 32; amount group 1
+58,850.712,sell,0.003,SOL,USDC,self,burst 32; amount group 2
+59,850.712,sell,0.0035,SOL,USDC,self,burst 32; amount group 3
+60,850.712,sell,0.004,SOL,USDC,self,burst 32; amount group 4
+61,850.712,sell,0.0025,SOL,USDC,self,burst 32; amount group 1
+62,850.712,sell,0.003,SOL,USDC,self,burst 32; amount group 2
+63,850.712,sell,0.0035,SOL,USDC,self,burst 32; amount group 3
+64,850.712,sell,0.004,SOL,USDC,self,burst 32; amount group 4
+65,1609.699,sell,0.1,SOL,USDC,self,fresh USDC account; self-paid control
+66,1609.699,sell,0.1,SOL,USDC,sponsored,fresh USDC account; sponsored
+67,1609.699,buy,10,USDC,SOL,self,fresh USDC account; exact-buy self-paid control
+68,1609.699,buy,10,USDC,SOL,sponsored,fresh USDC account; exact-buy sponsored
+69,1609.699,sell,0.1,SOL,USDT,self,fresh USDT account; self-paid control
+70,1609.699,sell,0.1,SOL,USDT,sponsored,fresh USDT account; sponsored
+71,1609.699,buy,10,USDT,SOL,self,fresh USDT account; exact-buy self-paid control
+72,1609.699,buy,10,USDT,SOL,sponsored,fresh USDT account; exact-buy sponsored
