@@ -64,6 +64,18 @@ export function parseScenario(text: string): TradeRow[] {
 
 export const readScenario = (path: string) => parseScenario(readFileSync(path, 'utf8'))
 
+/**
+ * Start each trader `seconds` after the previous one (in trader order) by shifting all of its rows, so a scenario whose
+ * traders all start at 0 ramps up instead of opening with one burst. A trader's own rows keep their order and gaps.
+ */
+export function spaceTraders(rows: TradeRow[], seconds: number): TradeRow[] {
+  if (!(seconds > 0)) return rows
+  const rank = new Map([...new Set(rows.map((r) => r.trader))].sort((a, b) => a - b).map((t, i) => [t, i]))
+  return rows
+    .map((r) => ({ ...r, time: r.time + rank.get(r.trader)! * seconds }))
+    .sort((a, b) => a.time - b.time || a.row - b.row)
+}
+
 export function writeScenario(path: string, rows: Omit<TradeRow, 'row'>[], comment?: string) {
   // Quote anything with a quote, comma, newline or '#': the parser reads an unquoted '#' as a comment, even mid-line.
   const esc = (v: string | number) => (/[",\n#]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : String(v))

@@ -8,7 +8,7 @@ import { canBuild, sdkVersion, settlementFor } from '../src/settlement.js'
 import { encodeOrderIntent, findSettlementStatePda } from '@cowprotocol/sdk-trading-solana'
 import { deriveKeypair, wallets } from '../src/wallets.js'
 import { cleanupTrader } from '../src/cleanup.js'
-import { parseScenario, readScenario, sessionSlug, writeScenario } from '../src/scenario.js'
+import { parseScenario, readScenario, sessionSlug, spaceTraders, writeScenario } from '../src/scenario.js'
 import { isRpcFailure, retryRows } from '../src/retry.js'
 import { fromRaw, loadUniverse, toRaw } from '../src/tokens.js'
 import { generate, MIN_GAP_S, mulberry32, roundAmount } from '../src/generator.js'
@@ -49,6 +49,19 @@ describe('wallet derivation', () => {
 })
 
 describe('scenario CSV', () => {
+  it('spaces traders: each starts the spacing after the previous one, keeping its own rows in order', () => {
+    const rows = parseScenario(
+      'trader,time,type,amount,token,other_token\n3,0,sell,1,SOL,A\n1,0,sell,1,SOL,B\n1,0,sell,2,B,SOL\n3,10,sell,2,A,SOL\n',
+    )
+    expect(spaceTraders(rows, 5).map((r) => [r.trader, r.time, r.token])).toEqual([
+      [1, 0, 'SOL'],
+      [1, 0, 'B'],
+      [3, 5, 'SOL'],
+      [3, 15, 'A'],
+    ])
+    expect(spaceTraders(rows, 0)).toBe(rows)
+  })
+
   it('parses, defaults mode to sponsored, and sorts by time', () => {
     const rows = parseScenario(
       'trader,time,type,amount,token,other_token,mode,note\n2,30,buy,100,JUP,USDC,,rotator\n1,0,sell,0.02,SOL,USDC,self,\n',

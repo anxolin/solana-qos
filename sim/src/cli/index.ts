@@ -12,7 +12,7 @@ import { NATIVE_SOL, Rpc, WSOL_MINT } from '../rpc.js'
 import { fmtSol, fund, fundingPlan, wallets } from '../wallets.js'
 import { Orders } from '../orders.js'
 import { Session } from '../session.js'
-import { parseScenario, readScenario, sessionSlug, tradersIn, writeScenario, type TradeRow } from '../scenario.js'
+import { parseScenario, readScenario, sessionSlug, spaceTraders, tradersIn, writeScenario, type TradeRow } from '../scenario.js'
 import { failureKind, latestOutcomes, retryRows } from '../retry.js'
 import { runRow, type FlowContext, type RowResult } from '../flow.js'
 import { playScenarios } from '../runner.js'
@@ -314,7 +314,7 @@ function sessionCommand(name: string) {
 
 async function runSession(scenarioPath: string, opts: any, composite?: ReturnType<typeof readComposite>, resume?: SavedRun) {
   const scenarios: CompositeScenario[] = resume?.scenarios ?? composite?.scenarios ?? [{
-    id: 1, name: sessionSlug(scenarioPath), path: scenarioPath, rows: readScenario(scenarioPath), sourceRows: [],
+    id: 1, name: sessionSlug(scenarioPath), path: scenarioPath, rows: spaceTraders(readScenario(scenarioPath), opts.traderSpacing ?? 0), sourceRows: [],
   }]
   const stamp = new Date().toISOString().slice(0, 16).replace(/[T:]/g, '-')
   const slug = composite ? `composite-${composite.solver.replace(/[^a-zA-Z0-9_-]+/g, '-')}-run` : sessionSlug(scenarioPath)
@@ -427,6 +427,9 @@ async function runSession(scenarioPath: string, opts: any, composite?: ReturnTyp
       ['Scenario', c.cyan(scenarioPath)],
       ...(composite ? [['Solver', composite.solver], ['Break', `${composite.breakSeconds}s after each scenario finishes`]] as [string, string][] : []),
       ['Trades', `${c.bold(rows.length)} rows, ${c.bold(traders.length)} traders`],
+      ...(composite ? [] : [['Trader spacing', opts.traderSpacing
+        ? `${opts.traderSpacing}s between trader starts ${c.dim(`(last trader starts at ${opts.traderSpacing * (traders.length - 1)}s)`)}`
+        : c.dim(resume ? 'as saved in the run' : 'off (traders start at their CSV times)')]] as [string, string][]),
       ['Duration', `about ${c.bold(`${est.total} min`)} ${c.dim(`(~${est.trading} min trading, plus funding and cleanup)`)}`],
       ['Environment', `${opts.env === 'prod' ? c.red('prod') : c.green(opts.env)} ${c.dim(`(${env.urls.label})`)}`],
       ['Orderbook', c.dim(env.urls.api)],
@@ -834,6 +837,11 @@ program.command('resume-session')
 
 sessionCommand('simulate-trade-session')
   .argument('<scenario>', 'CSV: trader,time,type,amount,token,other_token[,mode,note]')
+  .option('--trader-spacing <s>', 'start each trader this many seconds after the previous one (shifts all its rows)', (v) => {
+    const n = Number(v)
+    if (!(n >= 0)) throw new Error('--trader-spacing must be seconds >= 0')
+    return n
+  })
   .action((path: string, opts) => runSession(path, opts))
 
 sessionCommand('simulate-composite-scenario')
