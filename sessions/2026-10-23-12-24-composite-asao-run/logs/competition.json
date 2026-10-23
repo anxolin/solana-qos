@@ -1,0 +1,19 @@
+{
+ "_source": "VictoriaLogs via Grafana, container solana-autopilot-staging",
+ "drivers": {
+  "asao": {
+   "observed_on_chain": 107,
+   "solver": "GCBBeHsTZJ4cXVo94cF3MZ2VfwYkFTu7aRmHXgRMo5VC",
+   "submitted": 107,
+   "wins": 108,
+   "proposed": 316
+  }
+ },
+ "autopilot": {
+  "winner_skipped_creation_blockhash_expired": 0,
+  "sponsored_creation_expired_orders": 4,
+  "filtered": {
+   "unfunded_sell_token_account": 368
+  }
+ }
+}

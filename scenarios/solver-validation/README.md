@@ -60,6 +60,21 @@ Scenarios inherit the config's `options`; explicit CLI flags override shared set
 
 Continue an interrupted run with `pnpm sim resume-session <session-name>`. It uses the saved settings and skips finished rows. See [interrupted runs](../../sim/README.md#interrupted-runs) for order checks and recovery details.
 
+## Asao, Arc, Horadrim and Solivagus
+
+[asao-composite.json](asao-composite.json), [arc-composite.json](arc-composite.json), [horadrim-composite.json](horadrim-composite.json) and [solivagus-composite.json](solivagus-composite.json) use the same scenarios and settings as [Fractal](fractal-composite.json): standard pairs, 25 same-direction sells, sell bursts, opposing orders, token coverage and the shared eight fresh-account cases. They retain Fractal's staging environment, funding and creation allowances, account preparation, cleanup and timeouts. Unsupported non-zero transfer-fee trades remain excluded through the shared CSVs.
+
+From `sim/`, preview each config offline:
+
+```sh
+pnpm sim simulate-composite-scenario ../scenarios/solver-validation/asao-composite.json --preview
+pnpm sim simulate-composite-scenario ../scenarios/solver-validation/arc-composite.json --preview
+pnpm sim simulate-composite-scenario ../scenarios/solver-validation/horadrim-composite.json --preview
+pnpm sim simulate-composite-scenario ../scenarios/solver-validation/solivagus-composite.json --preview
+```
+
+Replace `--preview` with `--dry-run` to check live quotes without funding or trading, or remove the flag for a live run. Enable only the target solver in staging first; the config's solver label does not isolate it. These configs exercise the full Fractal coverage; they do not assume that each new solver supports every case.
+
 ## Rizzolver and Helixbox
 
 [rizzolver-composite.json](rizzolver-composite.json) checks Wintermute's supported staging tokens only: SOL, USDC, USDT and JUP. It runs 127 planned trades across 72 wallets: 6 standard-pair cases, 4 [SOL/JUP cases](rizzolver-sol-jup.csv) covering self-paid and sponsored sells and exact buys, 25 same-direction SOL/JUP sells, 84 burst sells and the 8 shared fresh-account cases. This retests JUP quoting, sponsored creation and completion under concurrent load. The creation allowance is 0.65 SOL, covering 202 estimated order creations (0.606 SOL before refunds).

@@ -20,8 +20,8 @@ Use the repository root containing this skill. Update these two Notion databases
 
 ## Status
 
-`Status` is a short summary of the latest completed run by actual run time, not the latest upload. Include date, environment, fill rate with filled/eligible counts, and the main observed issues. Replace stale run summaries; keep older results in their run pages. Preserve newer user-provided facts when local evidence is older.
+`Status` is one short, high-level sentence about the solver's current performance or capabilities and main limitation. Base it on the latest completed run by actual run time and current user-provided facts. Do not copy the latest run's `TLDR` or list dates, counts, errors and cleanup details; keep detailed metrics and findings in the test-run pages. Preserve newer user-provided facts when local evidence is older.
 
-Example: “20 Oct, staging: 31% filled (62/200). Most failures were missing quotes and timeouts.”
+Example: “JUP and sponsored orders now work well; some burst orders still fail and batching is not supported.”
 
 State what happened. Skip generic next steps such as “needs more tests”, “retest on staging” or “needs improvement”; further testing is already understood for staging runs, especially below 80%. Keep limitations such as proxy throttling when they affect interpretation. Fill rate alone does not decide rollout state.

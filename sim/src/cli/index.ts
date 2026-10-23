@@ -362,7 +362,7 @@ async function runSession(scenarioPath: string, opts: any, composite?: ReturnTyp
       await recoverRun(session, resume, uid => orders.getOrder(uid), recovered => {
         orders.ledger.release(recovered.uid)
         const scenario = composite && scenarios.find(s => s.rows.some(row => row.trader === recovered.trader))
-        log(`${scenario ? `[${scenario.name}] ` : ''}${tag(recovered.row, recovered.trader)} ${stepLabel(recovered.step)}: ${ui.status(recovered.status)} ${c.dim('(recovered)')}`)
+        log(`${scenario ? `[${scenario.id}/${scenarios.length} ${scenario.name}] ` : ''}${tag(recovered.row, recovered.trader)} ${stepLabel(recovered.step)}: ${ui.status(recovered.status)} ${c.dim('(recovered)')}`)
         log(`      ${c.dim('🐞')} ${c.cyan(ctx.link.order(recovered.uid))}`)
       }, warnUnresolved)
       session.log({ step: 'setup', event: 'resumed', completedRows: resume.results.length })
@@ -510,7 +510,7 @@ async function runSession(scenarioPath: string, opts: any, composite?: ReturnTyp
     }
     saveRun(session, saved)
     const fundScenario = async (scenario: CompositeScenario, lines: typeof plan) => {
-      const scenarioLog = composite ? (message: string) => log(`[${scenario.name}] ${message}`) : log
+      const scenarioLog = composite ? (message: string) => log(`[${scenario.id}/${scenarios.length} ${scenario.name}] ${message}`) : log
       if (lines.length) await fund(rpc, w, lines, scenarioLog, ctx.link.tx)
       session.log({ step: 'setup', event: 'funded', total: lines.reduce((sum, line) => sum + line.topUp, 0n).toString(),
         traders: lines.map(line => line.trader), ...(composite ? { scenario: scenario.id } : {}) })
@@ -553,7 +553,7 @@ async function runSession(scenarioPath: string, opts: any, composite?: ReturnTyp
       for (const scenario of saved.scenarios) {
         const resumingCleanup = Boolean(resume && scenario.phase === 'cleanup')
         if (scenario.phase === 'finished') continue
-        const scenarioLog = composite ? (message: string) => log(`[${scenario.name}] ${message}`) : log
+        const scenarioLog = composite ? (message: string) => log(`[${scenario.id}/${scenarios.length} ${scenario.name}] ${message}`) : log
         if (['pending', 'running'].includes(scenario.phase)) {
           const pendingRows = scenario.rows.filter(row => !results.some(result => result.row === row.row))
           if (freshAccounts(scenario) && pendingRows.length && !saved.accountSetup?.freshChecked.includes(scenario.id)) {
@@ -758,7 +758,7 @@ async function runSession(scenarioPath: string, opts: any, composite?: ReturnTyp
     }
     for (const r of results.filter((r) => r.status === 'failed').sort((a, b) => a.row - b.row)) {
       const scenario = composite?.scenarios.find(s => s.rows.some(row => row.row === r.row))
-      console.log(`  ${scenario ? `[${scenario.name}] ` : ''}${tag(r.row, r.trader)}: ${c.red(r.reason ?? 'failed')}`)
+      console.log(`  ${scenario ? `[${scenario.id}/${scenarios.length} ${scenario.name}] ` : ''}${tag(r.row, r.trader)}: ${c.red(r.reason ?? 'failed')}`)
     }
     for (const scenario of saved.scenarios.filter(s => s.cleanupDeferred)) {
       log(ui.warn(`Cleanup still pending for ${scenario.name}: traders ${scenario.cleanupPending?.join(', ')}. Retry with: pnpm sim resume-session ${session.name}`))

@@ -497,14 +497,14 @@ it.each([
       return
     }
     const output = logs.mock.calls.map(call => call.join(' ')).join('\n').replace(/\x1b\[[0-9;]*m/g, '')
-    expect(output).toContain('[burst] #1 t1 sell 0.001 SOL')
-    expect(output).toContain('[burst]   #1 t1 main: timeout')
-    expect(output).toContain('[burst] #1 t1: main timeout')
+    expect(output).toContain('[1/2 burst] #1 t1 sell 0.001 SOL')
+    expect(output).toContain('[1/2 burst]   #1 t1 main: timeout')
+    expect(output).toContain('[1/2 burst] #1 t1: main timeout')
     expect(tables).toHaveBeenCalledWith([
       { Scenario: 'burst.csv', Trades: 4, Completed: 3, Failed: 1, Completion: '75.0%' },
       { Scenario: 'cow.csv', Trades: 3, Completed: 3, Failed: 0, Completion: '100.0%' },
     ])
-    expect(output).toContain('[cow]   #5 t4 main: fulfilled')
+    expect(output).toContain('[2/2 cow]   #5 t4 main: fulfilled')
     expect(output).not.toContain('Trade 5 completed')
     expect(output).toContain('Trade logs:')
     expect(output).toContain('sim/journal.jsonl')
