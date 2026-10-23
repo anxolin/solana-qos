@@ -1,0 +1,16 @@
+{
+ "rpc": "solana-mainnet.g.alchemy.com",
+ "name": "2026-10-22-10-50-same-direction-25x1 trade session",
+ "title": "2026-10-22-10-50-same-direction-25x1",
+ "env": "staging",
+ "sim": {
+  "scenario": "/Users/anxo/Bunker/code/cow/solana-qos/scenarios/same-direction-25x1.csv",
+  "traders": 25,
+  "rows": 25,
+  "solFundingPerTrader": 0.05
+ },
+ "start": "2026-10-22T10:50:38.800Z",
+ "trading_end": "2026-10-22T10:54:42.195Z",
+ "end": "2026-10-22T10:55:42.195Z",
+ "fetched_at": "2026-10-22T10:55:48+00:00"
+}

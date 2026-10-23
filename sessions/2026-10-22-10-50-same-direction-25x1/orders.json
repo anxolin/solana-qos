@@ -1,0 +1,1784 @@
+[
+ {
+  "uid": "0x2472e3374c15a570b1716db53a07a78ddc139691890a50416a506103a9935d5e",
+  "owner": "4p3tgZxpw2gKnJnVwQ4Ah3av47HywcXfFaXTFGNU2aTT",
+  "sellToken": "So11111111111111111111111111111111111111112",
+  "buyToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+  "sellTokenAccount": "2nmDZ9xTDkrL9dcFi6jrdjToWdPJV8Q2UDLtwKk3xf4g",
+  "buyTokenAccount": "ARNTLunnFYRrqpmHANZ3y7TZAZXtAkMxBYS6JtCDjrEv",
+  "sellAmount": "30264812",
+  "buyAmount": "10000000",
+  "validTo": 1792666394,
+  "kind": "buy",
+  "partiallyFillable": false,
+  "appData": "0x3c74bf5b542341051f22f7a76d928086964a346f3fb5dc08eaf1e8348cbfbad2",
+  "orderPda": "7xcAUPw57WBx1F3ZT1q8hrY6aMe5D6KivNR27ZF1zHt6",
+  "creationDate": "2026-10-22T10:50:48.444538Z",
+  "executedSellAmount": "30168388",
+  "executedBuyAmount": "10000000",
+  "status": "fulfilled",
+  "trades": [
+   {
+    "orderUid": "0x2472e3374c15a570b1716db53a07a78ddc139691890a50416a506103a9935d5e",
+    "owner": "4p3tgZxpw2gKnJnVwQ4Ah3av47HywcXfFaXTFGNU2aTT",
+    "sellToken": "So11111111111111111111111111111111111111112",
+    "buyToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+    "sellAmount": "30168388",
+    "buyAmount": "10000000",
+    "txSignature": "636PaXRqWCrS56Ry6WUGqzL1VknBqHbmY4ih1UeMRPswDhSBYtHWThP4hcPeQxCEtVsKDPkBLqS41gD2qADctzzx",
+    "instructionIndex": 2,
+    "slot": 460008113,
+    "tx": {
+     "fee_payer": "8oLu4fyFb1SLc9ER3M31CfYRvtPWhUb3r3cXrRwNT8ku",
+     "block_time": 1792666331,
+     "fee": 19000,
+     "cu": 69039,
+     "err": null
+    }
+   }
+  ],
+  "wrongTokenProgram": []
+ },
+ {
+  "uid": "0xed76fb60aade2282b17a71304fe174c6d62fafef50ea6cd1cc0ac03828531272",
+  "owner": "BQAD73uj3XftKnCB5ZB7P67b7AvEdfLefYbLiipch5oC",
+  "sellToken": "So11111111111111111111111111111111111111112",
+  "buyToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+  "sellTokenAccount": "3YNJYjmP6n3aLh4bbJBQCseDJ3kSuigBjGN5sUSsSDhD",
+  "buyTokenAccount": "7aPtXVFYchUcJpzpS2eeCZDjRdhWnqVksFYjnWhYPGTf",
+  "sellAmount": "30264812",
+  "buyAmount": "10000000",
+  "validTo": 1792666394,
+  "kind": "buy",
+  "partiallyFillable": false,
+  "appData": "0x3c74bf5b542341051f22f7a76d928086964a346f3fb5dc08eaf1e8348cbfbad2",
+  "orderPda": "EJyNFToVBvPx7nhXtUFBDbkT3J2RyicWjkhLPUZn7ahL",
+  "creationDate": "2026-10-22T10:50:48.616433Z",
+  "executedSellAmount": "30170253",
+  "executedBuyAmount": "10000000",
+  "status": "fulfilled",
+  "trades": [
+   {
+    "orderUid": "0xed76fb60aade2282b17a71304fe174c6d62fafef50ea6cd1cc0ac03828531272",
+    "owner": "BQAD73uj3XftKnCB5ZB7P67b7AvEdfLefYbLiipch5oC",
+    "sellToken": "So11111111111111111111111111111111111111112",
+    "buyToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+    "sellAmount": "30170253",
+    "buyAmount": "10000000",
+    "txSignature": "3tLdWKhk24JG2fm73rgw4Rn5D7cREYUYBYUYVxDbZrqwDzMWN7Y7GkY9Vi8G8c8Ns2QSzHd6q2s6nPAjXTTyiJqV",
+    "instructionIndex": 2,
+    "slot": 460008228,
+    "tx": {
+     "fee_payer": "J6eqaEWUGXqV1Rbk8YSLDsdkNGC19CGreTf8M9emjy6c",
+     "block_time": 1792666355,
+     "fee": 5801,
+     "cu": 54731,
+     "err": null
+    }
+   }
+  ],
+  "wrongTokenProgram": []
+ },
+ {
+  "uid": "0x301801508f8d2e98c28c5da12029e975a84113fe5d751b0d08e785b68a1e1e71",
+  "owner": "DoD7Kb5bE6Jr7Eq2JTdYwfLn7718RzpYxKyQen2rxiBQ",
+  "sellToken": "So11111111111111111111111111111111111111112",
+  "buyToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+  "sellTokenAccount": "CnKbKY8owKxqv4iRkqhMkDmA9LSe24oRHKfgB9ZF3KmM",
+  "buyTokenAccount": "5czCfp7594JiFquAvgFpidtK2xfCKBGa5xz5TTaVWzRE",
+  "sellAmount": "30264812",
+  "buyAmount": "10000000",
+  "validTo": 1792666394,
+  "kind": "buy",
+  "partiallyFillable": false,
+  "appData": "0x3c74bf5b542341051f22f7a76d928086964a346f3fb5dc08eaf1e8348cbfbad2",
+  "orderPda": "Hpjw7FK2kDkw9ZFvnuvhJBMi8ZDtYC1bxu6duxj5FDMb",
+  "creationDate": "2026-10-22T10:50:48.715528Z",
+  "executedSellAmount": "30170755",
+  "executedBuyAmount": "10000000",
+  "status": "fulfilled",
+  "trades": [
+   {
+    "orderUid": "0x301801508f8d2e98c28c5da12029e975a84113fe5d751b0d08e785b68a1e1e71",
+    "owner": "DoD7Kb5bE6Jr7Eq2JTdYwfLn7718RzpYxKyQen2rxiBQ",
+    "sellToken": "So11111111111111111111111111111111111111112",
+    "buyToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+    "sellAmount": "30170755",
+    "buyAmount": "10000000",
+    "txSignature": "3a1xHmpkhjr7PozbEJDun1Ny7Zsh67KmS4CuwykGpofVKHiJukhLavnLxUTh5mn1trbDudZt9gVRWyHh9uc7zLPx",
+    "instructionIndex": 2,
+    "slot": 460008141,
+    "tx": {
+     "fee_payer": "J6eqaEWUGXqV1Rbk8YSLDsdkNGC19CGreTf8M9emjy6c",
+     "block_time": 1792666337,
+     "fee": 6301,
+     "cu": 54728,
+     "err": null
+    }
+   }
+  ],
+  "wrongTokenProgram": []
+ },
+ {
+  "uid": "0xb7ae214eb51f68ccc1132dc24b0238aa26401f5e82357814c23cacc94251e486",
+  "owner": "3FHY6qZALHavE387YcUMyqFYdYCiR5PbLSxdQBpwR6JK",
+  "sellToken": "So11111111111111111111111111111111111111112",
+  "buyToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+  "sellTokenAccount": "6yYyMuVNg2Uv5HVB9uc3JHNuodo9CxzPCL2dPkJwBR6E",
+  "buyTokenAccount": "Bo4GzykB8tnMxVBA3aJxxwkZCWBeH192vc2AzuyEL5mu",
+  "sellAmount": "30264812",
+  "buyAmount": "10000000",
+  "validTo": 1792666394,
+  "kind": "buy",
+  "partiallyFillable": false,
+  "appData": "0x3c74bf5b542341051f22f7a76d928086964a346f3fb5dc08eaf1e8348cbfbad2",
+  "orderPda": "3aZ8Uiu989cZjCGkZjzo6F3Qogoyk8jzTiHbdn8Ywyab",
+  "creationDate": "2026-10-22T10:50:48.890533Z",
+  "executedSellAmount": "30168379",
+  "executedBuyAmount": "10000000",
+  "status": "fulfilled",
+  "trades": [
+   {
+    "orderUid": "0xb7ae214eb51f68ccc1132dc24b0238aa26401f5e82357814c23cacc94251e486",
+    "owner": "3FHY6qZALHavE387YcUMyqFYdYCiR5PbLSxdQBpwR6JK",
+    "sellToken": "So11111111111111111111111111111111111111112",
+    "buyToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+    "sellAmount": "30168379",
+    "buyAmount": "10000000",
+    "txSignature": "39oCe4Z5MBYPAPfFcuoNWui7H78ST1zbrW1vJYkhTAHJPsfgMGqA6wtQVvRiX9aRNZkwa5xM3T3rC4tBJCuH5Lkz",
+    "instructionIndex": 2,
+    "slot": 460008209,
+    "tx": {
+     "fee_payer": "8oLu4fyFb1SLc9ER3M31CfYRvtPWhUb3r3cXrRwNT8ku",
+     "block_time": 1792666351,
+     "fee": 19000,
+     "cu": 69043,
+     "err": null
+    }
+   }
+  ],
+  "wrongTokenProgram": []
+ },
+ {
+  "uid": "0x0f9410aea890894a6441ac20dbcc5d012a0c38a4342b285c8a17fe654a8871af",
+  "owner": "7RqUGHCV2tngEBctNc8o58nPDy6AsYzsUHAW2JgA2XX9",
+  "sellToken": "So11111111111111111111111111111111111111112",
+  "buyToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+  "sellTokenAccount": "3YbQoDc5JAPZRnHHXRN5QLTtqRRpbaRLeZi8JkEuTo9z",
+  "buyTokenAccount": "C95Yd5XopUdY5GX6qHRqe6PyGopiXP92XyjbiLF1CMmh",
+  "sellAmount": "30264812",
+  "buyAmount": "10000000",
+  "validTo": 1792666394,
+  "kind": "buy",
+  "partiallyFillable": false,
+  "appData": "0x3c74bf5b542341051f22f7a76d928086964a346f3fb5dc08eaf1e8348cbfbad2",
+  "orderPda": "rCjnZWfm9fiNVT91EYgeEYMcGwqkuiqTyMRHz26gwxr",
+  "creationDate": "2026-10-22T10:50:49.099181Z",
+  "executedSellAmount": "30170392",
+  "executedBuyAmount": "10000000",
+  "status": "fulfilled",
+  "trades": [
+   {
+    "orderUid": "0x0f9410aea890894a6441ac20dbcc5d012a0c38a4342b285c8a17fe654a8871af",
+    "owner": "7RqUGHCV2tngEBctNc8o58nPDy6AsYzsUHAW2JgA2XX9",
+    "sellToken": "So11111111111111111111111111111111111111112",
+    "buyToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+    "sellAmount": "30170392",
+    "buyAmount": "10000000",
+    "txSignature": "5xVGN9UTpNSuk71c8uE5zsf51gk5LFvd5PdepVWu9QSb4ab4jqw5vYmKeaNXZuwCQFMGr6wnts2FXqT8f7N6gihi",
+    "instructionIndex": 2,
+    "slot": 460008044,
+    "tx": {
+     "fee_payer": "J6eqaEWUGXqV1Rbk8YSLDsdkNGC19CGreTf8M9emjy6c",
+     "block_time": 1792666317,
+     "fee": 5801,
+     "cu": 54717,
+     "err": null
+    }
+   }
+  ],
+  "wrongTokenProgram": []
+ },
+ {
+  "uid": "0x5a4ebd9929b072bd5e5c04087a9681e23b120a4346daef24e12a3735dbd31e86",
+  "owner": "FjcXArDzUrBTJ1Lv6Yc8n9atjkNYaxKosVjn6VSxZTrK",
+  "sellToken": "So11111111111111111111111111111111111111112",
+  "buyToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+  "sellTokenAccount": "2kodvpMA3HqXMUebAMsBGV9AHuEmsswSF4Q1ZXWtLndP",
+  "buyTokenAccount": "4UyxUaHgmdbSrdE9duSZGKVozsQNB9m8sctnU19EKZEY",
+  "sellAmount": "30264534",
+  "buyAmount": "10000000",
+  "validTo": 1792666395,
+  "kind": "buy",
+  "partiallyFillable": false,
+  "appData": "0x3c74bf5b542341051f22f7a76d928086964a346f3fb5dc08eaf1e8348cbfbad2",
+  "orderPda": "2s8942E4W6FfS7QVCTcqtQGWtPneZT4ijeTejfF5SVtG",
+  "creationDate": "2026-10-22T10:50:49.619043Z",
+  "executedSellAmount": "30170392",
+  "executedBuyAmount": "10000000",
+  "status": "fulfilled",
+  "trades": [
+   {
+    "orderUid": "0x5a4ebd9929b072bd5e5c04087a9681e23b120a4346daef24e12a3735dbd31e86",
+    "owner": "FjcXArDzUrBTJ1Lv6Yc8n9atjkNYaxKosVjn6VSxZTrK",
+    "sellToken": "So11111111111111111111111111111111111111112",
+    "buyToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+    "sellAmount": "30170392",
+    "buyAmount": "10000000",
+    "txSignature": "3PymH8yQ4e41gbgvdbBwcPZ9ApxeiwLYPAauPhdSghzscepj7j2QxFnzsGRGkPRXYR8wFHc4JMPGD3HTNKPvbpgz",
+    "instructionIndex": 2,
+    "slot": 460008076,
+    "tx": {
+     "fee_payer": "J6eqaEWUGXqV1Rbk8YSLDsdkNGC19CGreTf8M9emjy6c",
+     "block_time": 1792666323,
+     "fee": 5801,
+     "cu": 54727,
+     "err": null
+    }
+   }
+  ],
+  "wrongTokenProgram": []
+ },
+ {
+  "uid": "0x5694b95764e8a9207daa2d3dec38bce4ce1e0babd057df797077be77f49b5abb",
+  "owner": "AM6Qwi3vwMCGpRbJ55zDatByeAtsbcfXvXBh77be8C9T",
+  "sellToken": "So11111111111111111111111111111111111111112",
+  "buyToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+  "sellTokenAccount": "B6ByfgVU8nhvbKYAcEdHBF85vS93aqoRbnD1DFZStZWN",
+  "buyTokenAccount": "KCBqF8hg3sLYcaRk6d7kGL3hXpFEe65X4WmCdQa9kLb",
+  "sellAmount": "30264812",
+  "buyAmount": "10000000",
+  "validTo": 1792666395,
+  "kind": "buy",
+  "partiallyFillable": false,
+  "appData": "0x3c74bf5b542341051f22f7a76d928086964a346f3fb5dc08eaf1e8348cbfbad2",
+  "orderPda": "FxMzpgn9vfXwngMo1KDzebyqLEg9uwpro2huu6RAAuz1",
+  "creationDate": "2026-10-22T10:50:49.728907Z",
+  "executedSellAmount": "30170690",
+  "executedBuyAmount": "10000000",
+  "status": "fulfilled",
+  "trades": [
+   {
+    "orderUid": "0x5694b95764e8a9207daa2d3dec38bce4ce1e0babd057df797077be77f49b5abb",
+    "owner": "AM6Qwi3vwMCGpRbJ55zDatByeAtsbcfXvXBh77be8C9T",
+    "sellToken": "So11111111111111111111111111111111111111112",
+    "buyToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+    "sellAmount": "30170690",
+    "buyAmount": "10000000",
+    "txSignature": "5yTU6XuKzmvk58N8qgYuba5EFEer34TuNxEy12CL3FmFu5zEJfGtSM3q4qf7Qe1GkGK8XRZQGHCMRfL3Qg2CB8T4",
+    "instructionIndex": 2,
+    "slot": 460007993,
+    "tx": {
+     "fee_payer": "J6eqaEWUGXqV1Rbk8YSLDsdkNGC19CGreTf8M9emjy6c",
+     "block_time": 1792666306,
+     "fee": 6099,
+     "cu": 63796,
+     "err": null
+    }
+   }
+  ],
+  "wrongTokenProgram": []
+ },
+ {
+  "uid": "0xf99c9bd7b52b7e7b456f6e431cb7c660392d1d27b3d03b201ee23916f394f337",
+  "owner": "BPmy52DKPodqoSUirZUBedULujAZr6s778i4hc153r1X",
+  "sellToken": "So11111111111111111111111111111111111111112",
+  "buyToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+  "sellTokenAccount": "9LhP72tTTPNnFQEe2e9dTdaV42RQB6Qa7GLD3vgKEFut",
+  "buyTokenAccount": "Bmva7P9RA9y2CJFUPF7Hn5rojkEUuRzWetqpKNnAAEcn",
+  "sellAmount": "30264534",
+  "buyAmount": "10000000",
+  "validTo": 1792666395,
+  "kind": "buy",
+  "partiallyFillable": false,
+  "appData": "0x3c74bf5b542341051f22f7a76d928086964a346f3fb5dc08eaf1e8348cbfbad2",
+  "orderPda": "EHsGdHKVCVY4y8yYbJoB7VNzdJoz1ok6xFABsruX8Upd",
+  "creationDate": "2026-10-22T10:50:49.776461Z",
+  "executedSellAmount": "30159583",
+  "executedBuyAmount": "10000000",
+  "status": "fulfilled",
+  "trades": [
+   {
+    "orderUid": "0xf99c9bd7b52b7e7b456f6e431cb7c660392d1d27b3d03b201ee23916f394f337",
+    "owner": "BPmy52DKPodqoSUirZUBedULujAZr6s778i4hc153r1X",
+    "sellToken": "So11111111111111111111111111111111111111112",
+    "buyToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+    "sellAmount": "30159583",
+    "buyAmount": "10000000",
+    "txSignature": "3vQ1QkDZgPyMPA9fx9HnjMDkaXTVGQnDrfyGgKS46DMS5n12kmfmYXr6qP3XP28nWqeDHeV6o3JgUczEpBZEx27R",
+    "instructionIndex": 2,
+    "slot": 460008288,
+    "tx": {
+     "fee_payer": "AuwLofAZcjCxUeYs1Ca7ea812HjySAv3b1QjvVjcYzVj",
+     "block_time": 1792666368,
+     "fee": 6000,
+     "cu": 23617,
+     "err": null
+    }
+   }
+  ],
+  "wrongTokenProgram": []
+ },
+ {
+  "uid": "0x74170e3fc46dbde5710206d404760fed8c522349eb92b53dd8454c46db7b3377",
+  "owner": "HTsxGEXBSe8rdUJjtW7e4v4YChNXTVmLQXuqBvvQtJuF",
+  "sellToken": "So11111111111111111111111111111111111111112",
+  "buyToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+  "sellTokenAccount": "HpT8Jra4jWqpQjD6NAFSLJWQYcE3u3yK8rWMZNYqFWEu",
+  "buyTokenAccount": "G2J94kMHGiS6Noc6BUEG8tW9ufSg8hUpeUNs5qaicywJ",
+  "sellAmount": "30264534",
+  "buyAmount": "10000000",
+  "validTo": 1792666395,
+  "kind": "buy",
+  "partiallyFillable": false,
+  "appData": "0x3c74bf5b542341051f22f7a76d928086964a346f3fb5dc08eaf1e8348cbfbad2",
+  "orderPda": "D6d66PSbM93gGhd8Cc8Uyq51uqMXVoCgqkgjMCQwYyh1",
+  "creationDate": "2026-10-22T10:50:49.971979Z",
+  "executedSellAmount": "30158101",
+  "executedBuyAmount": "10000000",
+  "status": "fulfilled",
+  "trades": [
+   {
+    "orderUid": "0x74170e3fc46dbde5710206d404760fed8c522349eb92b53dd8454c46db7b3377",
+    "owner": "HTsxGEXBSe8rdUJjtW7e4v4YChNXTVmLQXuqBvvQtJuF",
+    "sellToken": "So11111111111111111111111111111111111111112",
+    "buyToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+    "sellAmount": "30158101",
+    "buyAmount": "10000000",
+    "txSignature": "rJaCrrzyw1wvNBve27u8jQHSrMqLaPaRN9Vw4et5KVotu1soAG8zNZADyitrvTkpYRbmz9tDHsN9x1Y9QanJxeH",
+    "instructionIndex": 2,
+    "slot": 460008255,
+    "tx": {
+     "fee_payer": "AuwLofAZcjCxUeYs1Ca7ea812HjySAv3b1QjvVjcYzVj",
+     "block_time": 1792666361,
+     "fee": 6000,
+     "cu": 23617,
+     "err": null
+    }
+   }
+  ],
+  "wrongTokenProgram": []
+ },
+ {
+  "uid": "0x7e6e91058fc61fa29e666423e644681446cb6b12dc08f9f9bd8308e262f1e404",
+  "owner": "GcY8jk3HeHLDmdPa8wRVnHkn8f77frWdZxRWr6rrdyus",
+  "sellToken": "So11111111111111111111111111111111111111112",
+  "buyToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+  "sellTokenAccount": "4suWaDEQusHzhw3Um2FuKSkkMHZSwmsPrtMq1igWeTZx",
+  "buyTokenAccount": "Bz4KveMHCbCfRCEdzTaMW1A6mCLbJUDaR8fvJNz8dkrN",
+  "sellAmount": "30264534",
+  "buyAmount": "10000000",
+  "validTo": 1792666395,
+  "kind": "buy",
+  "partiallyFillable": false,
+  "appData": "0x3c74bf5b542341051f22f7a76d928086964a346f3fb5dc08eaf1e8348cbfbad2",
+  "orderPda": "9Q1F8r8zBJLnfXuGgJnVYizh7ZpWer8G2mtGeJsJkB1v",
+  "creationDate": "2026-10-22T10:50:50.276945Z",
+  "executedSellAmount": "30170392",
+  "executedBuyAmount": "10000000",
+  "status": "fulfilled",
+  "trades": [
+   {
+    "orderUid": "0x7e6e91058fc61fa29e666423e644681446cb6b12dc08f9f9bd8308e262f1e404",
+    "owner": "GcY8jk3HeHLDmdPa8wRVnHkn8f77frWdZxRWr6rrdyus",
+    "sellToken": "So11111111111111111111111111111111111111112",
+    "buyToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+    "sellAmount": "30170392",
+    "buyAmount": "10000000",
+    "txSignature": "4E26f5wZcgyBPEQ92rYZZUgu6gh5LFtws2PpYEQfGNfVCCkVoy56h5eRzCjvbsztUbzP4fhc8JcuPSDdFBq5Ms5s",
+    "instructionIndex": 2,
+    "slot": 460008017,
+    "tx": {
+     "fee_payer": "J6eqaEWUGXqV1Rbk8YSLDsdkNGC19CGreTf8M9emjy6c",
+     "block_time": 1792666311,
+     "fee": 5801,
+     "cu": 54717,
+     "err": null
+    }
+   }
+  ],
+  "wrongTokenProgram": []
+ },
+ {
+  "uid": "0x70a7425d87bcd6bf9452717d3c0d834f156bc7988e51a745212e6ed0380b5091",
+  "owner": "CDY1rvEes25vx7DZwxp5BRSgAewDQMgwBExfAMEymdMC",
+  "sellToken": "So11111111111111111111111111111111111111112",
+  "buyToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+  "sellTokenAccount": "J4zu47F2P6awBMRb46BKy6xhySsh8FixGf74UaRLCUxS",
+  "buyTokenAccount": "55zKZda3WHpCBa83BZA4k3kQgR6tckFDzjQKgs9FtUeG",
+  "sellAmount": "30264997",
+  "buyAmount": "10000000",
+  "validTo": 1792666396,
+  "kind": "buy",
+  "partiallyFillable": false,
+  "appData": "0x3c74bf5b542341051f22f7a76d928086964a346f3fb5dc08eaf1e8348cbfbad2",
+  "orderPda": "nYK7finE2vF5yeWjBGESWjdKotLHD8Fmto3QB9cHzA1",
+  "creationDate": "2026-10-22T10:50:50.628372Z",
+  "executedSellAmount": "30168397",
+  "executedBuyAmount": "10000000",
+  "status": "fulfilled",
+  "trades": [
+   {
+    "orderUid": "0x70a7425d87bcd6bf9452717d3c0d834f156bc7988e51a745212e6ed0380b5091",
+    "owner": "CDY1rvEes25vx7DZwxp5BRSgAewDQMgwBExfAMEymdMC",
+    "sellToken": "So11111111111111111111111111111111111111112",
+    "buyToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+    "sellAmount": "30168397",
+    "buyAmount": "10000000",
+    "txSignature": "26NWHRnLdMmfznx7Y3UhBgYAhHQtpBmkMe738RcAKGjck7PLok3VaNhDRftRV4e1JZbQPhsWkCTPrsinhtpbzUJw",
+    "instructionIndex": 2,
+    "slot": 460008090,
+    "tx": {
+     "fee_payer": "GCBBeHsTZJ4cXVo94cF3MZ2VfwYkFTu7aRmHXgRMo5VC",
+     "block_time": 1792666326,
+     "fee": 6522,
+     "cu": 76245,
+     "err": null
+    }
+   }
+  ],
+  "wrongTokenProgram": []
+ },
+ {
+  "uid": "0xfe90fc22efee6a4e3e6a2cf8cc54baa29455c8c72a280029eaa7395a897cf859",
+  "owner": "91V7pVaQyARieyPXcNpxQZdqk5KoH7P1vgg2YHNBfSti",
+  "sellToken": "So11111111111111111111111111111111111111112",
+  "buyToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+  "sellTokenAccount": "GWjMc8NifmfCjpjqc4NJ12R84iYtGxvysXymavmxjyAx",
+  "buyTokenAccount": "FHU3TEwVgNXXwSyW674jV9bvdswVCPvHi85BNLE9CpUM",
+  "sellAmount": "30264997",
+  "buyAmount": "10000000",
+  "validTo": 1792666396,
+  "kind": "buy",
+  "partiallyFillable": false,
+  "appData": "0x3c74bf5b542341051f22f7a76d928086964a346f3fb5dc08eaf1e8348cbfbad2",
+  "orderPda": "GgQGreeuYuGzL6aQQZQv43QqwATRcRYWKbwd9dAvr6MK",
+  "creationDate": "2026-10-22T10:50:50.749904Z",
+  "executedSellAmount": "30170254",
+  "executedBuyAmount": "10000000",
+  "status": "fulfilled",
+  "trades": [
+   {
+    "orderUid": "0xfe90fc22efee6a4e3e6a2cf8cc54baa29455c8c72a280029eaa7395a897cf859",
+    "owner": "91V7pVaQyARieyPXcNpxQZdqk5KoH7P1vgg2YHNBfSti",
+    "sellToken": "So11111111111111111111111111111111111111112",
+    "buyToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+    "sellAmount": "30170254",
+    "buyAmount": "10000000",
+    "txSignature": "2Cy3ENiddyFErmBqbQLpscwHasrMg7ftNERiTTpV21d7jxKeCEEniXa3TvbPV2nA1WeqVMdYXdYzXCNrNA3LDGDe",
+    "instructionIndex": 2,
+    "slot": 460008184,
+    "tx": {
+     "fee_payer": "J6eqaEWUGXqV1Rbk8YSLDsdkNGC19CGreTf8M9emjy6c",
+     "block_time": 1792666346,
+     "fee": 5801,
+     "cu": 54731,
+     "err": null
+    }
+   }
+  ],
+  "wrongTokenProgram": []
+ },
+ {
+  "uid": "0x3297e925d74ae56ca9d88bdce71b36407603afcf1062153ba3542fdecc27a3d6",
+  "owner": "AQHstwk1uwAEnz8JE41HEbbD1EaPBjBwtid2qbo1Q3KD",
+  "sellToken": "So11111111111111111111111111111111111111112",
+  "buyToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+  "sellTokenAccount": "8HUms751RBY72GtBHaFABK4BoXRgQsaJNcoqq9ENknkJ",
+  "buyTokenAccount": "EggSnGPaN6JZa55DUuMxASjyFhxGMgHVxjr8u7y9Rpwj",
+  "sellAmount": "30264997",
+  "buyAmount": "10000000",
+  "validTo": 1792666396,
+  "kind": "buy",
+  "partiallyFillable": false,
+  "appData": "0x3c74bf5b542341051f22f7a76d928086964a346f3fb5dc08eaf1e8348cbfbad2",
+  "orderPda": "7Zav58RUM1BtsEgygFGueRVoVDbSMn6UAfXViEwyux82",
+  "creationDate": "2026-10-22T10:50:50.864642Z",
+  "executedSellAmount": "30167036",
+  "executedBuyAmount": "10000000",
+  "status": "fulfilled",
+  "trades": [
+   {
+    "orderUid": "0x3297e925d74ae56ca9d88bdce71b36407603afcf1062153ba3542fdecc27a3d6",
+    "owner": "AQHstwk1uwAEnz8JE41HEbbD1EaPBjBwtid2qbo1Q3KD",
+    "sellToken": "So11111111111111111111111111111111111111112",
+    "buyToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+    "sellAmount": "30167036",
+    "buyAmount": "10000000",
+    "txSignature": "m9Epop9HDPrK14sj3uBB2dNDpasr7pFeWCK8u125v8NxD4rsxoiuEPimQtRTR3cufoWPSKnLS3pY1yT6yoSssLF",
+    "instructionIndex": 2,
+    "slot": 460008161,
+    "tx": {
+     "fee_payer": "8oLu4fyFb1SLc9ER3M31CfYRvtPWhUb3r3cXrRwNT8ku",
+     "block_time": 1792666341,
+     "fee": 19000,
+     "cu": 121100,
+     "err": null
+    }
+   }
+  ],
+  "wrongTokenProgram": []
+ },
+ {
+  "uid": "0xdd8894dccfcf57a69fb2e4d063030c465479484ed60e1cdd96d75ec78f0fa8d1",
+  "owner": "CcQdkRAXeX7seuZLmiapfpM6CVBndVrsvMe38E4Uypyg",
+  "sellToken": "So11111111111111111111111111111111111111112",
+  "buyToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+  "sellTokenAccount": "8TenoQygwRr6SSXDQnuxLJdtv6jbAcunphuvqRGc6Czd",
+  "buyTokenAccount": "5PZw2TcHkCwW4pJTZmDod7FWYcU5BHfgbpJjceTVvTVn",
+  "sellAmount": "30264997",
+  "buyAmount": "10000000",
+  "validTo": 1792666396,
+  "kind": "buy",
+  "partiallyFillable": false,
+  "appData": "0x3c74bf5b542341051f22f7a76d928086964a346f3fb5dc08eaf1e8348cbfbad2",
+  "orderPda": "9SuKvwcwgTjdyhLRbjy4hBLGWukWsoyZ1c96weLePr8o",
+  "creationDate": "2026-10-22T10:50:50.939592Z",
+  "executedSellAmount": "0",
+  "executedBuyAmount": "0",
+  "status": "expired",
+  "lastValidBlockHeight": 438041701,
+  "trades": [],
+  "wrongTokenProgram": []
+ },
+ {
+  "uid": "0x5da5c721874a38b34dd442819129ae4d47b42c093f30dc9bf19fdb551d1c347a",
+  "owner": "EGXsUdM4HLc983jD276LHz87k5zBZSJrJc137qcokK8D",
+  "sellToken": "So11111111111111111111111111111111111111112",
+  "buyToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+  "sellTokenAccount": "2QvKt8jNRz4Aao5FUaxpM2MKpGTrMdButFeo4zAbuKda",
+  "buyTokenAccount": "8GxjW4HcrRFd9XS8TVrUwet73o3VwVRTwp1Fp1MjbaSE",
+  "sellAmount": "30264997",
+  "buyAmount": "10000000",
+  "validTo": 1792666396,
+  "kind": "buy",
+  "partiallyFillable": false,
+  "appData": "0x3c74bf5b542341051f22f7a76d928086964a346f3fb5dc08eaf1e8348cbfbad2",
+  "orderPda": "HaCptXkeEd1gBEjxFev5ycCsAVdjBmF6jpcEJNac78Jg",
+  "creationDate": "2026-10-22T10:50:51.032547Z",
+  "executedSellAmount": "30168271",
+  "executedBuyAmount": "10000000",
+  "status": "fulfilled",
+  "trades": [
+   {
+    "orderUid": "0x5da5c721874a38b34dd442819129ae4d47b42c093f30dc9bf19fdb551d1c347a",
+    "owner": "EGXsUdM4HLc983jD276LHz87k5zBZSJrJc137qcokK8D",
+    "sellToken": "So11111111111111111111111111111111111111112",
+    "buyToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+    "sellAmount": "30168271",
+    "buyAmount": "10000000",
+    "txSignature": "2APts3442UBnd8j3ogKwFbny192LyBb4QjwjVV1K4qMqsu4jfYEPt6typghKLHtbyYs2TBM7tKBikkoLVCzvU9zM",
+    "instructionIndex": 2,
+    "slot": 460007947,
+    "tx": {
+     "fee_payer": "GCBBeHsTZJ4cXVo94cF3MZ2VfwYkFTu7aRmHXgRMo5VC",
+     "block_time": 1792666296,
+     "fee": 6522,
+     "cu": 76227,
+     "err": null
+    }
+   }
+  ],
+  "wrongTokenProgram": []
+ },
+ {
+  "uid": "0x9ab800a2e2cb51d572adea6b21327b7fe101c2b5139cfaab8daa2967d49f448f",
+  "owner": "94bjVVSp8jgvP4ivAW3wFomkRpeE3xBouyCWErsR1ANz",
+  "sellToken": "So11111111111111111111111111111111111111112",
+  "buyToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+  "sellTokenAccount": "3Y9NrqaBTdgRFnQyFnxiVf3xa9Ajc9Y6zpwg3eEY1Bu9",
+  "buyTokenAccount": "2fMTa1FNMwR8uy3dJVBKmURucQQo3KxyMVM5uTcrNU9b",
+  "sellAmount": "30266015",
+  "buyAmount": "10000000",
+  "validTo": 1792666397,
+  "kind": "buy",
+  "partiallyFillable": false,
+  "appData": "0x3c74bf5b542341051f22f7a76d928086964a346f3fb5dc08eaf1e8348cbfbad2",
+  "orderPda": "7dCp25kCm6JDQuGrM5Pzgyk6wyXG8mv4eFQCVo8zarRD",
+  "creationDate": "2026-10-22T10:50:51.845775Z",
+  "executedSellAmount": "30168018",
+  "executedBuyAmount": "10000000",
+  "status": "fulfilled",
+  "trades": [
+   {
+    "orderUid": "0x9ab800a2e2cb51d572adea6b21327b7fe101c2b5139cfaab8daa2967d49f448f",
+    "owner": "94bjVVSp8jgvP4ivAW3wFomkRpeE3xBouyCWErsR1ANz",
+    "sellToken": "So11111111111111111111111111111111111111112",
+    "buyToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+    "sellAmount": "30168018",
+    "buyAmount": "10000000",
+    "txSignature": "32SHXwFNMMqbUmLeyLCBskkybpo9vzT8iYHBU7VY7CvYsPcmHafgoHhA8h9Gd2YtRj1dmPvLTrZdr6sBRmWW3qgy",
+    "instructionIndex": 2,
+    "slot": 460007840,
+    "tx": {
+     "fee_payer": "GCBBeHsTZJ4cXVo94cF3MZ2VfwYkFTu7aRmHXgRMo5VC",
+     "block_time": 1792666273,
+     "fee": 6521,
+     "cu": 76284,
+     "err": null
+    }
+   }
+  ],
+  "wrongTokenProgram": []
+ },
+ {
+  "uid": "0xe39287490468c7e375c287e5a585bb82aacac10b86c98f8cd6f11160dd820b89",
+  "owner": "2kV12Qsin6Wfxr2Pr6M8bqUbjqMppw4gpqAbV18TiFfJ",
+  "sellToken": "So11111111111111111111111111111111111111112",
+  "buyToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+  "sellTokenAccount": "En1H4CMXQ2MUok4dHuQCuj9xnomg8ZD3crvxDRGdegmb",
+  "buyTokenAccount": "DRJdKofenrRTJV7yPxqVgeGJhFc7ThymbStPbD1mqUUV",
+  "sellAmount": "30266015",
+  "buyAmount": "10000000",
+  "validTo": 1792666397,
+  "kind": "buy",
+  "partiallyFillable": false,
+  "appData": "0x3c74bf5b542341051f22f7a76d928086964a346f3fb5dc08eaf1e8348cbfbad2",
+  "orderPda": "5XxCvCgEZPAxtmh78M1SAmVmNaUTpHMdygqmiJMWn5Ce",
+  "creationDate": "2026-10-22T10:50:51.861236Z",
+  "executedSellAmount": "30171161",
+  "executedBuyAmount": "10000000",
+  "status": "fulfilled",
+  "trades": [
+   {
+    "orderUid": "0xe39287490468c7e375c287e5a585bb82aacac10b86c98f8cd6f11160dd820b89",
+    "owner": "2kV12Qsin6Wfxr2Pr6M8bqUbjqMppw4gpqAbV18TiFfJ",
+    "sellToken": "So11111111111111111111111111111111111111112",
+    "buyToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+    "sellAmount": "30171161",
+    "buyAmount": "10000000",
+    "txSignature": "2dvqasrhSdghjQcbDYM9N5DQKe6CdVTEASV9XB3RXUV9myHerBpS9WkL9oQqZDtu3bgATaV3HEwUhVAEMWMWiQNQ",
+    "instructionIndex": 2,
+    "slot": 460007900,
+    "tx": {
+     "fee_payer": "883XazUhNq9ZbmkzSqJjh72Azx9ZG9HcfZyF8auG8aGz",
+     "block_time": 1792666286,
+     "fee": 6455,
+     "cu": 72856,
+     "err": null
+    }
+   }
+  ],
+  "wrongTokenProgram": []
+ },
+ {
+  "uid": "0xa253aa4d505c6c73be3210e2eceee94e306beea8618e646964a11d5a12c93cca",
+  "owner": "9XSrZ8RkSZ3WDoGkrgWHrmMhixsoWZTLnPxBtQNWNK9c",
+  "sellToken": "So11111111111111111111111111111111111111112",
+  "buyToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+  "sellTokenAccount": "6CSNJ64P6zPCQUFfHdV5MtpTJYeeY615zMWXjA9TX8yB",
+  "buyTokenAccount": "Av3yA7NopBxeh7xU12qRVTcLzg5EpvokoTiRpQcePDq4",
+  "sellAmount": "30266015",
+  "buyAmount": "10000000",
+  "validTo": 1792666397,
+  "kind": "buy",
+  "partiallyFillable": false,
+  "appData": "0x3c74bf5b542341051f22f7a76d928086964a346f3fb5dc08eaf1e8348cbfbad2",
+  "orderPda": "GPqJ1FqfDtMyJaZLG23w1KS2iPrYW5hvE1vnKXXAebHF",
+  "creationDate": "2026-10-22T10:50:51.935230Z",
+  "executedSellAmount": "30166481",
+  "executedBuyAmount": "10000000",
+  "status": "fulfilled",
+  "trades": [
+   {
+    "orderUid": "0xa253aa4d505c6c73be3210e2eceee94e306beea8618e646964a11d5a12c93cca",
+    "owner": "9XSrZ8RkSZ3WDoGkrgWHrmMhixsoWZTLnPxBtQNWNK9c",
+    "sellToken": "So11111111111111111111111111111111111111112",
+    "buyToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+    "sellAmount": "30166481",
+    "buyAmount": "10000000",
+    "txSignature": "3KRSgPVYs9GNmMgJ9hXfi4NTWfKCf1gm8VPQpQyRkfcGivUEcg3sKXShMAt5ExaDAWyMpuK7C6sDdwb82ccVEAHy",
+    "instructionIndex": 2,
+    "slot": 460007875,
+    "tx": {
+     "fee_payer": "Grr6SWYUFi1eCagwEifXVD83rUQ4W5rJWYq1Lj7cx1jS",
+     "block_time": 1792666281,
+     "fee": 8384,
+     "cu": 167656,
+     "err": null
+    }
+   }
+  ],
+  "wrongTokenProgram": []
+ },
+ {
+  "uid": "0x5d01cf79c9aec688dfbc64758076ad1cb3710cc7676c196c270618231e48434a",
+  "owner": "BsXAAY6SvTyWYjwKCa5SUs1kDBK6n7ia7qvRPVj5dFgz",
+  "sellToken": "So11111111111111111111111111111111111111112",
+  "buyToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+  "sellTokenAccount": "5jE4GP7c9jnUc8eXHVJAYQdMGqAJYSGpXX1hRRJC18dF",
+  "buyTokenAccount": "B4ESmxdmUhqPNMBehZQK4hmjcAMgwacTo975XAfr4yyH",
+  "sellAmount": "30266015",
+  "buyAmount": "10000000",
+  "validTo": 1792666397,
+  "kind": "buy",
+  "partiallyFillable": false,
+  "appData": "0x3c74bf5b542341051f22f7a76d928086964a346f3fb5dc08eaf1e8348cbfbad2",
+  "orderPda": "CRECVt1fZjYwe3fpyYGYb5yArUocXhn4jTLBX1pNCPyc",
+  "creationDate": "2026-10-22T10:50:52.028849Z",
+  "executedSellAmount": "30167955",
+  "executedBuyAmount": "10000000",
+  "status": "fulfilled",
+  "trades": [
+   {
+    "orderUid": "0x5d01cf79c9aec688dfbc64758076ad1cb3710cc7676c196c270618231e48434a",
+    "owner": "BsXAAY6SvTyWYjwKCa5SUs1kDBK6n7ia7qvRPVj5dFgz",
+    "sellToken": "So11111111111111111111111111111111111111112",
+    "buyToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+    "sellAmount": "30167955",
+    "buyAmount": "10000000",
+    "txSignature": "rHBztdrd9crEWx7ibChUMLHfuXUDCgLzxxqYPKJw1RzbJ5YVEoNcpUA3JZmhUAEr2msaDwVWwRTdfZV8yap5CDN",
+    "instructionIndex": 2,
+    "slot": 460007816,
+    "tx": {
+     "fee_payer": "GCBBeHsTZJ4cXVo94cF3MZ2VfwYkFTu7aRmHXgRMo5VC",
+     "block_time": 1792666268,
+     "fee": 6520,
+     "cu": 76164,
+     "err": null
+    }
+   }
+  ],
+  "wrongTokenProgram": []
+ },
+ {
+  "uid": "0xfc9f3dfb21b036399837d3578080db2a1df7ef6829d657d92672c151a1c48e07",
+  "owner": "HoWtt82mr4wqKqMDy4jFDRs1C9kt3kY6KtXH3i83fyn5",
+  "sellToken": "So11111111111111111111111111111111111111112",
+  "buyToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+  "sellTokenAccount": "DZ36jPRACaVuz5KERsYfmm4oGBG77nU2F1VqE7rPVc8B",
+  "buyTokenAccount": "vTmwghQ6TgXjeZFK954441qmNSV63D7AsEqvQxsurBb",
+  "sellAmount": "30266015",
+  "buyAmount": "10000000",
+  "validTo": 1792666397,
+  "kind": "buy",
+  "partiallyFillable": false,
+  "appData": "0x3c74bf5b542341051f22f7a76d928086964a346f3fb5dc08eaf1e8348cbfbad2",
+  "orderPda": "2KhxcNdZV5BRyYNDstjtJFGeK8a1oYT658CzsJf7PFK6",
+  "creationDate": "2026-10-22T10:50:52.238183Z",
+  "executedSellAmount": "30166481",
+  "executedBuyAmount": "10000000",
+  "status": "fulfilled",
+  "trades": [
+   {
+    "orderUid": "0xfc9f3dfb21b036399837d3578080db2a1df7ef6829d657d92672c151a1c48e07",
+    "owner": "HoWtt82mr4wqKqMDy4jFDRs1C9kt3kY6KtXH3i83fyn5",
+    "sellToken": "So11111111111111111111111111111111111111112",
+    "buyToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+    "sellAmount": "30166481",
+    "buyAmount": "10000000",
+    "txSignature": "3HnDuPBaaXJLLWnRv3vv1GocDhwXyhNhHsoaqiqMpBsyNABhFztr68shRGuXQ3kNCM5jpoW6b6X9WFTRw216aUa9",
+    "instructionIndex": 2,
+    "slot": 460007867,
+    "tx": {
+     "fee_payer": "Grr6SWYUFi1eCagwEifXVD83rUQ4W5rJWYq1Lj7cx1jS",
+     "block_time": 1792666279,
+     "fee": 8384,
+     "cu": 169573,
+     "err": null
+    }
+   }
+  ],
+  "wrongTokenProgram": []
+ },
+ {
+  "uid": "0x9174b2bbe1eaa411b0166eb84c0c6f1dc571667c2b1069d70de3c3a2f8a04782",
+  "owner": "GikSpMABHu6MJERkF3N9GMmwPXfEBxABjChVkK1W9ji4",
+  "sellToken": "So11111111111111111111111111111111111111112",
+  "buyToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+  "sellTokenAccount": "HkiDCTFCMuXno3zktDriEFSWkzAfRkuq6p6NT8hremw7",
+  "buyTokenAccount": "FKvFSb8NXwSNKD9mNN5mq1f3J7Qpd9nMsmvo8B3jvTAX",
+  "sellAmount": "30265985",
+  "buyAmount": "10000000",
+  "validTo": 1792666398,
+  "kind": "buy",
+  "partiallyFillable": false,
+  "appData": "0x3c74bf5b542341051f22f7a76d928086964a346f3fb5dc08eaf1e8348cbfbad2",
+  "orderPda": "EadrsguuSZ4PGhSMGnLPe7vu9chSZPek7hfphvfxcumW",
+  "creationDate": "2026-10-22T10:50:52.828705Z",
+  "executedSellAmount": "30168334",
+  "executedBuyAmount": "10000000",
+  "status": "fulfilled",
+  "trades": [
+   {
+    "orderUid": "0x9174b2bbe1eaa411b0166eb84c0c6f1dc571667c2b1069d70de3c3a2f8a04782",
+    "owner": "GikSpMABHu6MJERkF3N9GMmwPXfEBxABjChVkK1W9ji4",
+    "sellToken": "So11111111111111111111111111111111111111112",
+    "buyToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+    "sellAmount": "30168334",
+    "buyAmount": "10000000",
+    "txSignature": "2Sba1A3KqhLb4G6LFRZuaLEYbfVUzB95q1VbMyawT14oEG8kz1Q7tAe2eAC9b3Y5WsAv6QJ8Bax2REPCs7f6KzfA",
+    "instructionIndex": 2,
+    "slot": 460007970,
+    "tx": {
+     "fee_payer": "GCBBeHsTZJ4cXVo94cF3MZ2VfwYkFTu7aRmHXgRMo5VC",
+     "block_time": 1792666301,
+     "fee": 6521,
+     "cu": 76287,
+     "err": null
+    }
+   }
+  ],
+  "wrongTokenProgram": []
+ },
+ {
+  "uid": "0x42fe23bf0e5560dea0ed5894f747e8c2844f1ae3a521734d2dbaa676c61fcd51",
+  "owner": "CagkCmsroJWAiUWrigym7vR9wGYV5aKWanTGu3ZARKqD",
+  "sellToken": "So11111111111111111111111111111111111111112",
+  "buyToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+  "sellTokenAccount": "GQGz4WLAmeKid16n2DX3wuJjqMgA4nehMGLtBMvhgcAT",
+  "buyTokenAccount": "GokzdtmbiJLN6ADTDpfbPbBqUPutXTGxXGLiYgor5FQV",
+  "sellAmount": "30266015",
+  "buyAmount": "10000000",
+  "validTo": 1792666398,
+  "kind": "buy",
+  "partiallyFillable": false,
+  "appData": "0x3c74bf5b542341051f22f7a76d928086964a346f3fb5dc08eaf1e8348cbfbad2",
+  "orderPda": "7YERPYj1Wm69L8aWSsccRVnTiUH34vJnCogGYk7pXPSe",
+  "creationDate": "2026-10-22T10:50:52.926609Z",
+  "executedSellAmount": "30167955",
+  "executedBuyAmount": "10000000",
+  "status": "fulfilled",
+  "trades": [
+   {
+    "orderUid": "0x42fe23bf0e5560dea0ed5894f747e8c2844f1ae3a521734d2dbaa676c61fcd51",
+    "owner": "CagkCmsroJWAiUWrigym7vR9wGYV5aKWanTGu3ZARKqD",
+    "sellToken": "So11111111111111111111111111111111111111112",
+    "buyToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+    "sellAmount": "30167955",
+    "buyAmount": "10000000",
+    "txSignature": "2pFisXb6P7nWmf2t7xf3gNFvkkUfmGzdMNUWQLhxtJFV5GmRFAji1sSQ4NcPTPVvHZQoFxuA7By7ZWtDefiSLqKJ",
+    "instructionIndex": 2,
+    "slot": 460007795,
+    "tx": {
+     "fee_payer": "GCBBeHsTZJ4cXVo94cF3MZ2VfwYkFTu7aRmHXgRMo5VC",
+     "block_time": 1792666264,
+     "fee": 6520,
+     "cu": 76143,
+     "err": null
+    }
+   }
+  ],
+  "wrongTokenProgram": []
+ },
+ {
+  "uid": "0x47f7842be662089f007521f3f18c98fe359b04f270bdb71b6bac5061f69829b5",
+  "owner": "EDimKwHuMtcwxxbAfQPT3EaH9CPpyTLARxLRRwiZV26v",
+  "sellToken": "So11111111111111111111111111111111111111112",
+  "buyToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+  "sellTokenAccount": "FVKD72jVCW7yaHXeURqk9YW3YLVoA3QaizjhWQ9WgfKy",
+  "buyTokenAccount": "2QmCy5K1ZQ3EPci11MMRYCskv5yF26CqZoKZcLKZpnms",
+  "sellAmount": "30265985",
+  "buyAmount": "10000000",
+  "validTo": 1792666398,
+  "kind": "buy",
+  "partiallyFillable": false,
+  "appData": "0x3c74bf5b542341051f22f7a76d928086964a346f3fb5dc08eaf1e8348cbfbad2",
+  "orderPda": "F778ct39TVXQDKB2jCD1ADNaTSv7GzYRnG4cLLvoUizD",
+  "creationDate": "2026-10-22T10:50:53.019213Z",
+  "executedSellAmount": "30171161",
+  "executedBuyAmount": "10000000",
+  "status": "fulfilled",
+  "trades": [
+   {
+    "orderUid": "0x47f7842be662089f007521f3f18c98fe359b04f270bdb71b6bac5061f69829b5",
+    "owner": "EDimKwHuMtcwxxbAfQPT3EaH9CPpyTLARxLRRwiZV26v",
+    "sellToken": "So11111111111111111111111111111111111111112",
+    "buyToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+    "sellAmount": "30171161",
+    "buyAmount": "10000000",
+    "txSignature": "5bw7qkcQ5WX68ALakxLofNW6iDf6iBout3qvQpafba9YEKmNrWBea2iEYLrCUbGM35RR4NKfbhi5WMjft8n7SzQZ",
+    "instructionIndex": 2,
+    "slot": 460007922,
+    "tx": {
+     "fee_payer": "Grr6SWYUFi1eCagwEifXVD83rUQ4W5rJWYq1Lj7cx1jS",
+     "block_time": 1792666291,
+     "fee": 6492,
+     "cu": 74722,
+     "err": null
+    }
+   }
+  ],
+  "wrongTokenProgram": []
+ },
+ {
+  "uid": "0x70ff6fb090aaa77a4d1949f21570c209beeeca25a3caf2ff46cc170cf2299a9a",
+  "owner": "4p3tgZxpw2gKnJnVwQ4Ah3av47HywcXfFaXTFGNU2aTT",
+  "sellToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+  "buyToken": "11111111111111111111111111111111",
+  "sellTokenAccount": "ARNTLunnFYRrqpmHANZ3y7TZAZXtAkMxBYS6JtCDjrEv",
+  "buyTokenAccount": "4p3tgZxpw2gKnJnVwQ4Ah3av47HywcXfFaXTFGNU2aTT",
+  "sellAmount": "10000000",
+  "buyAmount": "29942945",
+  "validTo": 1792666497,
+  "kind": "sell",
+  "partiallyFillable": false,
+  "appData": "0x3c74bf5b542341051f22f7a76d928086964a346f3fb5dc08eaf1e8348cbfbad2",
+  "orderPda": "CKoazEdRiEsoEMk7767i4rnPCi5wNtvMZm8QtGr2uEAZ",
+  "creationDate": "2026-10-22T10:52:32.157667Z",
+  "executedSellAmount": "10000000",
+  "executedBuyAmount": "30068564",
+  "status": "fulfilled",
+  "trades": [
+   {
+    "orderUid": "0x70ff6fb090aaa77a4d1949f21570c209beeeca25a3caf2ff46cc170cf2299a9a",
+    "owner": "4p3tgZxpw2gKnJnVwQ4Ah3av47HywcXfFaXTFGNU2aTT",
+    "sellToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+    "buyToken": "11111111111111111111111111111111",
+    "sellAmount": "10000000",
+    "buyAmount": "30068564",
+    "txSignature": "4WGCLgxs2hQYeANRKE5Sm4vR5TFjGc6SAFh6zLqAMeubF9Zex1be62oXrKX643jdSHaTFHnLKoL5hrkwuZzsKEMR",
+    "instructionIndex": 2,
+    "slot": 460008372,
+    "tx": {
+     "fee_payer": "Grr6SWYUFi1eCagwEifXVD83rUQ4W5rJWYq1Lj7cx1jS",
+     "block_time": 1792666386,
+     "fee": 6430,
+     "cu": 71851,
+     "err": null
+    }
+   }
+  ],
+  "wrongTokenProgram": []
+ },
+ {
+  "uid": "0xabb306fa90a1ae9cceeac7942d01c7b1c883908dcafacf43e7c8ef2121623729",
+  "owner": "DoD7Kb5bE6Jr7Eq2JTdYwfLn7718RzpYxKyQen2rxiBQ",
+  "sellToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+  "buyToken": "11111111111111111111111111111111",
+  "sellTokenAccount": "5czCfp7594JiFquAvgFpidtK2xfCKBGa5xz5TTaVWzRE",
+  "buyTokenAccount": "DoD7Kb5bE6Jr7Eq2JTdYwfLn7718RzpYxKyQen2rxiBQ",
+  "sellAmount": "10000000",
+  "buyAmount": "29942242",
+  "validTo": 1792666499,
+  "kind": "sell",
+  "partiallyFillable": false,
+  "appData": "0x3c74bf5b542341051f22f7a76d928086964a346f3fb5dc08eaf1e8348cbfbad2",
+  "orderPda": "2R33oAWujtifEe5ydHEaBWUfkLnEYtSprDbz8bQ5oNmB",
+  "creationDate": "2026-10-22T10:52:34.154201Z",
+  "executedSellAmount": "10000000",
+  "executedBuyAmount": "30091851",
+  "status": "fulfilled",
+  "trades": [
+   {
+    "orderUid": "0xabb306fa90a1ae9cceeac7942d01c7b1c883908dcafacf43e7c8ef2121623729",
+    "owner": "DoD7Kb5bE6Jr7Eq2JTdYwfLn7718RzpYxKyQen2rxiBQ",
+    "sellToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+    "buyToken": "11111111111111111111111111111111",
+    "sellAmount": "10000000",
+    "buyAmount": "30091851",
+    "txSignature": "rJaCrrzyw1wvNBve27u8jQHSrMqLaPaRN9Vw4et5KVotu1soAG8zNZADyitrvTkpYRbmz9tDHsN9x1Y9QanJxeH",
+    "instructionIndex": 2,
+    "slot": 460008255,
+    "tx": {
+     "fee_payer": "AuwLofAZcjCxUeYs1Ca7ea812HjySAv3b1QjvVjcYzVj",
+     "block_time": 1792666361,
+     "fee": 6000,
+     "cu": 23617,
+     "err": null
+    }
+   }
+  ],
+  "wrongTokenProgram": []
+ },
+ {
+  "uid": "0x8238fdae84195aa65946cd8df79bf86bd3ab50b3fe9cbb4d3486a8125ddf589f",
+  "owner": "AM6Qwi3vwMCGpRbJ55zDatByeAtsbcfXvXBh77be8C9T",
+  "sellToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+  "buyToken": "11111111111111111111111111111111",
+  "sellTokenAccount": "KCBqF8hg3sLYcaRk6d7kGL3hXpFEe65X4WmCdQa9kLb",
+  "buyTokenAccount": "AM6Qwi3vwMCGpRbJ55zDatByeAtsbcfXvXBh77be8C9T",
+  "sellAmount": "10000000",
+  "buyAmount": "29938617",
+  "validTo": 1792666502,
+  "kind": "sell",
+  "partiallyFillable": false,
+  "appData": "0x3c74bf5b542341051f22f7a76d928086964a346f3fb5dc08eaf1e8348cbfbad2",
+  "orderPda": "G98GmRTnDqJTGSaY7fNiLAAPxzciELpL6qtEUWniZjG5",
+  "creationDate": "2026-10-22T10:52:37.342226Z",
+  "executedSellAmount": "10000000",
+  "executedBuyAmount": "30030829",
+  "status": "fulfilled",
+  "trades": [
+   {
+    "orderUid": "0x8238fdae84195aa65946cd8df79bf86bd3ab50b3fe9cbb4d3486a8125ddf589f",
+    "owner": "AM6Qwi3vwMCGpRbJ55zDatByeAtsbcfXvXBh77be8C9T",
+    "sellToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+    "buyToken": "11111111111111111111111111111111",
+    "sellAmount": "10000000",
+    "buyAmount": "30030829",
+    "txSignature": "9Koqasefj2FqcSi7Vk3q39kTL7nqz9Eh7UyexYW61D94B5Bh1pQWqnKounFCjXyBzg1KqGP1cRKKxXE5ykECEbQ",
+    "instructionIndex": 2,
+    "slot": 460008329,
+    "tx": {
+     "fee_payer": "GCBBeHsTZJ4cXVo94cF3MZ2VfwYkFTu7aRmHXgRMo5VC",
+     "block_time": 1792666377,
+     "fee": 138686,
+     "cu": 187491,
+     "err": null
+    }
+   }
+  ],
+  "wrongTokenProgram": []
+ },
+ {
+  "uid": "0x197600f606e85436d0b9757c291570cdd42bfd56f1213457d2de834d65c4df39",
+  "owner": "7RqUGHCV2tngEBctNc8o58nPDy6AsYzsUHAW2JgA2XX9",
+  "sellToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+  "buyToken": "11111111111111111111111111111111",
+  "sellTokenAccount": "C95Yd5XopUdY5GX6qHRqe6PyGopiXP92XyjbiLF1CMmh",
+  "buyTokenAccount": "7RqUGHCV2tngEBctNc8o58nPDy6AsYzsUHAW2JgA2XX9",
+  "sellAmount": "10000000",
+  "buyAmount": "29938612",
+  "validTo": 1792666503,
+  "kind": "sell",
+  "partiallyFillable": false,
+  "appData": "0x3c74bf5b542341051f22f7a76d928086964a346f3fb5dc08eaf1e8348cbfbad2",
+  "orderPda": "4st91kycQpZ62SY6vdGkoq5bFD8d7qZ9hCzQUdgCdFWE",
+  "creationDate": "2026-10-22T10:52:38.442182Z",
+  "executedSellAmount": "10000000",
+  "executedBuyAmount": "30027740",
+  "status": "fulfilled",
+  "trades": [
+   {
+    "orderUid": "0x197600f606e85436d0b9757c291570cdd42bfd56f1213457d2de834d65c4df39",
+    "owner": "7RqUGHCV2tngEBctNc8o58nPDy6AsYzsUHAW2JgA2XX9",
+    "sellToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+    "buyToken": "11111111111111111111111111111111",
+    "sellAmount": "10000000",
+    "buyAmount": "30027740",
+    "txSignature": "XkGPCSrVNUC37mG3cLpAFHirvDUQPeRtbPdokgYh5pVoXUXdRWauyi77dmjkxzCpNcN4yLGYXatTxRLFFA2hAZP",
+    "instructionIndex": 2,
+    "slot": 460008312,
+    "tx": {
+     "fee_payer": "GCBBeHsTZJ4cXVo94cF3MZ2VfwYkFTu7aRmHXgRMo5VC",
+     "block_time": 1792666373,
+     "fee": 138686,
+     "cu": 180748,
+     "err": null
+    }
+   }
+  ],
+  "wrongTokenProgram": []
+ },
+ {
+  "uid": "0xf327a350ed635c93e685ddf69da615948a16b0214c8eb44a69434e7281b4a48d",
+  "owner": "FjcXArDzUrBTJ1Lv6Yc8n9atjkNYaxKosVjn6VSxZTrK",
+  "sellToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+  "buyToken": "11111111111111111111111111111111",
+  "sellTokenAccount": "4UyxUaHgmdbSrdE9duSZGKVozsQNB9m8sctnU19EKZEY",
+  "buyTokenAccount": "FjcXArDzUrBTJ1Lv6Yc8n9atjkNYaxKosVjn6VSxZTrK",
+  "sellAmount": "10000000",
+  "buyAmount": "29940937",
+  "validTo": 1792666504,
+  "kind": "sell",
+  "partiallyFillable": false,
+  "appData": "0x3c74bf5b542341051f22f7a76d928086964a346f3fb5dc08eaf1e8348cbfbad2",
+  "orderPda": "9jh4YYULoNiUiXvdQWpnFazFcrh8p4fSqixuZYWmg1RK",
+  "creationDate": "2026-10-22T10:52:39.458061Z",
+  "executedSellAmount": "10000000",
+  "executedBuyAmount": "30030829",
+  "status": "fulfilled",
+  "trades": [
+   {
+    "orderUid": "0xf327a350ed635c93e685ddf69da615948a16b0214c8eb44a69434e7281b4a48d",
+    "owner": "FjcXArDzUrBTJ1Lv6Yc8n9atjkNYaxKosVjn6VSxZTrK",
+    "sellToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+    "buyToken": "11111111111111111111111111111111",
+    "sellAmount": "10000000",
+    "buyAmount": "30030829",
+    "txSignature": "9Koqasefj2FqcSi7Vk3q39kTL7nqz9Eh7UyexYW61D94B5Bh1pQWqnKounFCjXyBzg1KqGP1cRKKxXE5ykECEbQ",
+    "instructionIndex": 2,
+    "slot": 460008329,
+    "tx": {
+     "fee_payer": "GCBBeHsTZJ4cXVo94cF3MZ2VfwYkFTu7aRmHXgRMo5VC",
+     "block_time": 1792666377,
+     "fee": 138686,
+     "cu": 187491,
+     "err": null
+    }
+   }
+  ],
+  "wrongTokenProgram": []
+ },
+ {
+  "uid": "0x0545f1c4a3a35ad5f21de2cd3367dd0c45112fbd7699b6e8eb78373f1a1d1edf",
+  "owner": "GcY8jk3HeHLDmdPa8wRVnHkn8f77frWdZxRWr6rrdyus",
+  "sellToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+  "buyToken": "11111111111111111111111111111111",
+  "sellTokenAccount": "Bz4KveMHCbCfRCEdzTaMW1A6mCLbJUDaR8fvJNz8dkrN",
+  "buyTokenAccount": "GcY8jk3HeHLDmdPa8wRVnHkn8f77frWdZxRWr6rrdyus",
+  "sellAmount": "10000000",
+  "buyAmount": "29937871",
+  "validTo": 1792666505,
+  "kind": "sell",
+  "partiallyFillable": false,
+  "appData": "0x3c74bf5b542341051f22f7a76d928086964a346f3fb5dc08eaf1e8348cbfbad2",
+  "orderPda": "CtceMQeeDUCx4AfnH8on3de8x9UFnkNkQN8VfntDRwZv",
+  "creationDate": "2026-10-22T10:52:40.596315Z",
+  "executedSellAmount": "10000000",
+  "executedBuyAmount": "30093329",
+  "status": "fulfilled",
+  "trades": [
+   {
+    "orderUid": "0x0545f1c4a3a35ad5f21de2cd3367dd0c45112fbd7699b6e8eb78373f1a1d1edf",
+    "owner": "GcY8jk3HeHLDmdPa8wRVnHkn8f77frWdZxRWr6rrdyus",
+    "sellToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+    "buyToken": "11111111111111111111111111111111",
+    "sellAmount": "10000000",
+    "buyAmount": "30093329",
+    "txSignature": "3vQ1QkDZgPyMPA9fx9HnjMDkaXTVGQnDrfyGgKS46DMS5n12kmfmYXr6qP3XP28nWqeDHeV6o3JgUczEpBZEx27R",
+    "instructionIndex": 2,
+    "slot": 460008288,
+    "tx": {
+     "fee_payer": "AuwLofAZcjCxUeYs1Ca7ea812HjySAv3b1QjvVjcYzVj",
+     "block_time": 1792666368,
+     "fee": 6000,
+     "cu": 23617,
+     "err": null
+    }
+   }
+  ],
+  "wrongTokenProgram": []
+ },
+ {
+  "uid": "0x4dbab257dfd0d72e6ffd7b2d6ad440044ed832f97361f5669380c0cf390e6ef2",
+  "owner": "AQHstwk1uwAEnz8JE41HEbbD1EaPBjBwtid2qbo1Q3KD",
+  "sellToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+  "buyToken": "11111111111111111111111111111111",
+  "sellTokenAccount": "EggSnGPaN6JZa55DUuMxASjyFhxGMgHVxjr8u7y9Rpwj",
+  "buyTokenAccount": "AQHstwk1uwAEnz8JE41HEbbD1EaPBjBwtid2qbo1Q3KD",
+  "sellAmount": "10000000",
+  "buyAmount": "29938265",
+  "validTo": 1792666506,
+  "kind": "sell",
+  "partiallyFillable": false,
+  "appData": "0x3c74bf5b542341051f22f7a76d928086964a346f3fb5dc08eaf1e8348cbfbad2",
+  "orderPda": "5foaT5ZL7XSyoJQ8534TK9dAL4hDvy9ArtfQfgi4mERH",
+  "creationDate": "2026-10-22T10:52:42.149612Z",
+  "executedSellAmount": "10000000",
+  "executedBuyAmount": "30030829",
+  "status": "fulfilled",
+  "trades": [
+   {
+    "orderUid": "0x4dbab257dfd0d72e6ffd7b2d6ad440044ed832f97361f5669380c0cf390e6ef2",
+    "owner": "AQHstwk1uwAEnz8JE41HEbbD1EaPBjBwtid2qbo1Q3KD",
+    "sellToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+    "buyToken": "11111111111111111111111111111111",
+    "sellAmount": "10000000",
+    "buyAmount": "30030829",
+    "txSignature": "9Koqasefj2FqcSi7Vk3q39kTL7nqz9Eh7UyexYW61D94B5Bh1pQWqnKounFCjXyBzg1KqGP1cRKKxXE5ykECEbQ",
+    "instructionIndex": 2,
+    "slot": 460008329,
+    "tx": {
+     "fee_payer": "GCBBeHsTZJ4cXVo94cF3MZ2VfwYkFTu7aRmHXgRMo5VC",
+     "block_time": 1792666377,
+     "fee": 138686,
+     "cu": 187491,
+     "err": null
+    }
+   }
+  ],
+  "wrongTokenProgram": []
+ },
+ {
+  "uid": "0x2bd86ea757b26bd4edca1db982ba8788db8724a1a0db1b073f13060c4bbed466",
+  "owner": "CDY1rvEes25vx7DZwxp5BRSgAewDQMgwBExfAMEymdMC",
+  "sellToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+  "buyToken": "11111111111111111111111111111111",
+  "sellTokenAccount": "55zKZda3WHpCBa83BZA4k3kQgR6tckFDzjQKgs9FtUeG",
+  "buyTokenAccount": "CDY1rvEes25vx7DZwxp5BRSgAewDQMgwBExfAMEymdMC",
+  "sellAmount": "10000000",
+  "buyAmount": "29937407",
+  "validTo": 1792666507,
+  "kind": "sell",
+  "partiallyFillable": false,
+  "appData": "0x3c74bf5b542341051f22f7a76d928086964a346f3fb5dc08eaf1e8348cbfbad2",
+  "orderPda": "3dC4tpjDCYvgv3hqkqodhpZbPNN2hQYdhrFzbafDrJYq",
+  "creationDate": "2026-10-22T10:52:43.081914Z",
+  "executedSellAmount": "10000000",
+  "executedBuyAmount": "30027740",
+  "status": "fulfilled",
+  "trades": [
+   {
+    "orderUid": "0x2bd86ea757b26bd4edca1db982ba8788db8724a1a0db1b073f13060c4bbed466",
+    "owner": "CDY1rvEes25vx7DZwxp5BRSgAewDQMgwBExfAMEymdMC",
+    "sellToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+    "buyToken": "11111111111111111111111111111111",
+    "sellAmount": "10000000",
+    "buyAmount": "30027740",
+    "txSignature": "XkGPCSrVNUC37mG3cLpAFHirvDUQPeRtbPdokgYh5pVoXUXdRWauyi77dmjkxzCpNcN4yLGYXatTxRLFFA2hAZP",
+    "instructionIndex": 2,
+    "slot": 460008312,
+    "tx": {
+     "fee_payer": "GCBBeHsTZJ4cXVo94cF3MZ2VfwYkFTu7aRmHXgRMo5VC",
+     "block_time": 1792666373,
+     "fee": 138686,
+     "cu": 180748,
+     "err": null
+    }
+   }
+  ],
+  "wrongTokenProgram": []
+ },
+ {
+  "uid": "0xfe6e5b8d23df48ef12adc886efea1f52ccbbd1ed1f34a8724c50ab346d395133",
+  "owner": "EGXsUdM4HLc983jD276LHz87k5zBZSJrJc137qcokK8D",
+  "sellToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+  "buyToken": "11111111111111111111111111111111",
+  "sellTokenAccount": "8GxjW4HcrRFd9XS8TVrUwet73o3VwVRTwp1Fp1MjbaSE",
+  "buyTokenAccount": "EGXsUdM4HLc983jD276LHz87k5zBZSJrJc137qcokK8D",
+  "sellAmount": "10000000",
+  "buyAmount": "29937397",
+  "validTo": 1792666510,
+  "kind": "sell",
+  "partiallyFillable": false,
+  "appData": "0x3c74bf5b542341051f22f7a76d928086964a346f3fb5dc08eaf1e8348cbfbad2",
+  "orderPda": "BseykwzbGU8uA2NUxUAt8LqA49aVb7kcgKKkb2gDH4vQ",
+  "creationDate": "2026-10-22T10:52:43.884428Z",
+  "executedSellAmount": "10000000",
+  "executedBuyAmount": "30006861",
+  "status": "fulfilled",
+  "trades": [
+   {
+    "orderUid": "0xfe6e5b8d23df48ef12adc886efea1f52ccbbd1ed1f34a8724c50ab346d395133",
+    "owner": "EGXsUdM4HLc983jD276LHz87k5zBZSJrJc137qcokK8D",
+    "sellToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+    "buyToken": "11111111111111111111111111111111",
+    "sellAmount": "10000000",
+    "buyAmount": "30006861",
+    "txSignature": "KAwfsDxuNeVbVhBPhZmLWGXeSPdd2CaaEB7p4e1sAqJHys4hWTZbUhr1F6EtFNwaJNw9QAoFBXHxEubLEQm64TH",
+    "instructionIndex": 2,
+    "slot": 460008346,
+    "tx": {
+     "fee_payer": "GCBBeHsTZJ4cXVo94cF3MZ2VfwYkFTu7aRmHXgRMo5VC",
+     "block_time": 1792666380,
+     "fee": 135681,
+     "cu": 185357,
+     "err": null
+    }
+   }
+  ],
+  "wrongTokenProgram": []
+ },
+ {
+  "uid": "0x4727fc1b96ad19569c671f4df75ee1defca705af4f996e617a397a4856d80639",
+  "owner": "BsXAAY6SvTyWYjwKCa5SUs1kDBK6n7ia7qvRPVj5dFgz",
+  "sellToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+  "buyToken": "11111111111111111111111111111111",
+  "sellTokenAccount": "B4ESmxdmUhqPNMBehZQK4hmjcAMgwacTo975XAfr4yyH",
+  "buyTokenAccount": "BsXAAY6SvTyWYjwKCa5SUs1kDBK6n7ia7qvRPVj5dFgz",
+  "sellAmount": "10000000",
+  "buyAmount": "29937397",
+  "validTo": 1792666510,
+  "kind": "sell",
+  "partiallyFillable": false,
+  "appData": "0x3c74bf5b542341051f22f7a76d928086964a346f3fb5dc08eaf1e8348cbfbad2",
+  "orderPda": "En1oizt1Xcr9VVthiLkfHEgzFPuVvBWBD7iX1y1m1WHa",
+  "creationDate": "2026-10-22T10:52:45.049434Z",
+  "executedSellAmount": "10000000",
+  "executedBuyAmount": "30027740",
+  "status": "fulfilled",
+  "trades": [
+   {
+    "orderUid": "0x4727fc1b96ad19569c671f4df75ee1defca705af4f996e617a397a4856d80639",
+    "owner": "BsXAAY6SvTyWYjwKCa5SUs1kDBK6n7ia7qvRPVj5dFgz",
+    "sellToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+    "buyToken": "11111111111111111111111111111111",
+    "sellAmount": "10000000",
+    "buyAmount": "30027740",
+    "txSignature": "XkGPCSrVNUC37mG3cLpAFHirvDUQPeRtbPdokgYh5pVoXUXdRWauyi77dmjkxzCpNcN4yLGYXatTxRLFFA2hAZP",
+    "instructionIndex": 2,
+    "slot": 460008312,
+    "tx": {
+     "fee_payer": "GCBBeHsTZJ4cXVo94cF3MZ2VfwYkFTu7aRmHXgRMo5VC",
+     "block_time": 1792666373,
+     "fee": 138686,
+     "cu": 180748,
+     "err": null
+    }
+   }
+  ],
+  "wrongTokenProgram": []
+ },
+ {
+  "uid": "0x815cf31677a5494426a227ae0a6e1d8ae8f77469dedb7ac762491a7c7ad3b436",
+  "owner": "94bjVVSp8jgvP4ivAW3wFomkRpeE3xBouyCWErsR1ANz",
+  "sellToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+  "buyToken": "11111111111111111111111111111111",
+  "sellTokenAccount": "2fMTa1FNMwR8uy3dJVBKmURucQQo3KxyMVM5uTcrNU9b",
+  "buyTokenAccount": "94bjVVSp8jgvP4ivAW3wFomkRpeE3xBouyCWErsR1ANz",
+  "sellAmount": "10000000",
+  "buyAmount": "29943434",
+  "validTo": 1792666521,
+  "kind": "sell",
+  "partiallyFillable": false,
+  "appData": "0x3c74bf5b542341051f22f7a76d928086964a346f3fb5dc08eaf1e8348cbfbad2",
+  "orderPda": "F1jpCorvZLXgRe4UE68uemVPeCvZHMkYX2WYXwBCmL6p",
+  "creationDate": "2026-10-22T10:52:53.230673Z",
+  "executedSellAmount": "10000000",
+  "executedBuyAmount": "30006861",
+  "status": "fulfilled",
+  "trades": [
+   {
+    "orderUid": "0x815cf31677a5494426a227ae0a6e1d8ae8f77469dedb7ac762491a7c7ad3b436",
+    "owner": "94bjVVSp8jgvP4ivAW3wFomkRpeE3xBouyCWErsR1ANz",
+    "sellToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+    "buyToken": "11111111111111111111111111111111",
+    "sellAmount": "10000000",
+    "buyAmount": "30006861",
+    "txSignature": "KAwfsDxuNeVbVhBPhZmLWGXeSPdd2CaaEB7p4e1sAqJHys4hWTZbUhr1F6EtFNwaJNw9QAoFBXHxEubLEQm64TH",
+    "instructionIndex": 2,
+    "slot": 460008346,
+    "tx": {
+     "fee_payer": "GCBBeHsTZJ4cXVo94cF3MZ2VfwYkFTu7aRmHXgRMo5VC",
+     "block_time": 1792666380,
+     "fee": 135681,
+     "cu": 185357,
+     "err": null
+    }
+   }
+  ],
+  "wrongTokenProgram": []
+ },
+ {
+  "uid": "0xd50ab43b928500d4af9bb1b1396f5346d17513649cd12dde710c70329b10911c",
+  "owner": "2kV12Qsin6Wfxr2Pr6M8bqUbjqMppw4gpqAbV18TiFfJ",
+  "sellToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+  "buyToken": "11111111111111111111111111111111",
+  "sellTokenAccount": "DRJdKofenrRTJV7yPxqVgeGJhFc7ThymbStPbD1mqUUV",
+  "buyTokenAccount": "2kV12Qsin6Wfxr2Pr6M8bqUbjqMppw4gpqAbV18TiFfJ",
+  "sellAmount": "10000000",
+  "buyAmount": "29941384",
+  "validTo": 1792666529,
+  "kind": "sell",
+  "partiallyFillable": false,
+  "appData": "0x3c74bf5b542341051f22f7a76d928086964a346f3fb5dc08eaf1e8348cbfbad2",
+  "orderPda": "2e58mJ7FQAA66YBbKZqiYBWTKWVjnL6V2288JDNT6Sxg",
+  "creationDate": "2026-10-22T10:53:01.722644Z",
+  "executedSellAmount": "10000000",
+  "executedBuyAmount": "30069822",
+  "status": "fulfilled",
+  "trades": [
+   {
+    "orderUid": "0xd50ab43b928500d4af9bb1b1396f5346d17513649cd12dde710c70329b10911c",
+    "owner": "2kV12Qsin6Wfxr2Pr6M8bqUbjqMppw4gpqAbV18TiFfJ",
+    "sellToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+    "buyToken": "11111111111111111111111111111111",
+    "sellAmount": "10000000",
+    "buyAmount": "30069822",
+    "txSignature": "5UXwZgxrBEa77FWLPyMqtRiiidi4y5NL7BG7RRBspsMwJHa4NGndygkKD23JYzj48wBRTRZQZmZPwqLM8v9YNH4Y",
+    "instructionIndex": 2,
+    "slot": 460008398,
+    "tx": {
+     "fee_payer": "J6eqaEWUGXqV1Rbk8YSLDsdkNGC19CGreTf8M9emjy6c",
+     "block_time": 1792666391,
+     "fee": 10879,
+     "cu": 125191,
+     "err": null
+    }
+   }
+  ],
+  "wrongTokenProgram": []
+ },
+ {
+  "uid": "0xbcaf25f0a761d6f39c6179c4829e3fcbd4c7001c140e47ab402c7c8514139179",
+  "owner": "9XSrZ8RkSZ3WDoGkrgWHrmMhixsoWZTLnPxBtQNWNK9c",
+  "sellToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+  "buyToken": "11111111111111111111111111111111",
+  "sellTokenAccount": "Av3yA7NopBxeh7xU12qRVTcLzg5EpvokoTiRpQcePDq4",
+  "buyTokenAccount": "9XSrZ8RkSZ3WDoGkrgWHrmMhixsoWZTLnPxBtQNWNK9c",
+  "sellAmount": "10000000",
+  "buyAmount": "29948580",
+  "validTo": 1792666534,
+  "kind": "sell",
+  "partiallyFillable": false,
+  "appData": "0x3c74bf5b542341051f22f7a76d928086964a346f3fb5dc08eaf1e8348cbfbad2",
+  "orderPda": "AYMnmjBkAbb8QbVsNE1mR97wDTeNbre6iDp2fwgmJVa1",
+  "creationDate": "2026-10-22T10:53:08.730854Z",
+  "executedSellAmount": "10000000",
+  "executedBuyAmount": "30014442",
+  "status": "fulfilled",
+  "trades": [
+   {
+    "orderUid": "0xbcaf25f0a761d6f39c6179c4829e3fcbd4c7001c140e47ab402c7c8514139179",
+    "owner": "9XSrZ8RkSZ3WDoGkrgWHrmMhixsoWZTLnPxBtQNWNK9c",
+    "sellToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+    "buyToken": "11111111111111111111111111111111",
+    "sellAmount": "10000000",
+    "buyAmount": "30014442",
+    "txSignature": "5GEHVJrmkqMoAyKEo2ymtTCbTpzzmRbJbT8UeY9E3apX4mFxvKuTZQYETBZcmSsVWfN5wKmHMbtDQAYLKqpECwGT",
+    "instructionIndex": 2,
+    "slot": 460008446,
+    "tx": {
+     "fee_payer": "GCBBeHsTZJ4cXVo94cF3MZ2VfwYkFTu7aRmHXgRMo5VC",
+     "block_time": 1792666401,
+     "fee": 138686,
+     "cu": 189260,
+     "err": null
+    }
+   }
+  ],
+  "wrongTokenProgram": []
+ },
+ {
+  "uid": "0x73469e63326c9ce6c2b83fefcbe542c7dca70f00cf5d08171fa39f9ed6282987",
+  "owner": "HoWtt82mr4wqKqMDy4jFDRs1C9kt3kY6KtXH3i83fyn5",
+  "sellToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+  "buyToken": "11111111111111111111111111111111",
+  "sellTokenAccount": "vTmwghQ6TgXjeZFK954441qmNSV63D7AsEqvQxsurBb",
+  "buyTokenAccount": "HoWtt82mr4wqKqMDy4jFDRs1C9kt3kY6KtXH3i83fyn5",
+  "sellAmount": "10000000",
+  "buyAmount": "29941353",
+  "validTo": 1792666536,
+  "kind": "sell",
+  "partiallyFillable": false,
+  "appData": "0x3c74bf5b542341051f22f7a76d928086964a346f3fb5dc08eaf1e8348cbfbad2",
+  "orderPda": "4yKeKyDUTut6v9Cv9XLTy4hSUdJF5L7wogGW9HijyqBq",
+  "creationDate": "2026-10-22T10:53:10.376973Z",
+  "executedSellAmount": "10000000",
+  "executedBuyAmount": "30014442",
+  "status": "fulfilled",
+  "trades": [
+   {
+    "orderUid": "0x73469e63326c9ce6c2b83fefcbe542c7dca70f00cf5d08171fa39f9ed6282987",
+    "owner": "HoWtt82mr4wqKqMDy4jFDRs1C9kt3kY6KtXH3i83fyn5",
+    "sellToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+    "buyToken": "11111111111111111111111111111111",
+    "sellAmount": "10000000",
+    "buyAmount": "30014442",
+    "txSignature": "5GEHVJrmkqMoAyKEo2ymtTCbTpzzmRbJbT8UeY9E3apX4mFxvKuTZQYETBZcmSsVWfN5wKmHMbtDQAYLKqpECwGT",
+    "instructionIndex": 2,
+    "slot": 460008446,
+    "tx": {
+     "fee_payer": "GCBBeHsTZJ4cXVo94cF3MZ2VfwYkFTu7aRmHXgRMo5VC",
+     "block_time": 1792666401,
+     "fee": 138686,
+     "cu": 189260,
+     "err": null
+    }
+   }
+  ],
+  "wrongTokenProgram": []
+ },
+ {
+  "uid": "0x76505af94718e963c25bba5620216bbaaa7651436b9cfce2b6b867a98400c6fd",
+  "owner": "CagkCmsroJWAiUWrigym7vR9wGYV5aKWanTGu3ZARKqD",
+  "sellToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+  "buyToken": "11111111111111111111111111111111",
+  "sellTokenAccount": "GokzdtmbiJLN6ADTDpfbPbBqUPutXTGxXGLiYgor5FQV",
+  "buyTokenAccount": "CagkCmsroJWAiUWrigym7vR9wGYV5aKWanTGu3ZARKqD",
+  "sellAmount": "10000000",
+  "buyAmount": "29938475",
+  "validTo": 1792666539,
+  "kind": "sell",
+  "partiallyFillable": false,
+  "appData": "0x3c74bf5b542341051f22f7a76d928086964a346f3fb5dc08eaf1e8348cbfbad2",
+  "orderPda": "DKysfxSBSwwV7WCQjPJjYCbpAq1RsdeP3n5bpq9mgUQR",
+  "creationDate": "2026-10-22T10:53:14.338440Z",
+  "executedSellAmount": "10000000",
+  "executedBuyAmount": "30014442",
+  "status": "fulfilled",
+  "trades": [
+   {
+    "orderUid": "0x76505af94718e963c25bba5620216bbaaa7651436b9cfce2b6b867a98400c6fd",
+    "owner": "CagkCmsroJWAiUWrigym7vR9wGYV5aKWanTGu3ZARKqD",
+    "sellToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+    "buyToken": "11111111111111111111111111111111",
+    "sellAmount": "10000000",
+    "buyAmount": "30014442",
+    "txSignature": "5GEHVJrmkqMoAyKEo2ymtTCbTpzzmRbJbT8UeY9E3apX4mFxvKuTZQYETBZcmSsVWfN5wKmHMbtDQAYLKqpECwGT",
+    "instructionIndex": 2,
+    "slot": 460008446,
+    "tx": {
+     "fee_payer": "GCBBeHsTZJ4cXVo94cF3MZ2VfwYkFTu7aRmHXgRMo5VC",
+     "block_time": 1792666401,
+     "fee": 138686,
+     "cu": 189260,
+     "err": null
+    }
+   }
+  ],
+  "wrongTokenProgram": []
+ },
+ {
+  "uid": "0x6b3930d6347fc64fcb05fb8fd850fffb63a9d771a73c8ce0c6c2721b797b9dd3",
+  "owner": "GikSpMABHu6MJERkF3N9GMmwPXfEBxABjChVkK1W9ji4",
+  "sellToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+  "buyToken": "11111111111111111111111111111111",
+  "sellTokenAccount": "FKvFSb8NXwSNKD9mNN5mq1f3J7Qpd9nMsmvo8B3jvTAX",
+  "buyTokenAccount": "GikSpMABHu6MJERkF3N9GMmwPXfEBxABjChVkK1W9ji4",
+  "sellAmount": "10000000",
+  "buyAmount": "29931521",
+  "validTo": 1792666542,
+  "kind": "sell",
+  "partiallyFillable": false,
+  "appData": "0x3c74bf5b542341051f22f7a76d928086964a346f3fb5dc08eaf1e8348cbfbad2",
+  "orderPda": "6EgfNdfb6grf8FWucyvtUut1a9NZQH42Yykd6RPcBTfv",
+  "creationDate": "2026-10-22T10:53:17.287307Z",
+  "executedSellAmount": "10000000",
+  "executedBuyAmount": "30055067",
+  "status": "fulfilled",
+  "trades": [
+   {
+    "orderUid": "0x6b3930d6347fc64fcb05fb8fd850fffb63a9d771a73c8ce0c6c2721b797b9dd3",
+    "owner": "GikSpMABHu6MJERkF3N9GMmwPXfEBxABjChVkK1W9ji4",
+    "sellToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+    "buyToken": "11111111111111111111111111111111",
+    "sellAmount": "10000000",
+    "buyAmount": "30055067",
+    "txSignature": "HfL4fPf98bgjAJBD4bpQPKLWaAS4C5vUWzBNzz39R2tfhgeJXNucsYDqab7mQ4KxBJasFhVK3LuVKpJQysjuLbb",
+    "instructionIndex": 2,
+    "slot": 460008488,
+    "tx": {
+     "fee_payer": "J6eqaEWUGXqV1Rbk8YSLDsdkNGC19CGreTf8M9emjy6c",
+     "block_time": 1792666410,
+     "fee": 10004,
+     "cu": 63159,
+     "err": null
+    }
+   }
+  ],
+  "wrongTokenProgram": []
+ },
+ {
+  "uid": "0xdb8b22075b3eaa321b890836067a38f6e40d587627c6188449d93038df6ccc7f",
+  "owner": "EDimKwHuMtcwxxbAfQPT3EaH9CPpyTLARxLRRwiZV26v",
+  "sellToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+  "buyToken": "11111111111111111111111111111111",
+  "sellTokenAccount": "2QmCy5K1ZQ3EPci11MMRYCskv5yF26CqZoKZcLKZpnms",
+  "buyTokenAccount": "EDimKwHuMtcwxxbAfQPT3EaH9CPpyTLARxLRRwiZV26v",
+  "sellAmount": "10000000",
+  "buyAmount": "29931231",
+  "validTo": 1792666544,
+  "kind": "sell",
+  "partiallyFillable": false,
+  "appData": "0x3c74bf5b542341051f22f7a76d928086964a346f3fb5dc08eaf1e8348cbfbad2",
+  "orderPda": "9pveqJ6ZYRV1HWACWfgZWxfiLbZegqvv2GJgFTvgcJX6",
+  "creationDate": "2026-10-22T10:53:18.360232Z",
+  "executedSellAmount": "10000000",
+  "executedBuyAmount": "30054813",
+  "status": "fulfilled",
+  "trades": [
+   {
+    "orderUid": "0xdb8b22075b3eaa321b890836067a38f6e40d587627c6188449d93038df6ccc7f",
+    "owner": "EDimKwHuMtcwxxbAfQPT3EaH9CPpyTLARxLRRwiZV26v",
+    "sellToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+    "buyToken": "11111111111111111111111111111111",
+    "sellAmount": "10000000",
+    "buyAmount": "30054813",
+    "txSignature": "6k8jKE7hvydb5vkCATJ4rAw4HiJLezwXMxPenrH9kZJFFypYvAr3KBCj9iDkoA4CD1BRH6wTqAWWUfjXZsuVvHG",
+    "instructionIndex": 2,
+    "slot": 460008468,
+    "tx": {
+     "fee_payer": "J6eqaEWUGXqV1Rbk8YSLDsdkNGC19CGreTf8M9emjy6c",
+     "block_time": 1792666406,
+     "fee": 10263,
+     "cu": 63135,
+     "err": null
+    }
+   }
+  ],
+  "wrongTokenProgram": []
+ },
+ {
+  "uid": "0xd3055b256963d073fa3f05c1fd5b75ee9d08843f0860f9d3745e5f9e068e2fb2",
+  "owner": "BQAD73uj3XftKnCB5ZB7P67b7AvEdfLefYbLiipch5oC",
+  "sellToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+  "buyToken": "11111111111111111111111111111111",
+  "sellTokenAccount": "7aPtXVFYchUcJpzpS2eeCZDjRdhWnqVksFYjnWhYPGTf",
+  "buyTokenAccount": "BQAD73uj3XftKnCB5ZB7P67b7AvEdfLefYbLiipch5oC",
+  "sellAmount": "10000000",
+  "buyAmount": "29923451",
+  "validTo": 1792666597,
+  "kind": "sell",
+  "partiallyFillable": false,
+  "appData": "0x3c74bf5b542341051f22f7a76d928086964a346f3fb5dc08eaf1e8348cbfbad2",
+  "orderPda": "Gr1c4GGCDmJvgRfuhcx6VH8bXWZV1Rrsb59TmsXQ8KpW",
+  "creationDate": "2026-10-22T10:54:09.348995Z",
+  "executedSellAmount": "10000000",
+  "executedBuyAmount": "30051569",
+  "status": "fulfilled",
+  "trades": [
+   {
+    "orderUid": "0xd3055b256963d073fa3f05c1fd5b75ee9d08843f0860f9d3745e5f9e068e2fb2",
+    "owner": "BQAD73uj3XftKnCB5ZB7P67b7AvEdfLefYbLiipch5oC",
+    "sellToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+    "buyToken": "11111111111111111111111111111111",
+    "sellAmount": "10000000",
+    "buyAmount": "30051569",
+    "txSignature": "faAjUaBHGYYWxm8ndv2qkgAtfN4TeaSMrDKdvsWDk51kjcGswGQGeLbyJWBmNYa5RvdM3yRh6Zzz5rssqXcWPa6",
+    "instructionIndex": 2,
+    "slot": 460008703,
+    "tx": {
+     "fee_payer": "J6eqaEWUGXqV1Rbk8YSLDsdkNGC19CGreTf8M9emjy6c",
+     "block_time": 1792666456,
+     "fee": 10000,
+     "cu": 77780,
+     "err": null
+    }
+   }
+  ],
+  "wrongTokenProgram": []
+ },
+ {
+  "uid": "0xab3093843cfc3cc9ee71a71931bc27fc7c8d4e4b43e98cceb25d9196cf7ef136",
+  "owner": "3FHY6qZALHavE387YcUMyqFYdYCiR5PbLSxdQBpwR6JK",
+  "sellToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+  "buyToken": "11111111111111111111111111111111",
+  "sellTokenAccount": "Bo4GzykB8tnMxVBA3aJxxwkZCWBeH192vc2AzuyEL5mu",
+  "buyTokenAccount": "3FHY6qZALHavE387YcUMyqFYdYCiR5PbLSxdQBpwR6JK",
+  "sellAmount": "10000000",
+  "buyAmount": "29923375",
+  "validTo": 1792666599,
+  "kind": "sell",
+  "partiallyFillable": false,
+  "appData": "0x3c74bf5b542341051f22f7a76d928086964a346f3fb5dc08eaf1e8348cbfbad2",
+  "orderPda": "3eoPV9pGduGxFVkRaurUkAuzneMVcsVy8nVrYiNipgre",
+  "creationDate": "2026-10-22T10:54:12.646503Z",
+  "executedSellAmount": "10000000",
+  "executedBuyAmount": "30053537",
+  "status": "fulfilled",
+  "trades": [
+   {
+    "orderUid": "0xab3093843cfc3cc9ee71a71931bc27fc7c8d4e4b43e98cceb25d9196cf7ef136",
+    "owner": "3FHY6qZALHavE387YcUMyqFYdYCiR5PbLSxdQBpwR6JK",
+    "sellToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+    "buyToken": "11111111111111111111111111111111",
+    "sellAmount": "10000000",
+    "buyAmount": "30053537",
+    "txSignature": "4JjFVrBqjzisweb7uQvD9UaXfAaGXsdU5Rnyop2gG8RLaDo6Zf8TdXurimx5Nkx664XSDAkhEed5Um5xPLb5f4Zh",
+    "instructionIndex": 2,
+    "slot": 460008723,
+    "tx": {
+     "fee_payer": "GCBBeHsTZJ4cXVo94cF3MZ2VfwYkFTu7aRmHXgRMo5VC",
+     "block_time": 1792666460,
+     "fee": 7650,
+     "cu": 65846,
+     "err": null
+    }
+   }
+  ],
+  "wrongTokenProgram": []
+ },
+ {
+  "uid": "0x74b167ea687621f5e7be33446080de9a77cd82e26a2714008c5532f316a86dc0",
+  "owner": "BPmy52DKPodqoSUirZUBedULujAZr6s778i4hc153r1X",
+  "sellToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+  "buyToken": "11111111111111111111111111111111",
+  "sellTokenAccount": "Bmva7P9RA9y2CJFUPF7Hn5rojkEUuRzWetqpKNnAAEcn",
+  "buyTokenAccount": "BPmy52DKPodqoSUirZUBedULujAZr6s778i4hc153r1X",
+  "sellAmount": "10000000",
+  "buyAmount": "29923311",
+  "validTo": 1792666600,
+  "kind": "sell",
+  "partiallyFillable": false,
+  "appData": "0x3c74bf5b542341051f22f7a76d928086964a346f3fb5dc08eaf1e8348cbfbad2",
+  "orderPda": "Jw8JNujHT5umabqNxCLF4iCQDxA5ts6yzhUMFC18z5R",
+  "creationDate": "2026-10-22T10:54:15.345405Z",
+  "executedSellAmount": "10000000",
+  "executedBuyAmount": "30053537",
+  "status": "fulfilled",
+  "trades": [
+   {
+    "orderUid": "0x74b167ea687621f5e7be33446080de9a77cd82e26a2714008c5532f316a86dc0",
+    "owner": "BPmy52DKPodqoSUirZUBedULujAZr6s778i4hc153r1X",
+    "sellToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+    "buyToken": "11111111111111111111111111111111",
+    "sellAmount": "10000000",
+    "buyAmount": "30053537",
+    "txSignature": "4JjFVrBqjzisweb7uQvD9UaXfAaGXsdU5Rnyop2gG8RLaDo6Zf8TdXurimx5Nkx664XSDAkhEed5Um5xPLb5f4Zh",
+    "instructionIndex": 2,
+    "slot": 460008723,
+    "tx": {
+     "fee_payer": "GCBBeHsTZJ4cXVo94cF3MZ2VfwYkFTu7aRmHXgRMo5VC",
+     "block_time": 1792666460,
+     "fee": 7650,
+     "cu": 65846,
+     "err": null
+    }
+   }
+  ],
+  "wrongTokenProgram": []
+ },
+ {
+  "uid": "0xbca2a5e9360c3f1218077864a456ab37f1dbdd1f55aa763a7df7624b8f9d5596",
+  "owner": "HTsxGEXBSe8rdUJjtW7e4v4YChNXTVmLQXuqBvvQtJuF",
+  "sellToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+  "buyToken": "11111111111111111111111111111111",
+  "sellTokenAccount": "G2J94kMHGiS6Noc6BUEG8tW9ufSg8hUpeUNs5qaicywJ",
+  "buyTokenAccount": "HTsxGEXBSe8rdUJjtW7e4v4YChNXTVmLQXuqBvvQtJuF",
+  "sellAmount": "10000000",
+  "buyAmount": "29922298",
+  "validTo": 1792666602,
+  "kind": "sell",
+  "partiallyFillable": false,
+  "appData": "0x3c74bf5b542341051f22f7a76d928086964a346f3fb5dc08eaf1e8348cbfbad2",
+  "orderPda": "CutvtrS4xRzLt2rudS1Vusvo569M8mM8oaRB7octudcc",
+  "creationDate": "2026-10-22T10:54:18.508797Z",
+  "executedSellAmount": "10000000",
+  "executedBuyAmount": "30053301",
+  "status": "fulfilled",
+  "trades": [
+   {
+    "orderUid": "0xbca2a5e9360c3f1218077864a456ab37f1dbdd1f55aa763a7df7624b8f9d5596",
+    "owner": "HTsxGEXBSe8rdUJjtW7e4v4YChNXTVmLQXuqBvvQtJuF",
+    "sellToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+    "buyToken": "11111111111111111111111111111111",
+    "sellAmount": "10000000",
+    "buyAmount": "30053301",
+    "txSignature": "nbi7LTUhZXcVtCWgXecWWzVMCoU961GjF2pNWpcAGiQfsKj6KwnRgrHCzF5GjEgnDLjr1mBw7Upb3KZX9ekf2Yd",
+    "instructionIndex": 2,
+    "slot": 460008749,
+    "tx": {
+     "fee_payer": "GCBBeHsTZJ4cXVo94cF3MZ2VfwYkFTu7aRmHXgRMo5VC",
+     "block_time": 1792666466,
+     "fee": 7650,
+     "cu": 65938,
+     "err": null
+    }
+   }
+  ],
+  "wrongTokenProgram": []
+ },
+ {
+  "uid": "0x48cf11c3f3989343657550ae2360f804dbd01d0f7e4dd4c8aa0c15f452a8c272",
+  "owner": "91V7pVaQyARieyPXcNpxQZdqk5KoH7P1vgg2YHNBfSti",
+  "sellToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+  "buyToken": "11111111111111111111111111111111",
+  "sellTokenAccount": "FHU3TEwVgNXXwSyW674jV9bvdswVCPvHi85BNLE9CpUM",
+  "buyTokenAccount": "91V7pVaQyARieyPXcNpxQZdqk5KoH7P1vgg2YHNBfSti",
+  "sellAmount": "10000000",
+  "buyAmount": "29922298",
+  "validTo": 1792666605,
+  "kind": "sell",
+  "partiallyFillable": false,
+  "appData": "0x3c74bf5b542341051f22f7a76d928086964a346f3fb5dc08eaf1e8348cbfbad2",
+  "orderPda": "2dsWgmDPt3nzBKhNLGne2FUcF6y196rztw9JNr1ABpq4",
+  "creationDate": "2026-10-22T10:54:20.147438Z",
+  "executedSellAmount": "10000000",
+  "executedBuyAmount": "30053301",
+  "status": "fulfilled",
+  "trades": [
+   {
+    "orderUid": "0x48cf11c3f3989343657550ae2360f804dbd01d0f7e4dd4c8aa0c15f452a8c272",
+    "owner": "91V7pVaQyARieyPXcNpxQZdqk5KoH7P1vgg2YHNBfSti",
+    "sellToken": "JUPyiwrYJFskUPiHa7hkeR8VUtAeFoSYbKedZNsDvCN",
+    "buyToken": "11111111111111111111111111111111",
+    "sellAmount": "10000000",
+    "buyAmount": "30053301",
+    "txSignature": "nbi7LTUhZXcVtCWgXecWWzVMCoU961GjF2pNWpcAGiQfsKj6KwnRgrHCzF5GjEgnDLjr1mBw7Upb3KZX9ekf2Yd",
+    "instructionIndex": 2,
+    "slot": 460008749,
+    "tx": {
+     "fee_payer": "GCBBeHsTZJ4cXVo94cF3MZ2VfwYkFTu7aRmHXgRMo5VC",
+     "block_time": 1792666466,
+     "fee": 7650,
+     "cu": 65938,
+     "err": null
+    }
+   }
+  ],
+  "wrongTokenProgram": []
+ }
+]

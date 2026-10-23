@@ -1,0 +1,90 @@
+{
+ "_source": "container solana-jupiter-prod-solve, per 5m",
+ "bucket_min": 5,
+ "rows": [
+  {
+   "t": "2026-10-16T19:15:00Z",
+   "solved": 642,
+   "no_match": 40,
+   "rate_limited": 0
+  },
+  {
+   "t": "2026-10-16T19:20:00Z",
+   "solved": 66,
+   "no_match": 60,
+   "rate_limited": 0
+  },
+  {
+   "t": "2026-10-16T19:25:00Z",
+   "solved": 60,
+   "no_match": 60,
+   "rate_limited": 0
+  },
+  {
+   "t": "2026-10-16T19:30:00Z",
+   "solved": 60,
+   "no_match": 60,
+   "rate_limited": 0
+  },
+  {
+   "t": "2026-10-16T19:35:00Z",
+   "solved": 60,
+   "no_match": 60,
+   "rate_limited": 0
+  },
+  {
+   "t": "2026-10-16T19:40:00Z",
+   "solved": 40,
+   "no_match": 60,
+   "rate_limited": 0
+  },
+  {
+   "t": "2026-10-16T19:45:00Z",
+   "solved": 0,
+   "no_match": 60,
+   "rate_limited": 0
+  },
+  {
+   "t": "2026-10-16T19:50:00Z",
+   "solved": 28,
+   "no_match": 60,
+   "rate_limited": 0
+  },
+  {
+   "t": "2026-10-16T19:55:00Z",
+   "solved": 8,
+   "no_match": 60,
+   "rate_limited": 0
+  },
+  {
+   "t": "2026-10-16T20:00:00Z",
+   "solved": 0,
+   "no_match": 60,
+   "rate_limited": 0
+  },
+  {
+   "t": "2026-10-16T20:05:00Z",
+   "solved": 0,
+   "no_match": 60,
+   "rate_limited": 0
+  },
+  {
+   "t": "2026-10-16T20:10:00Z",
+   "solved": 32,
+   "no_match": 60,
+   "rate_limited": 0
+  },
+  {
+   "t": "2026-10-16T20:15:00Z",
+   "solved": 44,
+   "no_match": 60,
+   "rate_limited": 0
+  },
+  {
+   "t": "2026-10-16T20:20:00Z",
+   "solved": 1,
+   "no_match": 16,
+   "rate_limited": 0
+  }
+ ]
+}

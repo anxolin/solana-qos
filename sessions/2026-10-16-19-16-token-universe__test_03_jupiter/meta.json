@@ -1,0 +1,16 @@
+{
+ "rpc": "solana-mainnet.g.alchemy.com",
+ "name": "2026-10-16-19-16-token-universe__test_03_jupiter trade session",
+ "title": "2026-10-16-19-16-token-universe__test_03_jupiter",
+ "env": "prod",
+ "sim": {
+  "scenario": "/Users/anxo/Bunker/code/cow/solana-qos/scenarios/token-universe/test_03_jupiter.csv",
+  "traders": 30,
+  "rows": 247,
+  "solFundingPerTrader": 0.1
+ },
+ "start": "2026-10-16T19:16:39.030Z",
+ "trading_end": "2026-10-16T20:21:20.314Z",
+ "end": "2026-10-16T20:22:20.314Z",
+ "fetched_at": "2026-10-16T20:29:18+00:00"
+}
