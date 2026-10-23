@@ -139,7 +139,7 @@ it.each(['single', 'composite', 'resume', 'limited-funder', 'setup-resume', 'fre
   vi.spyOn(console, 'error').mockImplementation(() => {})
   vi.spyOn(process, 'exit').mockImplementation(() => undefined as never)
   const single = mode === 'single' || mode === 'limited-funder' || mode === 'setup-resume' || singleFresh
-  const argv = vi.spyOn(process, 'argv', 'get').mockReturnValue([process.execPath, 'sim', single ? 'simulate-trade-session' : 'simulate-composite-scenario', join(root, singleFresh ? 'fresh.csv' : single ? 'ordinary.csv' : 'composite.json'), '--session', 'accounts', '--yes', ...(mode === 'limited-funder' ? ['--sol-funding-per-trader', '0.005'] : []), ...(singleFresh ? ['--fresh-accounts', '--sol-funding-per-trader', '0.15', '--slippage-bps', '500'] : []), ...(dryRun ? ['--dry-run'] : [])])
+  const argv = vi.spyOn(process, 'argv', 'get').mockReturnValue([process.execPath, 'sim', single ? 'simulate-trade-session' : 'simulate-composite-scenario', join(root, singleFresh ? 'fresh.csv' : single ? 'ordinary.csv' : 'composite.json'), '--session', 'accounts', '--yes', '--prepare-token-accounts', ...(mode === 'limited-funder' ? ['--sol-funding-per-trader', '0.005'] : []), ...(singleFresh ? ['--fresh-accounts', '--sol-funding-per-trader', '0.15', '--slippage-bps', '500'] : []), ...(dryRun ? ['--dry-run'] : [])])
   let completion: Promise<Command> | undefined
   const parse = Command.prototype.parseAsync
   vi.spyOn(Command.prototype, 'parseAsync').mockImplementation(function (this: Command, ...args) {

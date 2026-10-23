@@ -58,7 +58,7 @@ pnpm sim wallets --traders 1-25
 
 Standalone cleanup shows any SOL top-ups needed for fees, wallet rent and order rent before asking for confirmation. Wallets with tokens to sell receive at least the usual 0.02 SOL reserve; wallets with only empty accounts or wSOL receive the current minimum SOL-account balance plus closure fees. That minimum is read from Solana, since a wallet with zero SOL may need its SOL account recreated even while token accounts remain. It stops before sending if the funder cannot cover the top-ups and transfer fees. This lets cleanup retry wallets whose SOL was already swept while tokens remained. Cleanup still returns remaining SOL to the funder, including on its final attempt when some tokens could not be sold.
 
-By default, single and composite runs create missing receiving token accounts once before trading. Composites keep those accounts open between scenarios while selling tokens and recycling available SOL. Final cleanup closes the accounts and returns their rent. Existing accounts are reused. Rent is a temporary deposit, checked against the funder's balance during preflight; transaction fees and trading costs are spent. Receiving wSOL accounts can also retain wrapped SOL until final cleanup. `--no-cleanup` leaves accounts and funds in the wallets. Dry runs never create accounts.
+By default, each order's creation transaction opens its own missing receiving token account, paid by the trader (self-paid) or the sponsor (sponsored), so ordinary scenarios include first-use account costs. With `--prepare-token-accounts`, single and composite runs instead create missing receiving token accounts once before trading. Composites keep those accounts open between scenarios while selling tokens and recycling available SOL. Final cleanup closes the accounts and returns their rent. Existing accounts are reused. Rent is a temporary deposit, checked against the funder's balance during preflight; transaction fees and trading costs are spent. Receiving wSOL accounts can also retain wrapped SOL until final cleanup. `--no-cleanup` leaves accounts and funds in the wallets. Dry runs never create accounts.
 
 Cleanup logs refer to two different kinds of account:
 
@@ -80,7 +80,7 @@ Main flags of `simulate-trade-session`:
 | `--dry-run`, `--no-cleanup`, `-y` | | Quote only; keep the funds in the traders; skip the prompt |
 | `--defer-cleanup` | automatic | Compatibility flag; unfinished cleanup now continues and retries at the end by default |
 | `--max-creation-sol` | off | Refuses a run whose estimated creation cost (acquisitions, retries, cleanup) is above this |
-| `--no-prepare-token-accounts` | preparation on | Skip receiving-account setup before trading |
+| `--prepare-token-accounts` | off | Create missing receiving accounts once before trading instead of in each order |
 | `--fresh-accounts` | off | Skip preparation and require missing receiving accounts for a dedicated fresh-account test |
 | `--slippage-bps` | SDK default | Quote slippage in basis points; 500 means 5% |
 | `--env` | staging | `prod` must be passed explicitly |
@@ -92,11 +92,12 @@ Main flags of `simulate-trade-session`:
 A composite scenario combines existing CSV scenarios into one solver validation session. Add the CSV paths to a JSON config in the order you want to run them:
 
 ```text
-Prepare receiving accounts once
 Fund Burst → run → wait for outstanding orders → sell tokens and sweep SOL → 60s pause
 Fund CoW → run → wait for outstanding orders → sell tokens and sweep SOL
-Close retained accounts → return rent → one report
+Final cleanup → one report
 ```
+
+With `--prepare-token-accounts`, receiving accounts are created once before the first scenario and closed in final cleanup.
 
 The command is `simulate-composite-scenario`. It uses the same trading flow and flags as `simulate-trade-session`.
 
