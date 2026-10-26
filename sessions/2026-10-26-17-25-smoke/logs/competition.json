@@ -1,0 +1,58 @@
+{
+ "_source": "VictoriaLogs via Grafana, container solana-autopilot-staging",
+ "drivers": {
+  "jupiter-solve": {
+   "submitted": 5,
+   "wins": 5,
+   "solver": "Grr6SWYUFi1eCagwEifXVD83rUQ4W5rJWYq1Lj7cx1jS",
+   "observed_on_chain": 5,
+   "proposed": 8
+  },
+  "asao": {
+   "observed_on_chain": 3,
+   "solver": "GCBBeHsTZJ4cXVo94cF3MZ2VfwYkFTu7aRmHXgRMo5VC",
+   "submitted": 3,
+   "wins": 3,
+   "proposed": 10
+  },
+  "grafiks": {
+   "observed_on_chain": 2,
+   "solver": "AuwLofAZcjCxUeYs1Ca7ea812HjySAv3b1QjvVjcYzVj",
+   "wins": 2,
+   "proposed": 9,
+   "submitted": 2
+  },
+  "paradox": {
+   "proposed": 4
+  },
+  "kaisersolver": {
+   "proposed": 10
+  },
+  "helixbox": {
+   "proposed": 4
+  },
+  "arc": {
+   "proposed": 2
+  },
+  "rosato": {
+   "proposed": 6
+  },
+  "horadrim": {
+   "solve_failed": {
+    "SolverFailed": 11
+   }
+  },
+  "rizzolver": {
+   "solve_failed": {
+    "other": 11
+   }
+  }
+ },
+ "autopilot": {
+  "winner_skipped_creation_blockhash_expired": 0,
+  "sponsored_creation_expired_orders": 1,
+  "filtered": {
+   "in_flight": 4
+  }
+ }
+}
