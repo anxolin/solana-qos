@@ -1,3 +1,5 @@
 allowBuilds:
   bigint-buffer: false
   bufferutil: false
+  esbuild: set this to true or false
+  utf-8-validate: set this to true or false

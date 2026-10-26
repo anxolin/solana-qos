@@ -6,15 +6,16 @@ import { Rpc } from '../src/rpc.js'
 import { runRow, type FlowContext } from '../src/flow.js'
 import { canBuild, sdkVersion, settlementFor } from '../src/settlement.js'
 import { encodeOrderIntent, findSettlementStatePda } from '@cowprotocol/sdk-trading-solana'
+import { OrderBookApiError, type OrderBookApi } from '@cowprotocol/sdk-order-book'
 import { deriveKeypair, wallets } from '../src/wallets.js'
 import { cleanupTrader } from '../src/cleanup.js'
-import { parseScenario, readScenario, sessionSlug, spaceTraders, writeScenario } from '../src/scenario.js'
+import { paceRows, parseScenario, readScenario, sessionSlug, spaceTraders, writeScenario } from '../src/scenario.js'
 import { isRpcFailure, retryRows } from '../src/retry.js'
 import { fromRaw, loadUniverse, toRaw } from '../src/tokens.js'
 import { generate, MIN_GAP_S, mulberry32, roundAmount } from '../src/generator.js'
 import { TRADER_RESERVE_SOL } from '../src/config.js'
 import { creationBudget } from '../src/budget.js'
-import { APP_DATA_DOC, APP_DATA_HEX } from '../src/appData.js'
+import { APP_DATA_DOC, APP_DATA_HEX, registerAppData } from '../src/appData.js'
 import { barnStatus, buildRows, buildSequence, describeExtension, sampleLongTail, supported, type Routed, type UniverseRow } from '../src/universe.js'
 import { listRows, type Verdict } from '../src/tokenlist.js'
 
@@ -60,6 +61,12 @@ describe('scenario CSV', () => {
       [3, 15, 'A'],
     ])
     expect(spaceTraders(rows, 0)).toBe(rows)
+  })
+
+  it('paces rows to a number of orders a minute, leaving skipped rows alone', () => {
+    const rows = [{ time: 0, note: 'a' }, { time: 0, note: 'fails' }, { time: 7, note: 'b' }, { time: 0, note: 'c' }]
+    expect(paceRows(rows, 30, (r) => r.note !== 'fails').map((r) => r.time)).toEqual([0, 0, 2, 4])
+    expect(paceRows(rows, 0)).toBe(rows)
   })
 
   it('parses, defaults mode to sponsored, and sorts by time', () => {
@@ -176,6 +183,30 @@ describe('app data', () => {
   it('hashes the solana-qos pre-image to the registered appData', () => {
     expect(APP_DATA_DOC).toBe('{"appCode":"solana-qos","metadata":{"hooks":{"version":"0.2.0"}},"version":"1.15.0"}')
     expect(APP_DATA_HEX).toBe('0x3c74bf5b542341051f22f7a76d928086964a346f3fb5dc08eaf1e8348cbfbad2')
+  })
+
+  const api = (getAppData: () => Promise<{ fullAppData?: string }>) => {
+    const uploadAppData = vi.fn(async () => ({ fullAppData: APP_DATA_DOC }))
+    return { api: { getAppData, uploadAppData } as unknown as OrderBookApi, uploadAppData }
+  }
+  const apiError = (status: number) => new OrderBookApiError(new Response(null, { status }), {})
+
+  it('leaves an already registered pre-image alone', async () => {
+    const { api: a, uploadAppData } = api(async () => ({ fullAppData: APP_DATA_DOC }))
+    expect(await registerAppData(a)).toBe('present')
+    expect(uploadAppData).not.toHaveBeenCalled()
+  })
+
+  it('uploads the pre-image when the orderbook has never seen the hash', async () => {
+    const { api: a, uploadAppData } = api(async () => { throw apiError(404) })
+    expect(await registerAppData(a)).toBe('uploaded')
+    expect(uploadAppData).toHaveBeenCalledWith(APP_DATA_HEX, APP_DATA_DOC)
+  })
+
+  it('does not paper over an orderbook that is down', async () => {
+    const { api: a, uploadAppData } = api(async () => { throw apiError(503) })
+    await expect(registerAppData(a)).rejects.toThrow()
+    expect(uploadAppData).not.toHaveBeenCalled()
   })
 })
 

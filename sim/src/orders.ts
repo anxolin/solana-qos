@@ -16,7 +16,7 @@ import {
   type SolanaQuoteAndPost,
   type SolanaOrderIntent,
 } from '@cowprotocol/sdk-trading-solana'
-import { APP_DATA } from './appData.js'
+import { APP_DATA, registerAppData } from './appData.js'
 import { apiHeaders } from './config.js'
 import { settlementFor } from './settlement.js'
 import { RateLimiter, retry, sleep } from './limiter.js'
@@ -146,6 +146,7 @@ export interface OrdersOptions {
 
 export class Orders {
   readonly sdk: SolanaTradingSdk
+  private readonly orderBookApi: OrderBookApi
   readonly ledger = new AllowanceLedger()
   private readonly api: RateLimiter
   private readonly quotes: RateLimiter
@@ -153,6 +154,7 @@ export class Orders {
   sponsorFunder?: PublicKey
   private readonly sponsor?: PublicKey
   private warnedSponsor = false
+  private appDataReady?: Promise<'present' | 'uploaded'>
   /** The settlement program orders are created on, and its state PDA (the SPL delegate approvals must name). */
   readonly programId: PublicKey
   readonly delegate: PublicKey
@@ -176,6 +178,7 @@ export class Orders {
       // The SDK shares one limit for quotes and posts; allow both configured lanes.
       limiterOpts: { tokensPerInterval: quoteRps + apiRps, interval: 'second' },
     })
+    this.orderBookApi = orderBookApi
     this.sdk = new SolanaTradingSdk({ env: opts.env, orderBookApi })
     this.programId = opts.settlementProgram ? new PublicKey(opts.settlementProgram) : getSolanaSettlementProgramId(opts.env)
     this.settlement = settlementFor(opts.env, opts.settlementVersion, this.programId)
@@ -184,6 +187,11 @@ export class Orders {
     this.quotes = new RateLimiter(quoteRps)
     this.sponsor = opts.sponsor ? new PublicKey(opts.sponsor) : undefined
     this.sponsorFunder = this.sponsor
+  }
+
+  /** Register our app-data pre-image with this environment's orderbook, once per process. */
+  ensureAppData(): Promise<'present' | 'uploaded'> {
+    return this.appDataReady ??= registerAppData(this.orderBookApi)
   }
 
   /** Quote, then stamp our app data on the intent and re-derive the uid and order PDA from it. */

@@ -34,6 +34,11 @@ it.each([
     loadEnv: () => ({ mnemonic, rpcUrl: 'https://rpc.invalid', apiBase: 'https://orderbook.invalid',
       urls: { label: 'Offline', debug: '', solscan: '' } }),
   }))
+  // The run registers its app-data pre-image with the orderbook before placing orders; this test allows no network.
+  vi.doMock('../src/appData.js', async importOriginal => ({
+    ...await importOriginal<typeof import('../src/appData.js')>(),
+    registerAppData: async () => 'present' as const,
+  }))
   const { wallets } = await import('../src/wallets.js')
   const { Rpc, WSOL_MINT } = await import('../src/rpc.js')
   const w = wallets(mnemonic)

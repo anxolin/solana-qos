@@ -76,6 +76,17 @@ export function spaceTraders(rows: TradeRow[], seconds: number): TradeRow[] {
     .sort((a, b) => a.time - b.time || a.row - b.row)
 }
 
+/**
+ * Start the n-th paced row (in the given order) at n * 60 / `perMinute` seconds, so the scenario places at most about
+ * `perMinute` orders a minute however many traders run in parallel. A time is only the earliest start: a trader's rows
+ * still run in order, so a slow flow delays that trader's later rows, not the pace. Rows `paced` skips keep their time.
+ */
+export function paceRows<T extends Pick<TradeRow, 'time'>>(rows: T[], perMinute: number, paced: (r: T) => boolean = () => true): T[] {
+  if (!(perMinute > 0)) return rows
+  let n = 0
+  return rows.map((r) => (paced(r) ? { ...r, time: Math.round((n++ * 60) / perMinute) } : r))
+}
+
 export function writeScenario(path: string, rows: Omit<TradeRow, 'row'>[], comment?: string) {
   // Quote anything with a quote, comma, newline or '#': the parser reads an unquoted '#' as a comment, even mid-line.
   const esc = (v: string | number) => (/[",\n#]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : String(v))

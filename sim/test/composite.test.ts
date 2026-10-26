@@ -8,7 +8,7 @@ import { join } from 'node:path'
 import { readComposite, combinedRows, parseComposite } from '../src/composite.js'
 import { playScenarios, waitForOutstandingOrders } from '../src/runner.js'
 import { Session } from '../src/session.js'
-import { tradersIn } from '../src/scenario.js'
+import { parseScenario, tradersIn } from '../src/scenario.js'
 import { creationBudget } from '../src/budget.js'
 
 const sample = fileURLToPath(new URL('./fixtures/composite/composite.json', import.meta.url))
@@ -135,6 +135,28 @@ describe('scenario playback', () => {
     expect(Date.now()).toBe(7000)
     expect(await result).toEqual(['filled', 'filled', 'filled', 'filled'])
   })
+
+  it.each([[false, [0, 150_000, 300_000]], [true, [0, 300_000, 300_000]]])(
+    'with phases=%s, a later-timed row waits for every earlier row, not only its own trader',
+    async (phases, expected) => {
+      vi.useFakeTimers()
+      vi.setSystemTime(0)
+      const rows = parseScenario('trader,time,type,amount,token,other_token\n2,0,buy,2,USDC,SOL\n1,150,sell,0.02,SOL,USDC\n2,150,sell,2,USDC,SOL\n')
+      const starts: [number, number][] = []
+      const result = playScenarios([{ rows }], {
+        start: 0,
+        phases,
+        playRow: async row => {
+          starts.push([row.row, Date.now()])
+          if (row.row === 1) await new Promise(resolve => setTimeout(resolve, 300_000)) // a slow setup
+          return row.row
+        },
+      })
+      await vi.runAllTimersAsync()
+      await result
+      expect(starts.sort((a, b) => a[0] - b[0]).map(([, t]) => t)).toEqual(expected)
+    },
+  )
 
   it('waits until unresolved orders are final or past validity when orderbook reads fail', async () => {
     vi.useFakeTimers()

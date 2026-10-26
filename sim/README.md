@@ -164,6 +164,8 @@ pnpm sim simulate-trade-session ../scenarios/solver-validation/solver-fresh-acco
 
 CSV times stay relative to each scenario's own start. Rows for the same trader run in order, while different traders can run in parallel. A row waits for its own trader's previous flow to finish, not another trader's fill. Failed or unresolved earlier orders do not block or skip later rows on that wallet; recovery records their outcomes separately. Functional scenarios start independent wallets together and use short offsets for later wallet rows. Each burst wave shares a timestamp, but preparation, rate limits and unfinished earlier wallet flows can spread actual placement times. Each scenario gets separate trader wallets, so trader `1` in Burst and trader `1` in CoW are different wallets. The runner gives every row a unique ID and records the original CSV row and trader IDs.
 
+`--phases` makes each distinct CSV time a phase: a row also waits until every row with an earlier time has finished, whichever trader it belongs to, and then for its own scheduled time. Use it when traders depend on each other, e.g. both sides of a CoW should only be placed once the setup buys are done.
+
 `simulate-trade-session --trader-spacing <s>` starts each trader `s` seconds after the previous one by shifting all of its rows, so a CSV whose traders all start at 0 (the token-universe files) ramps up instead of opening with one burst. For example, `--trader-spacing 3` with 30 traders spreads the starts over 87 seconds.
 
 After its row flows finish, a scenario makes a bounded recovery check for outstanding orders. Unknown outcomes are reported without waiting for expiry or skipping later rows. Cleanup is deferred for wallets whose unresolved orders may still execute; other wallets are cleaned normally before the pause. No pause is added after the last scenario. Funding happens before each scenario, using current balances; cleanup returns remaining SOL for the next funding pass. The creation budget is checked for the whole composite, and the report is generated once. With `--no-cleanup`, funds stay in separate wallets, so more SOL is needed upfront.
@@ -323,7 +325,8 @@ In `../scenarios/`. Run `smoke.csv` first.
 | `kaffee-25x10.csv` | 25 traders over 10 min, liquid tokens |
 | `stress-25x6.csv` | 25 traders, ~20 orders a minute |
 | `stress-50x2.csv` | Heavy burst: 50 traders, 139 orders within 2 min. Run with `--quote-rps 20 --api-rps 20 --rpc-rps 30` |
-| `cow-simple.csv` | Coincidences of wants: perfect and imperfect matches placed in the same second, plus a control. Fund 0.07 |
+| `cow-simple.csv` | One near-perfect SOL/USDC coincidence of wants between 2 traders: 0.02 SOL against 2 USDC. Run with `--phases`. Fund 0.05 |
+| `cow.csv` | Coincidences of wants: perfect and imperfect matches placed in the same second, plus a control. Fund 0.07 |
 | `same-direction-25x1.csv` | 25 traders buy JUP at the same moment. Fund 0.06 |
 | `longtail-25x6.csv` | The Kaffeekränzchen's long-tail tokens |
 | `token-2022/` | One file per supported Token-2022 extension; non-zero transfer-fee tokens are excluded. See its [README](../scenarios/token-2022/README.md) |
@@ -393,7 +396,12 @@ Output in `../token-universe/`:
 ```sh
 pnpm sim build-token-sequence                                   # from universe.csv; app lists read live
 pnpm sim build-token-sequence --routed-volume dune:8921585      # refresh the routed volume first
+pnpm sim pace-scenario ../scenarios/token-universe/*.csv        # retime existing files only (no quoting)
 ```
+
+Rows that place orders start 2s apart (`--orders-per-minute`, default 30; `0` runs each trader back to back), below the
+~40 orders a minute barn settled in the 2026-10-23 `test_02` run. Above that, sponsored orders queue past their ~60s
+creation blockhash and the autopilot drops them. Rows expected to fail at the quote don't take a slot.
 
 Writes `../scenarios/token-universe/`: `test_01_cow-swap-top.csv` (`--top`, default 50), `test_02_cow-swap.csv`,
 `test_03_jupiter.csv`, `test_04_long-tail.csv`, and a README with what each file covers, alone and cumulatively (also in

@@ -84,6 +84,11 @@ it.each([
       }),
     }
   })
+  // The run registers its app-data pre-image with the orderbook before placing orders; this test allows no network.
+  vi.doMock('../src/appData.js', async importOriginal => ({
+    ...await importOriginal<typeof import('../src/appData.js')>(),
+    registerAppData: async () => 'present' as const,
+  }))
   vi.doMock('../src/wallets.js', async importOriginal => ({
     ...await importOriginal<typeof import('../src/wallets.js')>(), fund,
   }))

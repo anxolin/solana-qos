@@ -31,6 +31,8 @@ export async function playScenarios<S extends { rows: TradeRow[] }, R>(
   options: {
     start: number
     breakSeconds?: number
+    /** A row also waits until every row scheduled earlier (any trader) has finished: each CSV time is a phase. */
+    phases?: boolean
     playRow: (row: TradeRow) => Promise<R>
     prepare?: (scenario: S) => Promise<void>
     onStart?: (scenario: S, at: number) => void
@@ -45,14 +47,18 @@ export async function playScenarios<S extends { rows: TradeRow[] }, R>(
     if (wait > 0) await sleep(wait)
     options.onStart?.(scenario, start)
     const chains = new Map<number, Promise<void>>()
+    const played: { time: number; done: Promise<void> }[] = []
     await Promise.all(scenario.rows.map(row => {
-      const previous = chains.get(row.trader) ?? Promise.resolve()
+      const earlier = options.phases ? played.filter(p => p.time < row.time).map(p => p.done) : []
+      const previous = Promise.all([chains.get(row.trader) ?? Promise.resolve(), ...earlier])
       const next = previous.then(async () => {
         const wait = start + row.time * 1000 - Date.now()
         if (wait > 0) await sleep(wait)
         results.push(await options.playRow(row))
       })
       chains.set(row.trader, next)
+      // A failed row still ends its phase; its own failure is reported by Promise.all below.
+      played.push({ time: row.time, done: next.catch(() => {}) })
       return next
     }))
     await options.onEnd?.(scenario)

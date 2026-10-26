@@ -11,8 +11,9 @@ import { LOG_ENV_HINT, links, loadEnv, logsConfigured, lamportsToSol, QOS_ROOT, 
 import { NATIVE_SOL, Rpc, WSOL_MINT } from '../rpc.js'
 import { fmtSol, fund, fundingPlan, wallets } from '../wallets.js'
 import { Orders } from '../orders.js'
+import { APP_DATA_HEX } from '../appData.js'
 import { Session } from '../session.js'
-import { parseScenario, readScenario, sessionSlug, spaceTraders, tradersIn, writeScenario, type TradeRow } from '../scenario.js'
+import { paceRows, parseScenario, readScenario, sessionSlug, spaceTraders, tradersIn, writeScenario, type TradeRow } from '../scenario.js'
 import { failureKind, latestOutcomes, retryRows } from '../retry.js'
 import { runRow, type FlowContext, type RowResult } from '../flow.js'
 import { playScenarios } from '../runner.js'
@@ -308,6 +309,7 @@ function sessionCommand(name: string) {
     .option('--allow-public-rpc', 'trade on the public mainnet RPC anyway (it rate-limits sessions; set RPC_URL to a paid one)')
     .option('--no-cleanup', 'leave tokens and SOL in the trader wallets')
     .option('--defer-cleanup', 'continue after unfinished cleanup and retry at the end (now the default)')
+    .option('--phases', 'treat each CSV time as a phase: a row also waits until every earlier-timed row has finished')
     .option('--report', 'run qos.py fetch + report on the session afterwards')
     .option('-y, --yes', 'skip the confirmation prompt')
     .addOption(envOption)
@@ -428,6 +430,9 @@ async function runSession(scenarioPath: string, opts: any, composite?: ReturnTyp
       ['Scenario', c.cyan(scenarioPath)],
       ...(composite ? [['Solver', composite.solver], ['Break', `${composite.breakSeconds}s after each scenario finishes`]] as [string, string][] : []),
       ['Trades', `${c.bold(rows.length)} rows, ${c.bold(traders.length)} traders`],
+      ['Phases', opts.phases
+        ? `on ${c.dim(`(${new Set(rows.map(r => r.time)).size} CSV times; each waits for every earlier row to finish)`)}`
+        : c.dim('off (rows wait only for their own trader)')],
       ...(composite ? [] : [['Trader spacing', opts.traderSpacing
         ? `${opts.traderSpacing}s between trader starts ${c.dim(`(last trader starts at ${opts.traderSpacing * (traders.length - 1)}s)`)}`
         : c.dim(resume ? 'as saved in the run' : 'off (traders start at their CSV times)')]] as [string, string][]),
@@ -478,6 +483,12 @@ async function runSession(scenarioPath: string, opts: any, composite?: ReturnTyp
     ]
     if (issues.length && !opts.dryRun) throw new Error(issues.join('; '))
     for (const i of issues) console.log(ui.warn(i))
+
+    // Orders carry only the app-data hash: register the pre-image before placing any, or the post fails with
+    // InvalidAppData. Done for dry runs too, so they catch an unregistered hash before a funded run does.
+    log(await orders.ensureAppData() === 'uploaded'
+      ? ui.ok(`Registered app data ${APP_DATA_HEX} on ${opts.env}`)
+      : c.dim(`App data ${APP_DATA_HEX} already registered on ${opts.env}`))
 
     if (opts.dryRun) {
       for (const scenario of scenarios) {
@@ -595,6 +606,7 @@ async function runSession(scenarioPath: string, opts: any, composite?: ReturnTyp
           try {
             await playScenarios([{ rows: pendingRows.map(row => ({ ...row, time: Math.max(0, row.time - elapsed) })) }], {
               start,
+              phases: Boolean(opts.phases),
               onStart: (_scenario, at) => {
                 saved.start ??= at
                 session.writeMeta({ start: new Date(saved.start).toISOString() })
@@ -931,6 +943,7 @@ program
       await fund(rpc, w, plan, log, ctx.link.tx)
       session.log({ step: 'cleanup', event: 'funded', traders: topUps.map(line => line.trader), amount: funding.toString() })
     }
+    await ctx.orders.ensureAppData()
     const res = await cleanupAll(ctx, w, active, opts.env, opts.rpcRps)
     const swept = res.reduce((s, r) => s + r.swept, 0n)
     console.log(`\n${ui.ok(`Swept ${fmtSol(swept)} to the funder.`)}`)
@@ -1000,8 +1013,22 @@ interface ListScenarioRun {
   sellBack: number
   mode: 'sponsored' | 'self'
   includeFailing: boolean
+  /** Pace of the tradable rows (see paceRows); 0 runs them back to back. */
+  ordersPerMinute: number
   quoteRps: number
 }
+
+const ORDERS_PER_MINUTE = 30
+const ordersPerMinuteOption = () =>
+  new Option('--orders-per-minute <n>', 'start rows that place orders at this pace, kept under what barn settles (~40/min); 0 runs each trader back to back')
+    .argParser((v) => {
+      const n = Number(v)
+      if (!(n >= 0)) throw new Error('--orders-per-minute must be >= 0')
+      return n
+    })
+    .default(ORDERS_PER_MINUTE)
+const pace = (perMinute: number) => (perMinute > 0 ? `rows paced to ${perMinute} orders a minute` : 'back to back')
+const capitalize = (s: string) => s[0].toUpperCase() + s.slice(1)
 
 /** Classify a token list on barn and write its scenario file(s). Shared by generate-token-list-session and build-token-sequence. */
 async function writeListScenario(list: { name: string; criteria?: string; coverage?: string; extra?: string; tokens: ListToken[] }, o: ListScenarioRun) {
@@ -1012,12 +1039,13 @@ async function writeListScenario(list: { name: string; criteria?: string; covera
   const verdicts = await classify(rpc, env.apiBase, list.tokens, solIn, o.quoteRps, (d, t) => {
     if (d % 50 === 0 || d === t) log(c.dim(`  quoted ${d}/${t}`))
   })
-  const { tradable, unsupported, noRoute, missing: notMints } = listRows(list.tokens, verdicts, {
+  const { tradable: unpaced, unsupported, noRoute, missing: notMints } = listRows(list.tokens, verdicts, {
     solPerToken: o.solPerToken,
     traders: o.traders,
     sellBackShare: o.sellBack,
     mode: o.mode,
   })
+  const tradable = paceRows(unpaced, o.ordersPerMinute)
   const counts = { tradable: tradable.filter((r) => r.token === 'SOL').length, unsupported: unsupported.length, noRoute: noRoute.length, notMints: notMints.length }
   const t22 = [...verdicts.values()].filter((v) => v.kind === 'tradable' && v.program === 'token-2022').length
   const date = new Date().toISOString().slice(0, 10)
@@ -1029,7 +1057,7 @@ async function writeListScenario(list: { name: string; criteria?: string; covera
     `${list.extra ? `${list.extra}\n` : ''}${what}\nRegenerate: ${o.regenerate}`
   const funding = `Fund with --sol-funding-per-trader ${Math.max(0.05, Math.ceil((o.solPerToken * 2 + 0.02) * 1.25 * 100) / 100)}.`
   const tradableLine = `${counts.tradable} tradable tokens (${t22} Token-2022): sell ${o.solPerToken} SOL into each, then ` +
-    `${o.sellBack * 100}% of the quote back. ${traders} traders, ~${perTrader} tokens each, back to back.`
+    `${o.sellBack * 100}% of the quote back. ${traders} traders, ~${perTrader} tokens each, ${pace(o.ordersPerMinute)}.`
   // Expected-failure files only when they have rows; drop stale ones from an earlier run.
   const writeOrDrop = (path: string, rows: Omit<TradeRow, 'row'>[], comment: string) =>
     rows.length ? writeScenario(path, rows, comment) : rmSync(path, { force: true })
@@ -1067,6 +1095,7 @@ program
   .addOption(new Option('--mode <mode>', 'order mode for every row').choices(['sponsored', 'self']).default('sponsored'))
   .option('--include-failing', 'keep tokens barn rejects or has no route for in the main file (one row each, fails at the quote), so the report shows them; otherwise they get their own files')
   .option('--quote-rps <n>', 'quotes per second while classifying', parseFloat, 5)
+  .addOption(ordersPerMinuteOption())
   .addOption(envOption)
   .action(async (opts) => {
     const list = await loadTokenList(opts.list)
@@ -1081,6 +1110,7 @@ program
       mode: opts.mode,
       includeFailing: Boolean(opts.includeFailing),
       quoteRps: opts.quoteRps,
+      ordersPerMinute: opts.ordersPerMinute,
     })
     process.exit(0)
   })
@@ -1154,6 +1184,7 @@ program
   .option('--sol-per-token <sol>', 'SOL sold into each token', parseFloat, 0.005)
   .option('--traders <n>', 'traders per file', (v) => parseInt(v, 10), 30)
   .option('--quote-rps <n>', 'quotes per second while classifying', parseFloat, 5)
+  .addOption(ordersPerMinuteOption())
   .addOption(envOption)
   .action(async (opts) => {
     process.env.RPC_URL ||= process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com'
@@ -1218,16 +1249,16 @@ program
       const result = await writeListScenario(
         { name, criteria: step.criteria, coverage: share, extra: `Through this step (test_01 to ${step.id.slice(0, 7)}): ${cumulative}.`, tokens: step.rows.map((r) => ({ symbol: r.symbol, mint: r.mint, decimals: r.decimals! })) },
         { out, source: `token-universe/sequence/${step.id}.json`, regenerate: 'pnpm sim build-token-sequence', env: opts.env,
-          solPerToken: opts.solPerToken, traders: opts.traders, sellBack: 0.9, mode: 'sponsored', includeFailing: true, quoteRps: opts.quoteRps },
+          solPerToken: opts.solPerToken, traders: opts.traders, sellBack: 0.9, mode: 'sponsored', includeFailing: true, quoteRps: opts.quoteRps, ordersPerMinute: opts.ordersPerMinute },
       )
       done.push({ step, share, cumulative, result })
     }
     if (opts.buys) {
       const tokens = steps.filter((s) => s.id !== 'test_04_long-tail').flatMap((s) => s.rows)
-      done.push(await buyStep(rows, tokens, { out: opts.out, listDir, built, solPerToken: opts.solPerToken, traders: opts.traders, rps: opts.jupiterRps }))
+      done.push(await buyStep(rows, tokens, { out: opts.out, listDir, built, solPerToken: opts.solPerToken, traders: opts.traders, rps: opts.jupiterRps, ordersPerMinute: opts.ordersPerMinute }))
     }
-    writeExpected(opts.out, rows, opts.solPerToken)
-    writeFileSync(resolve(opts.out, 'README.md'), sequenceReadme(done, built))
+    writeExpected(opts.out, rows, opts.solPerToken, opts.ordersPerMinute)
+    writeFileSync(resolve(opts.out, 'README.md'), sequenceReadme(done, built, opts.ordersPerMinute))
     log(`${ui.ok('Sequence')}: ${resolve(opts.out, 'README.md')}`)
     process.exit(0)
   })
@@ -1236,7 +1267,7 @@ program
  * test_05_buy-vs-jupiter: one BUY per relevant token, worth `solPerToken` SOL, annotated with whether Jupiter can quote
  * that exact-out buy. CoW buys need the same exact-out route, so parity is the bar: fill where Jupiter can, fail where it can't.
  */
-async function buyStep(all: UniverseRow[], tokens: UniverseRow[], o: { out: string; listDir: string; built: string; solPerToken: number; traders: number; rps: number }) {
+async function buyStep(all: UniverseRow[], tokens: UniverseRow[], o: { out: string; listDir: string; built: string; solPerToken: number; traders: number; rps: number; ordersPerMinute: number }) {
   const id = 'test_05_buy-vs-jupiter'
   const SOL = WSOL_MINT.toBase58()
   const price = new Map<string, number>()
@@ -1271,13 +1302,14 @@ async function buyStep(all: UniverseRow[], tokens: UniverseRow[], o: { out: stri
     await ask(again, 0.5)
   }
   let can = 0, cannot = 0, unknown = 0
-  const lines: Omit<TradeRow, 'row'>[] = priced.map((r, i) => {
+  const unpaced: Omit<TradeRow, 'row'>[] = priced.map((r, i) => {
     const a = answers.get(r.mint)!
     const verdict = a.ok ? (can++, 'Jupiter can buy exact-out, expected to fill')
       : unanswered(r) ? (unknown++, `Jupiter didn't answer (${a.reason}), unknown`)
       : (cannot++, `Jupiter can't (${a.reason}), expected to fail`)
     return { trader: (i % o.traders) + 1, time: 0, type: 'buy', amount: amounts.get(r.mint)!, token: r.mint, otherToken: 'SOL', mode: 'sponsored', note: `${r.symbol} (${r.program}): ${verdict}` }
   })
+  const lines = paceRows(unpaced, o.ordersPerMinute, (r) => !FAILING_ROW.test(r.note))
   const step: SequenceStep = { id, title: 'Buys, checked against Jupiter',
     criteria: `the relevant tokens of test_01 to test_03, one BUY each worth ${o.solPerToken} SOL; CoW should match Jupiter's exact-out support`, rows: tokens }
   const share = coverage(all, tokens)
@@ -1287,7 +1319,7 @@ async function buyStep(all: UniverseRow[], tokens: UniverseRow[], o: { out: stri
       `Token criteria: ${step.criteria}.\n` +
       `${can} tokens Jupiter can buy exact-out (expected to fill), ${cannot} it can't (expected to fail at the quote; a fill there beats Jupiter)` +
       `${unknown ? `, ${unknown} Jupiter didn't answer for (unknown)` : ''}${unpriced ? `, ${unpriced} skipped without a price` : ''}.\n` +
-      `Buys only: the sell scenarios (test_01-04) never buy, so they don't depend on this. Fund with --sol-funding-per-trader 0.05.\n` +
+      `Buys only: the sell scenarios (test_01-04) never buy, so they don't depend on this. ${capitalize(pace(o.ordersPerMinute))}. Fund with --sol-funding-per-trader 0.05.\n` +
       'Regenerate: pnpm sim build-token-sequence')
   log(`${ui.ok(id)}: ${can} buyable on Jupiter, ${cannot} not${unknown ? `, ${unknown} unknown (Jupiter didn't answer)` : ''}${unpriced ? `, ${unpriced} without a price` : ''}`)
   return { step, share, cumulative: share, result: { tradable: can, unsupported: 0, noRoute: cannot, notMints: 0 } }
@@ -1301,16 +1333,17 @@ const FAILING_ROW = /expected UnsupportedToken|: no route on |not a token mint|J
  * one SOL -> token sell per token barn quotes (test_01-04; their sell-backs are covered by those files) and the buys
  * Jupiter can quote exact-out (test_05). A row failing here is a regression.
  */
-function writeExpected(dir: string, universe: UniverseRow[], solPerToken: number) {
+function writeExpected(dir: string, universe: UniverseRow[], solPerToken: number, ordersPerMinute: number) {
   const files = readdirSync(dir).filter((f) => /^test_\d\d_.*\.csv$/.test(f)).sort()
-  const rows: Omit<TradeRow, 'row'>[] = []
+  const unpaced: Omit<TradeRow, 'row'>[] = []
   for (const f of files) {
     const id = f.replace(/\.csv$/, '')
     for (const r of readScenario(resolve(dir, f))) {
       const keep = r.type === 'buy' ? /Jupiter can buy/.test(r.note) : r.token === 'SOL' && !FAILING_ROW.test(r.note)
-      if (keep) rows.push({ trader: r.trader, time: 0, type: r.type, amount: r.amount, token: r.token, otherToken: r.otherToken, mode: r.mode, note: `${id}: ${r.note}` })
+      if (keep) unpaced.push({ trader: r.trader, time: 0, type: r.type, amount: r.amount, token: r.token, otherToken: r.otherToken, mode: r.mode, note: `${id}: ${r.note}` })
     }
   }
+  const rows = paceRows(unpaced, ordersPerMinute)
   const sells = rows.filter((r) => r.type === 'sell')
   const buys = rows.filter((r) => r.type === 'buy')
   const mints = new Set(rows.map((r) => (r.type === 'sell' ? r.otherToken : r.token)))
@@ -1323,6 +1356,7 @@ function writeExpected(dir: string, universe: UniverseRow[], solPerToken: number
       `(test_01-04) and ${buys.length} buys Jupiter can quote exact-out (test_05). Tokens barn rejects or can't route, and buys Jupiter can't do, aren't here.\n` +
       `Coverage of the ${mints.size} tokens: ${share}.\n` +
       'A row failing here is a regression (or a market change: rebuild with build-token-sequence). Notes keep the file each row comes from.\n' +
+      `${capitalize(pace(ordersPerMinute))}.\n` +
       `Fund with --sol-funding-per-trader ${funding}.\nRegenerate: pnpm sim build-expected (from the test files as they are)`)
   log(`${ui.ok('expected.csv')}: ${sells.length} sells + ${buys.length} buys; ${share}`)
 }
@@ -1333,13 +1367,35 @@ program
   .option('--universe <dir>', 'token universe folder', resolve(QOS_ROOT, 'token-universe'))
   .option('-o, --out <dir>', 'scenario folder', resolve(QOS_ROOT, 'scenarios', 'token-universe'))
   .option('--sol-per-token <sol>', 'SOL per row, for the funding hint', parseFloat, 0.005)
+  .addOption(ordersPerMinuteOption())
   .action(async (opts) => {
-    writeExpected(opts.out, fromCsv(readFileSync(resolve(opts.universe, 'universe.csv'), 'utf8')), opts.solPerToken)
+    writeExpected(opts.out, fromCsv(readFileSync(resolve(opts.universe, 'universe.csv'), 'utf8')), opts.solPerToken, opts.ordersPerMinute)
+    process.exit(0)
+  })
+
+program
+  .command('pace-scenario')
+  .description('Rewrite the start times of scenario CSVs in place so their rows place orders at a steady pace (no quoting)')
+  .argument('<csv...>', 'scenario files')
+  .addOption(ordersPerMinuteOption())
+  .action((paths: string[], opts) => {
+    for (const path of paths) {
+      const text = readFileSync(path, 'utf8')
+      // Rows expected to fail at the quote place nothing, so they don't take a slot; the file keeps its row order.
+      const rows = paceRows(parseScenario(text).sort((a, b) => a.row - b.row), opts.ordersPerMinute, (r) => !FAILING_ROW.test(r.note))
+      const comment = text.split('\n').filter((l) => l.startsWith('#')).map((l) => l.replace(/^# ?/, ''))
+        .filter((l) => !/^(Rows paced to \d+(\.\d+)? orders a minute|Back to back)\.$/.test(l))
+        .map((l) => l.replace(/, (back to back|rows paced to \d+(\.\d+)? orders a minute)\./, `, ${pace(opts.ordersPerMinute)}.`))
+      const header = comment.some((l) => l.includes(`, ${pace(opts.ordersPerMinute)}.`)) ? comment : [...comment, `${capitalize(pace(opts.ordersPerMinute))}.`]
+      writeScenario(path, rows, header.join('\n'))
+      const last = Math.max(0, ...rows.map((r) => r.time))
+      log(`${ui.ok(path)}: ${rows.length} rows, ${pace(opts.ordersPerMinute)}${last ? ` (last starts at ${Math.floor(last / 60)}m${String(last % 60).padStart(2, '0')}s)` : ''}`)
+    }
     process.exit(0)
   })
 
 /** scenarios/token-universe/README.md: the steps, what each holds, and how much volume they cover. */
-function sequenceReadme(done: { step: SequenceStep; share: string; cumulative: string; result?: { tradable: number; unsupported: number; noRoute: number; notMints: number } }[], built: string): string {
+function sequenceReadme(done: { step: SequenceStep; share: string; cumulative: string; result?: { tradable: number; unsupported: number; noRoute: number; notMints: number } }[], built: string, ordersPerMinute: number): string {
   const rows = done.map(({ step, share, cumulative, result }) =>
     `| ${step.rows.length ? `[\`${step.id}.csv\`](${step.id}.csv)` : `\`${step.id}\` (empty)`} | ${step.title} | ${step.rows.length} | ` +
     `${result ? `${result.tradable} tradable, ${result.unsupported + result.noRoute + result.notMints} expected to fail` : '–'} | ${share} | ${cumulative} |`)
@@ -1356,7 +1412,8 @@ function sequenceReadme(done: { step: SequenceStep; share: string; cumulative: s
     'test_01-04: sell 0.005 SOL into each token, then 90% of the quote back; they never buy (a short trader acquires with a SOL sell).',
     'test_05: one buy per token from test_01-03, worth 0.005 SOL; "expected to fail" there means Jupiter has no exact-out route either.',
     '`expected.csv`: every row above that should work on the API today (sells into tradable tokens, buys Jupiter can do). A failure there is a regression.',
-    '30 traders per file. Fund with `--sol-funding-per-trader 0.05`.', '',
+    `30 traders per file, ${pace(ordersPerMinute)} (barn settles ~40 a minute; faster, sponsored creations expire while queued; \`pnpm sim pace-scenario\` retimes a file).`,
+    'Fund with `--sol-funding-per-trader 0.05`.', '',
   ].join('\n')
 }
 

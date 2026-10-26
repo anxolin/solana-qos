@@ -49,6 +49,11 @@ it.each(['single', 'composite', 'resume', 'limited-funder', 'setup-resume', 'fre
     QOS_ROOT: root, SIM_ROOT: root, logsConfigured: () => false,
     loadEnv: () => ({ mnemonic, rpcUrl: 'https://rpc.invalid', apiBase: 'https://api.invalid', urls: { label: 'offline', api: 'https://api.invalid', debug: '', solscan: '', sponsor: '11111111111111111111111111111111', logs: null } }),
   }))
+  // The run registers its app-data pre-image with the orderbook before placing orders; this test allows no network.
+  vi.doMock('../src/appData.js', async original => ({
+    ...await original<typeof import('../src/appData.js')>(),
+    registerAppData: async () => 'present' as const,
+  }))
   const rpcModule = await import('../src/rpc.js')
   const ordersModule = await import('../src/orders.js')
   const { Rpc } = rpcModule
