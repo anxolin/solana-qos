@@ -1,0 +1,8 @@
+# One near-perfect coincidence of wants on SOL/USDC (sized at SOL ≈ $103 on 23 Oct 2026). Run with --phases.
+# Needs --phases: time is just the phase order. Phase 0: trader 2 buys the USDC it will sell. Phase 1: once it has, both traders place their side together.
+# Trader 1 sells 0.02 SOL (~2.06 USDC), trader 2 sells 2 USDC: ~97% of the other side. Both in one transaction is a CoW.
+# Fund with --sol-funding-per-trader 0.05.
+trader,time,type,amount,token,other_token,mode,note
+2,0,buy,2.1,USDC,SOL,sponsored,setup: USDC to sell in the CoW
+1,1,sell,0.02,SOL,USDC,sponsored,CoW: sells 0.02 SOL (~2.06 USDC)
+2,1,sell,2,USDC,SOL,sponsored,CoW: sells 2 USDC (~97% of the other side)
