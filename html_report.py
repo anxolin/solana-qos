@@ -641,11 +641,23 @@ def render(*, session, meta, orders, by_solver, drivers, autopilot, sol, compari
         during = [o for o in orders if ts(inc["start"]) <= ts(o["creationDate"]) <= ts(inc["end"])]
         mins = (ts(inc["end"]) - ts(inc["start"])).total_seconds() / 60
         acct = inc.get("account", "")
+        if inc.get("blocking", True):
+            body = (f"No sponsored order could be created while the funding account was empty. "
+                    f"{len(hit)} orders failed because of it, and none of the {len(during)} orders placed in the "
+                    f"window executed. The other {len(never) - len(hit)} never-created orders failed for "
+                    f"unrelated reasons.")
+        else:
+            # The fee payer could still pay fees, just not stay rent-exempt once a settlement funded an
+            # account, so the driver dropped those solutions in simulation and the rest settled as usual.
+            ok = sum(o["outcome"] == "executed" for o in during)
+            body = (f"The settlement fee payer could not cover {inc.get('attempts', 0)} solutions, so the driver "
+                    f"dropped them before submitting. Settlement carried on around it: {ok} of the {len(during)} "
+                    f"orders placed in the window still executed, and {len(hit)} are attributable to this. "
+                    f"It fails only the settlements that have to fund an account, so it worsens as the balance "
+                    f"falls; top the account up before reading the rest of this report as solver behaviour.")
         h += ['<div class="callout"><span class="badge">Incident</span>',
               f"<h3>{escape(inc['label'])}, {hhmm(ts(inc['start']))}–{hhmm(ts(inc['end']))} UTC ({mins:.0f} min)</h3>",
-              f"<p>No sponsored order could be created while the funding account was empty. "
-              f"{len(hit)} orders failed because of it, and none of the {len(during)} orders placed in the window executed. "
-              f"The other {len(never) - len(hit)} never-created orders failed for unrelated reasons.</p>"]
+              f"<p>{body}</p>"]
         if acct:
             h.append(f'<p class="meta">Funder <a class="mono" href="{SOLSCAN}{acct}" target="_blank" rel="noopener">{acct}</a></p>')
         h.append("</div>")

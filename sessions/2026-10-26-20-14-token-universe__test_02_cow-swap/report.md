@@ -1,6 +1,6 @@
 # Solana QoS report: 2026-10-26-20-14-token-universe__test_02_cow-swap
 
-Barn, orders created between `2026-10-26T20:14:52.854Z` and `2026-10-26T20:37:11.043Z`. Data fetched 2026-10-26T20:49:07+00:00.
+Barn, orders created between `2026-10-26T20:14:52.854Z` and `2026-10-26T20:37:11.043Z`. Data fetched 2026-10-26T22:24:33+00:00.
 
 ## Summary
 

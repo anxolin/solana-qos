@@ -391,9 +391,12 @@ def cause(o: dict, failures: dict[str, set[str]], incidents: list[dict], quotes:
     created = ts(o["creationDate"])
     for inc in incidents:
         # A sponsored creation stays valid ~60s, so an order placed just
-        # before the incident also lived through it.
+        # before the incident also lived through it. Only a blocking incident, one where settlement stopped
+        # outright, explains an order the logs say nothing else about. A fee payer that merely failed in
+        # simulation left the auctions settling around it, so there the order has to name it itself.
         during = ts(inc["start"]).timestamp() - 60 <= created.timestamp() <= ts(inc["end"]).timestamp()
-        if "funder_out_of_sol" in f or (during and "creation_blockhash_not_found" not in f):
+        if "funder_out_of_sol" in f or (inc.get("blocking", True) and during
+                                        and "creation_blockhash_not_found" not in f):
             return inc["label"]
     if "creation_blockhash_not_found" in f:
         return "Creation tx rejected: blockhash not found"

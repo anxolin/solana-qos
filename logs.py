@@ -3,7 +3,7 @@
 Writes the same files under sessions/<name>/logs/ that queries/logs.md describes:
   seed_orders.txt, creation_expired.txt, settle_failures.txt, competition.json,
   jupiter_quotes.txt, jupiter_quotes_timeline.json
-and suggests an incident in meta.json when the sponsoring funder ran out of SOL.
+and suggests an incident in meta.json when a settlement fee payer ran out of SOL.
 
 Credentials: GRAFANA_URL, GRAFANA_API_TOKEN, GRAFANA_DATASOURCE_UID, from the environment or
 solana-qos/.env.<env> (e.g. .env.staging). Without them, nothing is fetched and the report is basic.
@@ -22,6 +22,13 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 CRED_KEYS = ("GRAFANA_URL", "GRAFANA_API_TOKEN", "GRAFANA_DATASOURCE_UID")
 MAX_ROWS = 5000
+
+# Errors that mean a settlement's fee payer couldn't pay: too few lamports for the fee, or too few to stay
+# rent-exempt once it funds an account the settlement creates. `InsufficientFundsForRent { account_index: 0 }`
+# names the fee payer itself, so an account that can still pay fees but not open one more token account hits
+# only the settlements that need one. The driver logs these from two places; see `funding_failures`.
+OUT_OF_SOL = "insufficient lamports|InsufficientFundsForRent|InsufficientFundsForFee"
+DROPPED_IN_SIMULATION = "dropping solution, its settlement fails in simulation"
 
 
 def load_credentials(env: str) -> dict[str, str] | None:
@@ -125,10 +132,10 @@ def fetch_logs(session: Path, meta: dict, env: dict, creds: dict[str, str]) -> d
     # Driver settle failures, categorised and joined to their orders via `settling orders`.
     rows = lg.rows(
         f'container:"{drv}" AND _msg:in("settling orders","settle failed") '
-        '| format if (parsed.fields.error:~"insufficient lamports|InsufficientFundsForRent|InsufficientFundsForFee") "funder_out_of_sol" as c1 '
+        f'| format if (parsed.fields.error:~"{OUT_OF_SOL}") "funder_out_of_sol" as c1 '
         '| format if (parsed.fields.error:~"BlockhashNotFound") "creation_blockhash_not_found" as c2 '
         '| format if (parsed.fields.error:~"BeginFinalizePairOverlap") "token_insufficient_funds" as c3 '
-        '| format if (_msg:"settle failed" AND -parsed.fields.error:~"insufficient lamports|InsufficientFundsForRent|InsufficientFundsForFee|BlockhashNotFound|BeginFinalizePairOverlap") "other" as c4 '
+        f'| format if (_msg:"settle failed" AND -parsed.fields.error:~"{OUT_OF_SOL}|BlockhashNotFound|BeginFinalizePairOverlap") "other" as c4 '
         '| format "<c1><c2><c3><c4>" as cat '
         "| stats by (parsed.spans.settle.auction_id, parsed.spans.settle.solution_id, parsed.spans.solver_engine.solver) "
         "max(cat) cat, max(parsed.fields.orders) orders, min(_time) t "
@@ -140,27 +147,37 @@ def fetch_logs(session: Path, meta: dict, env: dict, creds: dict[str, str]) -> d
     lines += [(r.get("first", ""), "buy_account_unreceivable", r["parsed.fields.order"]) for r in lg.rows(
         f'container:"{drv}" AND _msg:"dropping order, its buy token account cannot receive the payout" '
         "| stats by (parsed.fields.order) min(_time) first") if r.get("parsed.fields.order")]
-    # Solutions over Solana's 1232-byte limit. The driver line names only the auction and solution id, and no
-    # line maps a dropped solution to its order, so join on the auction through the Jupiter solver's per-order
-    # `solved` lines, and only where every solution in the auction was too large: in a busy auction the other
-    # orders' solutions were fine and they'd be blamed for someone else's route.
-    too_large = {r["auction"]: n(r) for r in lg.rows(
-        f'container:"{drv}" AND _msg:"dropping solution, its settlement fails in simulation" '
-        'AND parsed.fields.error:~"TransactionTooLarge" | format "<parsed.spans./solve.auction_id>" as auction '
-        "| stats by (auction) count_uniq(parsed.fields.solution_id) n") if r.get("auction")}
-    if too_large:
-        ids = ",".join(f'"Some({a})"' for a in sorted(too_large))
+    # Solutions the driver dropped in simulation, by why: over Solana's 1232-byte limit, or with a fee payer
+    # that couldn't cover them. The driver line names only the auction and solution id, and no line maps a
+    # dropped solution to its order, so join on the auction through the Jupiter solver's per-order `solved`
+    # lines, and only where every solution in the auction went the same way: in a busy auction the other
+    # orders' solutions were fine and they'd be blamed for someone else's route. A fee payer that is merely
+    # low fails only the solutions that fund an account, so it rarely clears that bar; the incident below
+    # reports it anyway, because that doesn't depend on pinning the blame on an order.
+    dropped: dict[str, dict[str, int]] = defaultdict(dict)
+    for r in lg.rows(
+            f'container:"{drv}" AND _msg:"{DROPPED_IN_SIMULATION}" '
+            f'| format if (parsed.fields.error:~"{OUT_OF_SOL}") "funder_out_of_sol" as c1 '
+            '| format if (parsed.fields.error:~"TransactionTooLarge") "transaction_too_large" as c2 '
+            '| format "<c1><c2>" as cat | filter cat:!"" '
+            '| format "<parsed.spans./solve.auction_id>" as auction '
+            "| stats by (cat, auction) count_uniq(parsed.fields.solution_id) n"):
+        if r.get("auction"):
+            dropped[r["cat"]][r["auction"]] = n(r)
+    if dropped:
+        ids = ",".join(f'"Some({a})"' for a in sorted({a for per in dropped.values() for a in per}))
         solved = defaultdict(list)
         for r in lg.rows(f'container:"{jup}" AND _msg:"solved" AND parsed.spans.solve.auction_id:in({ids}) '
                          "| stats by (parsed.spans.solve.auction_id, parsed.spans.solve.order) min(_time) first"):
             if r.get("parsed.spans.solve.order"):
                 solved[r["parsed.spans.solve.auction_id"][5:-1]].append((r.get("first", ""), r["parsed.spans.solve.order"]))
-        first = {}
-        for auction, rows in solved.items():
-            if too_large.get(auction, 0) >= len(rows):
-                for t, uid in rows:
-                    first[uid] = min(first.get(uid, t), t)
-        lines += [(t, "transaction_too_large", uid) for uid, t in first.items()]
+        for cat, per_auction in dropped.items():
+            first = {}
+            for auction, rows in solved.items():
+                if per_auction.get(auction, 0) >= len(rows):
+                    for t, uid in rows:
+                        first[uid] = min(first.get(uid, t), t)
+            lines += [(t, cat, uid) for uid, t in first.items()]
     lines.sort()
     # Why an order sat in auctions without a fill: the autopilot's filter reasons (`unfunded_sell_token_account`,
     # `unreceivable_buy_token_account`, …) and the solver's `out_of_price` when no route met the limit.
@@ -201,7 +218,11 @@ def fetch_logs(session: Path, meta: dict, env: dict, creds: dict[str, str]) -> d
     summary["jupiter_rate_limited_orders"] = len(per_order)
 
     summary["competition_drivers"] = len(write_competition(lg, ap, out, len(expired)))
-    incident = detect_funder_outage(lines)
+    funding = funding_failures(lg, drv)
+    if funding:
+        summary["funding_failures"] = ", ".join(
+            f"{f['path']} {n(f)}× {f.get('first', '')[11:19]}–{f.get('last', '')[11:19]}" for f in funding)
+    incident = detect_funder_outage(funding)
     if incident:
         summary["incident"] = f"{incident['label']} {incident['start'][11:19]}–{incident['end'][11:19]}"
     return {"summary": summary, "incident": incident}
@@ -263,9 +284,46 @@ def write_competition(lg: Logs, ap: str, out: Path, creation_expired: int = 0) -
     return comp["drivers"]
 
 
-def detect_funder_outage(failures: list[tuple[str, str, str]]) -> dict | None:
-    """The span of driver `funder_out_of_sol` failures, as a report incident."""
-    times = sorted(first for first, cat, _ in failures if cat == "funder_out_of_sol" and first)
-    if not times:
+def funding_failures(lg: Logs, drv: str) -> list[dict]:
+    """Driver errors that mean a settlement's fee payer couldn't pay, split by where they were logged.
+
+    `settlement`: the driver submitted and the transaction died, so nothing settled while it lasted.
+    `simulation`: the driver dropped the solution before submitting, so the auctions around it kept settling
+    and only the solutions that had to fund an account failed.
+
+    Both were invisible before: the categorised query reads only `settling orders`/`settle failed`, and the
+    dropped-solution query asked about `TransactionTooLarge` alone.
+    """
+    rows = lg.rows(
+        f'container:"{drv}" AND parsed.fields.error:~"{OUT_OF_SOL}" '
+        f'| format if (_msg:"{DROPPED_IN_SIMULATION}") "simulation" as p1 '
+        f'| format if (-_msg:"{DROPPED_IN_SIMULATION}") "settlement" as p2 '
+        '| format "<p1><p2>" as path '
+        "| stats by (path) count() n, min(_time) first, max(_time) last")
+    return sorted((r for r in rows if r.get("path")), key=lambda r: r.get("first", ""))
+
+
+def detect_funder_outage(funding: list[dict]) -> dict | None:
+    """The span of driver out-of-SOL errors, as a report incident.
+
+    `blocking` says whether settlement stopped. A fee payer that died on submission took every order in the
+    window with it, so the report may blame the window for an order it can't explain otherwise. One that only
+    failed in simulation left the auctions settling around it, and blaming the window there would mislabel
+    orders that failed on their own.
+    """
+    if not funding:
         return None
-    return {"start": times[0], "end": times[-1], "label": "Funder out of SOL", "detected": "from driver logs"}
+    blocking = any(f["path"] == "settlement" for f in funding)
+    spans = [f for f in funding if f["path"] == "settlement"] if blocking else funding
+    # An incident without both ends is worse than none: the report reads them as timestamps.
+    starts, ends = [f["first"] for f in spans if f.get("first")], [f["last"] for f in spans if f.get("last")]
+    if not (starts and ends):
+        return None
+    return {
+        "start": min(starts),
+        "end": max(ends),
+        "label": "Funder out of SOL" if blocking else "Settlement fee payer low on SOL",
+        "detected": "from driver logs",
+        "blocking": blocking,
+        "attempts": sum(n(f) for f in spans),
+    }

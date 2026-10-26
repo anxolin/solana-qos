@@ -12,5 +12,15 @@
  "start": "2026-10-26T20:14:52.854Z",
  "trading_end": "2026-10-26T20:36:11.043Z",
  "end": "2026-10-26T20:37:11.043Z",
- "fetched_at": "2026-10-26T20:49:07+00:00"
+ "fetched_at": "2026-10-26T22:24:33+00:00",
+ "incidents": [
+  {
+   "start": "2026-10-26T20:27:23.598870896Z",
+   "end": "2026-10-26T20:28:18.640109759Z",
+   "label": "Settlement fee payer low on SOL",
+   "detected": "from driver logs",
+   "blocking": false,
+   "attempts": 12
+  }
+ ]
 }

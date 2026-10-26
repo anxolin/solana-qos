@@ -95,7 +95,17 @@ Optional session inputs:
   driver's `settle failed` errors, joined to `settling orders`. This gives per-order
   causes such as `funder_out_of_sol` and `creation_blockhash_not_found`.
   `./qos.py logs` also adds orders the driver dropped before settling: `buy_account_unreceivable` (a missing
-  buy token account that isn't the owner's ATA, e.g. a custom recipient's) and `transaction_too_large`.
+  buy token account that isn't the owner's ATA, e.g. a custom recipient's), `transaction_too_large` and
+  `funder_out_of_sol`. The last two come from `dropping solution, its settlement fails in simulation`, which
+  names only an auction and a solution id, so they are blamed on an order only where every solution in its
+  auction went the same way.
+- An incident in `meta.json` when a settlement's fee payer couldn't pay. `Funder out of SOL` (`blocking`)
+  is the driver failing on submission, so nothing settled and the report may blame every order in the
+  window. `Settlement fee payer low on SOL` is the softer shape: the account still covers fees but can no
+  longer stay rent-exempt once a settlement funds an account, so only those solutions are dropped and the
+  auctions settle around them. It is reported but never blamed on the window, since orders kept executing
+  through it. Both are read from the driver logs alone, so they show up even when no order can be pinned
+  on them.
 - `logs/order_states.txt`: lines of `<state> <order_uid> <first>`: the autopilot's `filtered orders`
   reasons (`unfunded_sell_token_account`, `unreceivable_buy_token_account`, …) and `out_of_price` from the
   Jupiter solver's `swap does not satisfy order`. Open and cancelled orders get their cause from these,
