@@ -1,0 +1,16 @@
+{
+ "rpc": "solana-mainnet.g.alchemy.com",
+ "name": "2026-10-24-00-58-cow-simple trade session",
+ "title": "2026-10-24-00-58-cow-simple",
+ "env": "staging",
+ "sim": {
+  "scenario": "/Users/anxo/Bunker/code/cow/solana-qos/scenarios/cow-simple.csv",
+  "traders": 9,
+  "rows": 15,
+  "solFundingPerTrader": 0.1
+ },
+ "start": "2026-10-24T00:58:44.845Z",
+ "trading_end": "2026-10-24T01:02:10.963Z",
+ "end": "2026-10-24T01:03:10.963Z",
+ "fetched_at": "2026-10-24T01:02:34+00:00"
+}

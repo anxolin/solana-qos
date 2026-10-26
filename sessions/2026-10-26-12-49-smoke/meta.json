@@ -1,0 +1,16 @@
+{
+ "rpc": "solana-mainnet.g.alchemy.com",
+ "name": "2026-10-26-12-49-smoke trade session",
+ "title": "2026-10-26-12-49-smoke",
+ "env": "staging",
+ "sim": {
+  "scenario": "/Users/anxo/code/cow/solana-qos/scenarios/smoke.csv",
+  "traders": 2,
+  "rows": 6,
+  "solFundingPerTrader": 0.05
+ },
+ "start": "2026-10-26T12:49:22.499Z",
+ "trading_end": "2026-10-26T12:50:43.297Z",
+ "end": "2026-10-26T12:51:43.297Z",
+ "fetched_at": "2026-10-26T12:50:51+00:00"
+}

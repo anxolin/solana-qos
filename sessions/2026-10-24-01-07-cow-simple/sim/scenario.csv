@@ -1,0 +1,4 @@
+trader,time,type,amount,token,other_token,mode,note
+2,0,buy,2.1,USDC,SOL,sponsored,setup: USDC to sell in the CoW
+1,150,sell,0.02,SOL,USDC,sponsored,CoW: sells 0.02 SOL (~2.06 USDC)
+2,150,sell,2,USDC,SOL,sponsored,CoW: sells 2 USDC (~97% of the other side)
