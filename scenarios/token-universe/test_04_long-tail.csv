@@ -3,33 +3,33 @@
 # Token criteria: random sample of 50 tokens outside the ~2,200 the universe checked (>= $100k over 90 days); not relevance-filtered.
 # Coverage: 0.0% Jupiter-routed, 0.0% DFlow-routed, 0.0% Titan-routed (label unconfirmed), 0.0% direct DEX, 0.0% of all DEX volume ($11M of $71.8B) over 30 days; SOL excluded.
 # Through this step (test_01 to test_04): 92.4% Jupiter-routed, 84.0% DFlow-routed, 98.2% Titan-routed (label unconfirmed), 63.8% direct DEX, 65.5% of all DEX volume ($47.0B of $71.8B) over 30 days; SOL excluded.
-# 11 tradable tokens (9 Token-2022): sell 0.005 SOL into each, then 90% of the quote back. 11 traders, ~1 tokens each, back to back.
+# 11 tradable tokens (9 Token-2022): sell 0.005 SOL into each, then 90% of the quote back. 11 traders, ~1 tokens each, rows paced to 30 orders a minute.
 # Plus 39 tokens expected to fail at the quote (1 rejected by the backend, 38 without a route): one SOL to token row each, kept in so the report shows what isn't supported.
 # Fund with --sol-funding-per-trader 0.05.
 # Regenerate: pnpm sim build-token-sequence
 trader,time,type,amount,token,other_token,mode,note
 1,0,sell,0.005,SOL,9HNEutCZLoo6GZWQTmAgVvbtmLGV1mdeR8X3HWTooYXt,sponsored,BABYANSEM (classic): SOL to token
-1,0,sell,85200,9HNEutCZLoo6GZWQTmAgVvbtmLGV1mdeR8X3HWTooYXt,SOL,sponsored,BABYANSEM (classic): token to SOL
-2,0,sell,0.005,SOL,AbRrcddzqTeCNokts2thcRsZR8PxTmakQV7G7VVJXzg6,sponsored,90° (token-2022): SOL to token
-2,0,sell,218000,AbRrcddzqTeCNokts2thcRsZR8PxTmakQV7G7VVJXzg6,SOL,sponsored,90° (token-2022): token to SOL
-3,0,sell,0.005,SOL,98S3A9sgLHhdUHUdpviZQrbEGsXFMf4ZXfNRBpeMpump,sponsored,SOLMAS (token-2022): SOL to token
-3,0,sell,55000,98S3A9sgLHhdUHUdpviZQrbEGsXFMf4ZXfNRBpeMpump,SOL,sponsored,SOLMAS (token-2022): token to SOL
-4,0,sell,0.005,SOL,B2JBQ98ZARAABHvDmhjrkviz1XzoQrXr75G7RTFQpump,sponsored,LASTDITCH (token-2022): SOL to token
-4,0,sell,198000,B2JBQ98ZARAABHvDmhjrkviz1XzoQrXr75G7RTFQpump,SOL,sponsored,LASTDITCH (token-2022): token to SOL
-5,0,sell,0.005,SOL,WZ9xx4xvHUPzqKkdRLksHMMbjGKwkFVtz56ozpJpump,sponsored,MAGACOIN (token-2022): SOL to token
-5,0,sell,233000,WZ9xx4xvHUPzqKkdRLksHMMbjGKwkFVtz56ozpJpump,SOL,sponsored,MAGACOIN (token-2022): token to SOL
-6,0,sell,0.005,SOL,139WGR9ah9Nfd3iDCaD2QiTjeC4TeUy3BuswM3ehpump,sponsored,PEPEBOT (token-2022): SOL to token
-6,0,sell,168000,139WGR9ah9Nfd3iDCaD2QiTjeC4TeUy3BuswM3ehpump,SOL,sponsored,PEPEBOT (token-2022): token to SOL
-7,0,sell,0.005,SOL,62YE1d4sRArBQzR5bdbxsx2k9LV3MdPV4xMC4Di2pump,sponsored,BIF (token-2022): SOL to token
-7,0,sell,8310,62YE1d4sRArBQzR5bdbxsx2k9LV3MdPV4xMC4Di2pump,SOL,sponsored,BIF (token-2022): token to SOL
-8,0,sell,0.005,SOL,Cm35AonJQD8nw1j7hm674Wua7GvibkfEgKtq4XSfpump,sponsored,UNEMPLOYED (token-2022): SOL to token
-8,0,sell,228000,Cm35AonJQD8nw1j7hm674Wua7GvibkfEgKtq4XSfpump,SOL,sponsored,UNEMPLOYED (token-2022): token to SOL
-9,0,sell,0.005,SOL,CjvBXge6CJPXDrGDT5TmXyxXvCjLTQPXKCHET28Bpump,sponsored,COPCAT (token-2022): SOL to token
-9,0,sell,245000,CjvBXge6CJPXDrGDT5TmXyxXvCjLTQPXKCHET28Bpump,SOL,sponsored,COPCAT (token-2022): token to SOL
-10,0,sell,0.005,SOL,9shma1ut5DwsGHg1CG1R3UdvcR61XyWMN99eBeFNpump,sponsored,Neuralnauts (token-2022): SOL to token
-10,0,sell,176000,9shma1ut5DwsGHg1CG1R3UdvcR61XyWMN99eBeFNpump,SOL,sponsored,Neuralnauts (token-2022): token to SOL
-11,0,sell,0.005,SOL,ED92dgDp91SuGaXJ1UTyxy8NwTENwyAq9mER4e8gbonk,sponsored,Milho (classic): SOL to token
-11,0,sell,181000,ED92dgDp91SuGaXJ1UTyxy8NwTENwyAq9mER4e8gbonk,SOL,sponsored,Milho (classic): token to SOL
+1,2,sell,85200,9HNEutCZLoo6GZWQTmAgVvbtmLGV1mdeR8X3HWTooYXt,SOL,sponsored,BABYANSEM (classic): token to SOL
+2,4,sell,0.005,SOL,AbRrcddzqTeCNokts2thcRsZR8PxTmakQV7G7VVJXzg6,sponsored,90° (token-2022): SOL to token
+2,6,sell,218000,AbRrcddzqTeCNokts2thcRsZR8PxTmakQV7G7VVJXzg6,SOL,sponsored,90° (token-2022): token to SOL
+3,8,sell,0.005,SOL,98S3A9sgLHhdUHUdpviZQrbEGsXFMf4ZXfNRBpeMpump,sponsored,SOLMAS (token-2022): SOL to token
+3,10,sell,55000,98S3A9sgLHhdUHUdpviZQrbEGsXFMf4ZXfNRBpeMpump,SOL,sponsored,SOLMAS (token-2022): token to SOL
+4,12,sell,0.005,SOL,B2JBQ98ZARAABHvDmhjrkviz1XzoQrXr75G7RTFQpump,sponsored,LASTDITCH (token-2022): SOL to token
+4,14,sell,198000,B2JBQ98ZARAABHvDmhjrkviz1XzoQrXr75G7RTFQpump,SOL,sponsored,LASTDITCH (token-2022): token to SOL
+5,16,sell,0.005,SOL,WZ9xx4xvHUPzqKkdRLksHMMbjGKwkFVtz56ozpJpump,sponsored,MAGACOIN (token-2022): SOL to token
+5,18,sell,233000,WZ9xx4xvHUPzqKkdRLksHMMbjGKwkFVtz56ozpJpump,SOL,sponsored,MAGACOIN (token-2022): token to SOL
+6,20,sell,0.005,SOL,139WGR9ah9Nfd3iDCaD2QiTjeC4TeUy3BuswM3ehpump,sponsored,PEPEBOT (token-2022): SOL to token
+6,22,sell,168000,139WGR9ah9Nfd3iDCaD2QiTjeC4TeUy3BuswM3ehpump,SOL,sponsored,PEPEBOT (token-2022): token to SOL
+7,24,sell,0.005,SOL,62YE1d4sRArBQzR5bdbxsx2k9LV3MdPV4xMC4Di2pump,sponsored,BIF (token-2022): SOL to token
+7,26,sell,8310,62YE1d4sRArBQzR5bdbxsx2k9LV3MdPV4xMC4Di2pump,SOL,sponsored,BIF (token-2022): token to SOL
+8,28,sell,0.005,SOL,Cm35AonJQD8nw1j7hm674Wua7GvibkfEgKtq4XSfpump,sponsored,UNEMPLOYED (token-2022): SOL to token
+8,30,sell,228000,Cm35AonJQD8nw1j7hm674Wua7GvibkfEgKtq4XSfpump,SOL,sponsored,UNEMPLOYED (token-2022): token to SOL
+9,32,sell,0.005,SOL,CjvBXge6CJPXDrGDT5TmXyxXvCjLTQPXKCHET28Bpump,sponsored,COPCAT (token-2022): SOL to token
+9,34,sell,245000,CjvBXge6CJPXDrGDT5TmXyxXvCjLTQPXKCHET28Bpump,SOL,sponsored,COPCAT (token-2022): token to SOL
+10,36,sell,0.005,SOL,9shma1ut5DwsGHg1CG1R3UdvcR61XyWMN99eBeFNpump,sponsored,Neuralnauts (token-2022): SOL to token
+10,38,sell,176000,9shma1ut5DwsGHg1CG1R3UdvcR61XyWMN99eBeFNpump,SOL,sponsored,Neuralnauts (token-2022): token to SOL
+11,40,sell,0.005,SOL,ED92dgDp91SuGaXJ1UTyxy8NwTENwyAq9mER4e8gbonk,sponsored,Milho (classic): SOL to token
+11,42,sell,181000,ED92dgDp91SuGaXJ1UTyxy8NwTENwyAq9mER4e8gbonk,SOL,sponsored,Milho (classic): token to SOL
 2,0,sell,0.005,SOL,7TyrdKJC458BxCLWzzYCt1QDahuGV3bUyxQYUtuF27nz,sponsored,AATF (classic): no route on 2026-10-09 (NoLiquidity)
 3,0,sell,0.005,SOL,GTWaP7vQGsUcsua9sJkS6JHhvxwReQeETvuEby6RW8nv,sponsored,NTFS (classic): no route on 2026-10-09 (NoLiquidity)
 4,0,sell,0.005,SOL,Gv48znCBmgN9wFixuKw4ABgSjnPPQUPypTBBvdmepump,sponsored,ACORN (token-2022): no route on 2026-10-09 (NoLiquidity)

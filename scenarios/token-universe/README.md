@@ -22,4 +22,5 @@ The rest of DFlow and direct DEX volume sits in pools under $50k (pump.fun-style
 test_01-04: sell 0.005 SOL into each token, then 90% of the quote back; they never buy (a short trader acquires with a SOL sell).
 test_05: one buy per token from test_01-03, worth 0.005 SOL; "expected to fail" there means Jupiter has no exact-out route either.
 `expected.csv`: every row above that should work on the API today (sells into tradable tokens, buys Jupiter can do). A failure there is a regression.
-30 traders per file. Fund with `--sol-funding-per-trader 0.05`.
+30 traders per file, rows paced to 30 orders a minute (barn settles ~40 a minute; faster, sponsored creations expire while queued; `pnpm sim pace-scenario` retimes a file).
+Fund with `--sol-funding-per-trader 0.05`.
