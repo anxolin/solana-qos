@@ -54,6 +54,10 @@ it.each(['single', 'composite', 'resume', 'limited-funder', 'setup-resume', 'fre
     ...await original<typeof import('../src/appData.js')>(),
     registerAppData: async () => 'present' as const,
   }))
+  // The session now builds its report by default; this test has no qos.py and allows no subprocesses.
+  vi.doMock('node:child_process', async original => ({
+    ...await original<typeof import('node:child_process')>(), spawnSync: vi.fn(),
+  }))
   const rpcModule = await import('../src/rpc.js')
   const ordersModule = await import('../src/orders.js')
   const { Rpc } = rpcModule

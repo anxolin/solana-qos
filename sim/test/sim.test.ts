@@ -181,8 +181,8 @@ describe('generator', () => {
 
 describe('app data', () => {
   it('hashes the solana-qos pre-image to the registered appData', () => {
-    expect(APP_DATA_DOC).toBe('{"appCode":"solana-qos","metadata":{"hooks":{"version":"0.2.0"}},"version":"1.15.0"}')
-    expect(APP_DATA_HEX).toBe('0x3c74bf5b542341051f22f7a76d928086964a346f3fb5dc08eaf1e8348cbfbad2')
+    expect(APP_DATA_DOC).toBe('{"appCode":"solana-qos","metadata":{},"version":"1.15.0"}')
+    expect(APP_DATA_HEX).toBe('0xa168deae75884cfb01d60d3718bfe0bc258b12d3a120942cd3c08fed01aa8b08')
   })
 
   const api = (getAppData: () => Promise<{ fullAppData?: string }>) => {

@@ -20,7 +20,7 @@ it.each([
   { override: [], name: '1970-01-01-00-00-composite-solver-a-run', cleanup: true, mode: 'fresh' },
   { override: ['--session', 'offline', '--no-cleanup'], name: 'offline', cleanup: false, mode: 'fresh' },
   { override: ['--session', 'interrupt'], name: 'interrupt', cleanup: true, mode: 'interrupt' },
-  { override: ['--session', 'unsorted', '--sol-funding-per-trader', '0.07', '--report'], name: 'unsorted', cleanup: true, mode: 'unsorted' },
+  { override: ['--session', 'unsorted', '--sol-funding-per-trader', '0.07'], name: 'unsorted', cleanup: true, mode: 'unsorted' },
   ...['running', 'single', 'cleanup', 'pause', 'unknown', 'resume-reservations', 'expired-unknown', 'identity', 'finished'].map(mode => ({ override: [], name: mode, cleanup: true, mode })),
   ...['defer', 'defer-running', 'defer-unknown', 'defer-shared'].map(mode => ({ override: ['--defer-cleanup'], name: mode, cleanup: true, mode })),
   ...['auto-defer', 'auto-defer-throw', 'auto-defer-retry', 'auto-defer-unknown', 'auto-defer-retry-unknown', 'auto-defer-fees', 'auto-defer-success', 'auto-defer-single', 'auto-defer-resume'].map(mode => ({

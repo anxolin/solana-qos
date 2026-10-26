@@ -310,7 +310,7 @@ function sessionCommand(name: string) {
     .option('--no-cleanup', 'leave tokens and SOL in the trader wallets')
     .option('--defer-cleanup', 'continue after unfinished cleanup and retry at the end (now the default)')
     .option('--phases', 'treat each CSV time as a phase: a row also waits until every earlier-timed row has finished')
-    .option('--report', 'run qos.py fetch + report on the session afterwards')
+    .option('--no-report', 'skip the qos.py fetch + report run that follows the session')
     .option('-y, --yes', 'skip the confirmation prompt')
     .addOption(envOption)
 }
@@ -1483,7 +1483,7 @@ program
         `Regenerate: ${cmd}\nAfterwards: pnpm sim session-stats ${names.join(' ')} <this run's session>`)
     console.log(`${ui.ok(`${rows.length} rows`)} (${rpc} matching + ${dependent} dependent${skipped.length ? `, ${skipped.length} not recoverable` : ''}) written to ${c.cyan(out)}`)
     if (skipped.length) console.log(ui.warn(`Rows ${skipped.join(', ')} failed before the journal logged them and the scenario as it ran is gone: not included`))
-    console.log(c.dim(`Run: pnpm sim simulate-trade-session ${out} --sol-funding-per-trader 0.05 --report`))
+    console.log(c.dim(`Run: pnpm sim simulate-trade-session ${out} --sol-funding-per-trader 0.05`))
     console.log(c.dim(`Then: pnpm sim session-stats ${names.join(' ')} <the new session>`))
     process.exit(0)
   })

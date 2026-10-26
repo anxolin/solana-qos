@@ -47,7 +47,7 @@ pnpm sim generate-trade-session --traders 25 --duration 10 --sol-amount-per-trad
 pnpm sim simulate-trade-session ../scenarios/kaffee-25x10.csv --dry-run
 
 # Play it: fund, trade, clean up, report
-pnpm sim simulate-trade-session ../scenarios/kaffee-25x10.csv --sol-funding-per-trader 0.1 --report
+pnpm sim simulate-trade-session ../scenarios/kaffee-25x10.csv --sol-funding-per-trader 0.1
 
 # Get the SOL back after an interrupted run (or --no-cleanup)
 pnpm sim cleanup-trade-session --traders 1-25
@@ -76,7 +76,7 @@ Main flags of `simulate-trade-session`:
 | `--max-retries` | 0 | Retry failed quotes, placement or fills; 0 means one attempt |
 | `--order-validity` | 120 | Seconds an order is valid when placed (120 is the orderbook minimum) |
 | `--quote-rps` / `--api-rps` / `--rpc-rps` | 5 / 8 / 10 | Request rates for quotes, other orderbook calls and Solana RPC. Raise for stress tests |
-| `--report` | off | Fetch logs (if configured) and build the report afterwards |
+| `--no-report` | off | Skip the report; by default the session ends by fetching logs (if configured) and building it |
 | `--dry-run`, `--no-cleanup`, `-y` | | Quote only; keep the funds in the traders; skip the prompt |
 | `--defer-cleanup` | automatic | Compatibility flag; unfinished cleanup now continues and retries at the end by default |
 | `--max-creation-sol` | off | Refuses a run whose estimated creation cost (acquisitions, retries, cleanup) is above this |
@@ -283,8 +283,8 @@ A trader's rows run one after another. Different traders run in parallel.
 
 Each order prints its debug-tool link (`debug.barn.cow.fi` on staging), and self-paid ones their Solscan transaction.
 
-Every order carries the app data hash `0x3c74bf5b542341051f22f7a76d928086964a346f3fb5dc08eaf1e8348cbfbad2`
-(`{"appCode":"solana-qos","metadata":{"hooks":{"version":"0.2.0"}},"version":"1.15.0"}`, in `src/appData.ts`), so
+Every order carries the app data hash `0xa168deae75884cfb01d60d3718bfe0bc258b12d3a120942cd3c08fed01aa8b08`
+(`{"appCode":"solana-qos","metadata":{},"version":"1.15.0"}`, in `src/appData.ts`), so
 simulated orders are easy to tell apart from real users. Changing the string changes the hash.
 
 ## Cleanup
