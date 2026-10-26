@@ -1,5 +1,5 @@
 # Prepare USDC for 5 buyers, then one wave of 5 SOL sellers and 5 wSOL buyers.
-# Run from sim/: pnpm sim simulate-trade-session ../scenarios/opposing-sol-usdc.csv --sol-funding-per-trader 0.06 --max-total-sol 0.6 --max-creation-sol 0.2 --report
+# Run from sim/: pnpm sim simulate-trade-session ../scenarios/opposing-sol-usdc.csv --sol-funding-per-trader 0.06 --max-total-sol 0.6 --max-creation-sol 0.2
 trader,time,type,amount,token,other_token,mode,note
 2,0,sell,0.01,SOL,USDC,sponsored,prepare USDC for buyer
 4,0,sell,0.01,SOL,USDC,sponsored,prepare USDC for buyer

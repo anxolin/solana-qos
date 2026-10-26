@@ -1,5 +1,5 @@
 # One wave: 10 sponsored and 10 self-paid SOL-to-USDC orders.
-# Run from sim/: pnpm sim simulate-trade-session ../scenarios/sponsored-vs-self.csv --sol-funding-per-trader 0.04 --max-total-sol 0.8 --max-creation-sol 0.2 --report
+# Run from sim/: pnpm sim simulate-trade-session ../scenarios/sponsored-vs-self.csv --sol-funding-per-trader 0.04 --max-total-sol 0.8 --max-creation-sol 0.2
 trader,time,type,amount,token,other_token,mode,note
 1,0,sell,0.0025,SOL,USDC,sponsored,comparison sponsored
 2,0,sell,0.0025,SOL,USDC,self,comparison self-paid

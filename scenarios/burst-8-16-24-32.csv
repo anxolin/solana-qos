@@ -1,7 +1,7 @@
 # Burst: waves of 8, 16, 24 and 32 traders, 90 seconds apart.
 # Each wave shares one timestamp; slow preceding flows on reused wallets can delay actual starts.
 # Use --fill-timeout 60 --cancel-on-timeout to leave room for preparation and cancellation between waves.
-# Run from sim/: pnpm sim simulate-trade-session ../scenarios/burst-8-16-24-32.csv --sol-funding-per-trader 0.038 --max-total-sol 1.216 --max-creation-sol 0.35 --report
+# Run from sim/: pnpm sim simulate-trade-session ../scenarios/burst-8-16-24-32.csv --sol-funding-per-trader 0.038 --max-total-sol 1.216 --max-creation-sol 0.35
 trader,time,type,amount,token,other_token,mode,note
 1,0,sell,0.0025,SOL,USDC,sponsored,burst 8 traders
 2,0,sell,0.0025,SOL,USDC,sponsored,burst 8 traders

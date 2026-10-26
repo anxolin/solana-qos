@@ -1,4 +1,4 @@
-# First-round copy of cow-simple.csv; original scenario is preserved.
+# First-round copy of cow.csv (formerly cow-simple.csv); original scenario is preserved.
 # No main-order retries: 15 main + 6 possible acquisitions + 13 cleanup = 34 estimated orders (0.102 SOL before refunds).
 # Coincidence of wants: perfect and imperfect CoWs (prices sized at SOL ≈ $118.6 on 3 Oct 2026).
 # Phase 1 (t=0): traders acquire what they'll sell, so phase 2 needs no acquisition.

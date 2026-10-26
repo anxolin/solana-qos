@@ -1,5 +1,5 @@
 # Sustained: 5 traders, 10 one-minute waves, then a recovery probe.
-# Run from sim/: pnpm sim simulate-trade-session ../scenarios/sustained-5x10.csv --sol-funding-per-trader 0.07 --max-total-sol 0.35 --max-creation-sol 0.2 --report
+# Run from sim/: pnpm sim simulate-trade-session ../scenarios/sustained-5x10.csv --sol-funding-per-trader 0.07 --max-total-sol 0.35 --max-creation-sol 0.2
 trader,time,type,amount,token,other_token,mode,note
 1,0,sell,0.0025,SOL,USDC,sponsored,load wave 1
 2,0,sell,0.0025,SOL,USDC,sponsored,load wave 1
