@@ -13,7 +13,7 @@ import { fmtSol, fund, fundingPlan, wallets } from '../wallets.js'
 import { Orders } from '../orders.js'
 import { APP_DATA_HEX } from '../appData.js'
 import { Session } from '../session.js'
-import { paceRows, parseScenario, readScenario, sessionSlug, spaceTraders, tradersIn, writeScenario, type TradeRow } from '../scenario.js'
+import { paceRows, parseScenario, readScenario, sellOnly, sessionSlug, spaceTraders, tradersIn, writeScenario, type TradeRow } from '../scenario.js'
 import { failureKind, latestOutcomes, retryRows } from '../retry.js'
 import { runRow, type FlowContext, type RowResult } from '../flow.js'
 import { playScenarios } from '../runner.js'
@@ -276,11 +276,15 @@ program
   .option('--max-retries <n>', 'order retries to include in the estimate', (v) => parseInt(v, 10), 0)
   .option('--max-creation-sol <sol>', 'fail if estimated creation costs exceed this amount', Number)
   .option('--no-cleanup', 'exclude cleanup orders from the estimate')
+  .option('--sell-only', 'estimate the scenarios as simulate-trade-session --sell-only runs them: every row a sell')
   .addOption(envOption)
   .action(async (paths: string[], opts) => {
     const run = context(opts, new Session('budget-check'))
     console.log(`Test funder ${run.w.funder.publicKey.toBase58()}: ${fmtSol(await run.rpc.lamports(run.w.funder.publicKey))}`)
-    const budget = await checkCreationBudget(run, paths.map((name) => ({ name, rows: readScenario(name) })), opts)
+    const budget = await checkCreationBudget(run, paths.map((name) => {
+      const rows = readScenario(name)
+      return { name, rows: opts.sellOnly ? sellOnly(rows) : rows }
+    }), opts)
     if (budget.issues.length) throw new Error(budget.issues.join('; '))
   })
 
@@ -310,15 +314,16 @@ function sessionCommand(name: string) {
     .option('--no-cleanup', 'leave tokens and SOL in the trader wallets')
     .option('--defer-cleanup', 'continue after unfinished cleanup and retry at the end (now the default)')
     .option('--phases', 'treat each CSV time as a phase: a row also waits until every earlier-timed row has finished')
+    .option('--sell-only', 'ignore the CSV type: run every row as a sell of token for other_token, so a buy row sells what it would have bought (acquiring it first)')
     .option('--no-report', 'skip the qos.py fetch + report run that follows the session')
     .option('-y, --yes', 'skip the confirmation prompt')
     .addOption(envOption)
 }
 
 async function runSession(scenarioPath: string, opts: any, composite?: ReturnType<typeof readComposite>, resume?: SavedRun) {
-  const scenarios: CompositeScenario[] = resume?.scenarios ?? composite?.scenarios ?? [{
+  const scenarios: CompositeScenario[] = resume?.scenarios ?? (composite?.scenarios ?? [{
     id: 1, name: sessionSlug(scenarioPath), path: scenarioPath, rows: spaceTraders(readScenario(scenarioPath), opts.traderSpacing ?? 0), sourceRows: [],
-  }]
+  }]).map(scenario => opts.sellOnly ? { ...scenario, rows: sellOnly(scenario.rows) } : scenario)
   const stamp = new Date().toISOString().slice(0, 16).replace(/[T:]/g, '-')
   const slug = composite ? `composite-${composite.solver.replace(/[^a-zA-Z0-9_-]+/g, '-')}-run` : sessionSlug(scenarioPath)
   const session = new Session(opts.session ?? `${stamp}-${slug}`)
@@ -430,6 +435,9 @@ async function runSession(scenarioPath: string, opts: any, composite?: ReturnTyp
       ['Scenario', c.cyan(scenarioPath)],
       ...(composite ? [['Solver', composite.solver], ['Break', `${composite.breakSeconds}s after each scenario finishes`]] as [string, string][] : []),
       ['Trades', `${c.bold(rows.length)} rows, ${c.bold(traders.length)} traders`],
+      ['Order type', opts.sellOnly
+        ? `${c.yellow('sell only')} ${c.dim('(--sell-only: buy rows sell the token they name, acquiring it first)')}`
+        : c.dim('as the CSV says')],
       ['Phases', opts.phases
         ? `on ${c.dim(`(${new Set(rows.map(r => r.time)).size} CSV times; each waits for every earlier row to finish)`)}`
         : c.dim('off (rows wait only for their own trader)')],
@@ -520,7 +528,8 @@ async function runSession(scenarioPath: string, opts: any, composite?: ReturnTyp
     }
     if (!resume) {
       session.writeMeta({ rpc: rpcHost(env.rpcUrl), name: `${session.name} trade session`, title: session.name, env: opts.env,
-        sim: { scenario: resolve(scenarioPath), traders: traders.length, rows: rows.length, solFundingPerTrader: opts.solFundingPerTrader } })
+        sim: { scenario: resolve(scenarioPath), traders: traders.length, rows: rows.length, solFundingPerTrader: opts.solFundingPerTrader,
+          ...(opts.sellOnly ? { sellOnly: true } : {}) } })
       copyFileSync(scenarioPath, resolve(session.dir, 'sim', composite ? 'composite.json' : 'scenario.csv'))
     }
     saveRun(session, saved)
@@ -868,7 +877,8 @@ sessionCommand('simulate-composite-scenario')
       if (command.getOptionValueSource(key) !== 'cli') settings[key] = value
     }
     if (opts.preview) {
-      const rows = combinedRows(composite.scenarios, composite.breakSeconds)
+      const scheduled = combinedRows(composite.scenarios, composite.breakSeconds)
+      const rows = settings.sellOnly ? sellOnly(scheduled) : scheduled
       const budget = creationBudget(rows, settings.maxRetries, settings.cleanup)
       const duration = (seconds: number) => {
         const minutes = Math.floor(seconds / 60)
@@ -882,6 +892,7 @@ sessionCommand('simulate-composite-scenario')
       console.log('Results: not available — use the command without --preview to run the scenarios.')
       console.log(`Environment: ${settings.env}`)
       console.log(`Solver label: ${composite.solver} (does not select the active solver)`)
+      if (settings.sellOnly) console.log('Order type: --sell-only, every row runs as a sell of the token it names')
       console.log(`\nRun order (${rows.length} trades):`)
       console.table(composite.scenarios.map((scenario, index) => ({
         Scenario: scenario.path, Trades: scenario.rows.length, Completion: 'Not run',

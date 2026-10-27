@@ -272,12 +272,19 @@ trader,time,type,amount,token,other_token,mode,note
 - tokens are a symbol (`SOL`, `USDC`, anything in `universe*.json` or `../tokens.json`) or a mint address. `SOL` is native SOL
 - lines starting with `#` are comments
 
+`--sell-only` ignores the `type` column and runs every row as a sell of `amount` of `token` for `other_token`, so a buy
+row sells what it would have bought: `buy 0.5 USDC with SOL` becomes `sell 0.5 USDC for SOL`, with the acquire step
+buying the USDC first. Use it to run a buy file (or a mixed one) as sells, e.g. when exact-out routes are the thing you
+want to leave out. Each converted buy adds an acquisition order, so the creation estimate grows; `check-budget
+--sell-only` prints the estimate the run will use.
+
 ## What happens per row
 
 1. **Acquire.** If the trader doesn't hold enough of the sell token (after re-reading the balance, which can lag a fill),
    it first sells SOL for it and waits for the fill. It never buys: many tokens have no exact-out route. Within 5% of
    the amount, it sells what the trader holds instead.
-2. **Trade.** Places the order and waits up to `--fill-timeout`. No retry unless `--max-retries`.
+2. **Trade.** Places the order and waits up to `--fill-timeout`. No retry unless `--max-retries`. With `--sell-only`
+   the row is a sell whatever the CSV says, so a buy row acquires its token in step 1 and then sells it.
 
 A trader's rows run one after another. Different traders run in parallel.
 

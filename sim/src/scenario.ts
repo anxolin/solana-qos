@@ -77,6 +77,14 @@ export function spaceTraders(rows: TradeRow[], seconds: number): TradeRow[] {
 }
 
 /**
+ * Run every row as a sell of `token` for `other_token`, whatever the CSV's `type` column says. A converted buy keeps its
+ * token and amount, so `buy 0.5 USDC with SOL` becomes `sell 0.5 USDC for SOL`: the trader acquires the token first (a
+ * sell flow does that whenever it is short) and then sells it, which keeps a mixed or buy-only file to one order kind.
+ */
+export const sellOnly = (rows: TradeRow[]): TradeRow[] =>
+  rows.every((r) => r.type === 'sell') ? rows : rows.map((r) => (r.type === 'sell' ? r : { ...r, type: 'sell' as const }))
+
+/**
  * Start the n-th paced row (in the given order) at n * 60 / `perMinute` seconds, so the scenario places at most about
  * `perMinute` orders a minute however many traders run in parallel. A time is only the earliest start: a trader's rows
  * still run in order, so a slow flow delays that trader's later rows, not the pace. Rows `paced` skips keep their time.

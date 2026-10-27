@@ -9,7 +9,7 @@ import { encodeOrderIntent, findSettlementStatePda } from '@cowprotocol/sdk-trad
 import { OrderBookApiError, type OrderBookApi } from '@cowprotocol/sdk-order-book'
 import { deriveKeypair, wallets } from '../src/wallets.js'
 import { cleanupTrader } from '../src/cleanup.js'
-import { paceRows, parseScenario, readScenario, sessionSlug, spaceTraders, writeScenario } from '../src/scenario.js'
+import { paceRows, parseScenario, readScenario, sellOnly, sessionSlug, spaceTraders, writeScenario } from '../src/scenario.js'
 import { isRpcFailure, retryRows } from '../src/retry.js'
 import { fromRaw, loadUniverse, toRaw } from '../src/tokens.js'
 import { generate, MIN_GAP_S, mulberry32, roundAmount } from '../src/generator.js'
@@ -90,6 +90,16 @@ describe('scenario CSV', () => {
     expect(() => parseScenario(`trader,time,type,amount,token,other_token,mode\n${line}\n`)).toThrow(err)
   })
 
+  it('runs every row as a sell with sell-only, keeping the token, amount and order of each row', () => {
+    const rows = parseScenario('trader,time,type,amount,token,other_token\n1,0,buy,0.5,USDC,SOL\n1,10,sell,2,JUP,SOL\n')
+    expect(sellOnly(rows).map((r) => [r.type, r.amount, r.token, r.otherToken])).toEqual([
+      ['sell', 0.5, 'USDC', 'SOL'],
+      ['sell', 2, 'JUP', 'SOL'],
+    ])
+    const sells = parseScenario('trader,time,type,amount,token,other_token\n1,0,sell,1,SOL,USDC\n')
+    expect(sellOnly(sells)).toBe(sells)
+  })
+
   it('skips # comments', () => {
     expect(parseScenario('# generated\ntrader,time,type,amount,token,other_token\n1,0,sell,1,SOL,USDC\n')).toHaveLength(1)
   })
@@ -118,6 +128,12 @@ describe('creation budget', () => {
   it('includes retries and honors disabled cleanup', () => {
     expect(creationBudget(rows, 1, false)).toMatchObject({ main: 4, acquisitions: 2, cleanup: 0, total: 18_000_000n })
     expect(() => creationBudget(rows, -1)).toThrow(/non-negative/)
+  })
+
+  it('counts an acquisition for every buy row sell-only turns into a sell', () => {
+    const buys = parseScenario('trader,time,type,amount,token,other_token\n1,0,buy,0.5,USDC,SOL\n')
+    expect(creationBudget(buys)).toMatchObject({ main: 1, acquisitions: 0, cleanup: 1 })
+    expect(creationBudget(sellOnly(buys))).toMatchObject({ main: 1, acquisitions: 1, cleanup: 1 })
   })
 
   it('recognizes SOL/wSOL addresses and keeps separate trader cleanup costs', () => {
