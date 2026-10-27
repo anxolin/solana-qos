@@ -1,0 +1,102 @@
+{
+ "_source": "VictoriaLogs via Grafana, container solana-autopilot-staging",
+ "drivers": {
+  "jupiter-solve": {
+   "submitted": 70,
+   "proposed": 102,
+   "rejected_before_submission": {
+    "SimulationFailed": 3
+   }
+  },
+  "zurui": {
+   "submitted": 1,
+   "observed_on_chain": 1,
+   "solver": "FKtU6njTRoGqmg91fwszT64aERYJaj5m8Yotdw5A4q3H",
+   "proposed": 1,
+   "wins": 1
+  },
+  "helixbox": {
+   "wins": 3,
+   "solver": "9CHj22k5bdA4PiojGnVM7okS1UienkhCbn4wjnURRb7v",
+   "observed_on_chain": 2,
+   "proposed": 17,
+   "submitted": 2,
+   "rejected_before_submission": {
+    "SimulationFailed": 1
+   }
+  },
+  "asao": {
+   "observed_on_chain": 28,
+   "solver": "GCBBeHsTZJ4cXVo94cF3MZ2VfwYkFTu7aRmHXgRMo5VC",
+   "submitted": 27,
+   "wins": 30,
+   "proposed": 110,
+   "settlement_failed": {
+    "DeadlineExceeded": 1
+   },
+   "rejected_before_submission": {
+    "SimulationFailed": 1
+   }
+  },
+  "grafiks": {
+   "observed_on_chain": 18,
+   "solver": "AuwLofAZcjCxUeYs1Ca7ea812HjySAv3b1QjvVjcYzVj",
+   "wins": 21,
+   "proposed": 86,
+   "submitted": 17,
+   "settlement_failed": {
+    "DeadlineExceeded": 1
+   },
+   "rejected_before_submission": {
+    "SimulationFailed": 2
+   }
+  },
+  "rosato": {
+   "wins": 1,
+   "solver": "DNvtV5TfKLjQcMoYs3bmbbqzMS7ESJEMN12AfTh1HqL1",
+   "proposed": 3,
+   "solve_failed": {
+    "SolverFailed": 14
+   },
+   "rejected_before_submission": {
+    "SimulationFailed": 1
+   }
+  },
+  "paradox": {
+   "proposed": 1,
+   "solve_failed": {
+    "SolverFailed": 46
+   }
+  },
+  "kaisersolver": {
+   "proposed": 109,
+   "observed_on_chain": 78,
+   "solver": "883XazUhNq9ZbmkzSqJjh72Azx9ZG9HcfZyF8auG8aGz",
+   "wins": 84,
+   "submitted": 8,
+   "rejected_before_submission": {
+    "SimulationFailed": 2
+   }
+  },
+  "arc": {
+   "proposed": 42
+  },
+  "rizzolver": {
+   "solve_failed": {
+    "other": 71
+   }
+  },
+  "horadrim": {
+   "solve_failed": {
+    "SolverFailed": 71
+   }
+  }
+ },
+ "autopilot": {
+  "winner_skipped_creation_blockhash_expired": 0,
+  "sponsored_creation_expired_orders": 4,
+  "filtered": {
+   "in_flight": 46
+  }
+ }
+}
