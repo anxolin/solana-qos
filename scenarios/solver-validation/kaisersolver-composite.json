@@ -9,20 +9,12 @@
     "../jupiter/native-vs-wrapped-payouts.csv",
     "solver-same-direction-25.csv",
     "solver-burst-sell.csv",
-    "solver-token-coverage.csv",
-    {
-      "path": "solver-fresh-accounts.csv",
-      "options": {
-        "freshAccounts": true,
-        "solFundingPerTrader": 0.15,
-        "slippageBps": 500
-      }
-    }
+    "solver-token-coverage.csv"
   ],
   "options": {
     "solFundingPerTrader": 0.05,
     "maxTotalSol": 3,
-    "maxCreationSol": 0.993,
+    "maxCreationSol": 0.945,
     "maxRetries": 0,
     "orderValidity": 300,
     "fillTimeout": 60,

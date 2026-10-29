@@ -1,0 +1,23 @@
+{
+ "_source": "VictoriaLogs via Grafana, container solana-autopilot-staging",
+ "drivers": {
+  "rosato": {
+   "wins": 57,
+   "solver": "DNvtV5TfKLjQcMoYs3bmbbqzMS7ESJEMN12AfTh1HqL1",
+   "submitted": 54,
+   "observed_on_chain": 54,
+   "proposed": 57,
+   "solve_failed": {
+    "SolverFailed": 8
+   }
+  }
+ },
+ "autopilot": {
+  "winner_skipped_creation_blockhash_expired": 1,
+  "sponsored_creation_expired_orders": 4,
+  "filtered": {
+   "unfunded_sell_token_account": 190,
+   "in_flight": 27
+  }
+ }
+}

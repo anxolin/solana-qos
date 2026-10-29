@@ -58,7 +58,7 @@ pnpm sim wallets --traders 1-25
 
 Standalone cleanup shows any SOL top-ups needed for fees, wallet rent and order rent before asking for confirmation. Wallets with tokens to sell receive at least the usual 0.02 SOL reserve; wallets with only empty accounts or wSOL receive the current minimum SOL-account balance plus closure fees. That minimum is read from Solana, since a wallet with zero SOL may need its SOL account recreated even while token accounts remain. It stops before sending if the funder cannot cover the top-ups and transfer fees. This lets cleanup retry wallets whose SOL was already swept while tokens remained. Cleanup still returns remaining SOL to the funder, including on its final attempt when some tokens could not be sold.
 
-By default, each order's creation transaction opens its own missing receiving token account, paid by the trader (self-paid) or the sponsor (sponsored), so ordinary scenarios include first-use account costs. With `--prepare-token-accounts`, single and composite runs instead create missing receiving token accounts once before trading. Composites keep those accounts open between scenarios while selling tokens and recycling available SOL. Final cleanup closes the accounts and returns their rent. Existing accounts are reused. Rent is a temporary deposit, checked against the funder's balance during preflight; transaction fees and trading costs are spent. Receiving wSOL accounts can also retain wrapped SOL until final cleanup. `--no-cleanup` leaves accounts and funds in the wallets. Dry runs never create accounts.
+By default, each order's creation transaction opens its own missing receiving token account, paid by the trader (self-paid) or the sponsor (sponsored), so ordinary scenarios include first-use account costs. Single and composite runs do not create accounts before quoting or require existing accounts to be missing. To create missing accounts once before trading, set `options.prepareTokenAccounts` to `true` in a composite config or pass `--prepare-token-accounts`. Composites keep prepared accounts open between scenarios while selling tokens and recycling available SOL. Final cleanup closes the accounts and returns their rent. Existing accounts are reused. Rent is a temporary deposit, checked against the funder's balance during preflight when preparation is enabled; transaction fees and trading costs are spent. Receiving wSOL accounts can also retain wrapped SOL until final cleanup. `--no-cleanup` leaves accounts and funds in the wallets. Dry runs never create accounts.
 
 Cleanup logs refer to two different kinds of account:
 
@@ -81,6 +81,7 @@ Main flags of `simulate-trade-session`:
 | `--defer-cleanup` | automatic | Compatibility flag; unfinished cleanup now continues and retries at the end by default |
 | `--max-creation-sol` | off | Refuses a run whose estimated creation cost (acquisitions, retries, cleanup) is above this |
 | `--prepare-token-accounts` | off | Create missing receiving accounts once before trading instead of in each order |
+| `--no-prepare-token-accounts` | | Override a composite config that enables preparation |
 | `--fresh-accounts` | off | Skip preparation and require missing receiving accounts for a dedicated fresh-account test |
 | `--slippage-bps` | SDK default | Quote slippage in basis points; 500 means 5% |
 | `--env` | staging | `prod` must be passed explicitly |
@@ -148,7 +149,9 @@ Save this JSON beside the two CSV files:
 
 Supported `options`: `solFundingPerTrader`, `maxTotalSol`, `maxCreationSol`, `maxRetries`, `orderValidity`, `fillTimeout`, `cancelOnTimeout`, `slippageBps`, `quoteRps`, `apiRps`, `rpcRps`, `cleanup`, `report`, `prepareTokenAccounts`, and `freshAccounts`. Omitted settings use the existing run defaults. Unknown fields and invalid settings are rejected before funding. Confirmation can only be skipped with the CLI's `--yes` flag. `maxTotalSol` caps each scenario's funding pass and separately limits upfront token-account setup; `maxCreationSol` caps the whole composite's estimated order creation fees/rent before refunds, excluding receiving-account setup.
 
-A scenario object can override only `freshAccounts`, `solFundingPerTrader`, and `slippageBps`. These per-scenario values take precedence over shared config and CLI settings. The main solver composites include this shared exception:
+Receiving token account preparation is off by default. To enable it for a composite, add `"prepareTokenAccounts": true` inside `options`. Explicit CLI flags override this setting. `freshAccounts: true` still skips preparation and checks that the selected wallets have no receiving accounts before quoting.
+
+A scenario object can override only `freshAccounts`, `solFundingPerTrader`, and `slippageBps`. These per-scenario values take precedence over shared config and CLI settings. The solver composites no longer include a separate fresh-account scenario. For an optional dedicated check in a custom config, use:
 
 ```json
 {"path": "solver-fresh-accounts.csv", "options": {"freshAccounts": true, "solFundingPerTrader": 0.15, "slippageBps": 500}}

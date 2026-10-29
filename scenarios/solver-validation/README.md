@@ -9,9 +9,8 @@ Run with only the target solver enabled in staging. These are new files; existin
 | 3. Opposing orders          | [solver-cow.csv](solver-cow.csv)                             |   15 |                     6 |      13 |             34 |                         0.102 SOL |
 | 4. Token coverage           | [solver-token-coverage.csv](solver-token-coverage.csv)       |   52 |                     0 |      37 |             89 |                         0.267 SOL |
 | 5. Large route candidates   | [solver-transaction-size.csv](solver-transaction-size.csv)   |   10 |                     0 |       8 |             18 |                         0.054 SOL |
-| 6. Fresh receiving accounts | [solver-fresh-accounts.csv](solver-fresh-accounts.csv)       |    8 |                     0 |       8 |             16 |                         0.048 SOL |
 
-The five ordinary checks allow 307 orders conservatively, or 0.921 SOL at the planning rate of 0.003 SOL/order before refunds. The current Grafiks composite adds the shared fresh-account test: 194 main rows across 119 wallets, 323 estimated creations and a 0.969 SOL creation allowance. Counts assume no main-order retries, no unrelated tokens in wallets and one cleanup pass. Cleanup can retry after a failure, so estimates are not hard order ceilings. The complete burst sequence exceeds the earlier 100-order cap with the user's approval; the other files stay below 100. Trading amounts, upfront receiving-account rent and other fees are separate from the creation allowance.
+The five Grafiks checks schedule 186 main rows across 111 wallets, with 307 estimated order creations and a 0.921 SOL creation allowance at the planning rate of 0.003 SOL/order before refunds. The separate fresh-account section has been removed from all solver composites; receiving accounts are no longer prepared upfront by default. Counts assume no main-order retries, no unrelated tokens in wallets and one cleanup pass. Cleanup can retry after a failure, so estimates are not hard order ceilings. The complete burst sequence exceeds the earlier 100-order cap with the user's approval; the other files stay below 100. Trading amounts, receiving-account rent and other fees are separate from the creation allowance.
 
 ## What to check
 
@@ -42,7 +41,7 @@ For an exact CoW boundary test, use a solver test hook or isolated replay to add
 
 A composite runs several scenario CSVs in order as one session. Create a JSON config with a name, solver label, CSV filenames, and shared run options. Paths are relative to the JSON file, so a CSV beside it needs only its filename. See the [config format](../../sim/README.md#make-your-own-config).
 
-For example, [grafiks-composite.json](grafiks-composite.json) lists the five scenarios previously run for Grafiks plus the shared fresh-account test. From `sim/`:
+For example, [grafiks-composite.json](grafiks-composite.json) lists the five scenarios previously run for Grafiks. From `sim/`:
 
 ```sh
 # Preview the scenario table and budget without credentials or network calls.
@@ -52,17 +51,17 @@ pnpm sim simulate-composite-scenario ../scenarios/solver-validation/grafiks-comp
 pnpm sim simulate-composite-scenario ../scenarios/solver-validation/grafiks-composite.json
 ```
 
-By default, each order's creation transaction opens its missing receiving token account, so scenarios include first-use account costs. With `--prepare-token-accounts`, the runner instead creates missing receiving token accounts once before the composite starts. Between scenarios it sells tokens and returns available SOL, keeping those accounts open. Final cleanup closes them and recovers rent. Single runs use the same setup at the beginning and closure at the end. Existing accounts are reused. Account rent is a refundable deposit; transaction fees, trading losses and burned dust are spent. Receiving wSOL accounts can retain wrapped SOL until final cleanup. `--no-cleanup` keeps accounts and funds in the wallets.
+By default, each order's creation transaction opens its missing receiving token account, so scenarios include first-use account costs. To create missing accounts once before trading, set `"prepareTokenAccounts": true` inside the composite config's `options`, or pass `--prepare-token-accounts`. Preparation then happens once before the composite starts. Between scenarios the runner sells tokens and returns available SOL, keeping prepared accounts open. Final cleanup closes them and recovers rent. Single runs use the same setup at the beginning and closure at the end. Existing accounts are reused; disabling preparation does not require them to be missing. Account rent is a refundable deposit; transaction fees, trading losses and burned dust are spent. Receiving wSOL accounts can retain wrapped SOL until final cleanup. `--no-cleanup` keeps accounts and funds in the wallets.
 
-The solver composite configs pause for 30 seconds before funding the next scenario; the simulator still defaults to 60 seconds when a config omits `breakSeconds`. Allow extra SOL for fees, trading losses and upfront account rent; balances are checked before each funding pass. `maxTotalSol` caps funding per scenario and separately limits account setup. `maxCreationSol` covers the whole composite's estimated order creation fees/rent before refunds, excluding receiving-account setup.
+The solver composite configs pause for 30 seconds before funding the next scenario; the simulator still defaults to 60 seconds when a config omits `breakSeconds`. Allow extra SOL for fees, trading losses and account rent; balances are checked before each funding pass. `maxTotalSol` caps funding per scenario and separately limits account setup. `maxCreationSol` covers the whole composite's estimated order creation fees/rent before refunds, excluding receiving-account setup.
 
 Scenarios inherit the config's `options`; explicit CLI flags override shared settings. A scenario object can override `freshAccounts`, `solFundingPerTrader` and `slippageBps` for its own rows, taking precedence over shared settings. Use `--dry-run` to check quotes without trading or creating accounts. The solver name is a label: enable the target solver in the chosen environment before an isolated test. Each scenario keeps its own CSV timings and gets separate wallets. The session has prefixed trade logs, a results table, and one combined report when enabled.
 
 Continue an interrupted run with `pnpm sim resume-session <session-name>`. It uses the saved settings and skips finished rows. See [interrupted runs](../../sim/README.md#interrupted-runs) for order checks and recovery details.
 
-## Asao, Arc, Horadrim and Solivagus
+## Asao, Arc, Horadrim, Solivagus and Wraxyn
 
-[asao-composite.json](asao-composite.json), [arc-composite.json](arc-composite.json), [horadrim-composite.json](horadrim-composite.json) and [solivagus-composite.json](solivagus-composite.json) use the same scenarios and settings as [Fractal](fractal-composite.json): standard pairs, 25 same-direction sells, sell bursts, opposing orders, token coverage and the shared eight fresh-account cases. They retain Fractal's staging environment, funding and creation allowances, account preparation, cleanup and timeouts. Unsupported non-zero transfer-fee trades remain excluded through the shared CSVs.
+[asao-composite.json](asao-composite.json), [arc-composite.json](arc-composite.json), [horadrim-composite.json](horadrim-composite.json), [solivagus-composite.json](solivagus-composite.json) and [wraxyn-composite.json](wraxyn-composite.json) use the same scenarios and settings as [Fractal](fractal-composite.json): standard pairs, 25 same-direction sells, sell bursts, opposing orders and token coverage. Each composite schedules 182 main trades across 106 wallets, with 301 estimated order creations and a 0.903 SOL creation allowance. They retain Fractal's staging environment, funding and creation allowances, account options, cleanup and timeouts. Unsupported non-zero transfer-fee trades remain excluded through the shared CSVs.
 
 From `sim/`, preview each config offline:
 
@@ -71,19 +70,50 @@ pnpm sim simulate-composite-scenario ../scenarios/solver-validation/asao-composi
 pnpm sim simulate-composite-scenario ../scenarios/solver-validation/arc-composite.json --preview
 pnpm sim simulate-composite-scenario ../scenarios/solver-validation/horadrim-composite.json --preview
 pnpm sim simulate-composite-scenario ../scenarios/solver-validation/solivagus-composite.json --preview
+pnpm sim simulate-composite-scenario ../scenarios/solver-validation/wraxyn-composite.json --preview
 ```
 
 Replace `--preview` with `--dry-run` to check live quotes without funding or trading, or remove the flag for a live run. Enable only the target solver in staging first; the config's solver label does not isolate it. These configs exercise the full Fractal coverage; they do not assume that each new solver supports every case.
 
+## Rosato
+
+[rosato-composite.json](rosato-composite.json) runs 86 main trades: 6 standard pairs, 25 same-direction sells, 28 sells in bursts of 4/8/16, 15 opposing-order rows and 12 token probes. It reuses the standard, same-direction and opposing-order CSVs. [solver-burst-sell-small.csv](solver-burst-sell-small.csv) keeps the first 3 waves of the shared burst test. [solver-token-sample.csv](solver-token-sample.csv) covers BONK, WIF, POPCAT, JitoSOL, mSOL and JupSOL sells, plus USDG, PUMP and PYUSD sells and exact buys. Cleanup tests the return direction.
+
+These are capability checks: Rosato's batching, direct CoW matching and exact-buy support are unconfirmed. Do not apply the shared CSVs' Grafiks-specific promise of 4-order batches to Rosato. Use actual auction membership, settlement transactions and DEX instructions to check batching and direct matching. The 180-second fill timeout allows more time for separate settlements; timings are not directly comparable with the earlier 60-second runs. Orders remain valid for 300 seconds, pauses are 30 seconds, retries are off and token accounts are not prepared before quoting.
+
+The planning estimate is 161 order creations, including acquisitions and 1 cleanup pass: 0.483 SOL before refunds, separate from trade amounts, receiving-account rent and other fees. Each scenario estimates at most 50 creations. Cleanup retries can add orders. Trader top-ups are at most 1.75 SOL in 1 scenario, with a 2 SOL funding cap per scenario; deferred cleanup can retain funds while later scenarios need more funding.
+
+Use the existing [smoke.csv](../smoke.csv) for a first check. It runs 6 trades across 2 wallets, covering sponsored and self paid creation, sells, exact buys and native/wrapped SOL. Quote, placement and fill failures should be reported separately.
+
+After the current staging test is finished, notify on-call and enable Rosato for quoting and solving with the infrastructure helper. The JSON solver label does not select it:
+
+```sh
+python3 /Users/igor/work/cowprotocol/infrastructure/scripts/solana-solver-test.py rosato
+```
+
+From `sim/`, run the normal smoke scenario after enabling Rosato:
+
+```sh
+pnpm sim simulate-trade-session ../scenarios/smoke.csv --env staging --sol-funding-per-trader 0.05 --report --session rosato-smoke-$(date -u +%Y%m%d-%H%M%S)
+```
+
+If basic quotes, placement and settlement work, run the full composite:
+
+```sh
+pnpm sim simulate-composite-scenario ../scenarios/solver-validation/rosato-composite.json
+```
+
+If Rosato cannot quote a supported basic sell, use the helper with `--solve rosato` to keep Jupiter quoting and test Rosato settlement separately. This does not test Rosato's quoting. Investigate the failed quote before treating unsupported exact buys or exotic tokens as defects. Restore staging after testing with the helper's `--restore` option.
+
 ## Rizzolver and Helixbox
 
-[rizzolver-composite.json](rizzolver-composite.json) checks Wintermute's supported staging tokens only: SOL, USDC, USDT and JUP. It runs 127 planned trades across 72 wallets: 6 standard-pair cases, 4 [SOL/JUP cases](rizzolver-sol-jup.csv) covering self-paid and sponsored sells and exact buys, 25 same-direction SOL/JUP sells, 84 burst sells and the 8 shared fresh-account cases. This retests JUP quoting, sponsored creation and completion under concurrent load. The creation allowance is 0.65 SOL, covering 202 estimated order creations (0.606 SOL before refunds).
+[rizzolver-composite.json](rizzolver-composite.json) checks Wintermute's supported staging tokens only: SOL, USDC, USDT and JUP. It runs 119 planned trades across 64 wallets: 6 standard-pair cases, 4 [SOL/JUP cases](rizzolver-sol-jup.csv) covering self-paid and sponsored sells and exact buys, 25 same-direction SOL/JUP sells and 84 burst sells. This retests JUP quoting, sponsored creation and completion under concurrent load. The creation allowance is 0.602 SOL, covering 186 estimated order creations (0.558 SOL before refunds).
 
 Batching is a known current limitation: interpret the shared 25-sell and burst scenarios as completion and timing checks, despite their batching-oriented CSV notes. Record actual batch sizes without expecting four-order batches. The run uses a 180-second fill timeout to allow serial fills; its timeout-sensitive results are not directly comparable with earlier 60-second runs. CoW matching, unsupported-token coverage and transaction-size checks are excluded. Production eligibility is not determined by this config.
 
-[helixbox-composite.json](helixbox-composite.json) keeps the seven checks: standard pairs, 25 same-direction sells, sell bursts, opposing orders, token coverage, transaction-size candidates and the shared eight fresh-account cases. It runs 200 planned trades across 122 wallets, with a 1.005 SOL allowance for 335 estimated order creations before refunds.
+[helixbox-composite.json](helixbox-composite.json) keeps six checks: standard pairs, 25 same-direction sells, sell bursts, opposing orders, token coverage and transaction-size candidates. It runs 192 planned trades across 114 wallets, with a 0.957 SOL allowance for 319 estimated order creations before refunds.
 
-Both configs retain 30-second pauses, no retries, upfront receiving-account setup for ordinary wallets, final account closure and a 3 SOL funding cap per scenario. Helixbox retains its 60-second fill timeout; Rizzolver uses 180 seconds. The shared fresh-account cases retain 0.15 SOL funding per trader and 500 bps slippage. The expanded 30-case fresh-account scenario remains separate.
+Both configs use 30-second pauses and no retries. They leave account creation to order placement unless preparation is enabled, close accounts during final cleanup and cap funding at 3 SOL per scenario. Helixbox retains its 60-second fill timeout; Rizzolver uses 180 seconds. Dedicated fresh-account scenarios remain available separately.
 
 From `sim/`, preview either config offline:
 
@@ -94,9 +124,9 @@ pnpm sim simulate-composite-scenario ../scenarios/solver-validation/helixbox-com
 
 Enable only the target solver in staging before testing; the config's solver label does not isolate it. Replace `--preview` with `--dry-run` to check live quotes without funding or trading, then remove that flag for a live run.
 
-## Shared fresh-account test
+## Optional standalone fresh-account test
 
-The main solver composites include [solver-fresh-accounts.csv](solver-fresh-accounts.csv). Its eight separate wallets cover SOL→USDC and SOL→USDT, sell and exact-buy orders, and self-paid and sponsored creation. These wallets skip preparation, and the runner verifies the receiving token accounts are missing before quoting. Ordinary test amounts stay unchanged.
+The solver composites no longer include [solver-fresh-accounts.csv](solver-fresh-accounts.csv). It remains available as an optional standalone check that guarantees missing receiving accounts before quoting; ordinary scenarios can reuse accounts from earlier runs. Its eight separate wallets cover SOL→USDC and SOL→USDT, sell and exact-buy orders, and self-paid and sponsored creation. These wallets skip preparation, and the runner verifies the receiving token accounts are missing before quoting. Ordinary test amounts stay unchanged.
 
 This scenario alone uses 0.1 SOL sells, exact buys of 10 USDC/USDT, 0.15 SOL funding per wallet and 500 bps (5%) slippage. Its maximum wallet top-ups are 1.2 SOL, with a separate 0.048 SOL order creation allowance. Larger amounts and slippage reduce the relative impact of account-opening costs; they cannot guarantee settlement or relax the required output of an exact buy. Check current quotes with `--dry-run` before live trading.
 

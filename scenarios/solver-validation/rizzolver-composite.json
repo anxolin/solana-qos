@@ -7,20 +7,12 @@
     "solver-standard-pairs.csv",
     "rizzolver-sol-jup.csv",
     "solver-same-direction-25.csv",
-    "solver-burst-sell.csv",
-    {
-      "path": "solver-fresh-accounts.csv",
-      "options": {
-        "freshAccounts": true,
-        "solFundingPerTrader": 0.15,
-        "slippageBps": 500
-      }
-    }
+    "solver-burst-sell.csv"
   ],
   "options": {
     "solFundingPerTrader": 0.07,
     "maxTotalSol": 3,
-    "maxCreationSol": 0.65,
+    "maxCreationSol": 0.602,
     "maxRetries": 0,
     "orderValidity": 300,
     "fillTimeout": 180,

@@ -1,20 +1,20 @@
 # Rizzolver solver test report
 
-Date: 21 October 2026. Environment: staging / Barn, Solana mainnet. Selected session: 08:52:30–09:24:37 UTC; order snapshot fetched 09:30:03 UTC. Wintermute / Rizzolver.
+Date: 21 October 2026. Environment: staging / Barn, Solana mainnet. Selected session: 08:52:30-09:24:37 UTC; order snapshot fetched 09:30:03 UTC. Wintermute / Rizzolver.
 
-**TLDR:** 121/127 planned trade flows completed normally (95.28%); 122/127 main orders eventually filled, including 1 recovered after a timeout. JUP and all sponsored cases worked, but 5 burst orders stayed cancelled and 4 last-look settlement rejections later recovered. Batching is a known and accepted limitation; check the remaining cancellations and last-look responses.
+**TLDR:** Nice improvement, with 122 of 127 main orders filled and all 10 sponsored cases working. We think some small trades kept losing because larger trades looked better after costs. Compare what this cancelled small SOL to USDC sell (https://debug.barn.cow.fi/order/0x6f944431a65d0699219dd27806e4dc24822da6c606d5e311b6313aed8fd8166a) offered with this successful small sell (https://debug.barn.cow.fi/order/0x6397b10d1d417bba3e277810e4f3556ee8c190742a6027e192b63997cdf21071) and check why one was chosen. Four rejected attempts worked on retry, and the agreed batching limit still applies.
 
 | Scenario | Outcome | Next check |
 | --- | --- | --- |
-| 1. Standard pairs | Achieved; 6/6 flows | Wintermute + integration: explain last-look rejections |
+| 1. Standard pairs | Achieved; 6/6 flows | Wintermute/CoW: recover 364151/0 and /2 last-look decisions. |
 | 2. SOL/JUP sells and exact buys | Achieved; 4/4 flows | Check quote and execution consistency |
 | 3. 25 same-direction sells | Completion achieved; 25/25 individually | Keep serial timing separate from batching |
-| 4. Sell bursts | Partial; 78/84 flows, 79 orders filled | Check cancelled low-size orders and delayed observations |
+| 4. Sell bursts | Partial; 78/84 flows, 79 orders filled | Wintermute and CoW should compare ranking scores for cancelled small SOL to USDC sell (https://debug.barn.cow.fi/order/0x6f944431a65d0699219dd27806e4dc24822da6c606d5e311b6313aed8fd8166a) against successful small SOL to USDC sell (https://debug.barn.cow.fi/order/0x6397b10d1d417bba3e277810e4f3556ee8c190742a6027e192b63997cdf21071). |
 | 5. Fresh accounts | Trading achieved; 8/8 flows | Test team: verify creation-time rent payment |
 
 ## Changes since 21 October 2026, 07:07 UTC
 
-On the 123 matching planned rows, normal completion rose from 60/123 to 117/123; 4 additional SOL/JUP cases also passed.
+On the 123 matching planned requests, normal completion rose from 60/123 to 117/123; 4 additional SOL/JUP cases also passed.
 
 <details>
 <summary>Comparison with the previous run</summary>
@@ -38,11 +38,20 @@ Newly recorded error type: 4 `SolverFailed: last look failed` settle responses, 
 
 ## 1. Standard pairs
 
-Achieved: all 6 flows completed, including JUP and sponsored exact buys.
-Two sponsored settlements were rejected by last-look checks before later fills.
+Achieved. All 6 flows completed, including JUP and sponsored exact buys; two sponsored settlements were rejected at the last look check before later fills.
 
 <details>
 <summary>Order evidence and metrics</summary>
+
+**Quote response warnings.** The completed staging log read for 09:07:05–09:07:10 UTC recovered 11 original `driver quote response malformed` records, all from 09:07:07.252–09:07:07.777 UTC and all naming Wintermute’s quote service as the response source. They have 11 distinct request IDs and a decode error for missing `sellAmount` at line 1, column 60 in 8 records and column 57 in 3. Representative request ID `7360c5854c15805b5863dc418d3a5d27` occurred at 09:07:07.252586148 UTC. No response body, HTTP status, token pair or amount is recorded in these warning records, so this read cannot join them to a failed selected test quote. Every selected scenario request still got a usable quote.
+
+We have high confidence that the failure was at the boundary where CoW decoded Wintermute’s quote response. Reading an error response as a successful quote remains a plausible explanation with low confidence, because that happened with last look responses elsewhere in this run; a success response missing a required field remains equally viable. **Cause unknown; Ownership unknown** for the repair. The response source is now known, but does not establish which side broke the contract. CoW should capture the HTTP status and a safely redacted response body before decoding, retaining the request ID. At the next occurrence, a typed error body would confirm response handling needs fixing; a success body missing `sellAmount` would point to the producer’s schema. This is a missing field in the saved evidence, not a pending log read. The separate `no quote succeeded` warning from the price source does not establish a cause for any individual order.
+
+**Diagnosis review: 27 October 2026.** Rechecked selected metadata, signed placement amounts, burst outcomes, controls at the same size, settlement block times and simulator polling code. Rechecked staging VictoriaLogs records for auctions 364262–364283 through Grafana with the staging data source, including the full read through 09:08:32 UTC. These establish proposals, ranked counts and chosen solutions. The completed quote warning read identifies Wintermute’s response source and 11 request IDs, but those records do not contain response bodies or HTTP status. Numerical ranking scores and last look decision reasons also remain unavailable. Other earlier checked evidence is retained. No quotes, trades or cleanup were rerun.
+
+**Residual JUP quote.** Trader 3’s attempt to sell 0.053408 JUP for native SOL failed before placement with `SellAmountDoesNotCoverFee`; the saved body is truncated. We think the remaining balance was too small to cover the trading costs, with medium confidence. It was only 10.7% of the successful 0.5 JUP sale on row 3, roughly 0.017 USDC at that earlier executed rate, and the error explicitly names fee coverage. A fee specific to this route, the cost of opening an account or a unit error could produce the same response; the successful JUP→USDC sale used a different output route. Inspect the archived calculation at 09:22:06 UTC for exactly 53,408 JUP base units, comparing gross SOL output, each fee and the token decimals. A fee at least as large as gross output supports an uneconomic residual sale; a smaller fee or inconsistent units points to a calculation defect. Start with the quote and fee integration. **Ownership unknown** until the original response identifies the producer. No order exists for this failed quote.
+
+**Last look rejections.** Rows 4/5, row 96 and trader 45’s cleanup had 4 rejected attempts; all later filled. Auction 364151 solutions 0/2 returned `SolverFailed / last look failed` at 08:52:40 UTC. The missing `txSignature` error came from decoding that rejection as a success. We think these were temporary decisions when the solver checked its candidates again, with medium confidence, rather than a restriction on sponsored orders or exact buys. Those two buys recovered, and the other rejections include a sell that paid its own creation costs and cleanup in the reverse direction. The price or risk trigger remains **unknown**; retries alone cannot distinguish price movement from an internal rule. Wintermute should compare the candidate price, signed limit, quote age and original rejection reason for 364151/0 and /2 with their first accepted retries. A breached condition only on rejected candidates supports revalidation; identical valid candidates shift attention to internal policy or state. Wintermute’s last look is the first component to inspect, but the result must establish repair ownership. CoW’s adapter should read a rejection separately without requiring `txSignature`. Row 3’s acquisition was a separate successful solution.
 
 Total transactions: 8. Median / longest fill: 3.308 / 47.162 seconds. Placed scenario orders: 8; final filled: 8.
 
@@ -54,7 +63,7 @@ Four settle calls returned `{"kind":"SolverFailed","description":"last look fail
 
 In auction 364151, rows 4 and 5 failed before later fills. The acquisition on row 3 succeeded in that auction, identified by its successful transaction signature; it is not counted as a failed attempt. Successful executions below also show the JUP→USDC path worked; a suspicious earlier quote-only preview is not an executed price in this run.
 
-**Ownership unknown:** 11 window-wide quote warnings at 09:07:07 said `driver quote response malformed`, missing `sellAmount` (line 1, columns 57/60). All selected scenario requests got usable quotes; those warnings are not joined to a failed test request, and must not be counted as 11 failed trades. A price-source warning said `no quote succeeded`; its effect on these orders is unverified.
+**Ownership unknown.** The 11 quote warnings concern decoding responses from Wintermute’s quote service. They must not be counted as 11 failed trades because they are not joined to failed test requests; all selected scenario requests got usable quotes. The original records and their evidence limits are described above. The separate `no quote succeeded` warning has no verified effect on these orders.
 
 | Scenario row / trader | UTC timestamp | Trade | Error(s) and final outcome | Debug tool URL |
 | --- | --- | --- | --- | --- |
@@ -80,8 +89,7 @@ Prerequisite acquisitions (both filled; included in placed-order and transaction
 
 ## 2. SOL/JUP sells and exact buys
 
-Achieved: all 4 SOL/JUP flows completed.
-Self-paid and sponsored sells and exact buys all worked.
+Achieved. All 4 SOL/JUP flows completed, covering sells and exact buys with and without sponsored creation.
 
 <details>
 <summary>Order evidence and metrics</summary>
@@ -101,8 +109,7 @@ Successful fixed-input sells: SOL→JUP, 2/2 (self-paid and sponsored). Successf
 
 ## 3. 25 same-direction sells
 
-Achieved for completion: all 25 sells filled individually.
-Batching is known and accepted as unavailable; the last observed fill took about 121 seconds after placement.
+Achieved for completion. All 25 sells filled individually; batching remains a known and accepted limitation, and the last fill was observed about 121 seconds after placement.
 
 <details>
 <summary>Order evidence and metrics</summary>
@@ -121,11 +128,25 @@ All 25 requests sell 0.005 SOL→JUP and each has a different successful settlem
 
 ## 4. Sell bursts
 
-Not achieved for every flow: 78/84 completed normally.
-Five orders were cancelled; another was initially marked timed out but was later confirmed filled.
+Not achieved for every flow. Only 78/84 completed normally; five small sells were cancelled and another order filled after an apparent timeout.
+Fresh auction records show repeated losses when proposals were ranked, using cancelled small SOL to USDC sell (https://debug.barn.cow.fi/order/0x6f944431a65d0699219dd27806e4dc24822da6c606d5e311b6313aed8fd8166a) and successful small SOL to USDC sell (https://debug.barn.cow.fi/order/0x6397b10d1d417bba3e277810e4f3556ee8c190742a6027e192b63997cdf21071) as the first comparison.
 
 <details>
 <summary>Order evidence and metrics</summary>
+
+**Last look retries.** Row 96 and trader 45’s cleanup both filled after a rejection. `SolverFailed / last look failed` was wrapped as missing `txSignature` for auction/solution 364290/4 at 09:09:05.477 UTC and 364311/1 at 09:17:10.607 UTC. The underlying price or risk decision was not saved. As with the two earlier recovered buys, we think temporary candidate revalidation fits better than a general restriction, but its trigger is unknown. Wintermute and CoW should compare each rejected candidate with its first accepted retry, including the original rejection, quote age and risk reason. A condition that failed and later passed supports revalidation; otherwise an internal decision needs explaining. Check the error parsing separately from the successful submissions. These attempts do not explain the five small orders that were never selected.
+
+**Small orders.** Rows 64/68/72/80/84 were cancelled. All five sell 0.0025 SOL→USDC and pay their own creation costs in the 24 order wave. That wave filled 18/18 larger sells and only 1/6 at this size, versus 15/15 at this size across the other four waves. After the first 0.0035 SOL fill, six 0.004, five 0.0035, six 0.003 and finally one 0.0025 SOL settled at roughly 5 second intervals.
+
+Fresh staging auction records establish repeated losses during selection, rather than missing proposals or failed execution, with high confidence. Selection on economic grounds is our leading explanation for those losses, with medium confidence because the actual score formula is not exposed. Auction 364262 at 09:06:45 UTC ranked all six small proposals, filtered none and chose only solution 2 for [filled row 76](https://debug.barn.cow.fi/order/0x6397b10d1d417bba3e277810e4f3556ee8c190742a6027e192b63997cdf21071). Solution 3 for [cancelled row 64](https://debug.barn.cow.fi/order/0x6f944431a65d0699219dd27806e4dc24822da6c606d5e311b6313aed8fd8166a) proposed selling the full 2,500,000 SOL base units for 265,384 USDC base units, above its signed minimum of 264,139. Row 76 proposed the same output with a minimum of 264,130. The cancelled minima were only 6–33 units above row 76 (0.0023–0.0125%), and row 76 actually received 265,384. This rules out a missing proposal or a failed signed amount check for row 64 in that auction, but does not prove every possible execution check passed.
+
+Auction 364263 at 09:06:50 UTC brought 21 new orders into competition. It ranked 26 proposals, filtered none and chose one new 0.004 SOL sell, solution 16 for [row 115](https://debug.barn.cow.fi/order/0x8a4ffcab23f720202504044e16f0bb5f381089d4a0977ca109d7c54885f251b1). Row 64 remained ranked as solution 12, proposing 265,427 USDC units against its minimum of 264,139. Its proposed surplus was 1,288 units, while the winner offered 2,217 units above its own minimum. This fits selection on economic grounds, but the score formula and all eligibility conditions are not exposed. The roughly 100 second gap between row 76’s fill and the cancellations does not establish spare capacity; a new wave was already competing five seconds later. A general token or minimum trade restriction fits these controls poorly.
+
+The full follow-up read covers 21 auctions, 364263–364283, from 09:06:50–09:08:30 UTC. Across them, the five cancelled orders appeared in the ranking 96 times without being chosen. Rows 64/68 appeared 20 times each, rows 72/84 appeared 19 times each and row 80 appeared 18 times. Every recorded proposal offered at least its signed minimum; proposed outputs ranged from 265,364 to 265,808 USDC base units. Each competition record reported zero filtered solutions and one winner. Winners were eight sells of 0.004 SOL, eight of 0.0035 SOL and five of 0.003 SOL. In all 96 comparisons, the winner offered 407–953 more USDC base units above its own minimum than the small proposal did. This is consistent with an economic ranking that keeps choosing larger surplus, but does not prove that surplus alone is the score. The small proposals disappear from the records near their cancellations; these logs do not independently establish the exact removal condition.
+
+Wintermute and CoW should compare [cancelled row 64](https://debug.barn.cow.fi/order/0x6f944431a65d0699219dd27806e4dc24822da6c606d5e311b6313aed8fd8166a) with [filled row 76](https://debug.barn.cow.fi/order/0x6397b10d1d417bba3e277810e4f3556ee8c190742a6027e192b63997cdf21071) in auction 364262, then row 64’s solution 12 with winner 16 in 364263. Inspect the persisted score, deductions, tie handling and reason for choosing one winner. If the scores confirm the observed surplus ordering, test whether an age allowance or a longer wait lets the repeatedly losing orders clear without reducing the required execution quality. If scores do not follow that ordering, inspect the missing score component before changing fairness. The expected result is fewer cancellations among proposals that remain valid through several auctions. CoW’s auction ranking and Wintermute’s proposed economics are the likely places to inspect; **Ownership unknown** until the ranking records show whether a repair is needed and where.
+
+**Delayed observation.** Row 96 was recorded as a timeout but finally filled. Its inclusion at 09:09:45 UTC was 73.956 seconds after placement, within 180 seconds; fulfilled status was observed at 09:15:38.932, another 353.932 seconds later. We have high confidence that the long observed delay is not solver execution time because the transaction was already included. The cause of the observation delay is unknown; stalled status reads, delayed API indexing or local scheduling remain possible. The test team and CoW should compare request start/end and returned status with this transaction's inclusion from 09:09:45–09:15:39, and enforce an observation deadline in the test client. A read spanning the deadline supports blocking in the client; prompt responses that stay open after inclusion point to indexing instead. Last-look rejection 364290/4 remains a separate solver attempt.
 
 Total transactions: 79. Median / longest fill: 43.880 / 427.888 seconds. Placed scenario orders: 84; final filled: 79.
 
@@ -139,7 +160,7 @@ The five waves schedule 4, 8, 16, 24 and 32 sells, 90 seconds apart. Each reques
 | 24 | 19 | 19 | 92.074 s |
 | 32 | 31 | 32 | 531.828 s |
 
-**Ownership unknown:** rows 64, 68, 72, 80 and 84 were cancelled after about 187–189 seconds; all five sell 0.0025 SOL. All had proposed solutions but no selected settlement before cancellation. This is consistent with serial selection starving smaller orders, but the precise ranking/repair owner is not established.
+**Ownership unknown.** Rows 64, 68, 72, 80 and 84 were cancelled after about 187–189 seconds; all five sell 0.0025 SOL. Fresh records establish repeated losses in selection through the later burst, including 96 appearances without a win across auctions 364263–364283. The precise scoring rule and repair owner remain unconfirmed.
 
 **Recovered observation:** row 96 was marked `main timeout` after 417.985 seconds, then observed fulfilled at 09:15:38.932. Its successful transaction actually landed at 09:09:45 UTC, about 73.956 seconds after local placement, within the 180-second timeout and order validity. It was not a seven-minute solver execution. The cause of delayed observation is unconfirmed; account API failures are separately recorded later in cleanup. Its 427.888-second observed-fill delay is included in the metrics and inflates the maximum.
 
@@ -154,6 +175,7 @@ The five waves schedule 4, 8, 16, 24 and 32 sells, 90 seconds apart. Each reques
 | 80 / 49 | 09:08:24.729 UTC | Sell 0.0025 [wSOL](https://solscan.io/token/So11111111111111111111111111111111111111112) → [USDC](https://solscan.io/token/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v) (self) | `main timeout`; cancelled; [transaction](https://solscan.io/tx/3H1PK94Utvy8eKBmK9Jk4QKTEYffaZywyZABFqbq7DQinXMmepJakNSi2LqwU8KQoGTwMnZYY3jpVF5DxCUUzxxd) (cancellation) | [Order](https://debug.barn.cow.fi/order/0x0e6ab5f85d66e8db77d4fc6c5661d1ba3ff370b6e28378a49b3c74e7192b8520) |
 | 84 / 53 | 09:08:26.634 UTC | Sell 0.0025 [wSOL](https://solscan.io/token/So11111111111111111111111111111111111111112) → [USDC](https://solscan.io/token/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v) (self) | `main timeout`; cancelled; [transaction](https://solscan.io/tx/2Km6xJLx7thdgc8woT6PGrf4SG7YCfZjWHyHFSqC3MV5sttvtrBmAx8UjRkmYP8yVH7Q2XYbQzXeuHvKz52bjZMs) (cancellation) | [Order](https://debug.barn.cow.fi/order/0x47b862ab4d2490273e1197f8a46581cafd39ea78441c5658635b9a779c242314) |
 | 96 / 41 | 09:09:05.477307791 UTC | Sell 0.0025 [wSOL](https://solscan.io/token/So11111111111111111111111111111111111111112) → [USDC](https://solscan.io/token/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v) (self) | `main timeout`; `{"kind":"SolverFailed","description":"last look failed"}`; wrapper: missing field `txSignature` (line 1, column 56); auction / solution 364290 / 4; later fulfilled; [transaction](https://solscan.io/tx/5ikqQU9sxkAfUptq7BNw2hHeCZWxXjdyyeRfR4SdenRqg68JaDpLqM2DuuBQsBPupcweVBhERQwPB5aGfk6j1H6c); no cancellation signature; recovered fulfillment, not a second order; executed sell 2500000 / buy 265745 base units | [Order](https://debug.barn.cow.fi/order/0xf1185c145dde8d7a3fd0b65edcd21da38ec52a12eadd07121c0fbc95dabb6466) |
+| 76 / 45 | 09:05:23.536 UTC | Sell 0.0025 [wSOL](https://solscan.io/token/So11111111111111111111111111111111111111112) → [USDC](https://solscan.io/token/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v) (self) | fulfilled at 09:06:45 UTC on-chain; same-wave small-order control; signed minimum 264130 / actual buy 265384 base units; [transaction](https://solscan.io/tx/5nk3S9G8TT4J7euhhpivVWNTkqnWs6PHGwH28aNiRiuFwkTjDf28by5g3wm19saVWfeKDZLNEwezf4p4cV2WoJeX) | [Order](https://debug.barn.cow.fi/order/0x6397b10d1d417bba3e277810e4f3556ee8c190742a6027e192b63997cdf21071) |
 | 119 / 64 | 09:06:48.306 UTC | Sell 0.004 [wSOL](https://solscan.io/token/So11111111111111111111111111111111111111112) → [USDC](https://solscan.io/token/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v) (self) | fulfilled; [transaction](https://solscan.io/tx/DubWvW2XSfPUvNqXQZuqc3hb4fugfnTeXbNAwEGwVxj9qwrUscKY8DkwchL22eHXawATRJibgTPzqs6ftQ145yu); executed sell 4000000 / buy 425174 base units | [Order](https://debug.barn.cow.fi/order/0x2c486dfeb97984427544bdb77347de52a93479f3bd52eb7aa843c4158e135bf2) |
 
 ### Cleanup settlement retry
@@ -166,8 +188,7 @@ The five waves schedule 4, 8, 16, 24 and 32 sells, 90 seconds apart. Each reques
 
 ## 5. Fresh accounts
 
-Achieved for trading: all 8 fresh-account flows completed.
-All 4 sponsored cases worked; who paid opening rent remains unverified.
+Achieved for trading. All 8 flows from fresh accounts completed, including all 4 sponsored cases; who paid the opening rent remains unverified.
 
 <details>
 <summary>Order evidence and metrics</summary>

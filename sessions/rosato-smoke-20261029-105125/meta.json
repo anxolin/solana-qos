@@ -1,0 +1,16 @@
+{
+ "rpc": "solana-mainnet.g.alchemy.com",
+ "name": "rosato-smoke-20261029-105125 trade session",
+ "title": "rosato-smoke-20261029-105125",
+ "env": "staging",
+ "sim": {
+  "scenario": "/Users/igor/work/cowprotocol/solana-qos/scenarios/smoke.csv",
+  "traders": 2,
+  "rows": 6,
+  "solFundingPerTrader": 0.05
+ },
+ "start": "2026-10-29T10:51:35.358Z",
+ "trading_end": "2026-10-29T10:54:24.826Z",
+ "end": "2026-10-29T10:55:24.826Z",
+ "fetched_at": "2026-10-29T10:54:31+00:00"
+}

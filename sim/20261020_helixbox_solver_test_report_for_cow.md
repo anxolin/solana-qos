@@ -1,38 +1,46 @@
-> **Adjusted composite results (20 October): 62/200 eligible flows filled (31.00%). 3 unsupported transfer-fee rows excluded.** The detailed report below retains historical raw counts. Use the [recalculated full report](../sessions/2026-10-20-11-18-composite-helixbox-run/solver_test_report.md) for scoring.
-
 # Helixbox solver test report
 
 Date: 20 October 2026. Environment: staging / Barn on Solana mainnet. Selected run: `2026-10-20-11-18-composite-helixbox-run`; started 11:20:28 UTC, scenario and cleanup activity ended 11:49:19 UTC, observed through 11:50:19 UTC; data fetched 11:52:24 UTC.
 
-**TLDR:** Helixbox completed 62/203 planned trades (30.5%); 62/102 placed main orders filled (60.8%). Most gaps were no usable quotes and small burst orders timing out, while 4 sponsored orders hit oversized settlement candidates. Check the quote/fee integration first; cleanup is still pending for 6 traders.
+**TLDR:** Good to see the standard SOL to USDC and USDT sells finish in about 3 seconds. Overall, 62 of 102 placed main orders filled and 62 of 200 eligible planned trades completed. We think changing fee estimates and which trades were chosen both slowed things down. Compare this cancelled small SOL to USDC sell (https://debug.barn.cow.fi/order/0xc53682bbb41120b625722a340bff62e4066a90af1073c583fe1f27a6fbec261a) with this larger sell that worked on retry (https://debug.barn.cow.fi/order/0xd4febc38e01db4757cbb7b9e7452f034dfe28807e939898950ef1330be0020be), starting with our driver's fees and choices. All 29 exact buys failed to get a quote, and 4 sponsored stablecoin orders had transactions that were too large. Six traders still need cleanup.
 
 | Scenario | Outcome | Next check |
 | --- | --- | --- |
-| 1. Standard pairs | Not achieved: 2/6 planned flows filled | Integration team + Helixbox: trace exact-buy and JUP quotes |
-| 2. 25 same-direction sells | Inconclusive: 0/25; no placed orders | Restore SOL → JUP quotes before rerun |
-| 3. Sell bursts | Not achieved: 48/84 filled | Integration team + Helixbox: align quoted limits with fees |
-| 4. Opposing orders / CoW | Inconclusive: 3/15; pairs blocked | Integration team: reduce transaction size; test team: verify pair overlap |
-| 5. Token coverage | Not achieved: 5/55 filled | Helixbox + integration team: check quotes by kind and token |
-| 6. Transaction size | Inconclusive: 0/10; no placed orders | Test team: restore quotes, then measure serialized bytes |
-| 7. Fresh accounts | Sell flow achieved: 4/8; rent goal untested | Test team: make receiving-account creation part of settlement |
+| 1. Standard pairs | Not achieved: 2/6 planned flows filled | Helixbox/CoW: compare exact buy handling at 0.25 and 10 USDC. |
+| 2. 25 same-direction sells | Inconclusive: 0/25; no placed orders | Helixbox/CoW: compare first/last SOL to JUP responses. |
+| 3. Sell bursts | Not achieved: 48/84 filled | Helixbox/CoW: compare small-order allowance with largest-order control. |
+| 4. Opposing orders / CoW | Inconclusive: 3/15; pairs blocked | Helixbox/CoW: split candidate bytes by instruction source. |
+| 5. Token coverage | Not achieved: 5/55 filled | Helixbox/CoW: compare routes by direction and kind. |
+| 6. Transaction size | Inconclusive: 0/10; no placed orders | Test team: restore quotes before assembling size cases. |
+| 7. Fresh accounts | Sell flow achieved: 4/8; rent goal untested | Helixbox/CoW: compare paired exact buy and sell responses. |
 
 No matching earlier Helixbox report was found for this environment; this is the baseline.
 
 ## 1. Standard pairs
 
-**The full pair-coverage goal was not achieved.** SOL → USDC/USDT sells worked, but the JUP flow and all exact buys stopped at quoting.
+**The full pair-coverage goal was not achieved.** SOL to USDC/USDT sells worked, but the JUP flow and all exact buys stopped at quoting.
 
 <details>
 <summary>Order evidence and metrics</summary>
 
+> **Adjusted composite results (20 October): 62/200 eligible flows filled (31.00%). 3 unsupported transfer-fee rows excluded.** The detailed report below retains historical raw counts. Use the [recalculated full report](../sessions/2026-10-20-11-18-composite-helixbox-run/solver_test_report.md) for scoring.
+
+**Diagnosis review, 27 October 2026.** Rechecked raw requests, journals, signed limits, final snapshots and successful transaction fees. Live staging reads added 177 driver records at 11:29:20–29 UTC, 297 records at 11:29:35–43 UTC and 67 quote/control records at 11:20:29–36 UTC. Candidate joins below use order, auction, solution and solver. Named failed program traces and earlier complete failure counts were not fetched again. Original engine quote bodies, earlier candidate output before deductions and quote fee allowances remain missing. No quotes, trades or cleanup were replayed.
+
+**Quote diagnosis. Affected:** 4 flows; rows 3–6. **Confirmed:** The API returned `404 Not Found: NoLiquidity: no route found`; no order exists for that failed request. Blocked sell flows: 1; blocked exact buy flows: 3; a prerequisite quote may block the intended main flow.
+
+**Our read, medium confidence.** The explanation is unconfirmed. The 29/29 exact buy failures across sizes and account modes suggest a request kind integration gap, rather than generally missing SOL/stablecoin liquidity. Sells of the same pairs filled; failures at 10 USDC/USDT and 1.3–2.6-USDC/USDT setup buys weaken a small trade only explanation for the 0.25-USDC failure. Empty engine buy responses and downstream rejection remain competing causes. **First check.** Compare the original row 4 response at 11:20:33 UTC and row 198 at 11:41:16 UTC with the row 1 sell control; inspect requested kind, raw trade amounts and the first filter. Feasible buys discarded by the driver support an integration filter; empty responses across both sizes point upstream. Inspect Helixbox + CoW quote integration; repair ownership unknown. Raw engine responses and quote fee allowances were not recovered; the request IDs below are not yet mapped to individual scenario rows.
+
+**Recovered quote stage.** Four API records at 11:20:33.950, 33.984, 35.083 and 35.149 UTC contain the actual driver response `{"kind":"QuotingFailed","description":"No valid quote found"}`. The driver also sent 4 quote solve requests, IDs 29839–29842, at 11:20:33.942–35.142 UTC. The API request IDs are respectively `f9bf520015ba78b066429277ed084e23`, `77868f4bc3cb78591cdd13e915323eae`, `c59955f0557708bfe3a34bfcfe05e4a2` and `779c24b8a96b72517d1dd123fe2439f9`. These narrow the failure to no valid result returned through the Helixbox driver; they do not show whether its engine returned no trades or the driver rejected them. The sample omits input/output amounts and shared request tracing, so timestamp proximity alone cannot map each record to a buy versus the JUP acquisition. Recover the raw engine response and first filter for those 4 quote request IDs before attributing a quote defect. The unrelated `undercuts its limit price after the solver fee` records in this window belong to background UID `0x54bcea517f97daabe4c5b26d43c01a19c53f973c1ccac7bece86f8a80df6c183`, not a selected test order or a proven failed quote.
+
 Total transactions: 2. Main orders: 2/2 placed filled. Acquisition orders: 0/0 filled. Median / longest fill: 3.205 / 3.276 seconds.
 Completed / planned rows in scope: 2/6.
 
-Scope: 203 planned rows, including the 6 planned setup rows in the opposing-order scenario. Main orders are the primary order for a row: 102 were accepted by the API; 62 fulfilled, 36 cancelled and 4 expired before on-chain creation. There were no main-order retries. The 98 `NoLiquidity` failures comprise 97 main quote requests and 1 prerequisite acquisition quote; all 29 planned exact-output buys failed before placement.
+Scope: 203 planned rows, including the 6 planned setup rows in the opposing-order scenario. Main orders are the primary order for a row: 102 were accepted by the API; 62 fulfilled, 36 cancelled and 4 expired before on-chain creation. There were no main-order retries. The 98 `NoLiquidity` failures comprise 97 main quote requests and 1 prerequisite acquisition quote; all 29 planned exact output buys failed before placement.
 
 Total transactions means distinct successful settlements for main and prerequisite acquisition orders: 67 overall (62 main + 5 acquisition). Creation, funding, failed attempts and cleanup are excluded. All 67 contained 1 selected scenario order each. Overall median / longest observed fill: 15.960 / 70.858 seconds for these 67 orders; main-only median / longest: 19.114 / 70.858 seconds for 62 orders. Timing is journal confirmed placement → simulator-observed fulfillment, including polling delay. Tables use placement time for successful examples and first recorded failure time for errors; row/trader numbers use combined-session numbering.
 
-**Ownership unknown — quote failures:** exact saved API error `404 Not Found: NoLiquidity: no route found`. This means the API produced no usable route, not proof that a token has no liquidity or Helixbox permanently lacks support. The driver also recorded `QuotingFailed` / `No valid quote found` during the window; an order-by-order upstream cause was not established. Possible reason (unconfirmed): quote-kind, route or fee integration constraints. Helixbox and the integration team should trace the failing requests before assigning a solver defect.
+**Ownership unknown — quote failures:** exact saved API error `404 Not Found: NoLiquidity: no route found`. This means the API produced no usable route, not proof that a token has no liquidity or Helixbox permanently lacks support. The driver also recorded `QuotingFailed` / `No valid quote found` during the window; an order-by-order upstream cause was not established. Possible reason (unconfirmed): quote kind, route or fee integration constraints. Helixbox and the integration team should trace the failing requests before assigning a solver defect.
 
 Competition records show Helixbox as the only active solver in this window, and all 105 saved successful main/acquisition/cleanup orders used its settlement fee payer. Window-wide counts (803 proposed, 108 wins, 105 submitted/observed settlements) include background activity and are not distinct test-order counts.
 
@@ -51,15 +59,19 @@ The raw denominator includes 3 expected autopilot rejections; excluding them giv
 
 ## 2. 25 same-direction sells
 
-**Batching is inconclusive.** All 25 SOL → JUP requests failed before placement, so there was nothing to batch.
+**Batching is inconclusive.** All 25 SOL to JUP requests failed before placement, so there was nothing to batch.
 
 <details>
 <summary>Order evidence and metrics</summary>
 
+**Quote diagnosis. Affected:** 25 flows; rows 7–31. **Confirmed:** The API returned `404 Not Found: NoLiquidity: no route found`; no order exists for that failed request. Blocked sell flows: 25; blocked exact buy flows: 0; a prerequisite quote may block the intended main flow.
+
+**Our read, medium confidence.** The explanation is unconfirmed. A JUP pair/direction or route-eligibility gap fits better than a burst-capacity problem: all 25 requests failed, including the first, while equal-size 0.005-SOL stablecoin sells worked. Successful SOL→other-token sells also weaken global native SOL normalization as a cause. JUP-specific handling versus upstream route availability cannot be ranked. **First check.** Compare first and last JUP engine responses at 11:21:29–33 UTC with the 11:20:30 UTC SOL→USDC control, checking raw trades and first filter. Empty JUP responses point upstream; feasible discarded responses point to integration validation. Inspect Helixbox routing + CoW quoting; repair ownership unknown. Original engine responses/request IDs were not recovered.
+
 Total transactions: 0. Main orders: 0/0 placed filled. Acquisition orders: 0/0 filled. Median / longest fill: not available (no fills).
 Completed / planned rows in scope: 0/25.
 
-All 25 requests were self-paid sells of 0.005 SOL → JUP. No successful examples or batching measurements exist because no order was placed.
+All 25 requests were self paid sells of 0.005 SOL → JUP. No successful examples or batching measurements exist because no order was placed.
 
 | Scenario row / trader | UTC timestamp | Trade | Error(s) and final outcome | Debug tool URL |
 | --- | --- | --- | --- | --- |
@@ -69,15 +81,38 @@ All 25 requests were self-paid sells of 0.005 SOL → JUP. No successful example
 
 ## 3. Sell bursts
 
-**The burst-filling goal was not achieved.** 48/84 orders filled; 36 timed out and were cancelled.
+**The burst-filling goal was not achieved.** 48/84 filled; the smallest size filled 3/21 versus 21/21 at the largest size, suggesting cost or selection pressure rather than a uniform processing ceiling.
 
 <details>
 <summary>Order evidence and metrics</summary>
 
+**Accepted-order timeout diagnosis. Affected:** 36 rows (44, 48, 52, 56, 60–61, 64–65, 68–69, 72–73, 76–77, 80–81, 84–85, 88–90, 92–93, 96–97, 100–102, 104–106, 108–109, 112–114); 36 cancelled. **Confirmed:** The simulator observed no fill in its cancellation window; final status was checked separately. **Our read, medium confidence for a partial explanation.** The live joins below confirm early cost rejections and later valid proposals losing selection; 20 cancelled orders had joined rejections after costs, but these cannot alone explain their final misses. The other 16 cancelled orders have no such joined rejection in the saved final-wave sample, so that explanation cannot be assigned to them individually. Cancellation races explain late failed attempts, not the original wait. **First check.** Join row 52 from placement through the 11:27:02 UTC timeout to proposals, selection scores and submissions. Valid candidates remaining considered but unselected favor selection; payouts rejected after costs favor allowance mismatch; no proposals favor scheduling. Inspect Helixbox + CoW competition/settlement integration; repair ownership unknown.
+
+**Cleanup no-fill diagnosis. Affected:** 1 cleanup UIDs listed here; originals didn't fill. **Confirmed:** Final snapshots retain cancellation/expiry; any filled replacement has a different UID. **Our read, low confidence.** Cause unknown. A main-scenario USDC→SOL sell of 1.2 USDC filled, while this 0.258007-USDC cleanup did not. That weakens a blanket reverse-direction support failure, but input was 4.65 times smaller and timing differed, so neither a fee floor nor selection is established. No joined failed candidate trace was recovered. **First check.** Compare this UID from 11:30:18 UTC to cancellation with the filled row 125: signed limit, raw output, fee allowance, first rejected condition and selection. A valid unselected candidate favors selection; output below the limit after costs favors economic infeasibility. Inspect Helixbox + CoW settlement integration; test team owns reconciliation, repair ownership unknown.
+
+**Residual quote check. Affected:** cleanup quote failures/balances listed below; excluded from scenario totals. **Confirmed:** Residual token→native SOL requests failed before a sell order existed; some summaries truncate the provider error. **Our read.** Confidence is low for NoLiquidity and high for the immediate fee rejection.  The reused-wallet residues predate this Helixbox run, so their origin is not a new Helixbox failure. A missing route versus a quote filter cannot be ranked from truncated NoLiquidity errors. The separate 0.044987-USDC SellAmountDoesNotCoverFee request proves an amount-versus-fee check failed, but the actual fee and shortfall were not retained. **First check.** Recover the raw 11:47:07 UTC 0.044987-USDC response and fee amount; if the required fee exceeds input, apply a documented cleanup minimum rather than repeatedly submitting the same balance. For the 5 older residues, compare raw engine response and first filter at their listed first/last times; do not infer the same fee cause. CoW quote integration + Helixbox inspect provider handling; repair ownership unknown. Test team owns cleanup policy; no cleanup was rerun.
+
+**Limits after costs.** There were 72 rejected candidates across 26 main orders in the final wave; 20 cancelled, 6 later filled. **Confirmed.** The saved reason `trade <order UID> undercuts its limit price after the cut` identifies a payout below the signed limit after execution-cost deductions.
+
+**Our read, medium confidence.** Driver cost estimation explains some early rejections, while competition selection is now directly observed as a separate reason for later waiting. Both [row 84](https://debug.barn.cow.fi/order/0xc53682bbb41120b625722a340bff62e4066a90af1073c583fe1f27a6fbec261a) and [row 87](https://debug.barn.cow.fi/order/0xd4febc38e01db4757cbb7b9e7452f034dfe28807e939898950ef1330be0020be) were rejected after a 0.007812 USDC deduction in auction 349389, solutions 18/19, at 11:29:21 UTC. In auction 349390, solutions 17/18, it rose to 0.016504 USDC at 11:29:26 UTC and both were rejected again. These are verified deductions, not measured shortfalls. At 11:29:36 and 11:29:41 UTC, the deduction fell to 0.001979 USDC and both orders passed simulation and became proposals. Row 84 therefore was not permanently below its limit; its final cancellation cannot be explained by the earlier cost rejections alone.
+
+| SOL input | Wave 4 | Wave 8 | Wave 16 | Wave 24 | Wave 32 | Total filled / placed |
+| --- | --- | --- | --- | --- | --- | --- |
+| 0.0025 | 1/1 | 2/2 | 0/4 | 0/6 | 0/8 | 3/21 |
+| 0.003 | 1/1 | 2/2 | 4/4 | 0/6 | 0/8 | 7/21 |
+| 0.0035 | 1/1 | 2/2 | 4/4 | 6/6 | 4/8 | 17/21 |
+| 0.004 | 1/1 | 2/2 | 4/4 | 6/6 | 8/8 | 21/21 |
+
+**Measured limits and controls.** In auctions 349392/349393, row 84's proposed payout was 0.257867 USDC against a signed 0.256705 minimum, leaving 0.001162 headroom. Row 87's was 0.413776 against 0.411912, leaving 0.001864 headroom. Both had 19,000 lamport network fee estimates, a 10,000 micro lamport compute unit price and 0.001979 USDC deductions. Both were 1116 bytes and consumed about 64,800 compute units in simulation. Row 84 stayed considered but unselected; row 87 won solution 17 in auction 349393, settled at 11:29:41 UTC and actually paid 6,296 lamports including 1,296 priority fee. Its solver volume fee was separately recorded as 417 USDC base units, or 0.000417 USDC. The estimate was 3.02 times the paid network fee even with the same priority price; this separates an allowance issue from actual execution cost. Across 48 filled bursts, actual network fees were 6,267–14,176 lamports, median 6,295. For comparison, [row 86](https://debug.barn.cow.fi/order/0x1db657c4adf7a1bbc9745c1424fb14446cbcaa14d30ed68494b67ee6e4050291) passed earlier auction 349389 with a 0.002369 USDC deduction and 22,743 lamport estimate, then paid 14,176 lamports; it is a separate order and control.
+
+**First action.** CoW should inspect driver cost estimation and selection together. The 19,000, 75,007 and 158,461 lamport estimates exactly match a 5,000 base fee plus the rounded priority fee for 1.4 million compute units, using their recorded prices of 10,000, 50,005 and 109,615 micro lamports. That formula is an inference from logs, not verified deployed code. Compare that budget with the accepted candidates' roughly 64,800 simulated units and the 129,600 unit budget implied by row 87's paid priority fee. If the driver reserves a maximum budget before simulation, test a safe simulation based reserve; reject the change if measured usage plus the required margin exceeds it. Separately recover why only 1 of 26 ranked proposals won auction 349392 and 1 of 25 won 349393, with 0 filtered proposals in both. If row 84 keeps meeting its limit but loses through cancellation, selection explains its final miss better than fee infeasibility. Helixbox should compare raw engine output and quote allowance; repair ownership remains unproven. Earlier raw candidate outputs are missing, so exact shortfalls and whether the route also changed cannot be calculated.
+
+**Cancellation-race diagnosis. Affected:** 3 submitted attempts and 2 additional simulated candidates; all affected orders cancelled. **Confirmed:** For rows 52/73/77, cancellation preceded driver failure; the verified settlement program returned OrderCancelled (15). Rows 92/93 failed simulation in the same program. **Cause:** Cancellation explains those attempt failures, not the preceding lack of a fill. Row 52 failed preflight; rows 73/77 have failed on-chain transactions below. **Next check — test team for cancellation timing; Helixbox + CoW for the earlier no-fill cause:** Compare cancellation and submission block times, then investigate earlier candidate selection separately. Keep the test's 60-second cancellation cutoff explicit. **Our read.** Confidence is high for these attempt failures and low for the preceding delay.  The named OrderCancelled check and cancellation-before-failure order directly support a stale in-flight candidate after cancellation, rather than a slippage failure. **First check.** For rows 73/77, compare the recorded cancel transaction block time with the failed settlement and its last cancellation-status read. Stop or refresh pending work after cancellation if that read predates it; a candidate prepared only after cancellation would instead point to an auction/status propagation gap. CoW integration should inspect cancellation propagation with Helixbox; the test team owns the cutoff, while repair ownership is not established.
+
 Total transactions: 48. Main orders: 48/84 placed filled. Acquisition orders: 0/0 filled. Median / longest fill: 25.294 / 70.858 seconds.
 Completed / planned rows in scope: 48/84.
 
-All 84 main orders were self-paid SOL → USDC sells cycling through 0.0025, 0.003, 0.0035 and 0.004 SOL. All 48 successful settlements contained 1 selected main order; no multi-order batch was observed. Waves were 90 seconds apart; these results do not establish a sustained throughput ceiling.
+All 84 main orders were self paid SOL → USDC sells cycling through 0.0025, 0.003, 0.0035 and 0.004 SOL. All 48 successful settlements contained 1 selected main order; no multi-order batch was observed. Waves were 90 seconds apart; these results do not establish a sustained throughput ceiling.
 
 | Planned wave time | Filled / planned | Last observed fill from first placement |
 | --- | --- | --- |
@@ -87,7 +122,7 @@ All 84 main orders were self-paid SOL → USDC sells cycling through 0.0025, 0.0
 | 270s | 12/24 | 58.800s |
 | 360s | 12/32 | 76.154s |
 
-**Ownership unknown — execution-cost deductions:** 72 rejected candidates affected 26 main orders in the final wave. Exact reason: `trade <order UID> undercuts its limit price after the cut`; the exact UID-specific error is retained below. 20 affected orders ended cancelled; 6 later filled. This confirms some candidate payouts fell below the signed limit after execution costs were deducted, but does not establish why quoting and settlement differed or explain all 36 timeouts. Candidate rejections are not additional failed orders.
+**Ownership unknown — execution-cost deductions:** 72 rejected candidates affected 26 main orders in the final wave. Exact reason: `trade <order UID> undercuts its limit price after the cut`; the exact UID-specific error is retained below. 20 affected orders ended cancelled; 6 later filled. This confirms some candidate payouts fell below the signed limit after execution costs were deducted, but does not establish why quoting and settlement differed or explain all 36 timeouts. The results by size and wave controls above make cost allowance/economic selection our leading explanation, with medium confidence. Candidate rejections are not additional failed orders.
 
 All 6 recovered orders with rejected candidates are listed alongside every cancelled order. Their table timestamps show the first failed candidate.
 
@@ -171,12 +206,22 @@ The 5 nonempty token accounts remained cleanup-pending. These quote failures and
 <details>
 <summary>Order evidence and metrics</summary>
 
+**Quote diagnosis. Affected:** 8 flows; rows 116–121, 123, 130. **Confirmed:** The API returned `404 Not Found: NoLiquidity: no route found`; no order exists for that failed request. Blocked sell flows: 1; blocked exact buy flows: 7; a prerequisite quote may block the intended main flow.
+
+**Our read, medium confidence.** The explanation is unconfirmed. The run-wide exact output gap blocked inventory setup before CoW could be tested: all 6 setup buys failed at 1.3–2.6 USDC/USDT, while 5 later fixed input SOL→stablecoin acquisitions filled. This weakens a blanket stablecoin or sponsored-account failure, but different sizing and quote kind prevent a strict control. **First check.** Compare one original 11:32:22 UTC setup-buy response with its later acquisition, checking raw trade amounts and first rejection. A feasible discarded buy supports an integration filter; an empty buy response points upstream. Inspect Helixbox + CoW quote integration; repair ownership unknown. Original engine bodies and IDs were not recovered.
+
+**Residual quote check. Affected:** cleanup quote failures/balances listed below; excluded from scenario totals. **Confirmed:** Residual token→native SOL requests failed before a sell order existed; some summaries truncate the provider error. **Our read.** Confidence is low for NoLiquidity and high for the immediate fee rejection.  The reused-wallet residues predate this Helixbox run, so their origin is not a new Helixbox failure. A missing route versus a quote filter cannot be ranked from truncated NoLiquidity errors. The separate 0.044987-USDC SellAmountDoesNotCoverFee request proves an amount-versus-fee check failed, but the actual fee and shortfall were not retained. **First check.** Recover the raw 11:47:07 UTC 0.044987-USDC response and fee amount; if the required fee exceeds input, apply a documented cleanup minimum rather than repeatedly submitting the same balance. For the 5 older residues, compare raw engine response and first filter at their listed first/last times; do not infer the same fee cause. CoW quote integration + Helixbox inspect provider handling; repair ownership unknown. Test team owns cleanup policy; no cleanup was rerun.
+
+**Oversized-candidate diagnosis. Affected:** 4 sponsored stablecoin orders; 27 rejections; four creations expired. **Confirmed:** Assembled transactions measured 1356/1387 bytes against the run's 1232-byte limit, over by 124/155 bytes.
+
+**Our read, medium confidence.** The explanation is unconfirmed. A repeatable transaction construction budget problem fits better than transient congestion: 27 candidates repeat only 2 sizes, tied to stablecoin direction, and fail the deterministic byte limit before execution. They are 10.06% or 12.58% above 1232 bytes; the 31-byte directional difference is observed, not an identified instruction overhead. Successful sponsored SOL→stablecoin acquisitions counter a blanket sponsored-order failure, but do not use the same route or account layout. The exports do not contain serialized rejected transactions, so route bytes, signatures, creation transactions and added by the driver settlement overhead cannot be separated; later expiry is not proof every feasible route was oversized. **First check.** Serialize the first joined USDT→USDC and USDC→USDT candidates at 11:35:06 UTC, listing bytes per transaction, signatures, account keys, lookup tables and instruction data. A valid route that crosses 1232 only after settlement assembly points to that overhead; an oversized route already on its own points upstream. Route/assembly must save at least 124 or 155 bytes respectively, using supported lookup tables or a smaller route; raising the limit is not a fix. Inspect Helixbox route construction + CoW transaction assembly; repair ownership unknown.
+
 Total transactions: 8. Main orders: 3/7 placed filled. Acquisition orders: 5/5 filled. Median / longest fill: 8.300 / 19.708 seconds.
 Completed / planned rows in scope: 3/15.
 
 The 6 planned inventory-setup exact buys (rows 116–121) failed quotes. Rows 122/124 sold SOL → USDC; the opposing USDC → SOL row 125 was not placed until 11:35:20.512, after both SOL → USDC sides were observed filled (11:35:12.061 / 11:34:59.670). All 3 successful transactions used DEX swaps and settled separately. The setup did not establish shared-auction opposing SOL/USDC orders; the stablecoin pair orders never reached on-chain creation.
 
-**Ownership unknown — oversized settlement candidates:** 4 sponsored stablecoin orders had 27 rejected candidates: 13 at 1356 bytes and 14 at 1387 bytes, respectively 124/155 bytes above Solana's 1232-byte serialized transaction limit. The driver measured assembled settlement transactions including signature overhead, not just swap payloads. Each rejection was joined to its order by auction + solution using driver execution-cost/order records. The size failure is confirmed, while responsibility for solver route/transaction construction versus driver-added instructions remains unresolved.
+**Ownership unknown — oversized settlement candidates:** 4 sponsored stablecoin orders had 27 rejected candidates: 13 at 1356 bytes and 14 at 1387 bytes, respectively 124/155 bytes above Solana's 1232-byte serialized transaction limit. The driver measured assembled settlement transactions including signature overhead, not just swap payloads. Each rejection was joined to its order by auction + solution using driver execution-cost/order records. The size failure is confirmed, while responsibility for solver route/transaction construction versus added by the driver instructions remains unresolved.
 
 All 4 sponsored creations later expired without filling. Oversize rejection is directly observed before expiry; this does not prove every possible route was too large. Next: Helixbox and integration team should produce a valid-size candidate, and the test team should rerun opposing pairs with verified auction overlap.
 
@@ -222,10 +267,16 @@ The 0.044987 USDC remainder equals row 125 acquisition output (1.244987 USDC) mi
 <details>
 <summary>Order evidence and metrics</summary>
 
+**Quote diagnosis. Affected:** 47 flows; rows 131–145, 149–150, 152–154, 156–165, 169–185. **Confirmed:** The API returned `404 Not Found: NoLiquidity: no route found`; no order exists for that failed request. Blocked sell flows: 32; blocked exact buy flows: 15; a prerequisite quote may block the intended main flow.
+
+**Our read.** Confidence is medium for restricted route coverage and low for its cause.  All 5 successful token sells used SOL input, contradicting a universal native SOL failure; failed requests include both account modes and larger 0.01-SOL sells, weakening account mode and single minimum-size explanations. Engine route coverage, token validation and per-route economics remain unranked. All 15 exact buys failed, consistent with the separate request kind gap; these are not matched buys of the 5 successfully sold tokens. **First check.** Compare one filled 0.005-SOL→POPCAT request with a failed 0.005-SOL request in the same mode at 11:36:57–11:37:12 UTC, checking raw routes, token metadata, after fees output and first filter. Feasible discarded trades identify validation; empty responses support upstream route coverage. Inspect Helixbox routing + CoW quoting; repair ownership unknown. Original engine bodies/costs remain missing.
+
+**Expected rejection. Affected:** 3 rows (146–148). **Confirmed:** Autopilot returned UnsupportedToken / Token-2022 transfer fee before solver participation. **Cause:** Known autopilot limitation; expected probes, not unexpected solver failures. **Next check — CoW autopilot:** Keep these probes outside eligible-rate comparisons; any transfer-fee support change belongs to CoW.
+
 Total transactions: 5. Main orders: 5/5 placed filled. Acquisition orders: 0/0 filled. Median / longest fill: 3.206 / 6.374 seconds.
 Completed / planned rows in scope: 5/55.
 
-Successful fixed-input sell flows: SOL → [POPCAT](https://solscan.io/token/7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr), [cbBTC](https://solscan.io/token/cbbtcf3aa214zXHbiAZQwf4122FBYbraNdFqgw4iMij), [Fartcoin](https://solscan.io/token/9BB6NFEcjBCtnNLFko2FqVQBq8HHM13kCyYcdQbgpump), [MEW](https://solscan.io/token/MEW1gQWJ3nEXg2qgERiKu7FAFj79PHvQVREQUzScPP5), [BOME](https://solscan.io/token/ukHH6c7mMyiWCf1b9pnWe25TSpkDDt3H5pQZgZ74J82). All used 0.005 SOL input. Successful exact-output buys: none. Sell quotes failed for 32 other tokens, and all 15 exact buys failed quotes. A successful SOL → token sell does not establish reverse-direction or exact-output support.
+Successful fixed input sell flows: SOL → [POPCAT](https://solscan.io/token/7GCihgDB8fe6KNjn2MYtkzZcRjQy3t9GHdC8uHYmW2hr), [cbBTC](https://solscan.io/token/cbbtcf3aa214zXHbiAZQwf4122FBYbraNdFqgw4iMij), [Fartcoin](https://solscan.io/token/9BB6NFEcjBCtnNLFko2FqVQBq8HHM13kCyYcdQbgpump), [MEW](https://solscan.io/token/MEW1gQWJ3nEXg2qgERiKu7FAFj79PHvQVREQUzScPP5), [BOME](https://solscan.io/token/ukHH6c7mMyiWCf1b9pnWe25TSpkDDt3H5pQZgZ74J82). All used 0.005 SOL input. Successful exact output buys: none. Sell quotes failed for 32 other tokens, and all 15 exact buys failed quotes. A successful SOL → token sell does not establish reverse-direction or exact output support.
 
 Expected autopilot-only checks: rows 146–148 returned `UnsupportedToken` for Token-2022 transfer fees before solver participation. These 3 expected rejections are not Helixbox limitations; full errors and mints are below.
 
@@ -296,6 +347,10 @@ Expected autopilot-only checks: rows 146–148 returned `UnsupportedToken` for T
 <details>
 <summary>Order evidence and metrics</summary>
 
+**Quote diagnosis. Affected:** 10 flows; rows 186–195. **Confirmed:** The API returned `404 Not Found: NoLiquidity: no route found`; no order exists for that failed request. Blocked sell flows: 10; blocked exact buy flows: 0; a prerequisite quote may block the intended main flow.
+
+**Our read, medium confidence.** The explanation is unconfirmed. Quote coverage blocked the test before size could matter. Other successful 0.005-SOL token sells weaken a global SOL input explanation, but EURC/JLP routing versus validation or fee handling cannot be ranked. **First check.** Compare original 11:39:01 UTC 0.005-SOL→EURC and later 0.00125-SOL→JLP engine responses, first filters and after fees outputs: empty responses point upstream; feasible discarded trades identify integration filtering. Test team must obtain placeable routes before rerunning size cases. Helixbox + CoW inspect quoting; repair ownership unknown. Original responses and costs are missing.
+
 Total transactions: 0. Main orders: 0/0 placed filled. Acquisition orders: 0/0 filled. Median / longest fill: not available (no fills).
 Completed / planned rows in scope: 0/10.
 
@@ -323,10 +378,14 @@ The intended check was the full 1232-byte transaction boundary: one baseline and
 <details>
 <summary>Order evidence and metrics</summary>
 
+**Quote diagnosis. Affected:** 4 flows; rows 198–199, 202–203. **Confirmed:** The API returned `404 Not Found: NoLiquidity: no route found`; no order exists for that failed request. Blocked sell flows: 0; blocked exact buy flows: 4; a prerequisite quote may block the intended main flow.
+
+**Our read, medium confidence.** The explanation is unconfirmed. Failure follows exact output requests more closely than freshness or who pays: 4/4 buys failed in both modes, while 4/4 fresh-account 0.1-SOL sells filled in both modes. The 10-USDC/USDT buy failures also weaken a small trade only explanation for scenario 1. Different amounts and quote kinds prevent a strict control. **First check.** Compare original 11:41:16 UTC self paid 10-USDC buy and 0.1-SOL sell responses, checking raw amounts and the first rejection. A feasible discarded buy supports an integration filter; an empty buy points upstream. Inspect Helixbox + CoW quote integration; repair ownership unknown. Original request IDs and engine bodies remain missing.
+
 Total transactions: 4. Main orders: 4/4 placed filled. Acquisition orders: 0/0 filled. Median / longest fill: 9.666 / 12.835 seconds.
 Completed / planned rows in scope: 4/8.
 
-At 11:41:13.722 UTC the simulator checked that all 8 intended receiving token accounts were absent, with no stale-account warning, and skipped upfront preparation. Successful sells used 0.1 SOL → USDC/USDT in self-paid and sponsored modes; all exact buys requested 10 USDC/USDT. The wider 30-case fresh-account scenario was not included.
+At 11:41:13.722 UTC the simulator checked that all 8 intended receiving token accounts were absent, with no stale-account warning, and skipped upfront preparation. Successful sells used 0.1 SOL → USDC/USDT in self paid and sponsored modes; all exact buys requested 10 USDC/USDT. The wider 30-case fresh-account scenario was not included.
 
 **Test limitation confirmed on chain:** receiving accounts were created in order-creation transactions before settlement, not by Helixbox. Traders paid for rows 196/200; the sponsor paid for 197/201. Rent was 1,488,440 lamports per account. The 4 settlements used Helixbox's separate fee payer. This verifies fresh-start sell flows, but does not test Helixbox deducting or absorbing receiving-account rent. The test team needs a path where the receiving account is still missing at settlement.
 

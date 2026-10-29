@@ -8,20 +8,12 @@
     "solver-burst-sell.csv",
     "solver-cow.csv",
     "solver-token-coverage.csv",
-    "solver-transaction-size.csv",
-    {
-      "path": "solver-fresh-accounts.csv",
-      "options": {
-        "freshAccounts": true,
-        "solFundingPerTrader": 0.15,
-        "slippageBps": 500
-      }
-    }
+    "solver-transaction-size.csv"
   ],
   "options": {
     "solFundingPerTrader": 0.07,
     "maxTotalSol": 3,
-    "maxCreationSol": 0.969,
+    "maxCreationSol": 0.921,
     "maxRetries": 0,
     "orderValidity": 300,
     "fillTimeout": 60,

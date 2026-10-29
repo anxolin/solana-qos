@@ -1,0 +1,23 @@
+{
+ "_source": "VictoriaLogs via Grafana, container solana-autopilot-staging",
+ "drivers": {
+  "solivagus": {
+   "proposed": 418,
+   "observed_on_chain": 164,
+   "solver": "J6eqaEWUGXqV1Rbk8YSLDsdkNGC19CGreTf8M9emjy6c",
+   "wins": 175,
+   "submitted": 164,
+   "rejected_before_submission": {
+    "SimulationFailed": 2
+   }
+  }
+ },
+ "autopilot": {
+  "winner_skipped_creation_blockhash_expired": 0,
+  "sponsored_creation_expired_orders": 10,
+  "filtered": {
+   "unfunded_sell_token_account": 276,
+   "in_flight": 39
+  }
+ }
+}

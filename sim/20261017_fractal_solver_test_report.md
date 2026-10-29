@@ -1,19 +1,17 @@
-> **Adjusted composite results (20 October): 190/190 eligible flows filled (100.00%). 3 unsupported transfer-fee rows excluded.** The detailed report below retains historical raw counts. Use the [recalculated full report](../sessions/2026-10-17-09-36-composite-fractal-run/solver_test_report.md) for scoring.
-
 # Fractal solver test report
 
-Date: 17 October 2026. Environment: staging / Barn on Solana mainnet. Selected completed run: `2026-10-17-09-36-composite-fractal-run`, 09:37:27–10:08:00 UTC including cleanup; observation ended 10:09:00 UTC; fetched 10:13:37 UTC.
+Date: 17 October 2026. Environment: staging / Barn on Solana mainnet. Selected completed run: `2026-10-17-09-36-composite-fractal-run`, 09:37:27-10:08:00 UTC including cleanup; observation ended 10:09:00 UTC; fetched 10:13:37 UTC.
 
-**TLDR:** Fractal filled all 192 placed scenario orders, including batches of 6 and all 8 fresh-wallet cases. Opposite orders settled separately, so direct matching wasn't achieved. Next, repeat that check with verified auction overlap and check who paid to open the fresh receiving accounts.
+**TLDR:** Great work, all 192 placed scenario orders filled, including batches of 6 and all 8 fresh wallet cases. No unexpected failed orders or settlement failures were saved. We think how matches were built or what they cost explains why these 3 USDC to USDT (https://debug.barn.cow.fi/order/0xbec7136ac6f0b8abfeb27c39ed360385319422a82e277a95bb5f4e0cd27719d9) and 3 USDT to USDC (https://debug.barn.cow.fi/order/0x3b7c6bf3f138fd3ab1def8359f5dd0864eef02126a9fd1a8601ad48de2439785) orders filled separately, so compare them with a direct match after fees. Our test split the SOL pair across auctions and opened the receiving account before settlement, so we need to improve those checks.
 
 | Scenario | Outcome | Next check |
 | --- | --- | --- |
 | 1. Standard pairs | Achieved: 6/6 flows; 8/8 placed filled | Repeat with larger amounts |
 | 2. 25 same-direction sells | Achieved: batches of 6; 25/25 filled | Check swap count and pricing |
 | 3. Sell bursts | Achieved for bursts: 84/84 filled | Test team: measure sustained load |
-| 4. Opposing orders / CoW | Not achieved: opposite sides settled separately; 15/15 filled | Test team: verify shared auctions |
+| 4. Opposing orders / CoW | Not achieved; opposite sides settled separately; 15/15 filled | Fractal/CoW compare a saved direct match with separate fills |
 | 5. Token coverage | Achieved for placed orders: 52/52 filled | Extend exact-output token coverage |
-| 6. Fresh accounts | Flow achieved: 8/8 filled; solver-paid rent inconclusive | Test team: inspect account-opening instructions |
+| 6. Fresh accounts | Flow achieved; 8/8 filled; solver payment for rent not demonstrated | Test team leave receiving accounts absent until settlement |
 
 ## Changes since 16 October 2026
 
@@ -58,13 +56,17 @@ Recovered examples (all fulfilled; previously creation-expired, except XAUt0, wh
 <details>
 <summary>Order evidence and metrics</summary>
 
+> **Adjusted composite results (20 October): 190/190 eligible flows filled (100.00%). 3 unsupported transfer-fee rows excluded.** The detailed report below retains historical raw counts. Use the [recalculated full report](../sessions/2026-10-17-09-36-composite-fractal-run/solver_test_report.md) for scoring.
+
+**Diagnosis review: 27 October 2026.** Checked saved scenario requests, journals, final order snapshots, settlement signatures and failure/competition summaries. The review also recovered auction 296937 competition records and row 186’s historical creation transaction. Original engine quote bodies and full failed-transaction logs aren't in these exports; `other` cannot identify a program. No new quotes, trades or cleanup were run.
+
 Total transactions: 8. Filled / placed orders: 8/8. Completed flows / planned rows: 6/6. Median / longest fill: 9.688 / 12.678 seconds.
 
 The placed-order denominator includes 190 main orders and 2 JUP acquisition orders, and excludes cleanup and requests rejected before placement. Six setup trades in the opposite-order scenario are planned rows and count toward completed flows. Total transactions means 94 distinct successful settlements for these 192 scenario orders; it excludes creation, funding, failed attempts and cleanup.
 
 Timings use placement → simulator-observed fill, including polling delay, and include only fulfilled orders. The overall median / longest fill is 11.548 / 29.991 seconds. Table timestamps show placement for successful examples and the first recorded failure for errors; row and trader numbers use combined-session numbering.
 
-Saved staging autopilot competition records confirm Fractal participation: 289 proposed candidates, 168 wins, 168 submissions and 168 observed on chain, including cleanup. The saved settlement-failure and creation-expiry files are empty. Detailed candidate rejections and full transaction instructions aren't stored, so these records cannot prove every attempted solution succeeded or establish swap counts, transaction sizes or account-rent payer.
+Saved staging autopilot competition records confirm Fractal participation: 289 proposed candidates, 168 wins, 168 submissions and 168 observed on chain, including cleanup. The saved settlement-failure and creation-expiry files are empty. These aggregate exports cannot prove every attempted solution succeeded or establish swap counts and transaction sizes. The supplemental review below establishes the proposed candidate groups in auction 296937 and the receiving account rent payer for row 186 only.
 
 Fixed-input sells and exact-output buys passed for SOL/USDC, SOL/USDT and JUP/USDC. The JUP flows needed 2 extra SOL → JUP acquisitions; both filled. All 8 settlements contained 1 selected order.
 
@@ -118,14 +120,22 @@ The 4, 8, 16, 24 and 32-order waves were scheduled 90 seconds apart, selling 0.0
 
 ## 4. Opposing orders / CoW
 
-**Direct matching was not achieved in the recorded settlements.** All 15 trades filled, but opposite sides settled separately; the test team needs to confirm shared-auction exposure.
+**Direct matching was not achieved in the recorded settlements.** The 3 USDC sell (https://debug.barn.cow.fi/order/0xbec7136ac6f0b8abfeb27c39ed360385319422a82e277a95bb5f4e0cd27719d9) and 3 USDT sell (https://debug.barn.cow.fi/order/0x3b7c6bf3f138fd3ab1def8359f5dd0864eef02126a9fd1a8601ad48de2439785) shared an auction with compatible limits, making candidate construction or costs a stronger lead than timing; the intended exact SOL pair entered different auctions.
 
 <details>
 <summary>Order evidence and metrics</summary>
 
+All 9 test orders and 6 inventory purchases filled, but opposite sides settled separately. The staging VictoriaLogs review used `vm-auth-staging` and recovered the `new orders in auction` records. At 09:54:32.884 UTC auction **296937** added rows **122, 124–128 and 130**. At 09:54:38.365 auction **296938** first added rows **123 and 129**. Rows 126/127 therefore shared an auction; overlapping placement times alone do not prove that rows 122/123 shared one.
+
+The recovered competition records narrow the gap to the proposed candidates, rather than autopilot dropping an opposing candidate. At 09:54:38.158 UTC Fractal proposed **5** solutions for auction **296937**. Solution **402685314405586278** contained row 126 alone with `sell 3000000/3000000 buy 3003171/2988064`; solution **8018819300437188868** contained rows 128/127, both USDT → USDC, with row 127 at `sell 3000000/3000000 buy 2995629/2980414`. The other solutions contained rows 122/124, row 125 and row 130. None of these 5 proposals joined opposite directions. Autopilot recorded `ranked="5"`, `winners="5"` and `filtered_out="0"`; both stablecoin solutions then executed and were observed on chain. The later `orders matched` record lists these orders under `executing`; that log label means selected for execution and does not establish direct matching.
+
+**We think candidate construction or costs fit the stablecoin result better than timing or autopilot ranking, with medium confidence.** The [row 126 USDC sell](https://debug.barn.cow.fi/order/0xbec7136ac6f0b8abfeb27c39ed360385319422a82e277a95bb5f4e0cd27719d9) sells 3 USDC for at least 2.988064 USDT; the [row 127 USDT sell](https://debug.barn.cow.fi/order/0x3b7c6bf3f138fd3ab1def8359f5dd0864eef02126a9fd1a8601ad48de2439785) sells 3 USDT for at least 2.980414 USDC. Exchanging their full inputs meets both signed limits before fees, leaving **0.011936 USDT + 0.019586 USDC** beyond the minima. That small margin may not cover fees, rent or scoring requirements, so compatible limits do not prove that direct matching was eligible or better. We cannot rank candidate construction against economics or call this a proven Fractal defect. The intended perfect SOL pair 122/123 entered different initial auctions despite a **2.087860–2.110877 USDC** signed price interval for 0.02 SOL. Row 122 was already selected and filtered as `in_flight` before auction 296938 added row 123, confirming a setup timing limit for that pair.
+
+**Start by comparing an offline direct match with the selected separate fills.** Fractal and CoW should recover auction 296937's saved request, construct a candidate exchanging rows 126/127 without a DEX, and compare validity, fees, rent and score. If it is valid and scores higher, inspect how Fractal constructs candidates before proposing them. If costs consume the roughly 0.031522-dollar margin or validation rejects it, change the test amount or documented constraint first. Full candidate bodies and fee/scoring details are unrecorded in the recovered competition logs, so repair ownership and a specific code fix remain unproven. The test team owns synchronizing the setup.
+
 Total transactions: 9. Filled / placed orders: 15/15. Completed flows / planned rows: 15/15. Median / longest fill: 12.486 / 12.826 seconds.
 
-All 6 planned inventory-building buys and all 9 later test orders filled. Opposite SOL/USDC legs (rows 122/123 and 124/125) settled in different transactions. USDC → USDT rows 126 and 129 also settled separately from USDT → USDC rows 127/128, which shared a same-direction batch. Thus no recorded settlement directly matched the opposite sides. The 9 settlements include 2 setup batches; auction overlap and swap instructions are unavailable, so this is not an established solver capability limit.
+All 6 planned inventory-building buys and all 9 later test orders filled. Opposite SOL/USDC legs (rows 122/123 and 124/125) settled in different transactions. USDC → USDT rows 126 and 129 also settled separately from USDT → USDC rows 127/128, which shared a same-direction batch. Thus no recorded settlement directly matched the opposite sides. The 9 settlements include 2 setup batches. Auction-addition records establish shared exposure for the stablecoin pair; full candidate bodies and swap instructions remain unavailable, so this is not an established solver capability limit.
 
 | Scenario row / trader | UTC timestamp | Trade | Error(s) and final outcome | Debug tool URL |
 | --- | --- | --- | --- | --- |
@@ -168,14 +178,18 @@ Exact-output buys paying SOL filled for all 15 placed requests: ANSEM, PAID, USD
 
 ## 6. Fresh accounts
 
-**The fresh-wallet order flows were achieved; solver-paid account opening remains inconclusive.** All 8 cases filled, but the saved evidence does not identify who opened the receiving accounts.
+**All 8 orders from fresh wallets filled; solver payment for account opening was not demonstrated.** The [SOL to USDC creation transaction](https://solscan.io/tx/5NzqMcpzFdWU2ZV7L5rfEDW3yrRwfniQhz68ExusqKA98gwdJFBTotcj7sNdMAiYRQa4rrjfYxqsniCHvEEyZx9M) confirms that the trader paid to open the receiving account before settlement, making this a setup limitation.
 
 <details>
 <summary>Order evidence and metrics</summary>
 
 Total transactions: 4. Filled / placed orders: 8/8. Completed flows / planned rows: 8/8. Median / longest fill: 19.110 / 22.562 seconds.
 
-Setup: 8 separate wallets; 4 self-paid and 4 sponsored cases; sells of 0.1 SOL → USDC/USDT and exact buys of 10 USDC/USDT with SOL. All filled in 4 two-order settlements. At 09:59:59.801 UTC the journal recorded the fresh-account check for all 8 receiving addresses; none appears in the upfront token-account creation events. The scenario used 0.15 SOL funding per wallet and 500 bps (5%) slippage. Full creation and settlement instructions are absent, so account freshness at settlement and solver-paid opening rent remain unverified; a successful fill alone cannot establish either.
+Setup: 8 separate wallets; 4 self-paid and 4 sponsored cases; sells of 0.1 SOL → USDC/USDT and exact buys of 10 USDC/USDT with SOL. All filled in 4 two-order settlements. At 09:59:59.801 UTC the journal recorded the fresh-account check for all 8 receiving addresses; none appears in the upfront token-account creation events. The scenario used 0.15 SOL funding per wallet and 500 bps (5%) slippage.
+
+**Setup explains the missing account opening demonstration, with high confidence for row 186.** The recovered [creation transaction](https://solscan.io/tx/5NzqMcpzFdWU2ZV7L5rfEDW3yrRwfniQhz68ExusqKA98gwdJFBTotcj7sNdMAiYRQa4rrjfYxqsniCHvEEyZx9M) succeeded at slot **457995609**, block time **10:00:05 UTC**, before the simulator recorded placement at 10:00:07.155 UTC. Instruction index **4** is `createIdempotent` for USDC receiving account `DNgGWTKBvUGckf3iXfRtGPNQ9ACkynXp2ZnATKerbEF4`. Its inner `createAccount` has `lamports: 1488440`, `space: 165` and `source: 52CfB35yd7jyGA6U2198WmCDVV8wi3Xg48S4MgMDvKR1`, the trader and fee payer. That receiving account's lamport balance changed from **0 to 1488440** during creation, before the order instruction at index **5**. The transaction fee was **5000 lamports**. This verifies trader payment of **0.001488440 SOL** rent for this receiving account before settlement; it is not solver payment.
+
+The current placement path likewise creates the receiving account before `CreateOrder`, charging the owner in self mode and sponsor funder in sponsored mode (`sim/src/orders.ts:279–285`). The other 7 historical creation transactions were not decoded, so their individual rent debits remain unverified. All 8 orders filled without a recorded account opening failure. Before rerunning, the test team should agree a supported creation path with CoW that leaves the receiving account absent until settlement, verify that absence, and check for solver payment in the settlement. Finding the account already present must fail that feature test even when the order fills. No solver repair is established by [row 186](https://debug.barn.cow.fi/order/0xc3d6f3d78ce3ff6bd36443e1e00835727efe8d7633266922504bfdf5246e0d1a).
 
 | Scenario row / trader | UTC timestamp | Trade | Error(s) and final outcome | Debug tool URL |
 | --- | --- | --- | --- | --- |

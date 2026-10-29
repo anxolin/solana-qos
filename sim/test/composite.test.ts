@@ -27,23 +27,23 @@ describe('composite scenarios', () => {
       expect(() => parseComposite({ name: 'fresh', solver: 'test', scenarios: [{ path: csv, options: { slippageBps: 10001 } }] })).toThrow(/slippageBps/)
     } finally { rmSync(directory, { recursive: true, force: true }) }
   })
-  it('composes Grafiks scenarios and the shared fresh-account test within their budgets', () => {
+  it('composes Grafiks scenarios without a separate fresh-account test within their budgets', () => {
     const config = fileURLToPath(new URL('../../scenarios/solver-validation/grafiks-composite.json', import.meta.url))
     const composite = readComposite(config)
     const rows = combinedRows(composite.scenarios, composite.breakSeconds)
     expect(composite.scenarios.map(scenario => [scenario.path, scenario.rows.length])).toEqual([
       ['solver-same-direction-25.csv', 25], ['solver-burst-sell.csv', 84], ['solver-cow.csv', 15],
-      ['solver-token-coverage.csv', 52], ['solver-transaction-size.csv', 10], ['solver-fresh-accounts.csv', 8],
+      ['solver-token-coverage.csv', 52], ['solver-transaction-size.csv', 10],
     ])
     expect(composite.solver).toBe('grafiks')
     expect(composite.breakSeconds).toBe(30)
-    expect(new Set(rows.map(row => row.row)).size).toBe(194)
+    expect(new Set(rows.map(row => row.row)).size).toBe(186)
     const walletCount = new Set(rows.map(row => row.trader)).size
-    expect(walletCount).toBe(119)
+    expect(walletCount).toBe(111)
     const peakWallets = Math.max(...composite.scenarios.map(scenario => tradersIn(scenario.rows).length))
     expect(peakWallets * composite.options.solFundingPerTrader!).toBeLessThanOrEqual(composite.options.maxTotalSol!)
     const budget = creationBudget(rows, composite.options.maxRetries, composite.options.cleanup)
-    expect(budget.creations).toBe(323)
+    expect(budget.creations).toBe(307)
     expect(Number(budget.total) / 1e9).toBeLessThanOrEqual(composite.options.maxCreationSol!)
   })
   it('defaults to a 60-second pause and keeps an explicitly configured pause', () => {
@@ -102,6 +102,32 @@ describe('composite scenarios', () => {
       ], { encoding: 'utf8', env: { ...process.env, MNEMONIC: '', RPC_URL: '', SOLANA_RPC_URL: '' } })
       expect(preview([])).toContain('Environment: prod')
       expect(preview(['--env', 'staging'])).toContain('Environment: staging')
+    } finally {
+      rmSync(directory, { recursive: true, force: true })
+    }
+  })
+
+  it.each([
+    { prepareTokenAccounts: undefined, flags: [], expected: 'Unprepared' },
+    { prepareTokenAccounts: true, flags: [], expected: 'Prepared' },
+    { prepareTokenAccounts: false, flags: [], expected: 'Unprepared' },
+    { prepareTokenAccounts: undefined, flags: ['--prepare-token-accounts'], expected: 'Prepared' },
+    { prepareTokenAccounts: false, flags: ['--prepare-token-accounts'], expected: 'Prepared' },
+    { prepareTokenAccounts: true, flags: ['--no-prepare-token-accounts'], expected: 'Unprepared' },
+  ])('makes account preparation opt-in: %j', ({ prepareTokenAccounts, flags, expected }) => {
+    const directory = mkdtempSync(join(tmpdir(), 'account-preview-'))
+    try {
+      const config = JSON.parse(readFileSync(sample, 'utf8'))
+      config.options.prepareTokenAccounts = prepareTokenAccounts
+      config.scenarios = config.scenarios.map((path: string) => fileURLToPath(new URL(`./fixtures/composite/${path}`, import.meta.url)))
+      const path = join(directory, 'composite.json')
+      writeFileSync(path, JSON.stringify(config))
+      const output = execFileSync(process.execPath, [
+        '--import', 'tsx', fileURLToPath(new URL('../src/cli/index.ts', import.meta.url)),
+        'simulate-composite-scenario', path, '--preview', ...flags,
+      ], { encoding: 'utf8', env: { ...process.env, MNEMONIC: '', RPC_URL: '', SOLANA_RPC_URL: '' } })
+      expect(output).toMatch(new RegExp(`burst\\.csv'.*'${expected}'`))
+      expect(output).toMatch(new RegExp(`cow\\.csv'.*'${expected}'`))
     } finally {
       rmSync(directory, { recursive: true, force: true })
     }

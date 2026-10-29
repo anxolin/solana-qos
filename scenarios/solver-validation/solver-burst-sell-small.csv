@@ -1,0 +1,33 @@
+# Smaller copy of solver-burst-sell.csv: 4, 8 and 16 SOL-to-USDC sells at 0, 90 and 180 seconds.
+# Original amounts, wallets and self paid creation are preserved; 28 main + 16 cleanup = 44 estimated orders (0.132 SOL before refunds).
+# Check completion, quote errors, response times and actual batch sizes. Batching support is not assumed.
+# Start times do not guarantee that orders share an auction; inspect actual auction membership.
+trader,time,type,amount,token,other_token,mode,note
+1,0,sell,0.0025,SOL,USDC,self,burst 4; amount group 1
+2,0,sell,0.003,SOL,USDC,self,burst 4; amount group 2
+3,0,sell,0.0035,SOL,USDC,self,burst 4; amount group 3
+4,0,sell,0.004,SOL,USDC,self,burst 4; amount group 4
+1,90,sell,0.0025,SOL,USDC,self,burst 8; amount group 1
+2,90,sell,0.003,SOL,USDC,self,burst 8; amount group 2
+3,90,sell,0.0035,SOL,USDC,self,burst 8; amount group 3
+4,90,sell,0.004,SOL,USDC,self,burst 8; amount group 4
+5,90,sell,0.0025,SOL,USDC,self,burst 8; amount group 1
+6,90,sell,0.003,SOL,USDC,self,burst 8; amount group 2
+7,90,sell,0.0035,SOL,USDC,self,burst 8; amount group 3
+8,90,sell,0.004,SOL,USDC,self,burst 8; amount group 4
+1,180,sell,0.0025,SOL,USDC,self,burst 16; amount group 1
+2,180,sell,0.003,SOL,USDC,self,burst 16; amount group 2
+3,180,sell,0.0035,SOL,USDC,self,burst 16; amount group 3
+4,180,sell,0.004,SOL,USDC,self,burst 16; amount group 4
+5,180,sell,0.0025,SOL,USDC,self,burst 16; amount group 1
+6,180,sell,0.003,SOL,USDC,self,burst 16; amount group 2
+7,180,sell,0.0035,SOL,USDC,self,burst 16; amount group 3
+8,180,sell,0.004,SOL,USDC,self,burst 16; amount group 4
+9,180,sell,0.0025,SOL,USDC,self,burst 16; amount group 1
+10,180,sell,0.003,SOL,USDC,self,burst 16; amount group 2
+11,180,sell,0.0035,SOL,USDC,self,burst 16; amount group 3
+12,180,sell,0.004,SOL,USDC,self,burst 16; amount group 4
+13,180,sell,0.0025,SOL,USDC,self,burst 16; amount group 1
+14,180,sell,0.003,SOL,USDC,self,burst 16; amount group 2
+15,180,sell,0.0035,SOL,USDC,self,burst 16; amount group 3
+16,180,sell,0.004,SOL,USDC,self,burst 16; amount group 4

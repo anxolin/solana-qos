@@ -209,7 +209,7 @@ it.each([
   const errors = vi.spyOn(console, 'error').mockImplementation(() => {})
   const exit = vi.spyOn(process, 'exit').mockImplementation(() => undefined as never)
   const argv = vi.spyOn(process, 'argv', 'get').mockReturnValue([
-    process.execPath, 'sim', ...(mode === 'unsorted' || mode === 'auto-defer-single' || mode === 'normal-unknown-single' || mode === 'end-single' ? ['simulate-trade-session', singleCsv] : fresh ? ['simulate-composite-scenario', sample] : ['resume-session', name]), ...(fresh ? ['--no-prepare-token-accounts'] : []), ...override, '--yes',
+    process.execPath, 'sim', ...(mode === 'unsorted' || mode === 'auto-defer-single' || mode === 'normal-unknown-single' || mode === 'end-single' ? ['simulate-trade-session', singleCsv] : fresh ? ['simulate-composite-scenario', sample] : ['resume-session', name]), ...override, '--yes',
   ])
   // Capture the CLI's completion without exporting an entry point only for tests.
   const parse = Command.prototype.parseAsync
