@@ -11,7 +11,7 @@ import { LOG_ENV_HINT, links, loadEnv, logsConfigured, lamportsToSol, QOS_ROOT, 
 import { NATIVE_SOL, Rpc, WSOL_MINT } from '../rpc.js'
 import { fmtSol, fund, fundingPlan, wallets } from '../wallets.js'
 import { Orders } from '../orders.js'
-import { APP_DATA_HEX } from '../appData.js'
+import { APP_DATA_HEX, type AppDataStatus } from '../appData.js'
 import { Session } from '../session.js'
 import { paceRows, parseScenario, readScenario, sellOnly, sessionSlug, spaceTraders, tradersIn, writeScenario, type TradeRow } from '../scenario.js'
 import { failureKind, latestOutcomes, retryRows } from '../retry.js'
@@ -156,7 +156,7 @@ interface RateOpts {
 }
 
 function context(
-  opts: { env: CowEnv; maxRetries?: number; orderValidity?: number; fillTimeout?: number; cancelOnTimeout?: boolean; slippageBps?: number } & RateOpts,
+  opts: { env: CowEnv; maxRetries?: number; orderValidity?: number; fillTimeout?: number; cancelOnTimeout?: boolean; slippageBps?: number; appData?: boolean } & RateOpts,
   session: Session,
 ) {
   const env = loadEnv({ cowEnv: opts.env })
@@ -176,9 +176,18 @@ function context(
     sponsor: env.urls.sponsor,
     warn: (m) => log(ui.warn(m)),
     apiRps: opts.apiRps,
+    uploadAppData: opts.appData !== false,
   })
   const ctx: FlowContext = { link: links(env.urls), rpc, orders, session, maxRetries: opts.maxRetries ?? 0, acquireBufferBps: 300, log }
   return { env, rpc, orders, ctx, w: wallets(env.mnemonic) }
+}
+
+/** Say what the orderbook knows about our app-data hash; `missing` is a warning, since placement may reject it. */
+function logAppData(status: AppDataStatus, env: CowEnv) {
+  if (status === 'uploaded') log(ui.ok(`Registered app data ${APP_DATA_HEX} on ${env}`))
+  else if (status === 'present') log(c.dim(`App data ${APP_DATA_HEX} already registered on ${env}`))
+  else log(ui.warn(`App data ${APP_DATA_HEX} is not registered on ${env} and --no-app-data skipped the upload: ` +
+    'orders carry a pre-image the orderbook cannot resolve, so placement can fail with InvalidAppData'))
 }
 
 /** Read-only creation budget; scenario estimates are separate so each includes its own cleanup. */
@@ -315,6 +324,7 @@ function sessionCommand(name: string) {
     .option('--defer-cleanup', 'continue after unfinished cleanup and retry at the end (now the default)')
     .option('--phases', 'treat each CSV time as a phase: a row also waits until every earlier-timed row has finished')
     .option('--sell-only', 'ignore the CSV type: run every row as a sell of token for other_token, so a buy row sells what it would have bought (acquiring it first)')
+    .option('--no-app-data', 'skip uploading our app-data pre-image; only check whether the orderbook already has it (for an environment that rejects the upload)')
     .option('--no-report', 'skip the qos.py fetch + report run that follows the session')
     .option('-y, --yes', 'skip the confirmation prompt')
     .addOption(envOption)
@@ -494,9 +504,7 @@ async function runSession(scenarioPath: string, opts: any, composite?: ReturnTyp
 
     // Orders carry only the app-data hash: register the pre-image before placing any, or the post fails with
     // InvalidAppData. Done for dry runs too, so they catch an unregistered hash before a funded run does.
-    log(await orders.ensureAppData() === 'uploaded'
-      ? ui.ok(`Registered app data ${APP_DATA_HEX} on ${opts.env}`)
-      : c.dim(`App data ${APP_DATA_HEX} already registered on ${opts.env}`))
+    logAppData(await orders.ensureAppData(), opts.env)
 
     if (opts.dryRun) {
       for (const scenario of scenarios) {
@@ -929,6 +937,7 @@ program
   .option('--api-rps <n>', 'other orderbook calls per second: posting, polling', parseFloat, 8)
   .option('--rpc-rps <n>', 'Solana RPC calls per second (your RPC plan is the limit)', parseFloat, 10)
   .option('--max-retries <n>', 'additional cleanup passes after failures (0 = no retries)', Number, 0)
+  .option('--no-app-data', 'skip uploading our app-data pre-image; only check whether the orderbook already has it')
   .option('-y, --yes', 'skip the confirmation prompt')
   .addOption(envOption)
   .action(async (opts) => {
@@ -954,7 +963,7 @@ program
       await fund(rpc, w, plan, log, ctx.link.tx)
       session.log({ step: 'cleanup', event: 'funded', traders: topUps.map(line => line.trader), amount: funding.toString() })
     }
-    await ctx.orders.ensureAppData()
+    logAppData(await ctx.orders.ensureAppData(), opts.env)
     const res = await cleanupAll(ctx, w, active, opts.env, opts.rpcRps)
     const swept = res.reduce((s, r) => s + r.swept, 0n)
     console.log(`\n${ui.ok(`Swept ${fmtSol(swept)} to the funder.`)}`)

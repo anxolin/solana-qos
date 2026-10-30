@@ -16,7 +16,7 @@ import {
   type SolanaQuoteAndPost,
   type SolanaOrderIntent,
 } from '@cowprotocol/sdk-trading-solana'
-import { APP_DATA, registerAppData } from './appData.js'
+import { APP_DATA, registerAppData, type AppDataStatus } from './appData.js'
 import { apiHeaders } from './config.js'
 import { settlementFor } from './settlement.js'
 import { RateLimiter, retry, sleep } from './limiter.js'
@@ -142,6 +142,8 @@ export interface OrdersOptions {
   apiRps?: number
   /** Quotes per second (the SDK also uses its client for sponsored posts). */
   quoteRps?: number
+  /** Upload our app-data pre-image when the orderbook has none (default). Off: check only, and report it missing. */
+  uploadAppData?: boolean
 }
 
 export class Orders {
@@ -154,7 +156,7 @@ export class Orders {
   sponsorFunder?: PublicKey
   private readonly sponsor?: PublicKey
   private warnedSponsor = false
-  private appDataReady?: Promise<'present' | 'uploaded'>
+  private appDataReady?: Promise<AppDataStatus>
   /** The settlement program orders are created on, and its state PDA (the SPL delegate approvals must name). */
   readonly programId: PublicKey
   readonly delegate: PublicKey
@@ -171,7 +173,8 @@ export class Orders {
     const orderBookApi = new OrderBookApi({
       chainId: SupportedChainId.SOLANA,
       env: opts.env,
-      // With an apiKey the SDK switches to its partner gateway, which has no Solana route: keep our own API.
+      // With an apiKey the SDK picks its own partner URL; pin ours from environments.json instead, so the base the
+      // settings table prints (and COW_SOLANA_API overrides) is the one every call actually goes to.
       ...(apiKey ? { apiKey, baseUrls: { [SupportedChainId.SOLANA]: opts.apiBase.replace(/\/api$/, '') } as Record<SupportedChainId, string> } : {}),
       // Retry at the flow level so quotes, posts, and fill timeouts share one placement budget.
       backoffOpts: { ...DEFAULT_BACKOFF_OPTIONS, numOfAttempts: 1 },
@@ -189,9 +192,14 @@ export class Orders {
     this.sponsorFunder = this.sponsor
   }
 
-  /** Register our app-data pre-image with this environment's orderbook, once per process. */
-  ensureAppData(): Promise<'present' | 'uploaded'> {
-    return this.appDataReady ??= registerAppData(this.orderBookApi)
+  /**
+   * Register our app-data pre-image with this environment's orderbook, once per process. The upload is the first API
+   * call of a run and the one environment that has never seen the hash is the one that has to take it, so a single 429
+   * would otherwise end the run before any funding: rate-limit it and retry it like every other orderbook call.
+   */
+  ensureAppData(): Promise<AppDataStatus> {
+    const upload = this.opts.uploadAppData !== false
+    return this.appDataReady ??= retry(() => this.api.run(() => registerAppData(this.orderBookApi, { upload })))
   }
 
   /** Quote, then stamp our app data on the intent and re-derive the uid and order PDA from it. */
@@ -246,8 +254,8 @@ export class Orders {
 
   /**
    * Quote, build and submit one order. Sponsored orders follow the orderbook's template:
-   * [create wSOL ATA, transfer, sync-native] (selling SOL) → approve → create buy ATA → CreateOrder,
-   * with the backend's funder as fee payer. Self-paid orders send the same bundle with the owner paying.
+   * [create wSOL ATA, transfer, sync-native] (selling SOL) → approve → CreateOrder, with the backend's funder as fee
+   * payer. Self-paid orders send the same bundle with the owner paying, plus the buy account it opens for itself.
    */
   async place(p: PlaceParams, record?: RecordPlacement): Promise<Placed> {
     const { mode } = p
@@ -283,11 +291,13 @@ export class Orders {
     const allowance = this.ledger.reserved(owner, sellMint) + intent.sellAmount
     // Built by hand so the delegate is our program's state PDA (the SDK's helper only knows its built-in program).
     ixs.push(createApproveInstruction(intent.sellTokenAccount, this.delegate, owner, allowance, [], p.sell.programId))
-    if (!p.buy.isNative) {
-      // Mandatory in the sponsored template even if the account exists, hence idempotent.
-      const payer = mode === 'sponsored' ? funder! : owner
+    // The sponsored template rejects a bundle that creates the buy token account at all, existing or not (services
+    // #5191, live on both environments since 30 Oct 2026): the settlement opens a missing one at the owner's
+    // associated address itself and takes the rent out of the fill, instead of billing the funder for it. A self-paid
+    // order pays its own rent anyway, so it keeps opening the account up front (idempotent when it is already there).
+    if (!p.buy.isNative && mode !== 'sponsored') {
       ixs.push(
-        createAssociatedTokenAccountIdempotentInstruction(payer, intent.buyTokenAccount, owner, intent.buyMint, p.buy.programId),
+        createAssociatedTokenAccountIdempotentInstruction(owner, intent.buyTokenAccount, owner, intent.buyMint, p.buy.programId),
       )
     }
     ixs.push(order.instruction)

@@ -20,7 +20,7 @@ MNEMONIC="word1 word2 … word12"
 RPC_URL="https://…"        # a paid RPC (Helius, Triton, QuickNode…): the public one rate-limits
 RPC_BACKUP_URL="https://…" # optional: a second provider with its own quota, used while the first fails
 DUNE_KEY="…"               # only for build-token-universe
-COW_API_KEY="…"            # optional: orderbook API key, sent as X-API-Key for higher rate limits (also read by qos.py)
+COW_API_KEY="…"            # optional: orderbook API key, sent as X-API-Key; sim then calls the gateway it is issued for (`apiPartner` in environments.json), since the public host answers 429 to a key holder's quotes and uploads (also read by qos.py)
 ```
 
 Then send SOL to the funder address. A session needs about `traders × --sol-funding-per-trader` (25 traders at 0.1 is
@@ -58,7 +58,7 @@ pnpm sim wallets --traders 1-25
 
 Standalone cleanup shows any SOL top-ups needed for fees, wallet rent and order rent before asking for confirmation. Wallets with tokens to sell receive at least the usual 0.02 SOL reserve; wallets with only empty accounts or wSOL receive the current minimum SOL-account balance plus closure fees. That minimum is read from Solana, since a wallet with zero SOL may need its SOL account recreated even while token accounts remain. It stops before sending if the funder cannot cover the top-ups and transfer fees. This lets cleanup retry wallets whose SOL was already swept while tokens remained. Cleanup still returns remaining SOL to the funder, including on its final attempt when some tokens could not be sold.
 
-By default, each order's creation transaction opens its own missing receiving token account, paid by the trader (self-paid) or the sponsor (sponsored), so ordinary scenarios include first-use account costs. With `--prepare-token-accounts`, single and composite runs instead create missing receiving token accounts once before trading. Composites keep those accounts open between scenarios while selling tokens and recycling available SOL. Final cleanup closes the accounts and returns their rent. Existing accounts are reused. Rent is a temporary deposit, checked against the funder's balance during preflight; transaction fees and trading costs are spent. Receiving wSOL accounts can also retain wrapped SOL until final cleanup. `--no-cleanup` leaves accounts and funds in the wallets. Dry runs never create accounts.
+By default, a self-paid order's creation transaction opens its own missing receiving token account, so ordinary scenarios include first-use account costs. A sponsored bundle may not: the orderbook rejects one that creates the buy token account (`InvalidTransaction: the bundle must not create the buy token account`), and the settlement opens a missing account at the owner's associated address itself, charging the rent to the fill rather than the funder. With `--prepare-token-accounts`, single and composite runs instead create missing receiving token accounts once before trading. Composites keep those accounts open between scenarios while selling tokens and recycling available SOL. Final cleanup closes the accounts and returns their rent. Existing accounts are reused. Rent is a temporary deposit, checked against the funder's balance during preflight; transaction fees and trading costs are spent. Receiving wSOL accounts can also retain wrapped SOL until final cleanup. `--no-cleanup` leaves accounts and funds in the wallets. Dry runs never create accounts.
 
 Cleanup logs refer to two different kinds of account:
 
@@ -271,6 +271,11 @@ trader,time,type,amount,token,other_token,mode,note
 - `mode`: `sponsored` (default, gasless) or `self` (the trader pays fees and rent)
 - tokens are a symbol (`SOL`, `USDC`, anything in `universe*.json` or `../tokens.json`) or a mint address. `SOL` is native SOL
 - lines starting with `#` are comments
+
+`--no-app-data` skips uploading our app-data pre-image and only checks whether the orderbook already has it. Orders
+carry the 32-byte hash alone, so an environment that has never seen the pre-image normally gets it uploaded on the
+first run; prod does not take that upload yet (`PUT /api/v1/app_data` answers 429), and this flag gets a run past it.
+The run then warns that the hash is unregistered, and placement can still fail with `InvalidAppData`.
 
 `--sell-only` ignores the `type` column and runs every row as a sell of `amount` of `token` for `other_token`, so a buy
 row sells what it would have bought: `buy 0.5 USDC with SOL` becomes `sell 0.5 USDC for SOL`, with the acquire step

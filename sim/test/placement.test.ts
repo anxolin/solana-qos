@@ -1,12 +1,12 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { Keypair, Transaction } from '@solana/web3.js'
-import { decodeApproveInstruction } from '@solana/spl-token'
+import { Keypair, PublicKey, Transaction } from '@solana/web3.js'
+import { ASSOCIATED_TOKEN_PROGRAM_ID, decodeApproveInstruction } from '@solana/spl-token'
 import { OrderKind } from '@cowprotocol/sdk-order-book'
 import type { SolanaQuoteAndPost } from '@cowprotocol/sdk-trading-solana'
 import { placeAndWait, runRow, type FlowContext } from '../src/flow.js'
 import { RateLimiter } from '../src/limiter.js'
 import { Orders, type Placed } from '../src/orders.js'
-import { Rpc } from '../src/rpc.js'
+import { Rpc, WSOL_MINT } from '../src/rpc.js'
 import { parseScenario } from '../src/scenario.js'
 import { Session } from '../src/session.js'
 import { randomUUID } from 'node:crypto'
@@ -72,6 +72,27 @@ describe('placement reliability', () => {
     expect(orders.ledger.reserved(owner.publicKey, usdc.mint)).toBe(5_000_000n)
     orders.ledger.release(placed.uid)
     expect(orders.ledger.reserved(owner.publicKey, usdc.mint)).toBe(0n)
+  })
+
+  it('keeps the buy token account out of a sponsored bundle, and still opens it when self-paid', async () => {
+    const { rpc, orders, owner, sell, buy, built } = await fixture()
+    const postSponsoredOrder = vi.fn(async (_transaction: string) => undefined)
+    vi.spyOn(orders, 'quote').mockResolvedValue({
+      solanaQuote: { funder: Keypair.generate().publicKey, intent: built.intent },
+      buildOrder: async () => built, postSponsoredOrder,
+    } as unknown as SolanaQuoteAndPost)
+    vi.spyOn(rpc, 'call').mockResolvedValue({ blockhash: '11111111111111111111111111111111', lastValidBlockHeight: 1 } as never)
+    const mintsCreated = (ixs: { programId: PublicKey; keys: { pubkey: PublicKey }[] }[]) =>
+      ixs.filter(i => i.programId.equals(ASSOCIATED_TOKEN_PROGRAM_ID)).map(i => i.keys[3].pubkey.toBase58())
+
+    await orders.place({ owner, sell, buy, kind: 'sell', amount: 1_000_000n, mode: 'sponsored' })
+    const bundle = Transaction.from(Buffer.from(postSponsoredOrder.mock.calls[0][0], 'base64'))
+    // Only the owner's own wSOL sell account: creating the buy account makes the orderbook reject the bundle.
+    expect(mintsCreated(bundle.instructions)).toEqual([WSOL_MINT.toBase58()])
+
+    const send = vi.spyOn(rpc, 'sendAndConfirm').mockResolvedValue('tx')
+    await orders.place({ owner, sell, buy, kind: 'sell', amount: 1_000_000n, mode: 'self' })
+    expect(mintsCreated(send.mock.calls[0][0])).toEqual([WSOL_MINT.toBase58(), buy.mint.toBase58()])
   })
 
   it.each([[500, 0, 1], [500, 2, 3], [429, 1, 2], [400, 2, 1]])('bounds HTTP %s quotes with maxRetries=%s at %s attempts', async (status, maxRetries, attempts) => {

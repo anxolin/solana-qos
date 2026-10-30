@@ -219,6 +219,13 @@ describe('app data', () => {
     expect(uploadAppData).toHaveBeenCalledWith(APP_DATA_HEX, APP_DATA_DOC)
   })
 
+  it('reports an unknown hash as missing, and uploads nothing, when the upload is off', async () => {
+    const { api: a, uploadAppData } = api(async () => { throw apiError(404) })
+    expect(await registerAppData(a, { upload: false })).toBe('missing')
+    expect(await registerAppData(api(async () => ({ fullAppData: APP_DATA_DOC })).api, { upload: false })).toBe('present')
+    expect(uploadAppData).not.toHaveBeenCalled()
+  })
+
   it('does not paper over an orderbook that is down', async () => {
     const { api: a, uploadAppData } = api(async () => { throw apiError(503) })
     await expect(registerAppData(a)).rejects.toThrow()
