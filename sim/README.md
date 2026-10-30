@@ -82,7 +82,7 @@ Main flags of `simulate-trade-session`:
 | `--max-creation-sol` | off | Refuses a run whose estimated creation cost (acquisitions, retries, cleanup) is above this |
 | `--prepare-token-accounts` | off | Create missing receiving accounts once before trading instead of in each order |
 | `--fresh-accounts` | off | Skip preparation and require missing receiving accounts for a dedicated fresh-account test |
-| `--slippage-bps` | SDK default | Quote slippage in basis points; 500 means 5% |
+| `--slippage-bps` | 50 | Slippage every quote asks for, in basis points (0-10000); 500 means 5%. Composite scenarios may override it |
 | `--env` | staging | `prod` must be passed explicitly |
 
 `--fill-timeout` starts after placement. `--max-retries N` allows at most N further attempts after placement errors or fill failures, shared across both kinds of failure. The SDK makes each request once, so its retries cannot multiply that budget. Standalone preparation and cleanup quotes also use `maxRetries`, with quote retry delays capped at one second. With `maxRetries: 0`, each quote, placement and cleanup stage gets one attempt, including no fresh quotes after a validity rejection or self-paid fallback after a native-SOL rejection. A run still has a separate final cleanup stage for unfinished wallets. A failed sponsored submission may still have been accepted, so outstanding-order recovery checks its UID before cleanup or the next scenario. Recovery polling and RPC transport handling remain separate from trade retries.
@@ -147,6 +147,8 @@ Save this JSON beside the two CSV files:
 | `options` | Optional existing run settings in camelCase. Explicit CLI flags override the config. |
 
 Supported `options`: `solFundingPerTrader`, `maxTotalSol`, `maxCreationSol`, `maxRetries`, `orderValidity`, `fillTimeout`, `cancelOnTimeout`, `slippageBps`, `quoteRps`, `apiRps`, `rpcRps`, `cleanup`, `report`, `prepareTokenAccounts`, and `freshAccounts`. Omitted settings use the existing run defaults. Unknown fields and invalid settings are rejected before funding. Confirmation can only be skipped with the CLI's `--yes` flag. `maxTotalSol` caps each scenario's funding pass and separately limits upfront token-account setup; `maxCreationSol` caps the whole composite's estimated order creation fees/rent before refunds, excluding receiving-account setup.
+
+Every quote asks the orderbook for `--slippage-bps` basis points of slippage, 50 by default, so runs are comparable instead of following whatever the backend would have quoted. `cleanup-trade-session` takes the same flag for its sell-back quotes; cleanup inside a run follows the run's setting.
 
 A scenario object can override only `freshAccounts`, `solFundingPerTrader`, and `slippageBps`. These per-scenario values take precedence over shared config and CLI settings. The main solver composites include this shared exception:
 
@@ -295,9 +297,13 @@ A trader's rows run one after another. Different traders run in parallel.
 
 Each order prints its debug-tool link (`debug.barn.cow.fi` on staging), and self-paid ones their Solscan transaction.
 
-Every order carries the app data hash `0xa168deae75884cfb01d60d3718bfe0bc258b12d3a120942cd3c08fed01aa8b08`
-(`{"appCode":"solana-qos","metadata":{},"version":"1.15.0"}`, in `src/appData.ts`), so
-simulated orders are easy to tell apart from real users. Changing the string changes the hash.
+Every order carries an app data hash whose pre-image names the sim and the slippage it was quoted with
+(`{"appCode":"solana-qos","metadata":{"quote":{"slippageBips":50}},"version":"1.15.0"}`, built in `src/appData.ts`), so
+simulated orders are easy to tell apart from real users and an order says on its own what it was quoted with.
+`metadata.quote.slippageBips` is where the app-data schema keeps it, so the debug tool and the explorer show it.
+Each slippage is its own hash and its own pre-image, registered on first use; a run that leaves slippage to the
+orderbook (no `slippageBps` in the quote) keeps the metadata-free
+`0xa168deae75884cfb01d60d3718bfe0bc258b12d3a120942cd3c08fed01aa8b08`. Changing the string changes the hash.
 
 ## Cleanup
 

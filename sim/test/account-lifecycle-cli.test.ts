@@ -127,7 +127,7 @@ it.each(['single', 'composite', 'resume', 'limited-funder', 'setup-resume', 'fre
         await ctx.rpc.sendAndConfirm([createAssociatedTokenAccountIdempotentInstruction(w.funder.publicKey, address, owner.publicKey, mint)], [w.funder])
       } else {
         expect(accounts.has(address.toBase58())).toBe(true)
-        expect(ctx.slippageBps).toBeUndefined()
+        expect(ctx.slippageBps).toBe(50) // the run default, where no scenario asks for another one
         if (mode === 'fresh-late-occupied') seedOccupiedAccounts()
       }
       events.push({ event: 'main', row: row.row })
@@ -138,7 +138,7 @@ it.each(['single', 'composite', 'resume', 'limited-funder', 'setup-resume', 'fre
   vi.doMock('../src/cleanup.js', async original => {
     const cleanup = await original<typeof import('../src/cleanup.js')>()
     const cleanupTrader: typeof cleanup.cleanupTrader = (ctx, ...args) => {
-      expect(ctx.slippageBps).toBe((!single || singleFresh) && args[1] === freshTrader ? 500 : undefined)
+      expect(ctx.slippageBps).toBe((!single || singleFresh) && args[1] === freshTrader ? 500 : 50)
       return cleanup.cleanupTrader(ctx, ...args)
     }
     return { ...cleanup, cleanupTrader }

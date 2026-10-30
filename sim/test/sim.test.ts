@@ -15,7 +15,7 @@ import { fromRaw, loadUniverse, toRaw } from '../src/tokens.js'
 import { generate, MIN_GAP_S, mulberry32, roundAmount } from '../src/generator.js'
 import { TRADER_RESERVE_SOL } from '../src/config.js'
 import { creationBudget } from '../src/budget.js'
-import { APP_DATA_DOC, APP_DATA_HEX, registerAppData } from '../src/appData.js'
+import { APP_DATA_DOC, APP_DATA_HEX, appDataDoc, appDataHash, registerAppData } from '../src/appData.js'
 import { barnStatus, buildRows, buildSequence, describeExtension, sampleLongTail, supported, type Routed, type UniverseRow } from '../src/universe.js'
 import { listRows, type Verdict } from '../src/tokenlist.js'
 
@@ -199,6 +199,15 @@ describe('app data', () => {
   it('hashes the solana-qos pre-image to the registered appData', () => {
     expect(APP_DATA_DOC).toBe('{"appCode":"solana-qos","metadata":{},"version":"1.15.0"}')
     expect(APP_DATA_HEX).toBe('0xa168deae75884cfb01d60d3718bfe0bc258b12d3a120942cd3c08fed01aa8b08')
+  })
+
+  it('puts the quoted slippage in the metadata the schema keeps it in, one hash per value', () => {
+    expect(appDataDoc(50)).toBe('{"appCode":"solana-qos","metadata":{"quote":{"slippageBips":50}},"version":"1.15.0"}')
+    expect(appDataDoc(undefined)).toBe(APP_DATA_DOC)
+    expect(appDataHash(APP_DATA_DOC).hex).toBe(APP_DATA_HEX)
+    expect(appDataHash(appDataDoc(50)).hex).not.toBe(appDataHash(appDataDoc(500)).hex)
+    expect(() => appDataDoc(12.5)).toThrow(/integer between 0 and 10000/)
+    expect(() => appDataDoc(20_000)).toThrow(/integer between 0 and 10000/)
   })
 
   const api = (getAppData: () => Promise<{ fullAppData?: string }>) => {

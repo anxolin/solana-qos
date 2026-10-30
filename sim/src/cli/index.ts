@@ -11,7 +11,7 @@ import { LOG_ENV_HINT, links, loadEnv, logsConfigured, lamportsToSol, QOS_ROOT, 
 import { NATIVE_SOL, Rpc, WSOL_MINT } from '../rpc.js'
 import { fmtSol, fund, fundingPlan, wallets } from '../wallets.js'
 import { Orders } from '../orders.js'
-import { APP_DATA_HEX, type AppDataStatus } from '../appData.js'
+import { type AppDataStatus } from '../appData.js'
 import { Session } from '../session.js'
 import { paceRows, parseScenario, readScenario, sellOnly, sessionSlug, spaceTraders, tradersIn, writeScenario, type TradeRow } from '../scenario.js'
 import { failureKind, latestOutcomes, retryRows } from '../retry.js'
@@ -183,10 +183,10 @@ function context(
 }
 
 /** Say what the orderbook knows about our app-data hash; `missing` is a warning, since placement may reject it. */
-function logAppData(status: AppDataStatus, env: CowEnv) {
-  if (status === 'uploaded') log(ui.ok(`Registered app data ${APP_DATA_HEX} on ${env}`))
-  else if (status === 'present') log(c.dim(`App data ${APP_DATA_HEX} already registered on ${env}`))
-  else log(ui.warn(`App data ${APP_DATA_HEX} is not registered on ${env} and --no-app-data skipped the upload: ` +
+function logAppData(status: AppDataStatus, env: CowEnv, hex: string) {
+  if (status === 'uploaded') log(ui.ok(`Registered app data ${hex} on ${env}`))
+  else if (status === 'present') log(c.dim(`App data ${hex} already registered on ${env}`))
+  else log(ui.warn(`App data ${hex} is not registered on ${env} and --no-app-data skipped the upload: ` +
     'orders carry a pre-image the orderbook cannot resolve, so placement can fail with InvalidAppData'))
 }
 
@@ -286,6 +286,7 @@ program
   .option('--max-creation-sol <sol>', 'fail if estimated creation costs exceed this amount', Number)
   .option('--no-cleanup', 'exclude cleanup orders from the estimate')
   .option('--sell-only', 'estimate the scenarios as simulate-trade-session --sell-only runs them: every row a sell')
+  .option('--no-app-data', 'skip uploading the app-data pre-image if the sponsor lookup has to quote')
   .addOption(envOption)
   .action(async (paths: string[], opts) => {
     const run = context(opts, new Session('budget-check'))
@@ -296,6 +297,15 @@ program
     }), opts)
     if (budget.issues.length) throw new Error(budget.issues.join('; '))
   })
+
+/** Every quote carries this unless a run, or a composite scenario, asks for another one. */
+const DEFAULT_SLIPPAGE_BPS = 50
+
+const slippageBps = (v: string) => {
+  const n = parseInt(v, 10)
+  if (!Number.isInteger(n) || n < 0 || n > 10_000) throw new Error('--slippage-bps must be an integer between 0 and 10000')
+  return n
+}
 
 function sessionCommand(name: string) {
   return program.command(name)
@@ -311,7 +321,7 @@ function sessionCommand(name: string) {
     }, 120)
     .option('--fill-timeout <s>', 'seconds to wait for a fill before giving up on the order (it then expires on its own)', (v) => parseInt(v, 10), 90)
     .option('--cancel-on-timeout', 'cancel the order on-chain when giving up, so it cannot fill late')
-    .option('--slippage-bps <bps>', 'override the quoted slippage', (v) => parseInt(v, 10))
+    .option('--slippage-bps <bps>', 'slippage for every quote, in basis points', slippageBps, DEFAULT_SLIPPAGE_BPS)
     .option('--prepare-token-accounts', 'create receiving token accounts once before trading, instead of in each order')
     .option('--no-prepare-token-accounts', 'leave receiving token accounts to order creation (the default)')
     .option('--fresh-accounts', 'require missing receiving token accounts; skip account preparation')
@@ -471,6 +481,9 @@ async function runSession(scenarioPath: string, opts: any, composite?: ReturnTyp
       ['Top-ups', `${c.bold(fmtSol(total))} ${c.dim(composite ? 'at most per scenario; fund before each run' : `to ${plan.filter((l) => l.topUp > 0n).length} of ${traders.length} traders`)}`],
       ['Max total', `${opts.maxTotalSol} SOL${composite ? ' per scenario' : ''}`],
       ['Retries', String(opts.maxRetries)],
+      ['Slippage', `${opts.slippageBps} bps${composite && scenarios.some(s => s.options?.slippageBps !== undefined)
+        ? c.dim(` (scenarios overriding it: ${scenarios.filter(s => s.options?.slippageBps !== undefined).map(s => `${s.name} ${s.options!.slippageBps}`).join(', ')})`)
+        : ''}`],
       ['Order validity', `${opts.orderValidity}s, the orderbook minimum`],
       ['Fill timeout', `${opts.fillTimeout}s, then ${opts.cancelOnTimeout ? 'cancel on-chain and move on' : 'move on and let the order expire'}`],
       ['Client limits', `${opts.quoteRps} quotes/s, ${opts.apiRps} API calls/s, ${opts.rpcRps} RPC calls/s`],
@@ -504,7 +517,7 @@ async function runSession(scenarioPath: string, opts: any, composite?: ReturnTyp
 
     // Orders carry only the app-data hash: register the pre-image before placing any, or the post fails with
     // InvalidAppData. Done for dry runs too, so they catch an unregistered hash before a funded run does.
-    logAppData(await orders.ensureAppData(), opts.env)
+    logAppData(await orders.ensureAppData(), opts.env, orders.appDataHex())
 
     if (opts.dryRun) {
       for (const scenario of scenarios) {
@@ -937,6 +950,7 @@ program
   .option('--api-rps <n>', 'other orderbook calls per second: posting, polling', parseFloat, 8)
   .option('--rpc-rps <n>', 'Solana RPC calls per second (your RPC plan is the limit)', parseFloat, 10)
   .option('--max-retries <n>', 'additional cleanup passes after failures (0 = no retries)', Number, 0)
+  .option('--slippage-bps <bps>', 'slippage for every cleanup quote, in basis points', slippageBps, DEFAULT_SLIPPAGE_BPS)
   .option('--no-app-data', 'skip uploading our app-data pre-image; only check whether the orderbook already has it')
   .option('-y, --yes', 'skip the confirmation prompt')
   .addOption(envOption)
@@ -963,7 +977,7 @@ program
       await fund(rpc, w, plan, log, ctx.link.tx)
       session.log({ step: 'cleanup', event: 'funded', traders: topUps.map(line => line.trader), amount: funding.toString() })
     }
-    logAppData(await ctx.orders.ensureAppData(), opts.env)
+    logAppData(await ctx.orders.ensureAppData(), opts.env, ctx.orders.appDataHex())
     const res = await cleanupAll(ctx, w, active, opts.env, opts.rpcRps)
     const swept = res.reduce((s, r) => s + r.swept, 0n)
     console.log(`\n${ui.ok(`Swept ${fmtSol(swept)} to the funder.`)}`)

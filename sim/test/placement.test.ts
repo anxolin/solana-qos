@@ -7,6 +7,7 @@ import { placeAndWait, runRow, type FlowContext } from '../src/flow.js'
 import { RateLimiter } from '../src/limiter.js'
 import { Orders, type Placed } from '../src/orders.js'
 import { Rpc, WSOL_MINT } from '../src/rpc.js'
+import { appDataDoc, appDataHash } from '../src/appData.js'
 import { parseScenario } from '../src/scenario.js'
 import { Session } from '../src/session.js'
 import { randomUUID } from 'node:crypto'
@@ -51,6 +52,17 @@ describe('placement reliability', () => {
     await results
     expect(quote.mock.calls[0][0]).toMatchObject({ slippageBps: 500 })
     expect(quote.mock.calls[1][0]).not.toHaveProperty('slippageBps')
+  })
+
+  it('stamps the slippage it quoted with onto the order through the app data', async () => {
+    const { orders, owner, sell, buy, built } = await fixture()
+    const ensure = vi.spyOn(orders, 'ensureAppData').mockResolvedValue('present')
+    vi.spyOn(orders.sdk, 'getQuote').mockResolvedValue({ solanaQuote: { intent: built.intent } } as unknown as SolanaQuoteAndPost)
+    const quoted = await orders.quote({ owner, sell, buy, kind: 'sell', amount: 1_000_000n, slippageBps: 50 })
+    expect(Buffer.from(quoted.solanaQuote.intent.appData).toString('hex')).toBe(appDataHash(appDataDoc(50)).hex.slice(2))
+    // The pre-image for that slippage is registered before an order can carry its hash.
+    expect(ensure).toHaveBeenCalledWith(50)
+    expect(orders.appDataHex(50)).not.toBe(orders.appDataHex(undefined))
   })
 
   it('adds a resumed live reservation to the next approval and releases it after expiry', async () => {

@@ -16,7 +16,7 @@ import {
   type SolanaQuoteAndPost,
   type SolanaOrderIntent,
 } from '@cowprotocol/sdk-trading-solana'
-import { APP_DATA, registerAppData, type AppDataStatus } from './appData.js'
+import { appDataDoc, appDataHash, registerAppData, type AppDataStatus } from './appData.js'
 import { apiHeaders } from './config.js'
 import { settlementFor } from './settlement.js'
 import { RateLimiter, retry, sleep } from './limiter.js'
@@ -156,7 +156,8 @@ export class Orders {
   sponsorFunder?: PublicKey
   private readonly sponsor?: PublicKey
   private warnedSponsor = false
-  private appDataReady?: Promise<AppDataStatus>
+  /** One entry per slippage the run quotes with: its pre-image, hash, and the registration it only needs once. */
+  private readonly appData = new Map<number, { doc: string; bytes: Uint8Array; hex: string; ready?: Promise<AppDataStatus> }>()
   /** The settlement program orders are created on, and its state PDA (the SPL delegate approvals must name). */
   readonly programId: PublicKey
   readonly delegate: PublicKey
@@ -197,9 +198,26 @@ export class Orders {
    * call of a run and the one environment that has never seen the hash is the one that has to take it, so a single 429
    * would otherwise end the run before any funding: rate-limit it and retry it like every other orderbook call.
    */
-  ensureAppData(): Promise<AppDataStatus> {
+  ensureAppData(slippageBps = this.opts.slippageBps): Promise<AppDataStatus> {
+    const entry = this.appDataFor(slippageBps)
     const upload = this.opts.uploadAppData !== false
-    return this.appDataReady ??= retry(() => this.api.run(() => registerAppData(this.orderBookApi, { upload })))
+    return entry.ready ??= retry(() => this.api.run(() => registerAppData(this.orderBookApi, { upload, doc: entry.doc })))
+  }
+
+  /** The hash orders carry at this slippage, for logs and for anyone looking the pre-image up. */
+  appDataHex(slippageBps = this.opts.slippageBps): string {
+    return this.appDataFor(slippageBps).hex
+  }
+
+  private appDataFor(slippageBps?: number) {
+    const key = slippageBps ?? -1
+    let entry = this.appData.get(key)
+    if (!entry) {
+      const doc = appDataDoc(slippageBps)
+      entry = { doc, ...appDataHash(doc) }
+      this.appData.set(key, entry)
+    }
+    return entry
   }
 
   /** Quote, then stamp our app data on the intent and re-derive the uid and order PDA from it. */
@@ -215,6 +233,7 @@ export class Orders {
 
   private async quoteOnce(p: Omit<PlaceParams, 'mode'>): Promise<SolanaQuoteAndPost> {
     await this.quotes.take()
+    const slippageBps = p.slippageBps ?? this.opts.slippageBps
     const params = {
       ownerAddress: p.owner.publicKey,
       sellTokenAddress: p.sell.mint,
@@ -226,12 +245,15 @@ export class Orders {
       sellTokenProgramId: p.sell.programId,
       buyTokenProgramId: p.buy.programId,
       validForSeconds: this.opts.validFor + PLACEMENT_MARGIN_S,
-      ...((p.slippageBps ?? this.opts.slippageBps) !== undefined ? { slippageBps: p.slippageBps ?? this.opts.slippageBps } : {}),
+      ...(slippageBps !== undefined ? { slippageBps } : {}),
     }
     const q = await stage('quote', { ...params, ownerAddress: params.ownerAddress.toBase58() }, () => this.sdk.getQuote(params))
+    // The order says which slippage it was quoted with, so register that pre-image before stamping it on the intent.
+    const appData = this.appDataFor(slippageBps)
+    await this.ensureAppData(slippageBps)
     // buildOrder() reuses solanaQuote's uid/PDA when given no overrides, so they must match the new intent.
     const sq = q.solanaQuote
-    sq.intent = this.settlement.intent({ ...sq.intent, appData: APP_DATA })
+    sq.intent = this.settlement.intent({ ...sq.intent, appData: appData.bytes })
     sq.intentBytes = encodeOrderIntent(sq.intent)
     sq.uid = await hashOrderIntent(sq.intentBytes)
     // The CreateOrder instruction and order PDA follow solanaQuote.programId, so pointing it at our program is enough.
