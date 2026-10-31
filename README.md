@@ -136,7 +136,8 @@ rate-limits), set `SOLANA_RPC`. To point at another orderbook, set `COW_API`.
 ## Labels
 
 - `tokens.json`: mint → symbol. `fetch` fills it from Jupiter's token API.
-- `solvers.json`: solver pubkey → driver name. Take it from the driver/solver query in `queries/logs.md`.
+- `solvers.json`: solver pubkey → driver name, for solvers the CMS does not list (barn's). Take it from the driver/solver query in `queries/logs.md`. It overrides the CMS.
+- The production solvers are named from the CoW CMS (`https://cms.cow.fi/api/solvers`, `COW_CMS` points it elsewhere), which carries their Solana addresses; `report` caches the answer in `solvers.cms.json` so it can run offline. An address neither source knows is shown shortened.
 
 ## Caveats
 

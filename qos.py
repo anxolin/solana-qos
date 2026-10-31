@@ -24,6 +24,7 @@ import sys
 import time
 import urllib.error
 import urllib.request
+from urllib.parse import urlencode
 from collections import Counter, defaultdict
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
@@ -33,6 +34,8 @@ ROOT = Path(__file__).resolve().parent
 ENVIRONMENTS = json.loads((ROOT / "environments.json").read_text())
 API = os.environ.get("COW_API", ENVIRONMENTS["staging"]["api"])
 RPC = os.environ.get("SOLANA_RPC", "https://api.mainnet-beta.solana.com")
+CMS = os.environ.get("COW_CMS", "https://cms.cow.fi")
+CMS_CACHE = ROOT / "solvers.cms.json"
 DEBUG = ENVIRONMENTS["staging"]["debug"] + "/order/"
 
 
@@ -80,6 +83,37 @@ def http_json(url: str, body: dict | None = None, retries: int = 7):
             pass
         time.sleep(2**attempt)
     raise RuntimeError(f"giving up on {url}")
+
+
+def cms_solver_names() -> dict[str, str]:
+    """Solana solver pubkey -> driver name, from the CoW CMS (what the explorer names solvers from).
+
+    The CMS carries the production solvers, several addresses each; barn's live in `solvers.json` alone, which
+    overrides this. The answer is cached in `solvers.cms.json` so a report can be rebuilt without the network.
+    """
+    names: dict[str, str] = {}
+    try:
+        page = 1
+        while True:
+            query = urlencode({"pagination[page]": page, "pagination[pageSize]": 100, "populate": "*"})
+            body = http_json(f"{CMS}/api/solvers?{query}", retries=2) or {}
+            for item in body.get("data", []):
+                attributes = item.get("attributes") or {}
+                name = attributes.get("solverId") or attributes.get("displayName")
+                for network in ((attributes.get("solver_networks") or {}).get("data") or []):
+                    address = (network.get("attributes") or {}).get("address") or ""
+                    # Solana pubkeys are base58; the EVM addresses of the same solver are 0x-prefixed.
+                    if name and address and not address.startswith("0x"):
+                        names[address] = name
+            pages = (body.get("meta") or {}).get("pagination") or {}
+            if page >= pages.get("pageCount", page):
+                break
+            page += 1
+    except (RuntimeError, urllib.error.URLError, TimeoutError, ValueError):
+        return json.loads(CMS_CACHE.read_text()) if CMS_CACHE.exists() else {}
+    if names:
+        CMS_CACHE.write_text(json.dumps(names, indent=1, sort_keys=True) + "\n")
+    return names
 
 
 def lines(path: Path) -> list[str]:
@@ -603,7 +637,9 @@ def cmd_report(a):
     states = order_states(session)
     journal = read_journal(session)
     logs_available = comp_path.exists()
-    tokens, names = load_map("tokens.json"), load_map("solvers.json")
+    tokens = load_map("tokens.json")
+    # The CMS names the production solvers; solvers.json holds barn's, and wins where both have an address.
+    names = {**cms_solver_names(), **load_map("solvers.json")}
     tok = lambda m: tokens.get(m) or universe_symbols().get(m) or short(m)  # noqa: E731
     sol = lambda s: names.get(s, short(s))  # noqa: E731
     scenario_by_row = {r["row"]: s["name"] for s in meta.get("composite", {}).get("scenarios", []) for r in s["sourceRows"]}
