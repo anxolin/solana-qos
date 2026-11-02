@@ -197,12 +197,21 @@ describe('generator', () => {
 
 describe('app data', () => {
   it('hashes the solana-qos pre-image to the registered appData', () => {
-    expect(APP_DATA_DOC).toBe('{"appCode":"solana-qos","metadata":{},"version":"1.15.0"}')
-    expect(APP_DATA_HEX).toBe('0xa168deae75884cfb01d60d3718bfe0bc258b12d3a120942cd3c08fed01aa8b08')
+    expect(APP_DATA_DOC).toBe('{"appCode":"solana-qos","metadata":{"orderClass":{"orderClass":"market"}},"version":"1.15.0"}')
+    expect(APP_DATA_HEX).toBe('0x0577ddec3ebfe70b06cfbc74f55e2e6b1c1584ec77fd98b7fb360fab197f559b')
+  })
+
+  it('declares the market order class the happy-moo SLI filters on, at every slippage', () => {
+    for (const doc of [APP_DATA_DOC, appDataDoc(0), appDataDoc(50), appDataDoc(10_000)]) {
+      expect(JSON.parse(doc).metadata.orderClass).toEqual({ orderClass: 'market' })
+    }
   })
 
   it('puts the quoted slippage in the metadata the schema keeps it in, one hash per value', () => {
-    expect(appDataDoc(50)).toBe('{"appCode":"solana-qos","metadata":{"quote":{"slippageBips":50}},"version":"1.15.0"}')
+    expect(appDataDoc(50)).toBe(
+      '{"appCode":"solana-qos","metadata":{"orderClass":{"orderClass":"market"},"quote":{"slippageBips":50}},"version":"1.15.0"}',
+    )
+    expect(appDataHash(appDataDoc(50)).hex).toBe('0x44c81c419a3f82b3527bf1c8d4572d73a2cb39c6485b96073b633a4d2ca37ca8')
     expect(appDataDoc(undefined)).toBe(APP_DATA_DOC)
     expect(appDataHash(APP_DATA_DOC).hex).toBe(APP_DATA_HEX)
     expect(appDataHash(appDataDoc(50)).hex).not.toBe(appDataHash(appDataDoc(500)).hex)

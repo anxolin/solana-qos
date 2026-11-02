@@ -3,19 +3,23 @@ import { OrderBookApiError, type OrderBookApi } from '@cowprotocol/sdk-order-boo
 import { errorDetail, isRateLimit } from './limiter.js'
 
 /**
- * App-data pre-image a simulated order carries when the run leaves slippage to the orderbook: `appCode` alone, so the
- * orders are identifiable without claiming metadata they do not use. The order's 32-byte `appData` is keccak256 of
- * these exact bytes (the EVM convention), so keep the string byte-for-byte: no reformatting or key reordering.
+ * App-data pre-image a simulated order carries when the run leaves slippage to the orderbook: `appCode` to identify
+ * the probe, plus `metadata.orderClass` declaring what these orders are. The class is not decoration — the analytics
+ * mart behind the "time to happy moo" SLI keeps only `orderClass = 'market'`, so an order that omits it is dropped
+ * from the very metric this probe exists to measure. The order's 32-byte `appData` is keccak256 of these exact bytes
+ * (the EVM convention), so keep the string byte-for-byte: no reformatting or key reordering.
  */
-export const APP_DATA_DOC = '{"appCode":"solana-qos","metadata":{},"version":"1.15.0"}'
+export const APP_DATA_DOC =
+  '{"appCode":"solana-qos","metadata":{"orderClass":{"orderClass":"market"}},"version":"1.15.0"}'
 
 export const APP_DATA: Uint8Array = keccak_256(new TextEncoder().encode(APP_DATA_DOC))
 export const APP_DATA_HEX = `0x${Buffer.from(APP_DATA).toString('hex')}`
 
 /**
  * The pre-image for a quote's slippage, which `metadata.quote.slippageBips` is the schema's place for (app-data
- * v1.15.0): the order then says on its own what it was quoted with, which is what a debug session needs. Built by
- * hand, like the doc above, so the bytes we hash are the bytes we upload. Each value is its own hash, so a run that
+ * v1.15.0): the order then says on its own what it was quoted with, which is what a debug session needs. Carries the
+ * same `orderClass` as the doc above, keyed before `quote` so the metadata keys stay alphabetical. Built by hand,
+ * like the doc above, so the bytes we hash are the bytes we upload. Each value is its own hash, so a run that
  * changes slippage registers another pre-image.
  */
 export function appDataDoc(slippageBps?: number): string {
@@ -23,7 +27,7 @@ export function appDataDoc(slippageBps?: number): string {
   if (!Number.isInteger(slippageBps) || slippageBps < 0 || slippageBps > 10_000) {
     throw new Error(`app data slippage must be an integer between 0 and 10000, got ${slippageBps}`)
   }
-  return `{"appCode":"solana-qos","metadata":{"quote":{"slippageBips":${slippageBps}}},"version":"1.15.0"}`
+  return `{"appCode":"solana-qos","metadata":{"orderClass":{"orderClass":"market"},"quote":{"slippageBips":${slippageBps}}},"version":"1.15.0"}`
 }
 
 export function appDataHash(doc: string): { bytes: Uint8Array; hex: string } {
