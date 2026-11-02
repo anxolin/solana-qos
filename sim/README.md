@@ -297,17 +297,16 @@ A trader's rows run one after another. Different traders run in parallel.
 
 Each order prints its debug-tool link (`debug.barn.cow.fi` on staging), and self-paid ones their Solscan transaction.
 
-Every order carries an app data hash whose pre-image names the sim, declares the order class and records the slippage
-it was quoted with
-(`{"appCode":"solana-qos","metadata":{"orderClass":{"orderClass":"market"},"quote":{"slippageBips":50}},"version":"1.15.0"}`,
-built in `src/appData.ts`), so simulated orders are easy to tell apart from real users and an order says on its own
-what it was quoted with. `metadata.quote.slippageBips` is where the app-data schema keeps it, so the debug tool and
-the explorer show it. Each slippage is its own hash and its own pre-image, registered on first use; a run that leaves
-slippage to the orderbook (no `slippageBps` in the quote) keeps the slippage-free
-`0x0577ddec3ebfe70b06cfbc74f55e2e6b1c1584ec77fd98b7fb360fab197f559b`. Changing the string changes the hash.
+Every order carries an app data hash whose pre-image (built in `src/appData.ts`) names the sim, declares the order
+class and records the slippage it was quoted with:
 
-`metadata.orderClass` is what makes these orders count: the happy-moo SLI keeps only `market`, so without it every
-order the sim placed was excluded from the metric it probes. Orders placed before this keep their old hashes.
+```json
+{"appCode":"solana-qos","metadata":{"orderClass":{"orderClass":"market"},"quote":{"slippageBips":50}},"version":"1.15.0"}
+```
+
+`orderClass` is what makes these orders count — the happy-moo SLI keeps only `market`. Each slippage is its own hash,
+registered on first use; a run that leaves slippage to the orderbook keeps the slippage-free
+`0x0577ddec3ebfe70b06cfbc74f55e2e6b1c1584ec77fd98b7fb360fab197f559b`. Changing the string changes the hash.
 
 ## Cleanup
 
