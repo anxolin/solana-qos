@@ -306,10 +306,8 @@ the explorer show it. Each slippage is its own hash and its own pre-image, regis
 slippage to the orderbook (no `slippageBps` in the quote) keeps the slippage-free
 `0x0577ddec3ebfe70b06cfbc74f55e2e6b1c1584ec77fd98b7fb360fab197f559b`. Changing the string changes the hash.
 
-`metadata.orderClass` is what makes these orders count. The analytics mart behind the "time to happy moo" SLI keeps
-only `orderClass = 'market'`, so before it was set, every order this sim placed was excluded from the metric the sim
-exists to measure — 5,600 of the 5,748 Solana orders in the week to 2026-10-31, leaving an SLI built on 76 CoW Swap
-orders. Orders placed before this change keep their old hashes and stay out of the SLI.
+`metadata.orderClass` is what makes these orders count: the happy-moo SLI keeps only `market`, so without it every
+order the sim placed was excluded from the metric it probes. Orders placed before this keep their old hashes.
 
 ## Cleanup
 
