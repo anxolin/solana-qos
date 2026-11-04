@@ -1,6 +1,6 @@
 # Composite solver test runs
 
-All 28 currently saved completed composite trading runs are indexed across 11 solver labels; 1 older historical entry and 1 standalone smoke run are retained below. [Solver directory](https://app.notion.com/p/3ff8da5f04ca80d8a4bdcbe5e58f8a3b) · [Notion test runs](https://app.notion.com/p/3ff8da5f04ca803a9443ef01b9289df9). Rates count filled eligible planned trades, including quote and creation failures. Only known nonzero transfer-fee probes are excluded; supported zero-fee Token-2022 trades remain counted. Original session evidence is preserved. Trading phases have finished; cleanup can remain pending. Run results do not alone prove solver isolation.
+All 34 currently saved completed composite trading runs are indexed across 13 solver labels; 1 older historical entry and 3 standalone smoke runs are retained below. [Solver directory](https://app.notion.com/p/3ff8da5f04ca80d8a4bdcbe5e58f8a3b) · [Notion test runs](https://app.notion.com/p/3ff8da5f04ca803a9443ef01b9289df9). Rates count filled eligible planned trades, including quote and creation failures. Only known nonzero transfer-fee probes are excluded; supported zero-fee Token-2022 trades remain counted. Original session evidence is preserved. Trading phases have finished; cleanup can remain pending. Run results do not alone prove solver isolation.
 
 | Session | Environment | Filled / eligible | Fill rate | Excluded | Report |
 | --- | --- | --- | --- | --- | --- |
@@ -33,12 +33,21 @@ All 28 currently saved completed composite trading runs are indexed across 11 so
 | 2026-10-29-09-09-composite-solivagus-run | staging | 0/182 | 0.00% | 0 | [Original full report on Notion](https://app.notion.com/p/4088da5f04ca810e9c82e79fcb6c6cc4) |
 | 2026-10-29-10-19-composite-solivagus-run | staging | 95/182 | 52.20% | 0 | [Full report](20261029_solivagus_solver_test_report_for_cow.md) · [Notion](https://app.notion.com/p/4088da5f04ca818fbdaedb0ef1e1dd34) |
 | 2026-10-29-10-54-composite-rosato-run | staging | 29/86 | 33.72% | 0 | [Full report](20261029_rosato_solver_test_report_for_cow.md) · [Notion](https://app.notion.com/p/4088da5f04ca8134aa00e74bb6a6d712) |
+| 2026-10-29-17-03-composite-cicada-run | staging | 0/182 | 0.00% | 0 | [Full report](20261029_cicada_solving_only_solver_test_report_for_cow.md) · Solving only; Jupiter quoted and Cicada solved. [Notion](https://app.notion.com/p/4088da5f04ca81fe895aedbfc277f118). |
+| 2026-10-29-17-41-composite-zurui-run | staging | 22/296 | 7.43% | 0 | [Full report](20261029_zurui_quoting_and_solving_solver_test_report_for_cow.md) · Quoting and solving; Zurui did both. [Notion](https://app.notion.com/p/4088da5f04ca81029eeec7649a8476b6). |
+| 2026-10-29-18-22-composite-zurui-run | staging | 55/296 | 18.58% | 0 | [Full report](20261029_zurui_solving_only_solver_test_report_for_cow.md) · Solving only; Jupiter quoted and Zurui solved. [Notion](https://app.notion.com/p/4088da5f04ca81f0bb67e1b2930d7b17). |
+
+| 2026-11-04-11-39-composite-rosato-run | staging | 62/86 | 72.09% | 0 | [Full report](20261104_rosato_solver_test_report_for_cow.md) · Solving only; Jupiter quoted and Rosato solved. [Notion](https://app.notion.com/p/40e8da5f04ca810fb812db7db94a7af4). |
+| 2026-11-04-12-11-composite-paradox-run | staging | 4/167 | 2.40% | 0 | [Full report](20261104_paradox_solver_test_report_for_cow.md) · Solving only; Jupiter quoted and Paradox solved. [Notion](https://app.notion.com/p/40e8da5f04ca815fa659d958f4ba4b57). |
+| 2026-11-04-12-49-composite-arc-run | staging | 88/182 | 48.35% | 0 | [Full report](20261104_arc_solver_test_report_for_cow.md) · Solving only; Jupiter quoted and Arc solved. [Notion](https://app.notion.com/p/40e8da5f04ca8159b90bc323d80371ee). |
 
 ### Standalone smoke checks
 
 | Session | Environment | Filled / eligible | Fill rate | Excluded | Report |
 | --- | --- | --- | --- | --- | --- |
 | rosato-smoke-20261029-105125 | staging | 2/6 | 33.33% | 0 | [Report, section 6](20261029_rosato_solver_test_report_for_cow.md) · [Notion](https://app.notion.com/p/4088da5f04ca818aada8f417b15669b6) |
+| paradox-smoke-20261104-120659 | staging | 0/6 | 0.00% | 0 | [Full report](20261104_paradox_solver_test_report_for_cow.md) · Mixed/unknown; Paradox quoting verified, solving untested. [Notion](https://app.notion.com/p/40e8da5f04ca8103904ac6fcdc697fcd). |
+| arc-smoke-20261104-124624 | staging | 1/6 | 16.67% | 0 | [Full report](20261104_arc_solver_test_report_for_cow.md) · Quoting and solving; Arc did both. [Notion](https://app.notion.com/p/40e8da5f04ca8122af41ca7bf4abf0e3). |
 
 Jupiter’s 17 October run was throttled by our proxy, and its 13 October production run was not verified to be isolated. These remain historical run outcomes. The historical 20 October 12:03 Rizzolver entry came from a replaced journal and 109 recovered wallet-verified orders. Its session folder and Notion run row are absent from the current listings; the old references are retained without recreating an entry from stale evidence.
 
@@ -239,6 +248,8 @@ Good to have for prod:
 
 Evidence: [later 29 October run](https://app.notion.com/p/4088da5f04ca818fbdaedb0ef1e1dd34), sections 2-5, confirms single-order settlements, incomplete waves, and the USDC/Fartcoin payout shortfalls. Jupiter supplied quotes, and other quote-provider errors stay in the complete report. The earlier FAQ and token account questions remain open; no solver-paid account-creation requirement is added.
 
+User-requested mode clarification applied and read back on 29 October: [Solivagus Status](https://app.notion.com/p/4008da5f04ca80018c20f445ac8b8050) now starts with “Solivagus worked better in solve-only mode with Jupiter quotes; their own quoting returned no usable quotes, so use them for solving only for now. Many orders still timed out, and some payments exceeded swap output.” The earlier run used Solivagus's quote path and placed no orders; the later run used Jupiter quotes and filled 95/166 accepted main orders. This compares operating modes, not a verified improvement in the same solver configuration. Only the summary changed; the approved checklist below, Next action, State, relations and icon stayed unchanged. The text block below records the earlier approved Status before this clarification.
+
 ```text
 Some supported sells filled with Jupiter quotes. Many orders hit our 60-second timeout, and some payments exceeded swap output.
 
@@ -269,4 +280,120 @@ Good to have for prod:
 [ ] Review quote age and swap limits for the JUP and PUMP retries.
 [ ] Check batching and direct matching if supported.
 [ ] Confirm access to the team channel.
+```
+
+## Latest Cicada and Zurui sync - 29 October 2026
+
+Three new sessions have finished all trading phases and have checked full internal reports. Their modes were verified from historical staging request and competition logs. No known nonzero transfer-fee trades are excluded. Acquisitions and cleanup are excluded from main-fill totals.
+
+| Session | Mode and provider | Planned fill result | Main orders | Synced run TLDR |
+| --- | --- | --- | --- | --- |
+| 2026-10-29-17-03-composite-cicada-run | Solving only; Jupiter quoted and Cicada received solve requests. | 0/182 (0.00%) | 0/136 placed main orders filled; 136 cancelled. | Solving only; Jupiter quoted and Cicada received solve requests. None of 182 planned trades filled, including all 136 placed main orders; 46 stopped before main placement. No returned proposal or settlement was recovered, and cleanup recovery remains unresolved. |
+| 2026-10-29-17-41-composite-zurui-run | Quoting and solving; Zurui did both. | 22/296 (7.43%) | 22/24 placed main orders filled; 2 cancelled. | Quoting and solving; Zurui did both. Filled 22/296 planned trades and 22/24 placed main orders; 257 route rejections and 15 other pre-placement failures blocked most tests. One rejected swap candidate later filled; cleanup left recorded balances in 17 wallets. |
+| 2026-10-29-18-22-composite-zurui-run | Solving only; Jupiter quoted and Zurui solved. | 55/296 (18.58%) | 55/157 placed main orders filled; 102 cancelled. | Solving only; Jupiter quoted and Zurui solved. Filled 55/296 planned trades and 55/157 placed main orders; 139 stopped before placement and 102 placed main orders timed out. Native/wrapped payouts and 9 fixed-input xStock purchases filled, but the provider change does not prove a solver improvement. |
+
+Cicada's 46 pre-placement failures comprise 30 sponsored creation rejections, 15 external exact-buy quote failures and 1 timed-out acquisition. They are separate from the 136 placed main orders that never filled. CoW should trace the HTTP completion for auction 425344, request 1015 at 17:04:35.424 UTC. The earlier claimed Cicada quoting-and-solving session is absent from saved evidence and was not reconstructed. All five trading phases finished, but recovery has `finished=false` and 30 unresolved lookups; cleanup is not confirmed complete.
+
+Zurui's solving-only run has 8 recovered simulation failures on 7 orders; some later filled. These are failed attempts, not 8 additional failed trades. All successful main settlements in both runs contained one order. Batching and direct matching are known unsupported features, so their absence is not a new defect. Sponsored flows remain blocked before settlement; receiving-account creation is handled through the user/sponsor and Driver flow, not assigned to the solver.
+
+Notion sync completed after the separate Notion login was approved and verified as the CoW Protocol workspace. Both schemas and all saved-view rows were fetched, with no more pages: 32 test-run rows and 14 solver rows. The three sessions were missing and were created once, with correct staging context, dates, solver relations, 0-100 fill rates and mode/provider TLDRs. Each page contains its full internal report and original Markdown attachment. All 429 distinct Debug and transaction URLs counted per report are present in the saved page content (174 Cicada, 47 Zurui quoting and solving, 208 Zurui solving only). All three uploaded attachments downloaded exactly match the local source text. The first full read of the largest report timed out after 300 seconds; the retry succeeded, and no duplicate write was made. Reciprocal Test runs relations contain all three new pages. Fresh database reads confirmed no Status or State changed. Local edits remain unstaged.
+
+The app connector initially returned `token_revoked`, and the separate Notion connection required OAuth. The user approved that login. A multi-source SQL read required Business access; the documented saved-view mode worked on the current plan, so no trial or plan change was needed.
+
+Only Cicada and Zurui have new completed tests in this sync. The user requested shorter Status text focused on their errors and approved the exact versions below. Both were applied in Notion and read back successfully. State, Test runs relations, icons, covers and page content stayed unchanged. No other solver was edited. There are no pending Status proposals from this sync.
+
+### Approved Status - Cicada
+
+Evidence: [Cicada solving-only report](https://app.notion.com/p/4088da5f04ca81fe895aedbfc277f118), sections 1-5, records zero main fills and the missing solve-response evidence. Its creation rejections happened before solver participation. External quotes do not verify Cicada's own quoting.
+
+```text
+No orders filled, even with external quotes. We couldn't recover a usable solve response, so the cause is still unknown.
+
+Next: CoW and Cicada to trace one solve request and its response.
+
+Must for prod:
+[ ] Get basic sells filling reliably.
+
+Good to have for prod:
+```
+
+### Approved Status - Zurui
+
+Evidence: [Zurui quoting-and-solving report](https://app.notion.com/p/4088da5f04ca81029eeec7649a8476b6), sections 1-8, and [Zurui solving-only report](https://app.notion.com/p/4088da5f04ca81f0bb67e1b2930d7b17), sections 1-8, separate quote failures from placed-order timeouts. Changing the quote provider does not prove a solver improvement.
+
+```text
+Zurui's quotes blocked most trades. With external quotes, some trades filled, but many orders timed out.
+
+Next: Zurui and CoW to trace a failed quote and a timed-out order.
+
+Must for prod:
+[ ] Fix quoting for supported trades.
+[ ] Get small waves of orders filling reliably.
+
+Good to have for prod:
+```
+
+## 4 November 2026 report and Notion sync
+
+Checked 29 October-4 November inclusive. All earlier runs in this window already had full Notion reports and Markdown attachments. Generated 6 missing reports for 3 solvers, covering 3 composites and 2 separate smoke checks. Created and read back 5 test-run pages, verified their rates and solver relations, preserved every report Debug link, and downloaded each uploaded Markdown to verify it matches the local file. Notion date properties display to the minute; the full reports keep run times to seconds.
+
+All trading phases have ended. Rosato and Arc composites and Arc smoke still have unresolved cleanup/recovery; Paradox composite cleanup is also pending. Rejected prepared UIDs are not accepted or live orders. No trades were replayed. All 3 composites are solving-only runs with verified Jupiter quoting. They do not verify the target solvers' own quoting fixes. Arc smoke used Arc for quoting and solving; Paradox smoke verified Paradox quoting but placed no order, so solving is untested.
+
+Rosato filled 62/62 accepted main orders from 86 planned flows. Its 157 failed candidate/settlement attempts affected 33 main and 28 cleanup orders, all later filled; batching was not achieved. Paradox filled 4/136 accepted main orders from 167 planned flows; 132 main orders timed out. Arc filled 88/136 accepted main orders from 182 planned flows; 48 main orders timed out. Arc's 435 token-balance candidate failures were all cleanup and do not explain the main cancellations. Full reports separate placement gaps, failed attempts, final outcomes and cleanup.
+
+Solver relations are complete: Rosato 3 runs, Paradox 5 and Arc 4. Existing Status, State, icons and manual notes were preserved. These reports and index changes are unstaged.
+
+### Pending Status proposals
+
+These exact proposals have not been applied. The sync skill requires confirmation before Status changes. State will remain unchanged.
+
+#### Rosato
+
+Evidence: [4 November report](https://app.notion.com/p/40e8da5f04ca810fb812db7db94a7af4), scenario findings and comparison; [previous report](https://app.notion.com/p/4088da5f04ca8134aa00e74bb6a6d712). Own quoting requirements remain open because the composite used Jupiter. Earlier unchecked items are preserved in the proposal.
+
+```text
+Small sells and token purchases filled with Jupiter quotes. Every accepted main order filled, but some swap attempts needed retries.
+
+Next: Rerun a small wave using Rosato's own quotes.
+
+Must for prod:
+[ ] Get 0.005 SOL to JUP sells quoted and filled reliably in a small wave. The latest run used Jupiter quotes, so this is still open.
+
+Good to have for prod:
+[ ] Review quote age and swap limits for the JUP and PUMP retries. Keep promised payouts covered.
+[ ] Check batching and direct matching if supported.
+```
+
+#### Paradox
+
+Evidence: [4 November report](https://app.notion.com/p/40e8da5f04ca815fa659d958f4ba4b57), scenario findings and comparison; [previous report](https://app.notion.com/p/3ff8da5f04ca81c48dd3d5aa38108c6c). Own quoting requirements remain open because the composite used Jupiter. Earlier unchecked items are preserved in the proposal.
+
+```text
+With Jupiter quotes, most accepted orders still timed out. Paradox's own quote smoke placed no orders.
+
+Next: Paradox and CoW to inspect the original engine response for auction 525429.
+
+Must for prod:
+[ ] Improve quoting for supported trades and confirm they place and fill.
+[ ] Get a small wave of supported sells filling reliably with Jupiter quotes. This mode has now been tested, but most orders timed out.
+[ ] Check the zero-slippage routes against declared payouts and costs before changing their swap limits.
+
+Good to have for prod:
+```
+
+#### Arc
+
+Evidence: [4 November report](https://app.notion.com/p/40e8da5f04ca8159b90bc323d80371ee), scenario findings and comparison; [previous report](https://app.notion.com/p/4078da5f04ca8105a9daea247732a75a). Own quoting requirements remain open because the composite used Jupiter. Earlier unchecked items are preserved in the proposal.
+
+```text
+More trades filled with Jupiter quotes, but many accepted orders still timed out. Token-balance checks repeatedly blocked cleanup.
+
+Next: Arc and CoW to inspect the amounts and accounts in a failed cleanup candidate.
+
+Must for prod:
+[ ] Resolve quote failures and timeouts on supported pairs. The latest composite used Jupiter quotes, so Arc quoting still needs a rerun.
+[ ] Rerun the blocked token and opposite-order checks after setup is fixed.
+[ ] Retest the earlier fee-handling concern and failing settlements. Confirm swap output covers the promised payments after fees.
+
+Good to have for prod:
 ```

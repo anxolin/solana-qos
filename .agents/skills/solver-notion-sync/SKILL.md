@@ -12,11 +12,21 @@ Use the repository root containing this skill. Update these two Notion databases
 
 ## Sync
 
-1. Fetch both schemas and query the relevant rows, including pagination. Check `sim/composite-test-runs.md` and `sessions/` for completed composite runs. Confirm solver, environment and date from metadata; skip unfinished runs.
+1. Fetch both schemas and query the relevant rows, including pagination. Check `sim/composite-test-runs.md` and `sessions/` for completed composite runs. Confirm solver, environment and date from metadata; skip unfinished runs. Verify the quoting and solving roles for each run as described below.
 2. Use checked session reports. Generate or correct missing or stale reports with [solver-test-report](../solver-test-report/SKILL.md). Keep the full internal report scope; Jupiter keeps its error-only format. Count filled eligible planned trades / eligible planned trades, including quote and creation failures. Exclude known nonzero transfer-fee trades from both counts, show exclusions, and keep supported zero-fee Token-2022 trades. State evidence gaps, throttling and unverified isolation.
-3. Match solvers by identity (`rizzolver` means `Wintermute/Rizzolver`) and runs by session ID and environment. Update existing entries; create missing ones. Leave ambiguous matches unchanged. Set run date, solver relation and fill rate on the 0–100 scale. Keep `TLDR` to 1–3 short sentences with the fill result and biggest observed issues or test limitations. Distinguish failed attempts that later filled from unfilled trades; if there were no eligible trade failures, say so. Include the full report in the page and attach its Markdown file. Preserve Debug and transaction links; quote failures before placement have no order link. Reuse unchanged attachments.
+3. Match solvers by identity (`rizzolver` means `Wintermute/Rizzolver`) and runs by session ID and environment. Update existing entries; create missing ones. Leave ambiguous matches unchanged. Set run date, solver relation and fill rate on the 0–100 scale. Keep `TLDR` to 1–3 short sentences stating the run mode, quote provider, fill result and biggest observed issues or test limitations. Distinguish failed attempts that later filled from unfilled trades; if there were no eligible trade failures, say so. Include the full report in the page and attach its Markdown file. Preserve Debug and transaction links; quote failures before placement have no order link. Reuse unchanged attachments.
 4. Keep each solver's `Test runs` links complete. Review and propose `Status` edits using the structure and confirmation step below. Syncing reports and relations can continue while those edits await confirmation. Preserve `State` unless the user explicitly requests a rollout change. Preserve icons, schemas, unrelated content and attachments. Fetch pages before targeted edits and read Notion's Markdown specification before inserting formatted content.
 5. Wait for writes to finish and read back changed rows, reports and attachments. If a write is uncertain, check before retrying. Update `sim/composite-test-runs.md` with verified results and Notion links. Leave local changes unstaged and briefly report changes or blockers.
+
+## Quoting and solving roles
+
+Classify each run as `Quoting and solving` (the target solver did both), `Solving only` (another provider supplied quotes), or `Mixed/unknown` (roles changed or could not be verified). Record the actual quote provider and settlement solver, including any changes during the run. Verify roles from historical configuration or request and competition logs for that run's time window. A session's solver label, DEX route name or today's configuration does not prove those roles.
+
+Put the mode and provider in the Notion run's `TLDR`, full report and local index. For example: “Solving only; Jupiter quoted and Solivagus solved.” Keep the solver relation attached to the target settlement solver; mentioning Jupiter as the quote provider does not create a separate readiness update for our internal solver. Use existing fields and page content; do not add database properties without a request.
+
+Keep `Fill rate %` as filled eligible planned trades / eligible planned trades, including quote and creation failures. Separately show accepted main orders, orders created on-chain and main fills when assessing settlement. Separate quote failures, creation failures and settlement failures; a sponsored creation expiry is not a failed settlement. Do not attribute another provider's quote failures to the target solver or treat externally supplied quotes as proof of the target's quoting support.
+
+Compare runs with the same roles, scenarios and timeouts where possible. Mark a provider or mode change explicitly; a better result after changing quote provider does not establish a solver improvement. When asked which solver worked best “only solving,” compare verified `Solving only` runs. Excluding quote failures from a `Quoting and solving` run does not turn it into a solve-only test. If the available runs do not support that comparison, say so.
 
 ## Status and production readiness
 
@@ -38,7 +48,7 @@ For example, write “Check that the solver creates the missing token account du
 
 Preserve existing notes, checklist items and checked states. Keep empty checklist sections; omit `Next` if there is no action. Preserve line breaks and checklist style; text checkboxes are not native Notion tasks.
 
-Review the latest completed run and the previous comparable run, if available. Compare them with the checklist and newer user or solver messages. Separate passed, failed and untested items. A claimed fix is not a verified pass; check tokens, order kinds, amounts, load and account setup. Preserve newer manual facts and flag conflicting evidence.
+Review the latest completed run and the previous comparable run, if available. Compare them with the checklist and newer user or solver messages. State when the evidence comes from solving only; it cannot clear quoting requirements. Separate passed, failed and untested items. A claimed fix is not a verified pass; check tokens, order kinds, amounts, load and account setup. Preserve newer manual facts and flag conflicting evidence.
 
 Keep metrics and detailed errors in test-run pages. Name concrete fixes or tests, with an owner when known; skip “needs more tests”. Keep test limits such as throttling. Preserve which items are required versus optional; fill rate alone does not decide readiness.
 

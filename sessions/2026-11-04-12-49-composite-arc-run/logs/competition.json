@@ -1,0 +1,19 @@
+{
+ "_source": "VictoriaLogs via Grafana, container solana-autopilot-staging",
+ "drivers": {
+  "arc": {
+   "wins": 147,
+   "solver": "6YuFJJgrx61ZUTrYowSCo1LDuKspC6TqjW5aAwymAyeH",
+   "observed_on_chain": 144,
+   "proposed": 1130,
+   "submitted": 144
+  }
+ },
+ "autopilot": {
+  "winner_skipped_creation_blockhash_expired": 0,
+  "sponsored_creation_expired_orders": 0,
+  "filtered": {
+   "unreceivable_buy_token_account": 340
+  }
+ }
+}

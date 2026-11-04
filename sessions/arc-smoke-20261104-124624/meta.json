@@ -1,0 +1,16 @@
+{
+ "rpc": "solana-mainnet.g.alchemy.com",
+ "name": "arc-smoke-20261104-124624 trade session",
+ "title": "arc-smoke-20261104-124624",
+ "env": "staging",
+ "sim": {
+  "scenario": "/Users/igor/work/cowprotocol/solana-qos/scenarios/smoke.csv",
+  "traders": 2,
+  "rows": 6,
+  "solFundingPerTrader": 0.05
+ },
+ "start": "2026-11-04T12:47:08.913Z",
+ "trading_end": "2026-11-04T12:47:37.989Z",
+ "end": "2026-11-04T12:48:37.989Z",
+ "fetched_at": "2026-11-04T12:47:50+00:00"
+}

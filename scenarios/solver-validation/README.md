@@ -124,6 +124,31 @@ pnpm sim simulate-composite-scenario ../scenarios/solver-validation/helixbox-com
 
 Enable only the target solver in staging before testing; the config's solver label does not isolate it. Replace `--preview` with `--dry-run` to check live quotes without funding or trading, then remove that flag for a live run.
 
+## Zurui and Cicada
+
+[zurui-composite.json](zurui-composite.json) runs 296 main trades using existing scenario CSVs: standard pairs, native/wrapped payouts, receiving-account costs, 25 same-direction sells, 84 burst sells, opposing orders, broad token coverage and the full [xStocks test](../token-2022/xstocks.csv). It uses a 180-second fill timeout, 300-second validity, no retries and 30-second pauses. The planning allowance is 1.44 SOL for 480 estimated creations before refunds, with a 3 SOL funding cap per scenario. Trade amounts, receiving-account rent and other fees are separate.
+
+The existing xStocks CSV covers 42 mints with 42 inbound sells, 41 exact-output buys and 3 sponsored return probes, including AAPLx and SPYx. It retains its existing amounts, payment modes and timings, with 0.08 SOL funding per wallet for its 14 wallets. Exact-output quotes and scaled token amounts need current checks before trading. Cleanup only proves the return direction when it actually sells the token.
+
+Zurui reports sell and buy solutions on staging at https://zurui.xyz/staging/solana/, tested SOL/wSOL, USDC, USDT, JUP, BONK, WIF, JitoSOL and mSOL, and sell solutions for AAPLx/SPYx. Other Token-2022 cases are exploratory. Its exact-output support depends on available routes; AAPLx/SPYx exact buys remain probes of a reported route limitation. Failed quote requests stay in the planned-trade denominator; distinguish them from failed accepted orders. No batching or direct matching is expected. The 25-sell, burst and opposing-order cases measure completion and timing; record any batching or direct matching actually observed.
+
+Zurui reports up to eight auctions, one order build at a time and one route request per second. Those are solver-side limits, not a promise to fill eight orders together. Bursts reach 32 orders to measure backlog and deadlines. The longer timeout allows serial settlements; results are not directly comparable with the earlier 60-second runs. Actual placement times and auction membership determine offered load.
+
+The receiving-account scenario uses `freshAccounts: true` to select wallets whose receiving accounts are missing before their first quotes. It compares first use with repeats for self-paid and sponsored orders. Account creation is paid by the user or sponsor during placement; this does not require the solver to create or pay for an ATA. Sponsored settlement and native/wrapped receipts still need their actual payment mode and balance changes checked. Inspect the final transaction version and bytes; neither v1 support nor the active size boundary is established by this config.
+
+Zero-SOL wallets and concurrent orders sharing one wallet balance remain separate tests. This runner funds wallets and processes each wallet's rows in sequence. Same-wallet repeats do not prove concurrent settlement. The native/wrapped scenario checks receipts, not spending existing wSOL without wrapping. These limits must remain explicit in the report.
+
+[cicada-composite.json](cicada-composite.json) uses the standard staging suite unchanged: 182 main trades across 106 wallets, 301 estimated creations and a 0.903 SOL creation allowance. It keeps the standard 60-second fill timeout, 300-second validity, no retries, 30-second pauses and 3 SOL per-scenario funding cap. No Cicada capability notes were supplied, so supported tokens, batching, direct matching and exact buys are unconfirmed checks rather than promises.
+
+From `sim/`, preview either config offline:
+
+```sh
+pnpm sim simulate-composite-scenario ../scenarios/solver-validation/zurui-composite.json --preview
+pnpm sim simulate-composite-scenario ../scenarios/solver-validation/cicada-composite.json --preview
+```
+
+Enable only the target solver in staging before a live test. The solver label and the endpoint above do not configure isolation or routing. Replace `--preview` with `--dry-run` for live quote checks without funding or trading, then remove the flag for a live run.
+
 ## Optional standalone fresh-account test
 
 The solver composites no longer include [solver-fresh-accounts.csv](solver-fresh-accounts.csv). It remains available as an optional standalone check that guarantees missing receiving accounts before quoting; ordinary scenarios can reuse accounts from earlier runs. Its eight separate wallets cover SOL→USDC and SOL→USDT, sell and exact-buy orders, and self-paid and sponsored creation. These wallets skip preparation, and the runner verifies the receiving token accounts are missing before quoting. Ordinary test amounts stay unchanged.

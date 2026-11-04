@@ -1,0 +1,15 @@
+{
+ "rpc": "solana-mainnet.g.alchemy.com",
+ "name": "paradox-smoke-20261104-120659 trade session",
+ "title": "paradox-smoke-20261104-120659",
+ "env": "staging",
+ "sim": {
+  "scenario": "/Users/igor/work/cowprotocol/solana-qos/scenarios/smoke.csv",
+  "traders": 2,
+  "rows": 6,
+  "solFundingPerTrader": 0.05
+ },
+ "start": "2026-11-04T12:07:08.733Z",
+ "trading_end": "2026-11-04T12:07:29.635Z",
+ "end": "2026-11-04T12:08:29.635Z"
+}

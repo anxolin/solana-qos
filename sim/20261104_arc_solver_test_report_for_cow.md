@@ -1,0 +1,389 @@
+# Arc solver test report
+
+4 November 2026 - staging - composite 12:49:57-13:18:11 UTC; smoke 12:47:08-12:47:37 UTC
+
+Mode: composite **Solving only** (Jupiter quotes, Arc settles); separate smoke **Quoting and solving** (Arc quotes and settles).
+
+**TLDR:** Arc completed 88/136 accepted main orders from 182 planned flows, including 20 token sells; that is broader coverage than 28 October. Batching was not achieved: every successful main settlement held 1 order, and 48 placed orders finally cancelled. Main candidates hit fee-cut and settlement-program rejections; repeated token balance failures affected cleanup. All 136 accepted main orders were self paid; 46 other flows never placed, so this run did not establish sponsored or opposite-order support. CoW should fix the creation-bundle restriction first; cleanup still has unresolved records.
+
+| Scenario | Outcome | Next check |
+| --- | --- | --- |
+| Standard pairs | Not achieved; 2/2 placed main filled | Test team: restore blocked placement. |
+| 25 same-direction orders | Batching not achieved; 14/25 placed filled | Arc and CoW: inspect rejected candidates. |
+| Sell bursts | Load goal not achieved; 52/84 placed filled | CoW and Arc: inspect fee-cut candidates while keeping user limits. |
+| Opposing orders | Inconclusive; no main orders placed | Test team: place both sides before retesting. |
+| Token coverage | Partial coverage; 20/25 placed filled | Inspect why 5 accepted token sells received no fill. |
+
+## Changes since 28 October 2026
+
+Main fills rose from 25/111 placed to 88/136 placed across the same 182 planned flows; the different quote provider and placement blocks prevent a clean solver speed comparison.
+
+<details>
+<summary>Comparison with the previous run</summary>
+
+Baseline: 28 October staging Arc report, session `2026-10-28-12-59-composite-arc-run` as identified in that report. Comparison uses its main-only totals; old raw artifacts were not re-audited here.
+
+| Metric | 28 October | 4 November |
+| --- | --- | --- |
+| Planned / eligible / accepted main / filled | 182 / 182 / 111 / 25 | 182 / 182 / 136 / 88 |
+| Distinct successful main transactions | 25 | 88 |
+| Standard / same direction / bursts filled | 2 / 6 / 17 | 2 / 14 / 52 |
+| Opposing / token fills | 0 / 0 | 0 / 20 |
+| Exact-buy completed flows | 0 | 0 |
+| Placement to observed fill median / longest | 38.39 / 75.03 seconds | 17.11 / 73.095 seconds |
+
+SPL Token `Custom(1)` and settlement `Custom(15)` are existing error types, with newly affected orders listed in the scenario blocks. The old report counts 546 candidate rejections and 59 selected failures; today has 440 and 3, respectively, with different provider and exposure. This does not prove a fix. Newly recorded fee-cut rejection `undercuts its limit price after the cut` affects 6 main orders across 10 attempts; final outcomes are retained below. No new accepted solver limitation was established.
+
+Newly recorded creation-bundle rejection affects 30 attempts; the old 61 service-503 blocked flows are not repeated in the selected current raw results. This is a change in observed failure mode, not proof that every service issue was fixed.
+New successful token coverage absent in the baseline: row 146, Sell 0.005 SOL to Bonk (self), fulfilled: https://debug.barn.cow.fi/order/0xaad8d5d7b16e14a4e80f18fa455f75b8a31abe50cff7a661c666408f5911d555.
+New successful token coverage absent in the baseline: row 149, Sell 0.005 SOL to JitoSOL (self), fulfilled: https://debug.barn.cow.fi/order/0xdc55dbad3544eb7e9b2d92764ae6cb970841c6595b774daeeaab58d6721dafcb.
+New successful token coverage absent in the baseline: row 163, Sell 0.005 SOL to Fartcoin (self), fulfilled: https://debug.barn.cow.fi/order/0x7dbae1599fd562f6df0505c41043af975ee693b7dc1d804e5706fc5280bc8791.
+
+</details>
+
+## 1. Standard pairs
+
+Standard pairs were not achieved: only the 2 SOL sells filled. No exact buy reached accepted main placement.
+
+<details>
+<summary>Order evidence and metrics</summary>
+
+Planned / eligible / accepted main / filled: 6 / 6 / 2 / 2. Total transactions: 2. Median / longest observed fill: 3.289 / 3.303 seconds.
+
+Scope: scheduled main rows only, including explicit setup rows. Main counts exclude automatic acquisitions, cleanup, funding, creation transactions and failed attempts. Total transactions means distinct successful settlement signatures for accepted main UIDs. Timing is accepted placement to simulator observed fill, including polling; error timestamps are the first failed attempt where recovered, otherwise the recorded error observation. Displayed UTC times use whole seconds; the original journal and Grafana records retain their exact fractional timestamps. No expected rejection was specified or excluded: eligible equals planned.
+
+Historical providers were recovered from API `computed quote` competition records, not current config. Composite quote `91759` at `2026-11-04T12:49:58Z`, request `3ce6bd3e89aafcd897945a4f11fefe5d`, names `jupiter-quote-native`, wallet `Grr6SWYUFi1eCagwEifXVD83rUQ4W5rJWYq1Lj7cx1jS`. Quote `91760` at `2026-11-04T12:49:58Z` confirms the same provider for SOL to USDC. Arc settled all 144 successful exported transactions, wallet `6YuFJJgrx61ZUTrYowSCo1LDuKspC6TqjW5aAwymAyeH`; 88 were main and 56 cleanup. All 136 accepted main orders were self paid with `forcedSelf=false`; this run did not demonstrate sponsored settlement. Historical smoke quotes used Arc itself, including JUP sell request `d12d77defbb0f5af6ea55a338985a475` at `2026-11-04T12:47:24Z`.
+
+Raw run results and later API export agree on all 88 main fills and all 48 cancellations; no failed main result was relabelled fulfilled by this snapshot. `orders.json` contains 220 orders and 144 fills because it also includes 84 cleanup orders, 56 filled and 28 cancelled. `finished=false` records unresolved recovery/cleanup; all 5 scenario phases are finished. Options: 0 retries, 300 seconds validity, 60 seconds fill timeout.
+
+**Ownership unknown - candidate failures, mostly cleanup.** Supplemental authenticated Grafana reads verified datasource name `VictoriaLogs Staging`, UID `vm-auth-staging`, using `/api/datasources`. Driver solve records show 440 rejected candidate attempts: 435 SPL Token `Custom(1)` insufficient-funds failures, all on cleanup, and 5 settlement-program `Custom(15)` failures, 4 main and 1 cleanup. The paired message identifies the failing program; numeric errors are not decoded across programs. There are also 10 candidate fee-cut rejections on 6 main orders, 5 finally cancelled and 1 finally fulfilled. The union is 75 affected accepted orders: 10 main (9 cancelled, 1 fulfilled) and 65 cleanup (28 cancelled, 37 fulfilled). The 435 balance errors are cleanup failures and cannot explain the 48 main cancellations. Of the 48 cancelled main orders, 9 had candidate rejections and 2 other orders had selected failures; the remaining 37 have no recovered failure mechanism. The failure records inspected here do not identify why those 37 missed settlement; they must not be counted as balance-error orders. A scoped supplemental autopilot filtering query did not return joined order records, so the saved aggregate `unreceivable_buy_token_account=340` cannot be assigned to these main orders. Selection or filtering remains possible; inspect per-order auction entry and candidate selection before attributing a solver throughput ceiling. These are attempts, not 450 failed orders, and every affected accepted order is retained below, including later fills. The compact saved failure export omitted these candidates. SPL Token failure proves insufficient token balance at the transfer, but the saved simulation record has `logs=Some([])` in the inspected representative. We cannot measure swap output, fixed payment, input balance or shortfall for this run from that record. October payout shortfalls do not prove the same cause today. Leading explanation, low confidence: shared route/payment construction or account balance handling leaves an insufficient transfer balance. Alternative: wrong source account or stale state; successful controls in the same scenario show the pair itself can settle. Arc candidate construction and the shared driver are the places to inspect; repair ownership remains unknown. Recover a failed candidate transaction plus source balance, actual swap output and encoded payment; output plus available balance must cover the payment. Keep the user limit unchanged.
+
+**Ownership unknown - selected failures.** Three selected submissions passed driver simulation, then failed on chain in instruction 1 of settlement program `EzHqcdJssenE2R8xogJ8wpL66PRQet9M6ubpsX4QxpPb`, `Custom(15)`. Read-only version 1 RPC confirmed all 3 first-failing programs. They join auction/solution `525993/10`, `526012/4` and `526027/9` to the two main orders and one cleanup order linked below. The first main attempt simulated at `2026-11-04T13:00:31Z`, submitted at `2026-11-04T13:00:31Z` and failed at `2026-11-04T13:00:32Z`. Its simulator final timeout/cancel record is later, `2026-11-04T13:00:37Z`; that does not locate the cancellation on chain. All 3 finally cancelled. Cause and repair owner are unknown: final cancellation alone does not prove a cancellation race, and no historical error mapping was recovered. First inspect historical code for error 15 and compare cancellation and settlement slots before changing retry handling. A state change between simulation and execution is possible, not established.
+
+**CoW placement checks.** Thirty composite bundles failed at API POST with `400 Bad Request: InvalidTransaction: the bundle must not create the buy token account`: 23 main and 7 prerequisite acquisitions. The service rejects the supplied creation bundle before solver participation. The simulator used `prepareTokenAccounts=false`. Standard exact buys still failed despite existing accounts from earlier fills, so absence of an account is not the full explanation; inspect and remove redundant buy-account creation from the simulator bundle, or prepare receiving accounts outside it. High confidence in the rejected instruction policy, medium confidence in this first fix. One 0.5 JUP to USDC self-paid sell failed the quote fee check with `SellAmountDoesNotCoverFee`; it never reached placement. Compare its fee/rent estimate with available sell value before changing trade size. No Arc defect is established by either API restriction.
+
+| Scenario row / trader | UTC timestamp | Trade | Error(s) and final outcome | Debug tool URL |
+| --- | --- | --- | --- | --- |
+| 1 / 1 | 2026-11-04T12:50:00Z | Sell 0.005 SOL to USDC (self) | final fulfilled | https://debug.barn.cow.fi/order/0x7f30a4c928983ca5955ec271432a87a71f20b32baba605382be5a5682a6a7c55 |
+| 2 / 2 | 2026-11-04T12:50:00Z | Sell 0.005 SOL to USDT (self) | final fulfilled | https://debug.barn.cow.fi/order/0x7197298b92bfe1c542522096b5f495cf259d9fc521f303629cef9334858939f8 |
+| 3 / 3 | 2026-11-04T12:49:59Z | Sell 0.5 JUP to USDC (self) | main error: 400 Bad Request: SellAmountDoesNotCoverFee: the quoted amount does not cover the execution cost | No order ID: failed before main placement. |
+| 4 / 1 | 2026-11-04T12:50:04Z | Buy SOL to exactly 0.25 USDC (sponsored) | main error: 400 Bad Request: InvalidTransaction: the bundle must not create the buy token account | https://debug.barn.cow.fi/order/0x1966acd96d9070eea40c37ecfd58ec2abef7d59516a47a23b61f540641488b45 (creation rejected; debug record may not exist) |
+| 5 / 2 | 2026-11-04T12:50:05Z | Buy SOL to exactly 0.25 USDT (sponsored) | main error: 400 Bad Request: InvalidTransaction: the bundle must not create the buy token account | https://debug.barn.cow.fi/order/0x31ccf545a3e7087c5f05e61205c6fea9510a2451f2ecf2276df8aa08d1ddbd7d (creation rejected; debug record may not exist) |
+| 6 / 3 | 2026-11-04T12:50:07Z | Buy JUP to exactly 0.25 USDC (sponsored) | acquire JUP error: 400 Bad Request: InvalidTransaction: the bundle must not create the buy token account | https://debug.barn.cow.fi/order/0xb90676d7eabac76ebed66a07cc8dede70ead2b5947cd58f9436bc6c9730b992a (creation rejected; debug record may not exist) |
+
+Cleanup is excluded from main counts. Failed candidate attempts remain below even when cleanup later filled. Ownership is unknown for the shared transfer and settlement-program failures.
+
+| Scenario row / trader | UTC timestamp | Cleanup trade | Error(s) and final outcome | Debug tool URL |
+| --- | --- | --- | --- | --- |
+| - / 1 | 2026-11-04T13:13:46Z | Sell 462800 base units USDC to SOL | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(1))), program_error: None }` x2; final fulfilled | https://debug.barn.cow.fi/order/0x68a81bc463c85cf533ffb5320320049ac0e699e7490ea0e3e8be87e972c30408 |
+
+Deferred cleanup trader IDs: []. The run retains 30 unresolved order records overall, 23 main and 7 acquisition; these are recovery records, not 30 additional accepted orders. The retained unresolved records are listed in their scenario below.
+Recovery pending: row 4 / trader 1 / main, `0x1966acd96d9070eea40c37ecfd58ec2abef7d59516a47a23b61f540641488b45`, `Order was not found in the API`, validTo `1793796934`; https://debug.barn.cow.fi/order/0x1966acd96d9070eea40c37ecfd58ec2abef7d59516a47a23b61f540641488b45 (rejected creation may have no debug record).
+Recovery pending: row 5 / trader 2 / main, `0x31ccf545a3e7087c5f05e61205c6fea9510a2451f2ecf2276df8aa08d1ddbd7d`, `Order was not found in the API`, validTo `1793796935`; https://debug.barn.cow.fi/order/0x31ccf545a3e7087c5f05e61205c6fea9510a2451f2ecf2276df8aa08d1ddbd7d (rejected creation may have no debug record).
+Recovery pending: row 6 / trader 3 / acquire, `0xb90676d7eabac76ebed66a07cc8dede70ead2b5947cd58f9436bc6c9730b992a`, `Order was not found in the API`, validTo `1793796936`; https://debug.barn.cow.fi/order/0xb90676d7eabac76ebed66a07cc8dede70ead2b5947cd58f9436bc6c9730b992a (rejected creation may have no debug record).
+
+</details>
+
+## 2. 25 same-direction orders
+
+Batching was not achieved: 14 main orders settled in 14 separate transactions. Eleven others timed out and finally cancelled.
+
+<details>
+<summary>Order evidence and metrics</summary>
+
+Planned / eligible / accepted main / filled: 25 / 25 / 25 / 14. Total transactions: 14. Median / longest observed fill: 32.144 / 68.455 seconds.
+
+The 25 planned 0.005 SOL to JUP sells produced 14 signatures, each shared by exactly 1 main order. Example successful transaction: https://solscan.io/tx/2xd6KZpKLKNBwGQYaPJP8vaWXQyyboaSCE6Ph7gwpBad5S47TDnWHtuxZzjmVNCbupqbHi4vcV2hwFRqRSpq2VQM. No serialized-size or one-swap claim is made.
+
+| Scenario row / trader | UTC timestamp | Trade | Error(s) and final outcome | Debug tool URL |
+| --- | --- | --- | --- | --- |
+| 7 / 4 | 2026-11-04T12:50:32Z | Sell 0.005 SOL to JUP (self) | main timeout; final cancelled | https://debug.barn.cow.fi/order/0xbdfa7193d0725118382e704d7f1c686f6c91751c56acdfa3e15a2d130cc41d9d |
+| 8 / 5 | 2026-11-04T12:50:31Z | Sell 0.005 SOL to JUP (self) | final fulfilled | https://debug.barn.cow.fi/order/0x2acadf97bfb76c9c44a29e99d3fc0c2bf4ae44da0ee8098a0bdf90830526c438 |
+| 9 / 6 | 2026-11-04T12:50:33Z | Sell 0.005 SOL to JUP (self) | final fulfilled | https://debug.barn.cow.fi/order/0x3572d086c0d434bf3c62c67b7c930740c6a414818ce6c855938b99a06af6f9dd |
+| 10 / 7 | 2026-11-04T12:50:32Z | Sell 0.005 SOL to JUP (self) | final fulfilled | https://debug.barn.cow.fi/order/0x1865d87b96afce3dd7d0d1d46b58ad47b938f89481b92f406e2df668e15ef34a |
+| 15 / 12 | 2026-11-04T12:50:34Z | Sell 0.005 SOL to JUP (self) | main timeout; final cancelled | https://debug.barn.cow.fi/order/0xa91f3a0e3d78583cea354204e7d29246cb20d2ff1969ec131ba29f4188c8d962 |
+| 16 / 13 | 2026-11-04T12:50:34Z | Sell 0.005 SOL to JUP (self) | main timeout; final cancelled | https://debug.barn.cow.fi/order/0x0905b226e646f9921e04a5fbd6430032d63d44a89f85ae1ba27d59fc48006bff |
+| 17 / 14 | 2026-11-04T12:50:34Z | Sell 0.005 SOL to JUP (self) | main timeout; final cancelled | https://debug.barn.cow.fi/order/0xd6da4cf98e2196241565328c6a347864c621c29f6bb6760ce9caad457e91b377 |
+| 18 / 15 | 2026-11-04T12:50:36Z | Sell 0.005 SOL to JUP (self) | main timeout; final cancelled | https://debug.barn.cow.fi/order/0xc256942cb1e51920d11c50ee31f074bccc9c115c04ab5f90bccca3d552c74e24 |
+| 19 / 16 | 2026-11-04T12:50:35Z | Sell 0.005 SOL to JUP (self) | main timeout; final cancelled | https://debug.barn.cow.fi/order/0x95f6e9984c2eeca3868e412e8761329057daae00d04336c1a7abddc44451083d |
+| 21 / 18 | 2026-11-04T12:50:35Z | Sell 0.005 SOL to JUP (self) | main timeout; final cancelled | https://debug.barn.cow.fi/order/0xc9eff4dbd278b76c6288c18b21ffc4cd9fe7db874f3ed9e5334e1be28a9e2585 |
+| 22 / 19 | 2026-11-04T12:50:35Z | Sell 0.005 SOL to JUP (self) | main timeout; final cancelled | https://debug.barn.cow.fi/order/0xb0117e48539719eebf3e88d0fc0f35d52319a642ade434e09e3f05d2b12459c0 |
+| 23 / 20 | 2026-11-04T12:50:36Z | Sell 0.005 SOL to JUP (self) | main timeout; final cancelled | https://debug.barn.cow.fi/order/0x31e3a9ce04f3e4e8f47b5385547a931b31c0088dade395259f980336e836f1d9 |
+| 24 / 21 | 2026-11-04T12:50:36Z | Sell 0.005 SOL to JUP (self) | main timeout; final cancelled | https://debug.barn.cow.fi/order/0x69afc090c76a39a95b5a24eac302c3dd36e2a48a48989b1354d5af981e55a54e |
+| 25 / 22 | 2026-11-04T12:50:36Z | Sell 0.005 SOL to JUP (self) | main timeout; final cancelled | https://debug.barn.cow.fi/order/0x71e9df99fb010b22a625b9702dafb7216b2c6197813b0e27d04190ffea5d7f51 |
+
+Cleanup is excluded from main counts. Failed candidate attempts remain below even when cleanup later filled. Ownership is unknown for the shared transfer and settlement-program failures.
+
+| Scenario row / trader | UTC timestamp | Cleanup trade | Error(s) and final outcome | Debug tool URL |
+| --- | --- | --- | --- | --- |
+| - / 5 | 2026-11-04T12:51:51Z | Sell 1851204 base units JUP to SOL | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(1))), program_error: None }` x7; final fulfilled | https://debug.barn.cow.fi/order/0xa30711186eaa5c71d0956cf7d7124bdba0c14af6dc0b3fbfd8e755c91ea632fa |
+| - / 6 | 2026-11-04T12:51:56Z | Sell 1850412 base units JUP to SOL | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(1))), program_error: None }` x9; final cancelled | https://debug.barn.cow.fi/order/0xec2efc65b63b7946251be3bd1b9a4827019e5a4d13242881b54b5125ee7e142a |
+| - / 7 | 2026-11-04T12:51:56Z | Sell 1851298 base units JUP to SOL | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(1))), program_error: None }` x7; final fulfilled | https://debug.barn.cow.fi/order/0x795848635f6b9b6a5d8e0cee6764eb49f3dd1f2dfcf56572a8492d53ebc84ad2 |
+| - / 8 | 2026-11-04T12:51:56Z | Sell 1850447 base units JUP to SOL | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(1))), program_error: None }` x9; final cancelled | https://debug.barn.cow.fi/order/0x52257d9c933272024a88f819f0ff4e5ff7606d17eb0b9846193ad8b75f636fc9 |
+| - / 9 | 2026-11-04T12:51:56Z | Sell 1851205 base units JUP to SOL | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(1))), program_error: None }` x6; final fulfilled | https://debug.barn.cow.fi/order/0x3ef1c91bd01db967345fe3439166dca95bbb9f1d0882ee26f46e6b700abacb81 |
+| - / 10 | 2026-11-04T12:52:01Z | Sell 1851205 base units JUP to SOL | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(1))), program_error: None }` x11; final cancelled | https://debug.barn.cow.fi/order/0x0bad4baced6a895a6d3fa39d840025f109bbb0a4783a6489986a1a90c33395ca |
+| - / 11 | 2026-11-04T12:52:01Z | Sell 1851204 base units JUP to SOL | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(1))), program_error: None }` x10; final cancelled | https://debug.barn.cow.fi/order/0xab3e0a7cf1ad9948c6e59427e562ff01d2957cb1c738dd7ff027af7e69a0285c |
+| - / 17 | 2026-11-04T12:52:31Z | Sell 1851202 base units JUP to SOL | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(1, Custom(15))), program_error: None }` x1; `SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(1))), program_error: None }` x8; final cancelled | https://debug.barn.cow.fi/order/0xc0d729c0db16a2d12a1da30470da97c3cf5916229ceb0aee768baf64c6203f49 |
+| - / 24 | 2026-11-04T12:52:56Z | Sell 1850202 base units JUP to SOL | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(1))), program_error: None }` x6; final fulfilled | https://debug.barn.cow.fi/order/0x2cc334bcde2df1a7039537cdc92d5dfebd37b8608e1eeb47e38bd85b9d5d8836 |
+| - / 23 | 2026-11-04T12:52:56Z | Sell 1850447 base units JUP to SOL | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(1))), program_error: None }` x5; final fulfilled | https://debug.barn.cow.fi/order/0x82df036dcfc64d7710720401e2e7b49021111a3869768ddb472bb8d76fc51a17 |
+| - / 26 | 2026-11-04T12:53:01Z | Sell 1850888 base units JUP to SOL | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(1))), program_error: None }` x2; final fulfilled | https://debug.barn.cow.fi/order/0x152238f172136ea64fc9f1f993bfef259b31c8b5f69e260ddc0308eb2b9f7e75 |
+| - / 27 | 2026-11-04T12:53:01Z | Sell 1850448 base units JUP to SOL | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(1))), program_error: None }` x11; final cancelled | https://debug.barn.cow.fi/order/0xfcdf2896d5b6dbb79b2c8841382f629f1f019727e125ba3a81a1b7bdf6afbb0c |
+| - / 28 | 2026-11-04T12:53:16Z | Sell 1850053 base units JUP to SOL | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(1))), program_error: None }` x10; final cancelled | https://debug.barn.cow.fi/order/0x11de2cb37bfd3d6a2f27e1e967a4d1f009b2d440ea7ebc35431547ffb9b96aa9 |
+| - / 6 | 2026-11-04T13:14:11Z | Sell 1850412 base units JUP to SOL | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(1))), program_error: None }` x11; final cancelled | https://debug.barn.cow.fi/order/0x2bc57bbaef12ea1f5935d366012d5391d95bbf526f493c1130751fab936b435e |
+| - / 8 | 2026-11-04T13:14:11Z | Sell 1850447 base units JUP to SOL | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(1))), program_error: None }` x11; final cancelled | https://debug.barn.cow.fi/order/0xb4eeeeabcb9c0da7419199722c2f18f64480634caf6d19066a5e5df27db6756d |
+| - / 10 | 2026-11-04T13:14:16Z | Sell 1851205 base units JUP to SOL | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(1))), program_error: None }` x6; final fulfilled | https://debug.barn.cow.fi/order/0x41ace9bf06db069c4b2b8d176d122d68eac7f1749716061199b6aac9cf2cddeb |
+| - / 11 | 2026-11-04T13:14:16Z | Sell 1851204 base units JUP to SOL | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(1))), program_error: None }` x10; final cancelled | https://debug.barn.cow.fi/order/0x8312fe8750f8df0379eb9684796f89bbe1d9bc2fe0fc5b1acecdde8f487de3bd |
+| - / 17 | 2026-11-04T13:14:16Z | Sell 1851202 base units JUP to SOL | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(1))), program_error: None }` x11; final cancelled | https://debug.barn.cow.fi/order/0x97c1d01b2506de28576bdf334f56bb4172cffe44bfb6e18966977ee068948ae5 |
+| - / 27 | 2026-11-04T13:14:16Z | Sell 1850448 base units JUP to SOL | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(1))), program_error: None }` x4; final fulfilled | https://debug.barn.cow.fi/order/0xf7dc2990d77f6d7ac37fe24b55d170d77fd57056552ea624d821723cfb2a0b88 |
+| - / 28 | 2026-11-04T13:14:16Z | Sell 1850053 base units JUP to SOL | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(1))), program_error: None }` x11; final cancelled | https://debug.barn.cow.fi/order/0xfc40b94b6c2c4edf630413e79a57f5399bffad8f1ede09b51f512be64d6079c2 |
+
+Deferred cleanup trader IDs: [6, 8, 11, 17, 28]. The run retains 30 unresolved order records overall, 23 main and 7 acquisition; these are recovery records, not 30 additional accepted orders. The retained unresolved records are listed in their scenario below.
+
+</details>
+
+## 3. Sell bursts
+
+The full burst goal was not achieved: 52/84 placed orders filled. The remaining 32 cancelled; this paced test does not establish a sustained throughput limit.
+
+<details>
+<summary>Order evidence and metrics</summary>
+
+Planned / eligible / accepted main / filled: 84 / 84 / 84 / 52. Total transactions: 52. Median / longest observed fill: 26.629 / 73.095 seconds.
+
+Five configured waves contained 4, 8, 16, 24 and 32 sells, spaced 90 seconds apart. The API/RPC rate settings and cancellation timeout can affect exposure. Candidate fee cuts are verified rejections because the net trade undercut the signed limit; preserve that limit. First compare gross output, execution-cost deduction and signed minimum in base units. Rebuild or reject candidates that cannot cover costs. The data does not prove whether the solver supplied too little headroom or the shared driver estimated the wrong cost.
+
+| Scenario row / trader | UTC timestamp | Trade | Error(s) and final outcome | Debug tool URL |
+| --- | --- | --- | --- | --- |
+| 32 / 29 | 2026-11-04T12:54:52Z | Sell 0.0025 SOL to USDC (self) | final fulfilled | https://debug.barn.cow.fi/order/0x9b71dd5ac2e71c7bbc4bd309a46094874ba0a3059475b2688e0f6b10551e691c |
+| 33 / 30 | 2026-11-04T12:54:51Z | Sell 0.003 SOL to USDC (self) | final fulfilled | https://debug.barn.cow.fi/order/0xf2b7212914070a2ae5ac08eadaab5a6b9b90e21fbab21c62d97f6cc99fd00253 |
+| 34 / 31 | 2026-11-04T12:54:52Z | Sell 0.0035 SOL to USDC (self) | final fulfilled | https://debug.barn.cow.fi/order/0x08f9b3683f77d1d1e41aa852155bca25bd12df5911a56a48b4e0894dcd0d4895 |
+| 44 / 29 | 2026-11-04T12:58:16Z | Sell 0.0025 SOL to USDC (self) | Ownership unknown: `trade 0x60d55806a2b1058d1c8aa690eeafaa1b4cea6be18461aac633809fda6debe2d0 undercuts its limit price after the cut` x2; main timeout; final cancelled | https://debug.barn.cow.fi/order/0x60d55806a2b1058d1c8aa690eeafaa1b4cea6be18461aac633809fda6debe2d0 |
+| 45 / 30 | 2026-11-04T12:58:16Z | Sell 0.003 SOL to USDC (self) | Ownership unknown: `trade 0xabafeea75bc0078103ee2f7bdc0716a18ea1fde1e8926cf4aa45d14f58dcad29 undercuts its limit price after the cut` x1; final fulfilled | https://debug.barn.cow.fi/order/0xabafeea75bc0078103ee2f7bdc0716a18ea1fde1e8926cf4aa45d14f58dcad29 |
+| 48 / 33 | 2026-11-04T12:58:16Z | Sell 0.0025 SOL to USDC (self) | Ownership unknown: `trade 0x62dc0cba0513bb2274df1ccce255549ee76355ff66b5ba949ee914110221f4e8 undercuts its limit price after the cut` x2; main timeout; final cancelled | https://debug.barn.cow.fi/order/0x62dc0cba0513bb2274df1ccce255549ee76355ff66b5ba949ee914110221f4e8 |
+| 49 / 34 | 2026-11-04T12:58:16Z | Sell 0.003 SOL to USDC (self) | Ownership unknown: `trade 0x5de184e2f580d77574ceeb0daa75ede57e4a6de3a842415b731291811b2d39ce undercuts its limit price after the cut` x1; main timeout; final cancelled | https://debug.barn.cow.fi/order/0x5de184e2f580d77574ceeb0daa75ede57e4a6de3a842415b731291811b2d39ce |
+| 60 / 29 | 2026-11-04T12:59:26Z | Sell 0.0025 SOL to USDC (self) | Ownership unknown: ; selected on-chain `InstructionError(1, Custom(15))` x1; [failed transaction](https://solscan.io/tx/3tpzH1UnFkPSFyLdUDNANDpXZFu7M2SQTMSCN36jXp9NXoZSRJsoq3dex77rUFxVG1TDbSqTGVrovoFFrHCGSXGs); main timeout; final cancelled | https://debug.barn.cow.fi/order/0xebb72ceca6dbe598645e6eef7c388f8a11c90cd34e0096c8045007f4c905dc1f |
+| 61 / 30 | 2026-11-04T12:59:27Z | Sell 0.003 SOL to USDC (self) | main timeout; final cancelled | https://debug.barn.cow.fi/order/0xbfcd9f194270dafdf1515942bdff9d7b1573f4e8311b8513d364040c9f1dbd8d |
+| 62 / 31 | 2026-11-04T12:59:28Z | Sell 0.0035 SOL to USDC (self) | main timeout; final cancelled | https://debug.barn.cow.fi/order/0x7ef38e34f320a97f2def88fed33350b827f55a6f4a392f64f2119c91f5503aa9 |
+| 63 / 32 | 2026-11-04T12:59:27Z | Sell 0.004 SOL to USDC (self) | main timeout; final cancelled | https://debug.barn.cow.fi/order/0x0fdea6b088c795bda3e45d2882cff5d195858ae59a2652237e1696094069e561 |
+| 64 / 33 | 2026-11-04T13:00:31Z | Sell 0.0025 SOL to USDC (self) | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(1, Custom(15))), program_error: None }` x1; main timeout; final cancelled | https://debug.barn.cow.fi/order/0x88367595eed3a1770cd93b9de8667ae1e7c79cc423bd612e6ff8070f4897b31f |
+| 66 / 35 | 2026-11-04T12:59:28Z | Sell 0.0035 SOL to USDC (self) | main timeout; final cancelled | https://debug.barn.cow.fi/order/0x60a6c33a56d82817f55aad0614f1c9dd161381883b3fedb145180becccc83ad0 |
+| 67 / 36 | 2026-11-04T12:59:28Z | Sell 0.004 SOL to USDC (self) | main timeout; final cancelled | https://debug.barn.cow.fi/order/0xc6c21268ecd3660f30321441a65800d91df7f19660aa9b2501a3a5a343f039b9 |
+| 68 / 37 | 2026-11-04T12:59:26Z | Sell 0.0025 SOL to USDC (self) | Ownership unknown: `trade 0xbb8b44f62d69757e02a657b71edc99d0231c2af0e405b0eca22e50cf4e2737d1 undercuts its limit price after the cut` x2; main timeout; final cancelled | https://debug.barn.cow.fi/order/0xbb8b44f62d69757e02a657b71edc99d0231c2af0e405b0eca22e50cf4e2737d1 |
+| 71 / 40 | 2026-11-04T12:59:26Z | Sell 0.004 SOL to USDC (self) | main timeout; final cancelled | https://debug.barn.cow.fi/order/0x858a5f507b0f1de093cfa5be15650d9c5fb5180ada0e12c0f6630f27ebe52315 |
+| 72 / 41 | 2026-11-04T12:59:26Z | Sell 0.0025 SOL to USDC (self) | Ownership unknown: `trade 0x1e5c41205c5eaf0bd821a7e92dbbebb4a4d769caba7513f25a6b0f034d20e6d3 undercuts its limit price after the cut` x2; main timeout; final cancelled | https://debug.barn.cow.fi/order/0x1e5c41205c5eaf0bd821a7e92dbbebb4a4d769caba7513f25a6b0f034d20e6d3 |
+| 73 / 42 | 2026-11-04T12:59:26Z | Sell 0.003 SOL to USDC (self) | main timeout; final cancelled | https://debug.barn.cow.fi/order/0xbde6990dbec8d02706ed107b8be3d5822cc5f645bad9b5ac7c781d915d3ecddb |
+| 84 / 29 | 2026-11-04T13:00:56Z | Sell 0.0025 SOL to USDC (self) | main timeout; final cancelled | https://debug.barn.cow.fi/order/0x42762e31c9bb1864be0fd1a024dfde7a37fb643b69b1eee5db84621a16f7f40e |
+| 85 / 30 | 2026-11-04T13:00:56Z | Sell 0.003 SOL to USDC (self) | main timeout; final cancelled | https://debug.barn.cow.fi/order/0x790a6cb5c2cca7d8d79e16f5650254d9006c0cc06b93d8b791c2fdb7d5c14a55 |
+| 86 / 31 | 2026-11-04T13:00:58Z | Sell 0.0035 SOL to USDC (self) | main timeout; final cancelled | https://debug.barn.cow.fi/order/0x22bbb66bc60b09251598e9bd8de354f272bfb33e7db580705592bf4c5620df65 |
+| 88 / 33 | 2026-11-04T13:01:00Z | Sell 0.0025 SOL to USDC (self) | main timeout; final cancelled | https://debug.barn.cow.fi/order/0x023987b3575db44385f59cc225a694de2f30b91f047f2b9bc7437ac424cd29eb |
+| 89 / 34 | 2026-11-04T13:00:55Z | Sell 0.003 SOL to USDC (self) | main timeout; final cancelled | https://debug.barn.cow.fi/order/0x427abfdf2cbee08c83e0cef538287d19cafb71e504a24c3b3cb61ac271a090e6 |
+| 90 / 35 | 2026-11-04T13:01:01Z | Sell 0.0035 SOL to USDC (self) | main timeout; final cancelled | https://debug.barn.cow.fi/order/0xcab33bf28f60f66b7b9e1c2667dba4a085fa3421c5a3b52d0c383310a50d2568 |
+| 92 / 37 | 2026-11-04T13:00:57Z | Sell 0.0025 SOL to USDC (self) | main timeout; final cancelled | https://debug.barn.cow.fi/order/0x123a9c09d52e3f586884ebbabcc2166be99afa5444007ceeb685cef887e2c98d |
+| 93 / 38 | 2026-11-04T13:00:56Z | Sell 0.003 SOL to USDC (self) | main timeout; final cancelled | https://debug.barn.cow.fi/order/0x4cf8df875817e3f316792a7caf46144f369c74308ec9951c2e682e3c7e2a6275 |
+| 94 / 39 | 2026-11-04T13:02:06Z | Sell 0.0035 SOL to USDC (self) | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(1, Custom(15))), program_error: None }` x1; main timeout; final cancelled | https://debug.barn.cow.fi/order/0xec44b5a32b5ad3c1238bdc986bdf014963ee8c4736776f2ae5c6eae07c59648b |
+| 96 / 41 | 2026-11-04T13:02:06Z | Sell 0.0025 SOL to USDC (self) | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(1, Custom(15))), program_error: None }` x1; main timeout; final cancelled | https://debug.barn.cow.fi/order/0x1c699e97eeb92a57667b5fde2964c3b8314218c05e293abb79d70762f52a9ded |
+| 97 / 42 | 2026-11-04T13:00:57Z | Sell 0.003 SOL to USDC (self) | main timeout; final cancelled | https://debug.barn.cow.fi/order/0x29d6c3db898041aaeb64d55c1c4b379a33b87e56bc115b5d565719a933edb7af |
+| 100 / 45 | 2026-11-04T13:02:06Z | Sell 0.0025 SOL to USDC (self) | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(1, Custom(15))), program_error: None }` x1; main timeout; final cancelled | https://debug.barn.cow.fi/order/0xae6b8dc6c383980952d5fcf7901f5e5dc7ffbac482d4d666e3f044f2fcc3da1f |
+| 101 / 46 | 2026-11-04T13:00:59Z | Sell 0.003 SOL to USDC (self) | main timeout; final cancelled | https://debug.barn.cow.fi/order/0xed2674ba1915c45c56ab7bc847f2cf1916f4acbf0cca22c81a8bed7122f7939a |
+| 102 / 47 | 2026-11-04T13:00:59Z | Sell 0.0035 SOL to USDC (self) | main timeout; final cancelled | https://debug.barn.cow.fi/order/0xed157edc3ab295760bb86d0ca6f4192eef76babad4418fba1741f39683de8019 |
+| 103 / 48 | 2026-11-04T13:00:59Z | Sell 0.004 SOL to USDC (self) | Ownership unknown: ; selected on-chain `InstructionError(1, Custom(15))` x1; [failed transaction](https://solscan.io/tx/9mfsap4uJ4pdTiP6SEXp8NVhvZNS6oGGmuHJFjkZDimuVfdPeHghn3eRAvLaZhZLPZdb79fJ5aFHNZM9n6UFWpG); main timeout; final cancelled | https://debug.barn.cow.fi/order/0x9cafb8091d83816b35af5ffe447f065fd3f8c2f90e2d7f68afa36fb81672c36f |
+| 104 / 49 | 2026-11-04T13:00:59Z | Sell 0.0025 SOL to USDC (self) | main timeout; final cancelled | https://debug.barn.cow.fi/order/0x13cb27affa5fcf66d55a9e5085fbeefd916c3ade2fb59a11b1c8f1ec0855bc84 |
+| 105 / 50 | 2026-11-04T13:00:58Z | Sell 0.003 SOL to USDC (self) | main timeout; final cancelled | https://debug.barn.cow.fi/order/0xea6ca742f6bb9df6673374173f48dfee2110bfdd21eb7f884656b305f0ad6d27 |
+| 106 / 51 | 2026-11-04T13:00:58Z | Sell 0.0035 SOL to USDC (self) | main timeout; final cancelled | https://debug.barn.cow.fi/order/0x9671998578bf642790730bf77bdce212b88d2d9a538ed48d37df77a1568cb758 |
+
+Cleanup is excluded from main counts. Failed candidate attempts remain below even when cleanup later filled. Ownership is unknown for the shared transfer and settlement-program failures.
+
+| Scenario row / trader | UTC timestamp | Cleanup trade | Error(s) and final outcome | Debug tool URL |
+| --- | --- | --- | --- | --- |
+| - / 30 | 2026-11-04T13:02:21Z | Sell 830416 base units USDC to SOL | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(1))), program_error: None }` x10; final cancelled | https://debug.barn.cow.fi/order/0xde091fdbc47afe193c4fa6b5acc9991e984537ce748cdeadcb6c798e9c18215d |
+| - / 31 | 2026-11-04T13:02:21Z | Sell 967966 base units USDC to SOL | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(1))), program_error: None }` x10; selected on-chain `InstructionError(1, Custom(15))` x1; [failed transaction](https://solscan.io/tx/P6KG9GNcmAk7d68X4uFn7YLcYkGm16Xkpq4dEZbxbnH7zAj8fH2wSp2pqghdYjggA6eZccbUwX963kedPrc5i6q); final cancelled | https://debug.barn.cow.fi/order/0xff7b85dc59c735e0a3875670ad0b46cb20ed75f244da22f848722fad9842b2a3 |
+| - / 32 | 2026-11-04T13:02:21Z | Sell 1848088 base units USDC to SOL | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(1))), program_error: None }` x3; final fulfilled | https://debug.barn.cow.fi/order/0xf2afcc83fd27da1ad8ade9596d1eee58e4e9fcb4a68d9f05dd5b3a2882ab7948 |
+| - / 33 | 2026-11-04T13:02:21Z | Sell 230485 base units USDC to SOL | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(1))), program_error: None }` x10; final cancelled | https://debug.barn.cow.fi/order/0x58deedd72d7bc51892e189540b6961519422a7facfa7799fc88adcaa59faec19 |
+| - / 34 | 2026-11-04T13:02:21Z | Sell 553926 base units USDC to SOL | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(1))), program_error: None }` x7; final fulfilled | https://debug.barn.cow.fi/order/0xd597b3b6d0ea1f95a6cedb937a58776fd3ad2c1517085fc1e382e59f499c1bcd |
+| - / 35 | 2026-11-04T13:02:26Z | Sell 646488 base units USDC to SOL | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(1))), program_error: None }` x10; final cancelled | https://debug.barn.cow.fi/order/0x92636ff9804a8c9b56c6aeaab513ed9b74e827a190f85ed67401fea3b9e79081 |
+| - / 36 | 2026-11-04T13:02:26Z | Sell 1108503 base units USDC to SOL | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(1))), program_error: None }` x4; final fulfilled | https://debug.barn.cow.fi/order/0xfe790250d2c988396e2c5bdf9d9aa2695e2679fb557b906042785d83f4ef04a9 |
+| - / 37 | 2026-11-04T13:02:26Z | Sell 230617 base units USDC to SOL | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(1))), program_error: None }` x9; final cancelled | https://debug.barn.cow.fi/order/0xe1ab0b95f2b90f11096b7f1c8c7d4374add7914cd8c59eedaf900f0b6170384c |
+| - / 38 | 2026-11-04T13:02:31Z | Sell 550901 base units USDC to SOL | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(1))), program_error: None }` x8; final cancelled | https://debug.barn.cow.fi/order/0x1165c384f7ca8056f5946ff7edb3518dc6ee743a42cba8311a5927b9bde075df |
+| - / 29 | 2026-11-04T13:02:31Z | Sell 456406 base units USDC to SOL | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(1))), program_error: None }` x8; final cancelled | https://debug.barn.cow.fi/order/0x3a5043bdd69b419af98fd575203c5e49f717689a58f03529a724fc3502714a3e |
+| - / 39 | 2026-11-04T13:02:51Z | Sell 645786 base units USDC to SOL | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(1))), program_error: None }` x5; final fulfilled | https://debug.barn.cow.fi/order/0x9602fc22a78bb4592e58c1e6670bc6cda05474efda689ccd82f689f9731a723c |
+| - / 40 | 2026-11-04T13:03:06Z | Sell 739990 base units USDC to SOL | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(1))), program_error: None }` x2; final fulfilled | https://debug.barn.cow.fi/order/0x5660bd90bda97162bd3d0ec68062b7077fda252505410a9efc6772b70a850e70 |
+| - / 41 | 2026-11-04T13:03:36Z | Sell 230810 base units USDC to SOL | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(1))), program_error: None }` x2; final fulfilled | https://debug.barn.cow.fi/order/0xb1d02e7577649a5ee480d334b6bb5c51ed02b4bf84b07088737df101860b650f |
+| - / 43 | 2026-11-04T13:03:51Z | Sell 970449 base units USDC to SOL | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(1))), program_error: None }` x1; final fulfilled | https://debug.barn.cow.fi/order/0x9c22b84e2d403ece2825011f61c61d30a6040554a31b9f8837c81aa5c791a7e8 |
+| - / 45 | 2026-11-04T13:04:01Z | Sell 230826 base units USDC to SOL | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(1))), program_error: None }` x10; final cancelled | https://debug.barn.cow.fi/order/0x572e9931601237a3ca420fd5eca4c25e822a54f160fed8b0d3a56b2681763054 |
+| - / 47 | 2026-11-04T13:04:01Z | Sell 323195 base units USDC to SOL | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(1))), program_error: None }` x10; final cancelled | https://debug.barn.cow.fi/order/0x33c0594cda2314c0cc7a0a4fe11217d04d9f54b29efa91128cd573e51c5cfe53 |
+| - / 48 | 2026-11-04T13:04:01Z | Sell 369422 base units USDC to SOL | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(1))), program_error: None }` x11; final cancelled | https://debug.barn.cow.fi/order/0xe70cdb9fc280d0462eea59b1c0173cb4824ee8ef3eff4959fcc67deef0d9cc08 |
+| - / 44 | 2026-11-04T13:04:01Z | Sell 1106503 base units USDC to SOL | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(1))), program_error: None }` x6; final fulfilled | https://debug.barn.cow.fi/order/0x2ba9bdec6bdd202f2b6ec50653d13f7947064422ff4df8f4eb83cba504bccb02 |
+| - / 46 | 2026-11-04T13:04:01Z | Sell 275745 base units USDC to SOL | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(1))), program_error: None }` x7; final fulfilled | https://debug.barn.cow.fi/order/0xc29208f377e3990747f19c5975155dd791826b9421317eed985398282f2927f8 |
+| - / 49 | 2026-11-04T13:04:11Z | Sell 227580 base units USDC to SOL | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(1))), program_error: None }` x10; final cancelled | https://debug.barn.cow.fi/order/0x17a53b508964cfab0aaf8257c5e609bab8d4aa81d2fece7ab8cbfbc116e0d176 |
+| - / 50 | 2026-11-04T13:04:11Z | Sell 277066 base units USDC to SOL | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(1))), program_error: None }` x11; final cancelled | https://debug.barn.cow.fi/order/0x46b85e0946dfe9fb1478115f67ba205f517e523bcd23d075f0beea746b141264 |
+| - / 52 | 2026-11-04T13:04:16Z | Sell 739786 base units USDC to SOL | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(5, Custom(1))), program_error: None }` x1; `SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(1))), program_error: None }` x9; final cancelled | https://debug.barn.cow.fi/order/0xb963c0f64f54686f004f8a84d13af0c7627f6fcaacd9e0ec03e80f774c17ac7c |
+| - / 53 | 2026-11-04T13:04:16Z | Sell 231308 base units USDC to SOL | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(1))), program_error: None }` x5; final fulfilled | https://debug.barn.cow.fi/order/0xd918434c4cec0fdf42c755c04bf7eef4c0d40894fda89e029d3f7f6f5a4b9353 |
+| - / 54 | 2026-11-04T13:04:21Z | Sell 277360 base units USDC to SOL | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(1))), program_error: None }` x9; final cancelled | https://debug.barn.cow.fi/order/0x435486fb6d68b87a564b06d7d56c27f72ba7b8bd15b7604dc82db80017999022 |
+| - / 55 | 2026-11-04T13:04:46Z | Sell 324080 base units USDC to SOL | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(1))), program_error: None }` x6; final fulfilled | https://debug.barn.cow.fi/order/0x6aecb3f4e705f5b4069d5e9465951674ed22c4433147ae4bc3024a860613e143 |
+| - / 56 | 2026-11-04T13:04:56Z | Sell 369988 base units USDC to SOL | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(1))), program_error: None }` x3; final fulfilled | https://debug.barn.cow.fi/order/0x982a5b5ed6056a6f94b081727a5aefc5c4d30e4c105f5f1d3613a34fabd0e220 |
+| - / 57 | 2026-11-04T13:05:01Z | Sell 231285 base units USDC to SOL | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(1))), program_error: None }` x2; final fulfilled | https://debug.barn.cow.fi/order/0xd514d0075008470a0e53dbcc4c68cf4affddca2d8cacf53c4696d8a03dee6849 |
+| - / 58 | 2026-11-04T13:05:21Z | Sell 277625 base units USDC to SOL | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(1))), program_error: None }` x8; final fulfilled | https://debug.barn.cow.fi/order/0x799ce4e11c370c546cf63ae3ea923a89657fc7e29a4e4d3ce78323b15ba19b06 |
+| - / 60 | 2026-11-04T13:05:31Z | Sell 369964 base units USDC to SOL | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(1))), program_error: None }` x1; final fulfilled | https://debug.barn.cow.fi/order/0x4eda9d128b3284cadab0b5d69f90d7b2679c809f94f305f658d46ba93f951d83 |
+| - / 59 | 2026-11-04T13:05:31Z | Sell 323901 base units USDC to SOL | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(1))), program_error: None }` x5; final fulfilled | https://debug.barn.cow.fi/order/0x3ca2718ef7b34b24c49beaccb8adf62bca35fd33513299feaea5d08ff591c08a |
+| - / 29 | 2026-11-04T13:15:51Z | Sell 456406 base units USDC to SOL | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(1))), program_error: None }` x5; final fulfilled | https://debug.barn.cow.fi/order/0x6f421794f894afc18c934794d76fd28b56127df465ba21309abfc8a5a29dd009 |
+| - / 35 | 2026-11-04T13:15:51Z | Sell 646488 base units USDC to SOL | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(1))), program_error: None }` x3; final fulfilled | https://debug.barn.cow.fi/order/0x2dcce44edd62e28ca011f209098b7a5bafd72cfd5cf59524ed122d120337a88e |
+| - / 38 | 2026-11-04T13:15:51Z | Sell 550901 base units USDC to SOL | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(1))), program_error: None }` x4; final fulfilled | https://debug.barn.cow.fi/order/0x7b446e44ec0c6c1aa3af09125afd557e50d9c59c9a229576a997c978151607f3 |
+| - / 47 | 2026-11-04T13:15:56Z | Sell 323195 base units USDC to SOL | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(1))), program_error: None }` x2; final fulfilled | https://debug.barn.cow.fi/order/0x77c431dca30b86c9af98f6ad78d434c14df6cce8c0b5db57eb410f5b531343c4 |
+| - / 48 | 2026-11-04T13:16:01Z | Sell 369422 base units USDC to SOL | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(1))), program_error: None }` x4; final fulfilled | https://debug.barn.cow.fi/order/0xd177997a1cb0d451f1a49a0103385ad67fc837e5e91f8766b2fb324f91257378 |
+
+Deferred cleanup trader IDs: []. The run retains 30 unresolved order records overall, 23 main and 7 acquisition; these are recovery records, not 30 additional accepted orders. The retained unresolved records are listed in their scenario below.
+
+</details>
+
+## 4. Opposing orders
+
+Opposite-order matching is inconclusive because none of the 15 main requests reached placement. The test team needs both sides accepted before testing direct matching.
+
+<details>
+<summary>Order evidence and metrics</summary>
+
+Planned / eligible / accepted main / filled: 15 / 15 / 0 / 0. Total transactions: 0. Median / longest observed fill: unavailable; no main fill.
+
+All 15 requests were blocked before accepted main placement: 9 main sponsored bundles and 6 prerequisites. No shared opposite-order auction or direct match can be inferred.
+
+| Scenario row / trader | UTC timestamp | Trade | Error(s) and final outcome | Debug tool URL |
+| --- | --- | --- | --- | --- |
+| 116 / 62 | 2026-11-04T13:06:29Z | Buy SOL to exactly 2.6 USDC (sponsored) | main error: 400 Bad Request: InvalidTransaction: the bundle must not create the buy token account | https://debug.barn.cow.fi/order/0x9a2d5fb2b0dcaea36c715b53eede06f0e42b5d1d1dde8b50246e4f3570098efd (creation rejected; debug record may not exist) |
+| 117 / 64 | 2026-11-04T13:06:29Z | Buy SOL to exactly 1.3 USDC (sponsored) | main error: 400 Bad Request: InvalidTransaction: the bundle must not create the buy token account | https://debug.barn.cow.fi/order/0xeaf4f7c020d5976a469059144b31bdd75aa481dc3a6caf960de4b4dffd338c73 (creation rejected; debug record may not exist) |
+| 118 / 65 | 2026-11-04T13:06:30Z | Buy SOL to exactly 3.1 USDC (sponsored) | main error: 400 Bad Request: InvalidTransaction: the bundle must not create the buy token account | https://debug.barn.cow.fi/order/0xea146507be1413bd3fc67f9142a12e37597a9d77c8b602ac99250c95c3293c2a (creation rejected; debug record may not exist) |
+| 119 / 66 | 2026-11-04T13:06:29Z | Buy SOL to exactly 3.1 USDT (sponsored) | main error: 400 Bad Request: InvalidTransaction: the bundle must not create the buy token account | https://debug.barn.cow.fi/order/0x6b59016d6c55b162c52e64c9dfdc4d2dc309a2c65fba143cbe6132ec027ac27d (creation rejected; debug record may not exist) |
+| 120 / 67 | 2026-11-04T13:06:30Z | Buy SOL to exactly 1.1 USDT (sponsored) | main error: 400 Bad Request: InvalidTransaction: the bundle must not create the buy token account | https://debug.barn.cow.fi/order/0x71387b261c4783fbb381708ad67b8900c87c34981ff93cf508861eb00db7f7d5 (creation rejected; debug record may not exist) |
+| 121 / 68 | 2026-11-04T13:06:30Z | Buy SOL to exactly 3.2 USDC (sponsored) | main error: 400 Bad Request: InvalidTransaction: the bundle must not create the buy token account | https://debug.barn.cow.fi/order/0x80b7b1f9424fc738271ee5204ad955d7e908141b0ee892a0174c5df992fe08da (creation rejected; debug record may not exist) |
+| 122 / 61 | 2026-11-04T13:08:58Z | Sell 0.02 SOL to USDC (sponsored) | main error: 400 Bad Request: InvalidTransaction: the bundle must not create the buy token account | https://debug.barn.cow.fi/order/0x12287ba493308a1631790bd51d47465420e1515f0c84fa9ed7b6361bdb08e867 (creation rejected; debug record may not exist) |
+| 123 / 62 | 2026-11-04T13:09:07Z | Buy USDC to exactly 0.02 SOL (sponsored) | acquire USDC error: 400 Bad Request: InvalidTransaction: the bundle must not create the buy token account | https://debug.barn.cow.fi/order/0x7ff774b1f709f63bdbe059328e78677a78649c7479c81f652afdbdd01b6f902e (creation rejected; debug record may not exist) |
+| 124 / 63 | 2026-11-04T13:08:59Z | Sell 0.03 SOL to USDC (sponsored) | main error: 400 Bad Request: InvalidTransaction: the bundle must not create the buy token account | https://debug.barn.cow.fi/order/0x1109013e8967688636eb9bcb5f2018c0068c0f59810f782c6be550a5d957b71b (creation rejected; debug record may not exist) |
+| 125 / 64 | 2026-11-04T13:09:05Z | Sell 1.2 USDC to SOL (sponsored) | acquire USDC error: 400 Bad Request: InvalidTransaction: the bundle must not create the buy token account | https://debug.barn.cow.fi/order/0x8d7721daa97623b452ad9bca1e43c25da02219445cab20db42f68d09c9324542 (creation rejected; debug record may not exist) |
+| 126 / 65 | 2026-11-04T13:09:06Z | Sell 3 USDC to USDT (sponsored) | acquire USDC error: 400 Bad Request: InvalidTransaction: the bundle must not create the buy token account | https://debug.barn.cow.fi/order/0xb45649a7cbb55ca863767d4a27edab0a868410f33209c5daf3d725bf33e9c758 (creation rejected; debug record may not exist) |
+| 127 / 66 | 2026-11-04T13:09:05Z | Sell 3 USDT to USDC (sponsored) | acquire USDT error: 400 Bad Request: InvalidTransaction: the bundle must not create the buy token account | https://debug.barn.cow.fi/order/0x011d4d4eb31ca549a30548721f0a442c24a7e8ef2a4324c875760d2865bbd775 (creation rejected; debug record may not exist) |
+| 128 / 67 | 2026-11-04T13:09:07Z | Sell 1 USDT to USDC (sponsored) | acquire USDT error: 400 Bad Request: InvalidTransaction: the bundle must not create the buy token account | https://debug.barn.cow.fi/order/0x566e818571c1c5d9af00e31b7b3661194c5962ed8205c70e8fa7585c40599e90 (creation rejected; debug record may not exist) |
+| 129 / 68 | 2026-11-04T13:09:05Z | Sell 3 USDC to USDT (sponsored) | acquire USDC error: 400 Bad Request: InvalidTransaction: the bundle must not create the buy token account | https://debug.barn.cow.fi/order/0xe9ea1d4281b6594b9642de36db780804dbd47c72b858627c5928ec59550109da (creation rejected; debug record may not exist) |
+| 130 / 69 | 2026-11-04T13:08:59Z | Sell 0.02 SOL to JUP (sponsored) | main error: 400 Bad Request: InvalidTransaction: the bundle must not create the buy token account | https://debug.barn.cow.fi/order/0x0198a0d9fa01b247cc55408dc99825322fd164ff311005504f919071ef6f9496 (creation rejected; debug record may not exist) |
+
+No successful main example exists because nothing placed.
+
+Deferred cleanup trader IDs: [61, 62, 63, 64, 65, 66, 67, 68, 69]. The run retains 30 unresolved order records overall, 23 main and 7 acquisition; these are recovery records, not 30 additional accepted orders. The retained unresolved records are listed in their scenario below.
+Recovery pending: row 117 / trader 64 / main, `0xeaf4f7c020d5976a469059144b31bdd75aa481dc3a6caf960de4b4dffd338c73`, `Order lookup timed out`, validTo `1793797918`; https://debug.barn.cow.fi/order/0xeaf4f7c020d5976a469059144b31bdd75aa481dc3a6caf960de4b4dffd338c73 (rejected creation may have no debug record).
+Recovery pending: row 116 / trader 62 / main, `0x9a2d5fb2b0dcaea36c715b53eede06f0e42b5d1d1dde8b50246e4f3570098efd`, `Order lookup timed out`, validTo `1793797918`; https://debug.barn.cow.fi/order/0x9a2d5fb2b0dcaea36c715b53eede06f0e42b5d1d1dde8b50246e4f3570098efd (rejected creation may have no debug record).
+Recovery pending: row 119 / trader 66 / main, `0x6b59016d6c55b162c52e64c9dfdc4d2dc309a2c65fba143cbe6132ec027ac27d`, `Order lookup timed out`, validTo `1793797919`; https://debug.barn.cow.fi/order/0x6b59016d6c55b162c52e64c9dfdc4d2dc309a2c65fba143cbe6132ec027ac27d (rejected creation may have no debug record).
+Recovery pending: row 120 / trader 67 / main, `0x71387b261c4783fbb381708ad67b8900c87c34981ff93cf508861eb00db7f7d5`, `Order lookup timed out`, validTo `1793797919`; https://debug.barn.cow.fi/order/0x71387b261c4783fbb381708ad67b8900c87c34981ff93cf508861eb00db7f7d5 (rejected creation may have no debug record).
+Recovery pending: row 118 / trader 65 / main, `0xea146507be1413bd3fc67f9142a12e37597a9d77c8b602ac99250c95c3293c2a`, `Order lookup timed out`, validTo `1793797919`; https://debug.barn.cow.fi/order/0xea146507be1413bd3fc67f9142a12e37597a9d77c8b602ac99250c95c3293c2a (rejected creation may have no debug record).
+Recovery pending: row 121 / trader 68 / main, `0x80b7b1f9424fc738271ee5204ad955d7e908141b0ee892a0174c5df992fe08da`, `Order lookup timed out`, validTo `1793797919`; https://debug.barn.cow.fi/order/0x80b7b1f9424fc738271ee5204ad955d7e908141b0ee892a0174c5df992fe08da (rejected creation may have no debug record).
+Recovery pending: row 122 / trader 61 / main, `0x12287ba493308a1631790bd51d47465420e1515f0c84fa9ed7b6361bdb08e867`, `Order lookup timed out`, validTo `1793798068`; https://debug.barn.cow.fi/order/0x12287ba493308a1631790bd51d47465420e1515f0c84fa9ed7b6361bdb08e867 (rejected creation may have no debug record).
+Recovery pending: row 124 / trader 63 / main, `0x1109013e8967688636eb9bcb5f2018c0068c0f59810f782c6be550a5d957b71b`, `Order lookup timed out`, validTo `1793798068`; https://debug.barn.cow.fi/order/0x1109013e8967688636eb9bcb5f2018c0068c0f59810f782c6be550a5d957b71b (rejected creation may have no debug record).
+Recovery pending: row 130 / trader 69 / main, `0x0198a0d9fa01b247cc55408dc99825322fd164ff311005504f919071ef6f9496`, `Order lookup timed out`, validTo `1793798068`; https://debug.barn.cow.fi/order/0x0198a0d9fa01b247cc55408dc99825322fd164ff311005504f919071ef6f9496 (rejected creation may have no debug record).
+Recovery pending: row 127 / trader 66 / acquire, `0x011d4d4eb31ca549a30548721f0a442c24a7e8ef2a4324c875760d2865bbd775`, `Order lookup timed out`, validTo `1793798075`; https://debug.barn.cow.fi/order/0x011d4d4eb31ca549a30548721f0a442c24a7e8ef2a4324c875760d2865bbd775 (rejected creation may have no debug record).
+Recovery pending: row 125 / trader 64 / acquire, `0x8d7721daa97623b452ad9bca1e43c25da02219445cab20db42f68d09c9324542`, `Order lookup timed out`, validTo `1793798075`; https://debug.barn.cow.fi/order/0x8d7721daa97623b452ad9bca1e43c25da02219445cab20db42f68d09c9324542 (rejected creation may have no debug record).
+Recovery pending: row 129 / trader 68 / acquire, `0xe9ea1d4281b6594b9642de36db780804dbd47c72b858627c5928ec59550109da`, `Order lookup timed out`, validTo `1793798075`; https://debug.barn.cow.fi/order/0xe9ea1d4281b6594b9642de36db780804dbd47c72b858627c5928ec59550109da (rejected creation may have no debug record).
+Recovery pending: row 126 / trader 65 / acquire, `0xb45649a7cbb55ca863767d4a27edab0a868410f33209c5daf3d725bf33e9c758`, `Order lookup timed out`, validTo `1793798076`; https://debug.barn.cow.fi/order/0xb45649a7cbb55ca863767d4a27edab0a868410f33209c5daf3d725bf33e9c758 (rejected creation may have no debug record).
+Recovery pending: row 123 / trader 62 / acquire, `0x7ff774b1f709f63bdbe059328e78677a78649c7479c81f652afdbdd01b6f902e`, `Order lookup timed out`, validTo `1793798076`; https://debug.barn.cow.fi/order/0x7ff774b1f709f63bdbe059328e78677a78649c7479c81f652afdbdd01b6f902e (rejected creation may have no debug record).
+Recovery pending: row 128 / trader 67 / acquire, `0x566e818571c1c5d9af00e31b7b3661194c5962ed8205c70e8fa7585c40599e90`, `Order lookup timed out`, validTo `1793798076`; https://debug.barn.cow.fi/order/0x566e818571c1c5d9af00e31b7b3661194c5962ed8205c70e8fa7585c40599e90 (rejected creation may have no debug record).
+
+</details>
+
+## 5. Token coverage
+
+Token coverage was partial: 20 fixed-input SOL sells filled, but 5 accepted sells cancelled and no exact buy placed. This tests receiving the listed tokens, not selling each token back.
+
+<details>
+<summary>Order evidence and metrics</summary>
+
+Planned / eligible / accepted main / filled: 52 / 52 / 25 / 20. Total transactions: 20. Median / longest observed fill: 3.469 / 6.695 seconds.
+
+Successful fixed-input SOL sell destinations: Bonk, $WIF, POPCAT, JitoSOL, mSOL, JupSOL, cbBTC, USDe, EURC, USDY, JLP, INF, ETH, BNB, XAUt0, Fartcoin, MEW, BOME, hyloSOL, PSOL. Exact-output buys succeeded: none. Token symbols come from the saved token registry; mints remain in request evidence.
+
+**CoW quote-provider failure.** Fifteen token exact buys returned `404 Not Found: NoLiquidity: no route found` before any order existed. Historical API records identify `jupiter-quote-native`, not Arc: for example request `df72f0e99ffc150ca4d8dc6f3a5b8692` at `2026-11-04T13:10:55Z` returned `{"kind":"QuotingFailed","description":"No valid quote found"}`. Requests include SOL to exactly 71.6 PUMP, 0.000427 MU and 0.000597 SPYx. The API has no usable quote; this is not proof of no market liquidity or a permanent unsupported token. Cause unknown. First compare the original exact-output provider response and adapter validation against a fixed-input request; the internal engine response was not recovered, so routing versus validation remains unresolved. No replay was performed.
+
+| Scenario row / trader | UTC timestamp | Trade | Error(s) and final outcome | Debug tool URL |
+| --- | --- | --- | --- | --- |
+| 131 / 70 | 2026-11-04T13:09:42Z | Sell 0.01 SOL to ANSEM (sponsored) | main error: 400 Bad Request: InvalidTransaction: the bundle must not create the buy token account | https://debug.barn.cow.fi/order/0x5f13f7602ddb751903b4266f30e5d3ec36d5e12ecbfd55bc4fda53dfe293be6e (creation rejected; debug record may not exist) |
+| 132 / 71 | 2026-11-04T13:09:43Z | Sell 0.01 SOL to PAID (sponsored) | main error: 400 Bad Request: InvalidTransaction: the bundle must not create the buy token account | https://debug.barn.cow.fi/order/0x8ba350bfad85e62cbda3350c3adea005d6c1337e794630f0cb9d89b6cb038eb0 (creation rejected; debug record may not exist) |
+| 133 / 72 | 2026-11-04T13:09:43Z | Sell 0.01 SOL to USDG (sponsored) | main error: 400 Bad Request: InvalidTransaction: the bundle must not create the buy token account | https://debug.barn.cow.fi/order/0xd3e282b82a3d03e2521647591eac9d23e181516f19109ebaef3eed9839e1c65a (creation rejected; debug record may not exist) |
+| 134 / 73 | 2026-11-04T13:09:45Z | Sell 0.01 SOL to PUMP (self) | main timeout; final cancelled | https://debug.barn.cow.fi/order/0x2c9fd02e823c4c880b972a0877bd209f97846aedc4e2e1e36b9e9e523b210c82 |
+| 135 / 74 | 2026-11-04T13:09:42Z | Sell 0.01 SOL to PYUSD (sponsored) | main error: 400 Bad Request: InvalidTransaction: the bundle must not create the buy token account | https://debug.barn.cow.fi/order/0x1844c2971c0dbc3c0249f1b243229148d22959a81060f53566cc3588b889ddce (creation rejected; debug record may not exist) |
+| 136 / 75 | 2026-11-04T13:09:42Z | Sell 0.01 SOL to CASH (sponsored) | main error: 400 Bad Request: InvalidTransaction: the bundle must not create the buy token account | https://debug.barn.cow.fi/order/0x781bc3aed1a212564796e6a4347d71752330e5a7843cb6a69c05b2698e2ac919 (creation rejected; debug record may not exist) |
+| 137 / 76 | 2026-11-04T13:09:42Z | Sell 0.01 SOL to CRCLx (sponsored) | main error: 400 Bad Request: InvalidTransaction: the bundle must not create the buy token account | https://debug.barn.cow.fi/order/0xf6469809524ec0ee1ab5d59a031ae5cef170a7bc1ad1aad4a95cf59ad1670dc4 (creation rejected; debug record may not exist) |
+| 138 / 77 | 2026-11-04T13:09:47Z | Sell 0.01 SOL to SPYx (self) | main timeout; final cancelled | https://debug.barn.cow.fi/order/0xccc74e862a94d2f3962d1ab14adcf78d8666fe515ca0c0ca1841068fcf4ed078 |
+| 139 / 78 | 2026-11-04T13:09:43Z | Sell 0.01 SOL to USDv (sponsored) | main error: 400 Bad Request: InvalidTransaction: the bundle must not create the buy token account | https://debug.barn.cow.fi/order/0xe24d8077ea6409a5f79b0318df80e8e8c65d84e36e5870f6fdfd7157ae1688d5 (creation rejected; debug record may not exist) |
+| 140 / 79 | 2026-11-04T13:09:43Z | Sell 0.01 SOL to SKHY (sponsored) | main error: 400 Bad Request: InvalidTransaction: the bundle must not create the buy token account | https://debug.barn.cow.fi/order/0xdefcf0eb1b9057b4157499d9efa6c403097e5d53b5d5b209260164a1a45be502 (creation rejected; debug record may not exist) |
+| 141 / 80 | 2026-11-04T13:09:43Z | Sell 0.01 SOL to NVDAx (sponsored) | main error: 400 Bad Request: InvalidTransaction: the bundle must not create the buy token account | https://debug.barn.cow.fi/order/0x5a6f5ae6863247269f060e1088eed9faf520e19c03aff7f85466c4b46fb04772 (creation rejected; debug record may not exist) |
+| 142 / 81 | 2026-11-04T13:09:46Z | Sell 0.01 SOL to MU (self) | main timeout; final cancelled | https://debug.barn.cow.fi/order/0x56ce7e7426320540d8a7a19d5ec1613bb0a75ea7bd9e0c2ed8cc888e26d46206 |
+| 143 / 82 | 2026-11-04T13:09:43Z | Sell 0.01 SOL to SPCX (sponsored) | main error: 400 Bad Request: InvalidTransaction: the bundle must not create the buy token account | https://debug.barn.cow.fi/order/0xb456b19798cc9c8724d5bd2ce432a678e6906bf869122c90fa9152dd1a8c0d36 (creation rejected; debug record may not exist) |
+| 144 / 83 | 2026-11-04T13:09:44Z | Sell 0.01 SOL to SPCXx (sponsored) | main error: 400 Bad Request: InvalidTransaction: the bundle must not create the buy token account | https://debug.barn.cow.fi/order/0x1ea3367a354eaafd1c84456146c2b1badc7531b6cff9dca8d7d3ceb341fdb45e (creation rejected; debug record may not exist) |
+| 145 / 84 | 2026-11-04T13:09:44Z | Sell 0.01 SOL to TSLAx (sponsored) | main error: 400 Bad Request: InvalidTransaction: the bundle must not create the buy token account | https://debug.barn.cow.fi/order/0x883a2d9936cf790aea7ef3de8d1335738758940466302ef31d62a9347ec8d940 (creation rejected; debug record may not exist) |
+| 146 / 85 | 2026-11-04T13:09:47Z | Sell 0.005 SOL to Bonk (self) | final fulfilled | https://debug.barn.cow.fi/order/0xaad8d5d7b16e14a4e80f18fa455f75b8a31abe50cff7a661c666408f5911d555 |
+| 147 / 86 | 2026-11-04T13:09:49Z | Sell 0.005 SOL to $WIF (self) | final fulfilled | https://debug.barn.cow.fi/order/0x8f4ec86f1202e74cc69ab2a42b738e8f053ec844908a883a3323da93f89bf1ce |
+| 148 / 87 | 2026-11-04T13:09:47Z | Sell 0.005 SOL to POPCAT (self) | final fulfilled | https://debug.barn.cow.fi/order/0x0ee54239fb1946c810589783959ffeda847e3f679115c4b32f8a6c8fbdddd11f |
+| 161 / 100 | 2026-11-04T13:09:50Z | Sell 0.005 SOL to GLDx (self) | main timeout; final cancelled | https://debug.barn.cow.fi/order/0x2eb5346b355cb4597014953000ae34d549cb005ac7087f2ec3118e729192a0c4 |
+| 162 / 101 | 2026-11-04T13:09:50Z | Sell 0.005 SOL to EUROP (self) | main timeout; final cancelled | https://debug.barn.cow.fi/order/0x6755a6e405d04aeb0202b0f0363dacc40f68f6a8100ff7d82819b0e4f3a1e7e2 |
+| 168 / 70 | 2026-11-04T13:09:45Z | Buy SOL to exactly 3.26 ANSEM (sponsored) | quote failed: 404 Not Found: NoLiquidity: no route found | No order ID: failed before main placement. |
+| 169 / 71 | 2026-11-04T13:09:47Z | Buy SOL to exactly 88.1 PAID (sponsored) | quote failed: 404 Not Found: NoLiquidity: no route found | No order ID: failed before main placement. |
+| 170 / 72 | 2026-11-04T13:09:47Z | Buy SOL to exactly 0.464 USDG (sponsored) | quote failed: 404 Not Found: NoLiquidity: no route found | No order ID: failed before main placement. |
+| 171 / 73 | 2026-11-04T13:10:56Z | Buy SOL to exactly 71.6 PUMP (self) | quote failed: 404 Not Found: NoLiquidity: no route found | No order ID: failed before main placement. |
+| 172 / 74 | 2026-11-04T13:09:46Z | Buy SOL to exactly 0.464 PYUSD (sponsored) | quote failed: 404 Not Found: NoLiquidity: no route found | No order ID: failed before main placement. |
+| 173 / 75 | 2026-11-04T13:09:46Z | Buy SOL to exactly 0.464 CASH (sponsored) | quote failed: 404 Not Found: NoLiquidity: no route found | No order ID: failed before main placement. |
+| 174 / 76 | 2026-11-04T13:09:46Z | Buy SOL to exactly 0.00574 CRCLx (sponsored) | quote failed: 404 Not Found: NoLiquidity: no route found | No order ID: failed before main placement. |
+| 175 / 77 | 2026-11-04T13:10:58Z | Buy SOL to exactly 0.000597 SPYx (self) | quote failed: 404 Not Found: NoLiquidity: no route found | No order ID: failed before main placement. |
+| 176 / 78 | 2026-11-04T13:09:46Z | Buy SOL to exactly 0.464 USDv (sponsored) | quote failed: 404 Not Found: NoLiquidity: no route found | No order ID: failed before main placement. |
+| 177 / 79 | 2026-11-04T13:09:47Z | Buy SOL to exactly 0.0026 SKHY (sponsored) | quote failed: 404 Not Found: NoLiquidity: no route found | No order ID: failed before main placement. |
+| 178 / 80 | 2026-11-04T13:09:47Z | Buy SOL to exactly 0.00196 NVDAx (sponsored) | quote failed: 404 Not Found: NoLiquidity: no route found | No order ID: failed before main placement. |
+| 179 / 81 | 2026-11-04T13:10:55Z | Buy SOL to exactly 0.000427 MU (self) | quote failed: 404 Not Found: NoLiquidity: no route found | No order ID: failed before main placement. |
+| 180 / 82 | 2026-11-04T13:09:47Z | Buy SOL to exactly 0.00276 SPCX (sponsored) | quote failed: 404 Not Found: NoLiquidity: no route found | No order ID: failed before main placement. |
+| 181 / 83 | 2026-11-04T13:09:48Z | Buy SOL to exactly 0.00277 SPCXx (sponsored) | quote failed: 404 Not Found: NoLiquidity: no route found | No order ID: failed before main placement. |
+| 182 / 84 | 2026-11-04T13:09:48Z | Buy SOL to exactly 0.00123 TSLAx (sponsored) | quote failed: 404 Not Found: NoLiquidity: no route found | No order ID: failed before main placement. |
+
+Cleanup is excluded from main counts. Failed candidate attempts remain below even when cleanup later filled. Ownership is unknown for the shared transfer and settlement-program failures.
+
+| Scenario row / trader | UTC timestamp | Cleanup trade | Error(s) and final outcome | Debug tool URL |
+| --- | --- | --- | --- | --- |
+| - / 85 | 2026-11-04T13:11:16Z | Sell 15329466263 base units Bonk to SOL | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(1))), program_error: None }` x1; final fulfilled | https://debug.barn.cow.fi/order/0x47c892612a31e38e48af8cf7a88b38b9af3487a2b80122087ef14eb77654a3fd |
+| - / 89 | 2026-11-04T13:11:26Z | Sell 3529564 base units mSOL to SOL | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(1))), program_error: None }` x3; final fulfilled | https://debug.barn.cow.fi/order/0x0546565d86e22e5db479e877eee6c2e21c98f00b57fe61c73bd7461900d8f138 |
+| - / 91 | 2026-11-04T13:11:26Z | Sell 590 base units cbBTC to SOL | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(1))), program_error: None }` x13; final cancelled | https://debug.barn.cow.fi/order/0x69229cbc9110fd4fe051c9c077d496878ec9e7f276a3413c6ddcec226ad29003 |
+| - / 93 | 2026-11-04T13:11:26Z | Sell 410479 base units EURC to SOL | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(1))), program_error: None }` x3; final fulfilled | https://debug.barn.cow.fi/order/0xcaa6ac6eb641d3af36a4c5f73ebed0bba94611215e8f681499d10f993fa85a54 |
+| - / 94 | 2026-11-04T13:11:36Z | Sell 401346 base units USDY to SOL | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(1))), program_error: None }` x2; final fulfilled | https://debug.barn.cow.fi/order/0x865bf93d6384eda16d1509a81ed73662b21e6894a4d695ba1237d57c931eab03 |
+| - / 95 | 2026-11-04T13:11:46Z | Sell 107712 base units JLP to SOL | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(1))), program_error: None }` x1; final fulfilled | https://debug.barn.cow.fi/order/0xc53761614132aacc6eef863f6fde65c3ebea9cdb59174ccf84095e0e57a007c9 |
+| - / 97 | 2026-11-04T13:11:46Z | Sell 19182 base units ETH to SOL | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(1))), program_error: None }` x6; final fulfilled | https://debug.barn.cow.fi/order/0x3664789792950329696d0db82f89c7a3b31d5231cbeeecd5c45d8f829cb10c0a |
+| - / 98 | 2026-11-04T13:11:51Z | Sell 66138 base units BNB to SOL | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(1))), program_error: None }` x5; final fulfilled | https://debug.barn.cow.fi/order/0xfc2f877906dfcdc04b9269a3fc10011c4b58c5f29cb8f447122c299e02ff8a04 |
+| - / 91 | 2026-11-04T13:16:56Z | Sell 590 base units cbBTC to SOL | Ownership unknown: `SimulationFailed { err: UiTransactionError(InstructionError(4, Custom(1))), program_error: None }` x13; final cancelled | https://debug.barn.cow.fi/order/0xc08c783f073f2feabd48ef9a96e11f56df69d1170003ef2632b5f675ea6e4489 |
+
+Deferred cleanup trader IDs: [70, 71, 72, 74, 75, 76, 78, 79, 80, 82, 83, 84, 91]. The run retains 30 unresolved order records overall, 23 main and 7 acquisition; these are recovery records, not 30 additional accepted orders. The retained unresolved records are listed in their scenario below.
+Recovery pending: row 131 / trader 70 / main, `0x5f13f7602ddb751903b4266f30e5d3ec36d5e12ecbfd55bc4fda53dfe293be6e`, `Order lookup timed out`, validTo `1793798108`; https://debug.barn.cow.fi/order/0x5f13f7602ddb751903b4266f30e5d3ec36d5e12ecbfd55bc4fda53dfe293be6e (rejected creation may have no debug record).
+Recovery pending: row 136 / trader 75 / main, `0x781bc3aed1a212564796e6a4347d71752330e5a7843cb6a69c05b2698e2ac919`, `Order lookup timed out`, validTo `1793798109`; https://debug.barn.cow.fi/order/0x781bc3aed1a212564796e6a4347d71752330e5a7843cb6a69c05b2698e2ac919 (rejected creation may have no debug record).
+Recovery pending: row 135 / trader 74 / main, `0x1844c2971c0dbc3c0249f1b243229148d22959a81060f53566cc3588b889ddce`, `Order lookup timed out`, validTo `1793798109`; https://debug.barn.cow.fi/order/0x1844c2971c0dbc3c0249f1b243229148d22959a81060f53566cc3588b889ddce (rejected creation may have no debug record).
+Recovery pending: row 137 / trader 76 / main, `0xf6469809524ec0ee1ab5d59a031ae5cef170a7bc1ad1aad4a95cf59ad1670dc4`, `Order lookup timed out`, validTo `1793798109`; https://debug.barn.cow.fi/order/0xf6469809524ec0ee1ab5d59a031ae5cef170a7bc1ad1aad4a95cf59ad1670dc4 (rejected creation may have no debug record).
+Recovery pending: row 132 / trader 71 / main, `0x8ba350bfad85e62cbda3350c3adea005d6c1337e794630f0cb9d89b6cb038eb0`, `Order lookup timed out`, validTo `1793798109`; https://debug.barn.cow.fi/order/0x8ba350bfad85e62cbda3350c3adea005d6c1337e794630f0cb9d89b6cb038eb0 (rejected creation may have no debug record).
+Recovery pending: row 133 / trader 72 / main, `0xd3e282b82a3d03e2521647591eac9d23e181516f19109ebaef3eed9839e1c65a`, `Order lookup timed out`, validTo `1793798110`; https://debug.barn.cow.fi/order/0xd3e282b82a3d03e2521647591eac9d23e181516f19109ebaef3eed9839e1c65a (rejected creation may have no debug record).
+Recovery pending: row 139 / trader 78 / main, `0xe24d8077ea6409a5f79b0318df80e8e8c65d84e36e5870f6fdfd7157ae1688d5`, `Order lookup timed out`, validTo `1793798110`; https://debug.barn.cow.fi/order/0xe24d8077ea6409a5f79b0318df80e8e8c65d84e36e5870f6fdfd7157ae1688d5 (rejected creation may have no debug record).
+Recovery pending: row 140 / trader 79 / main, `0xdefcf0eb1b9057b4157499d9efa6c403097e5d53b5d5b209260164a1a45be502`, `Order lookup timed out`, validTo `1793798110`; https://debug.barn.cow.fi/order/0xdefcf0eb1b9057b4157499d9efa6c403097e5d53b5d5b209260164a1a45be502 (rejected creation may have no debug record).
+Recovery pending: row 143 / trader 82 / main, `0xb456b19798cc9c8724d5bd2ce432a678e6906bf869122c90fa9152dd1a8c0d36`, `Order lookup timed out`, validTo `1793798110`; https://debug.barn.cow.fi/order/0xb456b19798cc9c8724d5bd2ce432a678e6906bf869122c90fa9152dd1a8c0d36 (rejected creation may have no debug record).
+Recovery pending: row 141 / trader 80 / main, `0x5a6f5ae6863247269f060e1088eed9faf520e19c03aff7f85466c4b46fb04772`, `Order lookup timed out`, validTo `1793798111`; https://debug.barn.cow.fi/order/0x5a6f5ae6863247269f060e1088eed9faf520e19c03aff7f85466c4b46fb04772 (rejected creation may have no debug record).
+Recovery pending: row 144 / trader 83 / main, `0x1ea3367a354eaafd1c84456146c2b1badc7531b6cff9dca8d7d3ceb341fdb45e`, `Order lookup timed out`, validTo `1793798111`; https://debug.barn.cow.fi/order/0x1ea3367a354eaafd1c84456146c2b1badc7531b6cff9dca8d7d3ceb341fdb45e (rejected creation may have no debug record).
+Recovery pending: row 145 / trader 84 / main, `0x883a2d9936cf790aea7ef3de8d1335738758940466302ef31d62a9347ec8d940`, `Order lookup timed out`, validTo `1793798112`; https://debug.barn.cow.fi/order/0x883a2d9936cf790aea7ef3de8d1335738758940466302ef31d62a9347ec8d940 (rejected creation may have no debug record).
+
+</details>
+
+## 6. Separate smoke test
+
+Smoke support was partial: 1/6 planned main flows filled. Arc quoted this smoke run itself, so its exact-buy quote failures remain a separate Arc integration question.
+
+<details>
+<summary>Order evidence and metrics</summary>
+
+Planned / eligible / accepted main / filled: 6 / 6 / 1 / 1. Total transactions: 1. Observed main fill: 7.557 seconds. One automatic JUP acquisition also filled in a separate transaction and is excluded. Smoke is not merged into the 182-flow composite denominator. Three exact buys failed before placement with `NoLiquidity`; 2 other flows were blocked by service creation validation. Historical Arc driver quote failures returned `{"kind":"QuotingFailed","description":"No valid quote found"}` at `2026-11-04T12:47:09Z` (request `2270fa749d042f6a9bd0d51d36a72f0e`), `2026-11-04T12:47:10Z` (`a54be83e4257f3e1bcbf8a6a9934598e`) and `2026-11-04T12:47:18Z` (`fb01487958f3b59377c41eda44fc2da7`). The engine response or rejected field is unavailable; cause and repair ownership remain unknown. First inspect exact-output request conversion and original engine response against the successful fixed-input JUP/SOL control, while allowing for different amounts and account modes. A nonempty engine response rejected by the adapter would support an integration fix; an empty response would move investigation to engine routing.
+
+| Scenario row / trader | UTC timestamp | Trade | Error(s) and final outcome | Debug tool URL |
+| --- | --- | --- | --- | --- |
+| 1 / 1 | 2026-11-04T12:47:10Z | Sell 0.01 SOL to USDC (sponsored) | main error: 400 Bad Request: InvalidTransaction: the bundle must not create the buy token account | No accepted main order: failed before placement. |
+| 2 / 2 | 2026-11-04T12:47:09Z | Buy SOL to exactly 2 JUP (sponsored) | quote failed: 404 Not Found: NoLiquidity: no route found | No accepted main order: failed before placement. |
+| 3 / 1 | 2026-11-04T12:47:10Z | Buy USDC to exactly 1 JUP (sponsored) | quote failed: 404 Not Found: NoLiquidity: no route found | No accepted main order: failed before placement. |
+| 4 / 2 | 2026-11-04T12:47:17Z | Sell 1 JUP to wSOL (sponsored) | acquire JUP error: 400 Bad Request: InvalidTransaction: the bundle must not create the buy token account | No accepted main order: failed before placement. |
+| 5 / 1 | 2026-11-04T12:47:26Z | Sell 0.5 JUP to SOL (self) | final fulfilled | https://debug.barn.cow.fi/order/0x13b7f8dc4820f47d06df1503a43e1f85fed602e11c4989e3d5ce15dc25e96516 |
+| 6 / 2 | 2026-11-04T12:47:18Z | Buy USDC to exactly 1 USDT (sponsored) | quote failed: 404 Not Found: NoLiquidity: no route found | No accepted main order: failed before placement. |
+
+Smoke cleanup remains deferred for traders 1 and 2. Two rejected-creation UIDs remain unresolved, with `Order was not found in the API`; neither is an accepted main order: `0xbb776d1e31da273bc6b21599c3eba7c550e467f4c049ee05a18a4897b7f47df3` (main) and `0xf3b7bb31435441698014173e9957b84bbc909edf2a813a0a55c7efde2ef48d84` (acquisition). No cleanup orders were placed in this smoke snapshot.
+
+</details>
