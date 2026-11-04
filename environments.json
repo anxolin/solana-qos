@@ -1,8 +1,9 @@
 {
-  "_doc": "Per-environment endpoints, shared by sim/ (TypeScript) and qos.py. A session's meta.json records which one it used under `env`. Optional `settlementProgram` overrides the SDK's settlement program id, and `settlementVersion` is the program version it runs (its PDA seed is `settlement v<version>`): sim refuses to trade when the installed SDK builds orders for another version. Optional `sponsor` pins the account that pays for sponsored creations (fee payer and `createdBy`); without it sim uses the quote's `funder`, and with it sim warns once if a quote names another account. `limitAppData` is the appData hash CoW Swap hardcodes for limit orders (cowswap libs/common-const/src/solanaAppData.ts); every other order is a market order.",
+  "_doc": "Per-environment endpoints, shared by sim/ (TypeScript) and qos.py. A session's meta.json records which one it used under `env`. Optional `settlementProgram` overrides the SDK's settlement program id, and `settlementVersion` is the program version it runs (its PDA seed is `settlement v<version>`): sim refuses to trade when the installed SDK builds orders for another version. Optional `apiPartner` is the gateway the API key is issued for: with COW_API_KEY set, sim uses it instead of `api`, because the public host answers 429 to a key holder's quotes and app-data uploads. Optional `sponsor` pins the account that pays for sponsored creations (fee payer and `createdBy`); without it sim uses the quote's `funder`, and with it sim warns once if a quote names another account. `limitAppData` is the appData hash CoW Swap hardcodes for limit orders (cowswap libs/common-const/src/solanaAppData.ts); every other order is a market order.",
   "staging": {
     "label": "barn",
     "api": "https://barn.api.cow.fi/solana/api",
+    "apiPartner": "https://partners.barn.cow.fi/solana/api",
     "debug": "https://debug.barn.cow.fi",
     "solscan": "https://solscan.io",
     "logs": {
@@ -21,6 +22,7 @@
   "prod": {
     "label": "prod",
     "api": "https://api.cow.fi/solana/api",
+    "apiPartner": "https://partners.cow.fi/solana/api",
     "debug": "https://debug.cow.fi",
     "solscan": "https://solscan.io",
     "logs": {

@@ -23,6 +23,8 @@ export interface Endpoints {
   settlementProgram?: string
   /** Settlement program version deployed there (`0.5`): orders and PDA seeds differ between versions. */
   settlementVersion?: string
+  /** Gateway the orderbook API key is issued for; used in place of `api` whenever COW_API_KEY is set. */
+  apiPartner?: string
   /** Pins the account that pays for and signs sponsored creations, instead of trusting the quote's `funder`. */
   sponsor?: string
 }
@@ -31,7 +33,10 @@ export function endpoints(cowEnv: CowEnv): Endpoints {
   const all = JSON.parse(readFileSync(resolve(QOS_ROOT, 'environments.json'), 'utf8'))
   const e = all[cowEnv] as Endpoints | undefined
   if (!e) throw new Error(`environments.json has no "${cowEnv}" entry`)
-  return { ...e, api: process.env.COW_SOLANA_API?.trim() || e.api }
+  // A key only buys quota on the gateway it was issued for: on the public host, keyed quotes and app-data uploads
+  // come back 429 all the same. COW_SOLANA_API still wins, so a single run can be pointed anywhere.
+  const partner = apiHeaders()['X-API-Key'] ? e.apiPartner : undefined
+  return { ...e, api: process.env.COW_SOLANA_API?.trim() || partner || e.api }
 }
 
 /**

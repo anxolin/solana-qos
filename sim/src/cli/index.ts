@@ -11,9 +11,9 @@ import { LOG_ENV_HINT, links, loadEnv, logsConfigured, lamportsToSol, QOS_ROOT, 
 import { NATIVE_SOL, Rpc, WSOL_MINT } from '../rpc.js'
 import { fmtSol, fund, fundingPlan, wallets } from '../wallets.js'
 import { Orders } from '../orders.js'
-import { APP_DATA_HEX } from '../appData.js'
+import { type AppDataStatus } from '../appData.js'
 import { Session } from '../session.js'
-import { paceRows, parseScenario, readScenario, sessionSlug, spaceTraders, tradersIn, writeScenario, type TradeRow } from '../scenario.js'
+import { paceRows, parseScenario, readScenario, sellOnly, sessionSlug, spaceTraders, tradersIn, writeScenario, type TradeRow } from '../scenario.js'
 import { failureKind, latestOutcomes, retryRows } from '../retry.js'
 import { runRow, type FlowContext, type RowResult } from '../flow.js'
 import { playScenarios } from '../runner.js'
@@ -156,7 +156,7 @@ interface RateOpts {
 }
 
 function context(
-  opts: { env: CowEnv; maxRetries?: number; orderValidity?: number; fillTimeout?: number; cancelOnTimeout?: boolean; slippageBps?: number } & RateOpts,
+  opts: { env: CowEnv; maxRetries?: number; orderValidity?: number; fillTimeout?: number; cancelOnTimeout?: boolean; slippageBps?: number; appData?: boolean } & RateOpts,
   session: Session,
 ) {
   const env = loadEnv({ cowEnv: opts.env })
@@ -176,9 +176,18 @@ function context(
     sponsor: env.urls.sponsor,
     warn: (m) => log(ui.warn(m)),
     apiRps: opts.apiRps,
+    uploadAppData: opts.appData !== false,
   })
   const ctx: FlowContext = { link: links(env.urls), rpc, orders, session, maxRetries: opts.maxRetries ?? 0, acquireBufferBps: 300, log }
   return { env, rpc, orders, ctx, w: wallets(env.mnemonic) }
+}
+
+/** Say what the orderbook knows about our app-data hash; `missing` is a warning, since placement may reject it. */
+function logAppData(status: AppDataStatus, env: CowEnv, hex: string) {
+  if (status === 'uploaded') log(ui.ok(`Registered app data ${hex} on ${env}`))
+  else if (status === 'present') log(c.dim(`App data ${hex} already registered on ${env}`))
+  else log(ui.warn(`App data ${hex} is not registered on ${env} and --no-app-data skipped the upload: ` +
+    'orders carry a pre-image the orderbook cannot resolve, so placement can fail with InvalidAppData'))
 }
 
 /** Read-only creation budget; scenario estimates are separate so each includes its own cleanup. */
@@ -276,13 +285,27 @@ program
   .option('--max-retries <n>', 'order retries to include in the estimate', (v) => parseInt(v, 10), 0)
   .option('--max-creation-sol <sol>', 'fail if estimated creation costs exceed this amount', Number)
   .option('--no-cleanup', 'exclude cleanup orders from the estimate')
+  .option('--sell-only', 'estimate the scenarios as simulate-trade-session --sell-only runs them: every row a sell')
+  .option('--no-app-data', 'skip uploading the app-data pre-image if the sponsor lookup has to quote')
   .addOption(envOption)
   .action(async (paths: string[], opts) => {
     const run = context(opts, new Session('budget-check'))
     console.log(`Test funder ${run.w.funder.publicKey.toBase58()}: ${fmtSol(await run.rpc.lamports(run.w.funder.publicKey))}`)
-    const budget = await checkCreationBudget(run, paths.map((name) => ({ name, rows: readScenario(name) })), opts)
+    const budget = await checkCreationBudget(run, paths.map((name) => {
+      const rows = readScenario(name)
+      return { name, rows: opts.sellOnly ? sellOnly(rows) : rows }
+    }), opts)
     if (budget.issues.length) throw new Error(budget.issues.join('; '))
   })
+
+/** Every quote carries this unless a run, or a composite scenario, asks for another one. */
+const DEFAULT_SLIPPAGE_BPS = 50
+
+const slippageBps = (v: string) => {
+  const n = parseInt(v, 10)
+  if (!Number.isInteger(n) || n < 0 || n > 10_000) throw new Error('--slippage-bps must be an integer between 0 and 10000')
+  return n
+}
 
 function sessionCommand(name: string) {
   return program.command(name)
@@ -298,7 +321,7 @@ function sessionCommand(name: string) {
     }, 120)
     .option('--fill-timeout <s>', 'seconds to wait for a fill before giving up on the order (it then expires on its own)', (v) => parseInt(v, 10), 90)
     .option('--cancel-on-timeout', 'cancel the order on-chain when giving up, so it cannot fill late')
-    .option('--slippage-bps <bps>', 'override the quoted slippage', (v) => parseInt(v, 10))
+    .option('--slippage-bps <bps>', 'slippage for every quote, in basis points', slippageBps, DEFAULT_SLIPPAGE_BPS)
     .option('--prepare-token-accounts', 'create receiving token accounts once before trading, instead of in each order', false)
     .option('--no-prepare-token-accounts', 'leave receiving token accounts to order creation (the default)')
     .option('--fresh-accounts', 'require missing receiving token accounts; skip account preparation')
@@ -310,15 +333,17 @@ function sessionCommand(name: string) {
     .option('--no-cleanup', 'leave tokens and SOL in the trader wallets')
     .option('--defer-cleanup', 'continue after unfinished cleanup and retry at the end (now the default)')
     .option('--phases', 'treat each CSV time as a phase: a row also waits until every earlier-timed row has finished')
+    .option('--sell-only', 'ignore the CSV type: run every row as a sell of token for other_token, so a buy row sells what it would have bought (acquiring it first)')
+    .option('--no-app-data', 'skip uploading our app-data pre-image; only check whether the orderbook already has it (for an environment that rejects the upload)')
     .option('--no-report', 'skip the qos.py fetch + report run that follows the session')
     .option('-y, --yes', 'skip the confirmation prompt')
     .addOption(envOption)
 }
 
 async function runSession(scenarioPath: string, opts: any, composite?: ReturnType<typeof readComposite>, resume?: SavedRun) {
-  const scenarios: CompositeScenario[] = resume?.scenarios ?? composite?.scenarios ?? [{
+  const scenarios: CompositeScenario[] = resume?.scenarios ?? (composite?.scenarios ?? [{
     id: 1, name: sessionSlug(scenarioPath), path: scenarioPath, rows: spaceTraders(readScenario(scenarioPath), opts.traderSpacing ?? 0), sourceRows: [],
-  }]
+  }]).map(scenario => opts.sellOnly ? { ...scenario, rows: sellOnly(scenario.rows) } : scenario)
   const stamp = new Date().toISOString().slice(0, 16).replace(/[T:]/g, '-')
   const slug = composite ? `composite-${composite.solver.replace(/[^a-zA-Z0-9_-]+/g, '-')}-run` : sessionSlug(scenarioPath)
   const session = new Session(opts.session ?? `${stamp}-${slug}`)
@@ -430,6 +455,9 @@ async function runSession(scenarioPath: string, opts: any, composite?: ReturnTyp
       ['Scenario', c.cyan(scenarioPath)],
       ...(composite ? [['Solver', composite.solver], ['Break', `${composite.breakSeconds}s after each scenario finishes`]] as [string, string][] : []),
       ['Trades', `${c.bold(rows.length)} rows, ${c.bold(traders.length)} traders`],
+      ['Order type', opts.sellOnly
+        ? `${c.yellow('sell only')} ${c.dim('(--sell-only: buy rows sell the token they name, acquiring it first)')}`
+        : c.dim('as the CSV says')],
       ['Phases', opts.phases
         ? `on ${c.dim(`(${new Set(rows.map(r => r.time)).size} CSV times; each waits for every earlier row to finish)`)}`
         : c.dim('off (rows wait only for their own trader)')],
@@ -453,6 +481,9 @@ async function runSession(scenarioPath: string, opts: any, composite?: ReturnTyp
       ['Top-ups', `${c.bold(fmtSol(total))} ${c.dim(composite ? 'at most per scenario; fund before each run' : `to ${plan.filter((l) => l.topUp > 0n).length} of ${traders.length} traders`)}`],
       ['Max total', `${opts.maxTotalSol} SOL${composite ? ' per scenario' : ''}`],
       ['Retries', String(opts.maxRetries)],
+      ['Slippage', `${opts.slippageBps} bps${composite && scenarios.some(s => s.options?.slippageBps !== undefined)
+        ? c.dim(` (scenarios overriding it: ${scenarios.filter(s => s.options?.slippageBps !== undefined).map(s => `${s.name} ${s.options!.slippageBps}`).join(', ')})`)
+        : ''}`],
       ['Order validity', `${opts.orderValidity}s, the orderbook minimum`],
       ['Fill timeout', `${opts.fillTimeout}s, then ${opts.cancelOnTimeout ? 'cancel on-chain and move on' : 'move on and let the order expire'}`],
       ['Client limits', `${opts.quoteRps} quotes/s, ${opts.apiRps} API calls/s, ${opts.rpcRps} RPC calls/s`],
@@ -486,9 +517,7 @@ async function runSession(scenarioPath: string, opts: any, composite?: ReturnTyp
 
     // Orders carry only the app-data hash: register the pre-image before placing any, or the post fails with
     // InvalidAppData. Done for dry runs too, so they catch an unregistered hash before a funded run does.
-    log(await orders.ensureAppData() === 'uploaded'
-      ? ui.ok(`Registered app data ${APP_DATA_HEX} on ${opts.env}`)
-      : c.dim(`App data ${APP_DATA_HEX} already registered on ${opts.env}`))
+    logAppData(await orders.ensureAppData(), opts.env, orders.appDataHex())
 
     if (opts.dryRun) {
       for (const scenario of scenarios) {
@@ -520,7 +549,8 @@ async function runSession(scenarioPath: string, opts: any, composite?: ReturnTyp
     }
     if (!resume) {
       session.writeMeta({ rpc: rpcHost(env.rpcUrl), name: `${session.name} trade session`, title: session.name, env: opts.env,
-        sim: { scenario: resolve(scenarioPath), traders: traders.length, rows: rows.length, solFundingPerTrader: opts.solFundingPerTrader } })
+        sim: { scenario: resolve(scenarioPath), traders: traders.length, rows: rows.length, solFundingPerTrader: opts.solFundingPerTrader,
+          ...(opts.sellOnly ? { sellOnly: true } : {}) } })
       copyFileSync(scenarioPath, resolve(session.dir, 'sim', composite ? 'composite.json' : 'scenario.csv'))
     }
     saveRun(session, saved)
@@ -868,7 +898,8 @@ sessionCommand('simulate-composite-scenario')
       if (command.getOptionValueSource(key) !== 'cli') settings[key] = value
     }
     if (opts.preview) {
-      const rows = combinedRows(composite.scenarios, composite.breakSeconds)
+      const scheduled = combinedRows(composite.scenarios, composite.breakSeconds)
+      const rows = settings.sellOnly ? sellOnly(scheduled) : scheduled
       const budget = creationBudget(rows, settings.maxRetries, settings.cleanup)
       const duration = (seconds: number) => {
         const minutes = Math.floor(seconds / 60)
@@ -882,6 +913,7 @@ sessionCommand('simulate-composite-scenario')
       console.log('Results: not available — use the command without --preview to run the scenarios.')
       console.log(`Environment: ${settings.env}`)
       console.log(`Solver label: ${composite.solver} (does not select the active solver)`)
+      if (settings.sellOnly) console.log('Order type: --sell-only, every row runs as a sell of the token it names')
       console.log(`\nRun order (${rows.length} trades):`)
       console.table(composite.scenarios.map((scenario, index) => ({
         Scenario: scenario.path, Trades: scenario.rows.length, Completion: 'Not run',
@@ -918,6 +950,8 @@ program
   .option('--api-rps <n>', 'other orderbook calls per second: posting, polling', parseFloat, 8)
   .option('--rpc-rps <n>', 'Solana RPC calls per second (your RPC plan is the limit)', parseFloat, 10)
   .option('--max-retries <n>', 'additional cleanup passes after failures (0 = no retries)', Number, 0)
+  .option('--slippage-bps <bps>', 'slippage for every cleanup quote, in basis points', slippageBps, DEFAULT_SLIPPAGE_BPS)
+  .option('--no-app-data', 'skip uploading our app-data pre-image; only check whether the orderbook already has it')
   .option('-y, --yes', 'skip the confirmation prompt')
   .addOption(envOption)
   .action(async (opts) => {
@@ -943,7 +977,7 @@ program
       await fund(rpc, w, plan, log, ctx.link.tx)
       session.log({ step: 'cleanup', event: 'funded', traders: topUps.map(line => line.trader), amount: funding.toString() })
     }
-    await ctx.orders.ensureAppData()
+    logAppData(await ctx.orders.ensureAppData(), opts.env, ctx.orders.appDataHex())
     const res = await cleanupAll(ctx, w, active, opts.env, opts.rpcRps)
     const swept = res.reduce((s, r) => s + r.swept, 0n)
     console.log(`\n${ui.ok(`Swept ${fmtSol(swept)} to the funder.`)}`)

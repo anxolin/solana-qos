@@ -9,13 +9,13 @@ import { encodeOrderIntent, findSettlementStatePda } from '@cowprotocol/sdk-trad
 import { OrderBookApiError, type OrderBookApi } from '@cowprotocol/sdk-order-book'
 import { deriveKeypair, wallets } from '../src/wallets.js'
 import { cleanupTrader } from '../src/cleanup.js'
-import { paceRows, parseScenario, readScenario, sessionSlug, spaceTraders, writeScenario } from '../src/scenario.js'
+import { paceRows, parseScenario, readScenario, sellOnly, sessionSlug, spaceTraders, writeScenario } from '../src/scenario.js'
 import { isRpcFailure, retryRows } from '../src/retry.js'
 import { fromRaw, loadUniverse, toRaw } from '../src/tokens.js'
 import { generate, MIN_GAP_S, mulberry32, roundAmount } from '../src/generator.js'
 import { TRADER_RESERVE_SOL } from '../src/config.js'
 import { creationBudget } from '../src/budget.js'
-import { APP_DATA_DOC, APP_DATA_HEX, registerAppData } from '../src/appData.js'
+import { APP_DATA_DOC, APP_DATA_HEX, appDataDoc, appDataHash, registerAppData } from '../src/appData.js'
 import { barnStatus, buildRows, buildSequence, describeExtension, sampleLongTail, supported, type Routed, type UniverseRow } from '../src/universe.js'
 import { listRows, type Verdict } from '../src/tokenlist.js'
 
@@ -90,6 +90,16 @@ describe('scenario CSV', () => {
     expect(() => parseScenario(`trader,time,type,amount,token,other_token,mode\n${line}\n`)).toThrow(err)
   })
 
+  it('runs every row as a sell with sell-only, keeping the token, amount and order of each row', () => {
+    const rows = parseScenario('trader,time,type,amount,token,other_token\n1,0,buy,0.5,USDC,SOL\n1,10,sell,2,JUP,SOL\n')
+    expect(sellOnly(rows).map((r) => [r.type, r.amount, r.token, r.otherToken])).toEqual([
+      ['sell', 0.5, 'USDC', 'SOL'],
+      ['sell', 2, 'JUP', 'SOL'],
+    ])
+    const sells = parseScenario('trader,time,type,amount,token,other_token\n1,0,sell,1,SOL,USDC\n')
+    expect(sellOnly(sells)).toBe(sells)
+  })
+
   it('skips # comments', () => {
     expect(parseScenario('# generated\ntrader,time,type,amount,token,other_token\n1,0,sell,1,SOL,USDC\n')).toHaveLength(1)
   })
@@ -118,6 +128,12 @@ describe('creation budget', () => {
   it('includes retries and honors disabled cleanup', () => {
     expect(creationBudget(rows, 1, false)).toMatchObject({ main: 4, acquisitions: 2, cleanup: 0, total: 18_000_000n })
     expect(() => creationBudget(rows, -1)).toThrow(/non-negative/)
+  })
+
+  it('counts an acquisition for every buy row sell-only turns into a sell', () => {
+    const buys = parseScenario('trader,time,type,amount,token,other_token\n1,0,buy,0.5,USDC,SOL\n')
+    expect(creationBudget(buys)).toMatchObject({ main: 1, acquisitions: 0, cleanup: 1 })
+    expect(creationBudget(sellOnly(buys))).toMatchObject({ main: 1, acquisitions: 1, cleanup: 1 })
   })
 
   it('recognizes SOL/wSOL addresses and keeps separate trader cleanup costs', () => {
@@ -181,8 +197,26 @@ describe('generator', () => {
 
 describe('app data', () => {
   it('hashes the solana-qos pre-image to the registered appData', () => {
-    expect(APP_DATA_DOC).toBe('{"appCode":"solana-qos","metadata":{},"version":"1.15.0"}')
-    expect(APP_DATA_HEX).toBe('0xa168deae75884cfb01d60d3718bfe0bc258b12d3a120942cd3c08fed01aa8b08')
+    expect(APP_DATA_DOC).toBe('{"appCode":"solana-qos","metadata":{"orderClass":{"orderClass":"market"}},"version":"1.15.0"}')
+    expect(APP_DATA_HEX).toBe('0x0577ddec3ebfe70b06cfbc74f55e2e6b1c1584ec77fd98b7fb360fab197f559b')
+  })
+
+  it('declares the market order class the happy-moo SLI filters on, at every slippage', () => {
+    for (const doc of [APP_DATA_DOC, appDataDoc(0), appDataDoc(50), appDataDoc(10_000)]) {
+      expect(JSON.parse(doc).metadata.orderClass).toEqual({ orderClass: 'market' })
+    }
+  })
+
+  it('puts the quoted slippage in the metadata the schema keeps it in, one hash per value', () => {
+    expect(appDataDoc(50)).toBe(
+      '{"appCode":"solana-qos","metadata":{"orderClass":{"orderClass":"market"},"quote":{"slippageBips":50}},"version":"1.15.0"}',
+    )
+    expect(appDataHash(appDataDoc(50)).hex).toBe('0x44c81c419a3f82b3527bf1c8d4572d73a2cb39c6485b96073b633a4d2ca37ca8')
+    expect(appDataDoc(undefined)).toBe(APP_DATA_DOC)
+    expect(appDataHash(APP_DATA_DOC).hex).toBe(APP_DATA_HEX)
+    expect(appDataHash(appDataDoc(50)).hex).not.toBe(appDataHash(appDataDoc(500)).hex)
+    expect(() => appDataDoc(12.5)).toThrow(/integer between 0 and 10000/)
+    expect(() => appDataDoc(20_000)).toThrow(/integer between 0 and 10000/)
   })
 
   const api = (getAppData: () => Promise<{ fullAppData?: string }>) => {
@@ -201,6 +235,13 @@ describe('app data', () => {
     const { api: a, uploadAppData } = api(async () => { throw apiError(404) })
     expect(await registerAppData(a)).toBe('uploaded')
     expect(uploadAppData).toHaveBeenCalledWith(APP_DATA_HEX, APP_DATA_DOC)
+  })
+
+  it('reports an unknown hash as missing, and uploads nothing, when the upload is off', async () => {
+    const { api: a, uploadAppData } = api(async () => { throw apiError(404) })
+    expect(await registerAppData(a, { upload: false })).toBe('missing')
+    expect(await registerAppData(api(async () => ({ fullAppData: APP_DATA_DOC })).api, { upload: false })).toBe('present')
+    expect(uploadAppData).not.toHaveBeenCalled()
   })
 
   it('does not paper over an orderbook that is down', async () => {

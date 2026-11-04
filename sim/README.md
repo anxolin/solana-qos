@@ -20,7 +20,7 @@ MNEMONIC="word1 word2 … word12"
 RPC_URL="https://…"        # a paid RPC (Helius, Triton, QuickNode…): the public one rate-limits
 RPC_BACKUP_URL="https://…" # optional: a second provider with its own quota, used while the first fails
 DUNE_KEY="…"               # only for build-token-universe
-COW_API_KEY="…"            # optional: orderbook API key, sent as X-API-Key for higher rate limits (also read by qos.py)
+COW_API_KEY="…"            # optional: orderbook API key, sent as X-API-Key; sim then calls the gateway it is issued for (`apiPartner` in environments.json), since the public host answers 429 to a key holder's quotes and uploads (also read by qos.py)
 ```
 
 Then send SOL to the funder address. A session needs about `traders × --sol-funding-per-trader` (25 traders at 0.1 is
@@ -58,7 +58,7 @@ pnpm sim wallets --traders 1-25
 
 Standalone cleanup shows any SOL top-ups needed for fees, wallet rent and order rent before asking for confirmation. Wallets with tokens to sell receive at least the usual 0.02 SOL reserve; wallets with only empty accounts or wSOL receive the current minimum SOL-account balance plus closure fees. That minimum is read from Solana, since a wallet with zero SOL may need its SOL account recreated even while token accounts remain. It stops before sending if the funder cannot cover the top-ups and transfer fees. This lets cleanup retry wallets whose SOL was already swept while tokens remained. Cleanup still returns remaining SOL to the funder, including on its final attempt when some tokens could not be sold.
 
-By default, each order's creation transaction opens its own missing receiving token account, paid by the trader (self-paid) or the sponsor (sponsored), so ordinary scenarios include first-use account costs. Single and composite runs do not create accounts before quoting or require existing accounts to be missing. To create missing accounts once before trading, set `options.prepareTokenAccounts` to `true` in a composite config or pass `--prepare-token-accounts`. Composites keep prepared accounts open between scenarios while selling tokens and recycling available SOL. Final cleanup closes the accounts and returns their rent. Existing accounts are reused. Rent is a temporary deposit, checked against the funder's balance during preflight when preparation is enabled; transaction fees and trading costs are spent. Receiving wSOL accounts can also retain wrapped SOL until final cleanup. `--no-cleanup` leaves accounts and funds in the wallets. Dry runs never create accounts.
+By default, a self-paid order's creation transaction opens its own missing receiving token account, so ordinary scenarios include first-use account costs. A sponsored bundle may not: the orderbook rejects one that creates the buy token account (`InvalidTransaction: the bundle must not create the buy token account`), and the settlement opens a missing account at the owner's associated address itself, charging the rent to the fill rather than the funder. Single and composite runs do not create accounts before quoting or require existing accounts to be missing. To create missing accounts once before trading, set `options.prepareTokenAccounts` to `true` in a composite config or pass `--prepare-token-accounts`. Composites keep prepared accounts open between scenarios while selling tokens and recycling available SOL. Final cleanup closes the accounts and returns their rent. Existing accounts are reused. Rent is a temporary deposit, checked against the funder's balance during preflight when preparation is enabled; transaction fees and trading costs are spent. Receiving wSOL accounts can also retain wrapped SOL until final cleanup. `--no-cleanup` leaves accounts and funds in the wallets. Dry runs never create accounts.
 
 Cleanup logs refer to two different kinds of account:
 
@@ -83,7 +83,7 @@ Main flags of `simulate-trade-session`:
 | `--prepare-token-accounts` | off | Create missing receiving accounts once before trading instead of in each order |
 | `--no-prepare-token-accounts` | | Override a composite config that enables preparation |
 | `--fresh-accounts` | off | Skip preparation and require missing receiving accounts for a dedicated fresh-account test |
-| `--slippage-bps` | SDK default | Quote slippage in basis points; 500 means 5% |
+| `--slippage-bps` | 50 | Slippage every quote asks for, in basis points (0-10000); 500 means 5%. Composite scenarios may override it |
 | `--env` | staging | `prod` must be passed explicitly |
 
 `--fill-timeout` starts after placement. `--max-retries N` allows at most N further attempts after placement errors or fill failures, shared across both kinds of failure. The SDK makes each request once, so its retries cannot multiply that budget. Standalone preparation and cleanup quotes also use `maxRetries`, with quote retry delays capped at one second. With `maxRetries: 0`, each quote, placement and cleanup stage gets one attempt, including no fresh quotes after a validity rejection or self-paid fallback after a native-SOL rejection. A run still has a separate final cleanup stage for unfinished wallets. A failed sponsored submission may still have been accepted, so outstanding-order recovery checks its UID before cleanup or the next scenario. Recovery polling and RPC transport handling remain separate from trade retries.
@@ -150,6 +150,8 @@ Save this JSON beside the two CSV files:
 Supported `options`: `solFundingPerTrader`, `maxTotalSol`, `maxCreationSol`, `maxRetries`, `orderValidity`, `fillTimeout`, `cancelOnTimeout`, `slippageBps`, `quoteRps`, `apiRps`, `rpcRps`, `cleanup`, `report`, `prepareTokenAccounts`, and `freshAccounts`. Omitted settings use the existing run defaults. Unknown fields and invalid settings are rejected before funding. Confirmation can only be skipped with the CLI's `--yes` flag. `maxTotalSol` caps each scenario's funding pass and separately limits upfront token-account setup; `maxCreationSol` caps the whole composite's estimated order creation fees/rent before refunds, excluding receiving-account setup.
 
 Receiving token account preparation is off by default. To enable it for a composite, add `"prepareTokenAccounts": true` inside `options`. Explicit CLI flags override this setting. `freshAccounts: true` still skips preparation and checks that the selected wallets have no receiving accounts before quoting.
+
+Every quote asks the orderbook for `--slippage-bps` basis points of slippage, 50 by default, so runs are comparable instead of following whatever the backend would have quoted. `cleanup-trade-session` takes the same flag for its sell-back quotes; cleanup inside a run follows the run's setting.
 
 A scenario object can override only `freshAccounts`, `solFundingPerTrader`, and `slippageBps`. These per-scenario values take precedence over shared config and CLI settings. The solver composites no longer include a separate fresh-account scenario. For an optional dedicated check in a custom config, use:
 
@@ -275,20 +277,39 @@ trader,time,type,amount,token,other_token,mode,note
 - tokens are a symbol (`SOL`, `USDC`, anything in `universe*.json` or `../tokens.json`) or a mint address. `SOL` is native SOL
 - lines starting with `#` are comments
 
+`--no-app-data` skips uploading our app-data pre-image and only checks whether the orderbook already has it. Orders
+carry the 32-byte hash alone, so an environment that has never seen the pre-image normally gets it uploaded on the
+first run; prod does not take that upload yet (`PUT /api/v1/app_data` answers 429), and this flag gets a run past it.
+The run then warns that the hash is unregistered, and placement can still fail with `InvalidAppData`.
+
+`--sell-only` ignores the `type` column and runs every row as a sell of `amount` of `token` for `other_token`, so a buy
+row sells what it would have bought: `buy 0.5 USDC with SOL` becomes `sell 0.5 USDC for SOL`, with the acquire step
+buying the USDC first. Use it to run a buy file (or a mixed one) as sells, e.g. when exact-out routes are the thing you
+want to leave out. Each converted buy adds an acquisition order, so the creation estimate grows; `check-budget
+--sell-only` prints the estimate the run will use.
+
 ## What happens per row
 
 1. **Acquire.** If the trader doesn't hold enough of the sell token (after re-reading the balance, which can lag a fill),
    it first sells SOL for it and waits for the fill. It never buys: many tokens have no exact-out route. Within 5% of
    the amount, it sells what the trader holds instead.
-2. **Trade.** Places the order and waits up to `--fill-timeout`. No retry unless `--max-retries`.
+2. **Trade.** Places the order and waits up to `--fill-timeout`. No retry unless `--max-retries`. With `--sell-only`
+   the row is a sell whatever the CSV says, so a buy row acquires its token in step 1 and then sells it.
 
 A trader's rows run one after another. Different traders run in parallel.
 
 Each order prints its debug-tool link (`debug.barn.cow.fi` on staging), and self-paid ones their Solscan transaction.
 
-Every order carries the app data hash `0xa168deae75884cfb01d60d3718bfe0bc258b12d3a120942cd3c08fed01aa8b08`
-(`{"appCode":"solana-qos","metadata":{},"version":"1.15.0"}`, in `src/appData.ts`), so
-simulated orders are easy to tell apart from real users. Changing the string changes the hash.
+Every order carries an app data hash whose pre-image (built in `src/appData.ts`) names the sim, declares the order
+class and records the slippage it was quoted with:
+
+```json
+{"appCode":"solana-qos","metadata":{"orderClass":{"orderClass":"market"},"quote":{"slippageBips":50}},"version":"1.15.0"}
+```
+
+`orderClass` is what makes these orders count — the happy-moo SLI keeps only `market`. Each slippage is its own hash,
+registered on first use; a run that leaves slippage to the orderbook keeps the slippage-free
+`0x0577ddec3ebfe70b06cfbc74f55e2e6b1c1584ec77fd98b7fb360fab197f559b`. Changing the string changes the hash.
 
 ## Cleanup
 
