@@ -431,31 +431,34 @@ describe('RPC rate limits', () => {
   })
 })
 
-describe('settlement v0.5 shim (remove with settlement.ts once the SDK builds v0.5)', () => {
+describe('settlement version', () => {
   const staging = new PublicKey('EzHqcdJssenE2R8xogJ8wpL66PRQet9M6ubpsX4QxpPb')
   const prod = new PublicKey('Moook87DzJ25dELx3LXJ3dnu5a4ERVFwKo1PWWF4p7Y')
+
+  it('builds the v0.5 orders both environments run, through the SDK', () => {
+    expect(sdkVersion('prod')).toBe('0.5')
+    expect(sdkVersion('staging')).toBe('0.5')
+  })
 
   it('derives the v0.5 state PDAs that exist on chain', () => {
     // Staging's from `cow authority transfer` (#solana, 9 Oct 2026); both read back on chain, owned by their program.
     expect(settlementFor('staging', '0.5', staging).statePda().toBase58()).toBe('ARHLCFhT3UkEdXEvBJDZVRjTiWNe3fCy4nSrfCtg36tZ')
     expect(settlementFor('prod', '0.5', prod).statePda().toBase58()).toBe('943UYo6pSao4ogyeWtj8evhPUu1skvDP3ukp5iS5L4Yo')
+    expect(settlementFor('staging', undefined, staging).statePda()).toEqual(findSettlementStatePda(staging, 'staging')[0])
   })
 
-  it('clears the created-on-chain flag bit for v0.5 and keeps the SDK path otherwise', () => {
+  it('leaves the created-on-chain flag bit clear, as v0.5 requires', () => {
     const owner = Keypair.generate().publicKey
     const intent = {
       owner, sellTokenAccount: owner, sellMint: owner, buyTokenAccount: owner, buyMint: owner,
-      sellAmount: 1n, buyAmount: 1n, validTo: 1, kind: 'sell', partiallyFillable: false, createdOnChain: true, appData: new Uint8Array(32),
+      sellAmount: 1n, buyAmount: 1n, validTo: 1, kind: 'sell', partiallyFillable: false, appData: new Uint8Array(32),
     } as unknown as Parameters<typeof encodeOrderIntent>[0]
     const FLAGS = 180
     expect(encodeOrderIntent(settlementFor('prod', '0.5', prod).intent(intent))[FLAGS] & 1).toBe(0)
-    expect(encodeOrderIntent(settlementFor('prod', undefined, prod).intent(intent))[FLAGS] & 1).toBe(1)
-    expect(settlementFor('staging', sdkVersion('staging'), staging).statePda()).toEqual(findSettlementStatePda(staging, 'staging')[0])
   })
 
   it('only builds versions it knows', () => {
     expect(canBuild('prod', '0.5')).toBe(true)
-    expect(canBuild('prod', sdkVersion('prod'))).toBe(true)
     expect(canBuild('prod', '0.6')).toBe(false)
     expect(() => settlementFor('prod', '0.6', prod)).toThrow(/no order builder/)
   })

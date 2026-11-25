@@ -103,7 +103,7 @@ h2 { font: 600 21px/1.25 var(--font-head); margin: 0; text-wrap: balance; }
 h3 { font: 600 15px/1.3 var(--font-ui); margin: 0; }
 p { margin: 0; max-width: 68ch; color: var(--ink-2); }
 .meta { color: var(--muted); font-size: 13px; }
-section { display: grid; gap: 14px; min-width: 0; }
+section { display: grid; grid-template-columns: minmax(0, 1fr); gap: 14px; min-width: 0; }
 .more-btn { background: none; border: 0; padding: 0; margin-left: .35em; font: inherit; color: var(--muted); cursor: pointer; text-decoration: underline dotted; }
 .tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; }
 .tile { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 14px 16px;
@@ -149,6 +149,11 @@ svg [data-tip]:hover, .stack [data-tip]:hover { opacity: .8; }
 .callout .badge { font: 600 12px/1 var(--font-ui); letter-spacing: .06em; text-transform: uppercase; color: var(--critical); }
 .two { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
 .scroll { overflow-x: auto; min-width: 0; }
+/* A long table kept one line per row: it grows as wide as it needs and scrolls both ways under a pinned header. */
+.scroll.wide { overflow: auto; max-height: 70vh; }
+.scroll.wide table { width: max-content; min-width: 100%; }
+.scroll.wide th, .scroll.wide td { white-space: nowrap; }
+.scroll.wide th { position: sticky; top: 0; z-index: 1; background: var(--surface); box-shadow: 0 1px 0 var(--line); }
 table { border-collapse: collapse; width: 100%; font-size: 14px; }
 th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
 th { font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); white-space: nowrap; }
@@ -166,10 +171,11 @@ a:focus-visible, button:focus-visible, summary:focus-visible { outline: 2px soli
   border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; cursor: pointer;
   display: inline-flex; align-items: center; gap: 6px; }
 .chips button[aria-pressed="true"] { color: var(--ink); border-color: var(--ink-2); font-weight: 600; }
-details { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 12px 16px; }
+details { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 12px 16px; min-width: 0; }
 details > summary { cursor: pointer; font-weight: 600; }
 details[open] > summary { margin-bottom: 10px; }
 .order { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+.order-list { display: flex; flex-direction: column; gap: 2px; align-items: flex-start; }
 .debug-link { display: inline-flex; padding: 2px; border-radius: 4px; line-height: 0; }
 .debug-link:hover { background: var(--line); }
 .bug-shell { fill: var(--critical); }
@@ -333,14 +339,14 @@ def hbars(rows: list[tuple[str, int, str]], total: int, tone_cls: str = "t-serie
     return "".join(out)
 
 
-def table(headers: list[str], rows: list[list], numeric: set[int] = frozenset(), attrs=None) -> str:
+def table(headers: list[str], rows: list[list], numeric: set[int] = frozenset(), attrs=None, wide: bool = False) -> str:
     th = "".join(f'<th class="{"n" if i in numeric else ""}">{escape(h)}</th>' for i, h in enumerate(headers))
     body = []
     for j, r in enumerate(rows):
         a = attrs[j] if attrs else ""
         tds = "".join(f'<td class="{"n" if i in numeric else ""}">{c}</td>' for i, c in enumerate(r))
         body.append(f"<tr {a}>{tds}</tr>")
-    return f'<div class="scroll"><table><thead><tr>{th}</tr></thead><tbody>{"".join(body)}</tbody></table></div>'
+    return f'<div class="scroll{" wide" if wide else ""}"{' tabindex="0"' if wide else ""}><table><thead><tr>{th}</tr></thead><tbody>{"".join(body)}</tbody></table></div>'
 
 
 LOWER_IS_BETTER = ("time", "Never created", "No settlement", "Winner too late", "rejected", "skipped")
@@ -535,6 +541,13 @@ def no_order_section(rows: list[dict]) -> list[str]:
             + table(["Market", "Rows", "Errors", "Scenario rows"], market_rows, {1}) + "</details></section>"]
 
 
+def row_orders(r: dict) -> str:
+    """Every order a scenario row placed, in placement order, each linking to the debug tool."""
+    return '<div class="order-list">' + "".join(
+        order_cell(uid, "" if step == "main" else f' <span class="meta">{escape(STEPS.get(step, step or ""))}</span>')
+        for uid, step in r.get("uids", [])) + "</div>"
+
+
 def scenario_section(journal: dict, orders: list[dict], cleanup: list[dict]) -> list[str]:
     rows = journal["rows"]
     done = sum(r["status"] == "filled" for r in rows)
@@ -543,12 +556,12 @@ def scenario_section(journal: dict, orders: list[dict], cleanup: list[dict]) -> 
     return ["<section><h2>Scenario</h2>",
             f"<p>{done} of {len(rows)} scenario rows completed, with {journal['retries']} retries and "
             f"{journal['place_errors']} placement errors. {len(orders)} scenario orders: {main} main and {len(orders) - main} "
-            f"acquiring the sell token first.{f' Cleanup placed {len(cleanup)} more (next section).' if cleanup else ''}</p>",
+            f"acquiring the sell token first; the ladybug opens an order in the debug tool.{f' Cleanup placed {len(cleanup)} more (next section).' if cleanup else ''}</p>",
             f'<details><summary>All {len(rows)} scenario rows</summary>' + table(["Started (UTC)", "Row", "Trader", "Trade", "Result", "Took", "Orders", "Reason"], [
                 [r["started"][11:19], r["row"], f"t{r['trader']}", trade_cell(r),
                  f'<span class="order"><i class="sw {pill.get(r["status"], "t-muted")}"></i>{escape(r["status"])}</span>',
-                 f"{r['seconds']:.0f}s" if r.get("seconds") is not None else "", r["orders"], escape(r["reason"])]
-                for r in rows], {1, 5, 6}) + "</details></section>"]
+                 f"{r['seconds']:.0f}s" if r.get("seconds") is not None else "", row_orders(r), escape(r["reason"])]
+                for r in rows], {1, 5}, wide=True) + "</details></section>"]
 
 
 def render(*, session, meta, orders, by_solver, drivers, autopilot, sol, comparisons=(), rate_limits=None,

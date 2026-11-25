@@ -1464,8 +1464,8 @@ const APP_LISTS = {
 function checkSettlementVersion(cowEnv: CowEnv, deployed?: string) {
   if (canBuild(cowEnv, deployed) || process.env.SIM_SKIP_SETTLEMENT_CHECK === '1') return
   throw new Error(
-    `${cowEnv} runs settlement v${deployed} (environments.json), but sim builds v${sdkVersion(cowEnv)} orders (the SDK) ` +
-      `and v${SHIMMED.join(', v')} (settlement.ts): they would fail on chain with InvalidInstructionData. Upgrade ` +
+    `${cowEnv} runs settlement v${deployed} (environments.json), but sim builds v${sdkVersion(cowEnv)} orders (the SDK)` +
+      `${SHIMMED.length ? ` and v${SHIMMED.join(', v')} (settlement.ts)` : ''}: they would fail on chain with InvalidInstructionData. Upgrade ` +
       `@cowprotocol/sdk-trading-solana and @cowprotocol/sdk-config once a release supports v${deployed} ` +
       `(SIM_SKIP_SETTLEMENT_CHECK=1 skips this check).`,
   )

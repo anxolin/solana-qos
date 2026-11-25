@@ -535,7 +535,7 @@ def read_journal(session: Path) -> dict | None:
             retries += 1
         elif ev == "row_start":
             rows[row] = {"row": row, "started": e.get("ts", ""), "seconds": None, "trader": e.get("trader"), "trade": f"{e.get('type')} {e.get('amount')} {e.get('token')} "
-                         f"{'→' if e.get('type') == 'sell' else '←'} {e.get('other')}", "status": "running", "reason": "", "orders": 0,
+                         f"{'→' if e.get('type') == 'sell' else '←'} {e.get('other')}", "status": "running", "reason": "", "orders": 0, "uids": [],
                          "type": e.get("type"), "amount": e.get("amount"), "token": e.get("token"), "other": e.get("other")}
         elif ev in ("row_done", "row_failed") and row in rows:
             rows[row]["status"] = "filled" if ev == "row_done" else "failed"
@@ -546,6 +546,10 @@ def read_journal(session: Path) -> dict | None:
     for info in orders.values():
         if info["row"] in rows:
             rows[info["row"]]["orders"] += 1
+    # In placement order, each with its step, so the report can link every order a row placed.
+    for uid, info in orders.items():
+        if info["row"] in rows:
+            rows[info["row"]]["uids"].append((uid, info["step"]))
     return {"orders": orders, "rows": [rows[k] for k in sorted(rows)], "place_errors": place_errors, "retries": retries,
             "timeouts": timeouts, "outcomes": outcomes}
 
@@ -723,7 +727,8 @@ def cmd_report(a):
                f"{journal['place_errors']} placement errors (from `sim/journal.jsonl`).", ""]
         md += [table(["Started (UTC)", "Row", "Trader", "Trade", "Result", "Took", "Orders", "Reason"],
                      [[r["started"][11:19], r["row"], r["trader"], r["trade"], r["status"],
-                       f"{r['seconds']:.0f}s" if r["seconds"] is not None else "", r["orders"], r["reason"]] for r in rows_]), ""]
+                       f"{r['seconds']:.0f}s" if r["seconds"] is not None else "", ", ".join(f"[{u[:10]}…]({DEBUG}{u})" + ("" if step == "main" else f" ({step})") for u, step in r["uids"]),
+                       r["reason"]] for r in rows_]), ""]
         no_order = [r for r in rows_ if r.get("failure")]
         if no_order:
             by_err = defaultdict(list)
