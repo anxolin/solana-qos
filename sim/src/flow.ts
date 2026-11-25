@@ -81,6 +81,7 @@ export async function placeAndWait(
       sellAmount: last.sellAmount.toString(),
       buyAmount: last.buyAmount.toString(),
       validTo: last.validTo,
+      quoteId: last.quoteId,
       signature: last.signature,
     })
     ctx.log(

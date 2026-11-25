@@ -300,6 +300,10 @@ A trader's rows run one after another. Different traders run in parallel.
 
 Each order prints its debug-tool link (`debug.barn.cow.fi` on staging), and self-paid ones their Solscan transaction.
 
+A sponsored order sends its `quoteId` with the post. A self-paid order never goes through the orderbook API, so its
+creation transaction ends with an SPL Memo instruction `cow:quote:<quoteId>` (no accounts), which the indexer reads to
+tie the order to its quote. The `placed` journal event records the `quoteId` for both.
+
 Every order carries an app data hash whose pre-image (built in `src/appData.ts`) names the sim, declares the order
 class and records the slippage it was quoted with:
 

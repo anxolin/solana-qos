@@ -5,7 +5,7 @@ import { OrderKind } from '@cowprotocol/sdk-order-book'
 import type { SolanaQuoteAndPost } from '@cowprotocol/sdk-trading-solana'
 import { placeAndWait, runRow, type FlowContext } from '../src/flow.js'
 import { RateLimiter } from '../src/limiter.js'
-import { Orders, type Placed } from '../src/orders.js'
+import { MEMO_PROGRAM_ID, Orders, type Placed } from '../src/orders.js'
 import { Rpc, WSOL_MINT } from '../src/rpc.js'
 import { appDataDoc, appDataHash } from '../src/appData.js'
 import { parseScenario } from '../src/scenario.js'
@@ -105,6 +105,35 @@ describe('placement reliability', () => {
     const send = vi.spyOn(rpc, 'sendAndConfirm').mockResolvedValue('tx')
     await orders.place({ owner, sell, buy, kind: 'sell', amount: 1_000_000n, mode: 'self' })
     expect(mintsCreated(send.mock.calls[0][0])).toEqual([WSOL_MINT.toBase58(), buy.mint.toBase58()])
+  })
+
+  it('names the quote in a memo after CreateOrder when self-paid, and leaves a sponsored bundle without one', async () => {
+    const { rpc, orders, owner, sell, buy, built } = await fixture()
+    const postSponsoredOrder = vi.fn(async (_transaction: string) => undefined)
+    const quote = vi.spyOn(orders, 'quote').mockResolvedValue({
+      solanaQuote: { funder: Keypair.generate().publicKey, intent: built.intent },
+      quoteResults: { quoteResponse: { id: 161211 } },
+      buildOrder: async () => built, postSponsoredOrder,
+    } as unknown as SolanaQuoteAndPost)
+    vi.spyOn(rpc, 'call').mockResolvedValue({ blockhash: '11111111111111111111111111111111', lastValidBlockHeight: 1 } as never)
+    const send = vi.spyOn(rpc, 'sendAndConfirm').mockResolvedValue('tx')
+    const memos = (ixs: { programId: PublicKey; data: Buffer }[]) =>
+      ixs.filter(i => i.programId.equals(MEMO_PROGRAM_ID)).map(i => i.data.toString('utf8'))
+
+    const self = await orders.place({ owner, sell, buy, kind: 'sell', amount: 1_000_000n, mode: 'self' })
+    const sent = send.mock.calls[0][0]
+    expect(self.quoteId).toBe(161211)
+    expect(memos(sent)).toEqual(['cow:quote:161211'])
+    expect(sent.at(-1)!.keys).toEqual([])
+    expect(sent.at(-2)).toBe(built.instruction)
+
+    await orders.place({ owner, sell, buy, kind: 'sell', amount: 1_000_000n, mode: 'sponsored' })
+    expect(memos(Transaction.from(Buffer.from(postSponsoredOrder.mock.calls[0][0], 'base64')).instructions)).toEqual([])
+
+    // A quote the orderbook did not store has no id to point at.
+    quote.mockResolvedValue({ solanaQuote: {}, quoteResults: { quoteResponse: {} }, buildOrder: async () => built } as unknown as SolanaQuoteAndPost)
+    await orders.place({ owner, sell, buy, kind: 'sell', amount: 1_000_000n, mode: 'self' })
+    expect(memos(send.mock.calls[1][0])).toEqual([])
   })
 
   it.each([[500, 0, 1], [500, 2, 3], [429, 1, 2], [400, 2, 1]])('bounds HTTP %s quotes with maxRetries=%s at %s attempts', async (status, maxRetries, attempts) => {

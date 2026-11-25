@@ -1,4 +1,4 @@
-import { Keypair, PublicKey, SystemProgram, Transaction, type TransactionInstruction } from '@solana/web3.js'
+import { Keypair, PublicKey, SystemProgram, Transaction, TransactionInstruction } from '@solana/web3.js'
 import {
   createApproveInstruction,
   createAssociatedTokenAccountIdempotentInstruction,
@@ -24,6 +24,16 @@ import { WSOL_MINT, type Rpc } from './rpc.js'
 import { splMint, type Token } from './tokens.js'
 import type { Mode } from './scenario.js'
 
+/** SPL Memo program: takes any UTF-8 text as instruction data and needs no accounts. */
+export const MEMO_PROGRAM_ID = new PublicKey('MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr')
+
+/**
+ * Memo naming the quote an order was built from. The orderbook only learns `quoteId` from sponsored posts; an order
+ * created straight on chain carries it in the same transaction instead, where the indexer reads it.
+ */
+export const quoteMemoInstruction = (quoteId: number) =>
+  new TransactionInstruction({ programId: MEMO_PROGRAM_ID, keys: [], data: Buffer.from(`cow:quote:${quoteId}`, 'utf8') })
+
 /** `timeout`: not filled within the fill timeout; the script stopped waiting (and cancelled it, if asked to). */
 export type FinalStatus = 'fulfilled' | 'expired' | 'cancelled' | 'timeout'
 
@@ -48,6 +58,8 @@ export interface Placed {
   buyAmount: bigint
   validTo: number
   funder?: string
+  /** Quote the order was built from: sent with a sponsored post, written as a memo in a self-paid creation. */
+  quoteId?: number
   signature?: string
   placedAt: number
   /** Kept to cancel the order after the fill timeout. */
@@ -323,6 +335,9 @@ export class Orders {
       )
     }
     ixs.push(order.instruction)
+    // Self-paid only: a sponsored post already carries the id, and its template takes no extra instruction.
+    const quoteId = q.quoteResults?.quoteResponse?.id ?? undefined
+    if (mode !== 'sponsored' && quoteId !== undefined) ixs.push(quoteMemoInstruction(quoteId))
 
     let signature: string | undefined
     const prepared = { uid: order.orderId, validTo: intent.validTo, mode,
@@ -355,6 +370,7 @@ export class Orders {
       buyAmount: intent.buyAmount,
       validTo: intent.validTo,
       funder: funder?.toBase58(),
+      quoteId,
       signature,
       placedAt: Date.now(),
       owner: p.owner,
